@@ -1,38 +1,37 @@
-Received: from a11-32.smtp-out.amazonses.com (a11-32.smtp-out.amazonses.com [54.240.11.32])
+Received: from a11-80.smtp-out.amazonses.com (a11-80.smtp-out.amazonses.com [54.240.11.80])
 	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFAAD38AC7D;
-	Mon, 10 Aug 2026 20:25:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.32
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E656A34EF03;
+	Mon, 10 Aug 2026 20:26:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.80
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786393560; cv=none; b=Sckk6FPWgEsJs8E275HRhpcWSsDJtDhto9dINGB4KoOqPLKc4cyzbGCWAkDVkFqYOnV62WdSs8hJ3OValRak/OyD9W/SwvvJOn+JKw+8rf/DNiv+6qKhhrrsxKqPYin9iT/U4ZmRRmw+h/4togXWJyFUc0oucKYR2JC5pmDh7zY=
+	t=1786393572; cv=none; b=RwxJWiGaNYaUyoI3zSOarmdLbT9kkrJ7R+TfOzYMXsRGPM/Q5+z7UdZaV1bCOAseMQ1EbKl+d2Gi/JKy5Ly3EYLfneHgax8CJ8BLcyvuTSIGs8POSJDcnlXH5czTUr4LdJLlkOYkDpGuOPF8l6n/oqD5SwaJRE2r1dfIWO9YPXQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786393560; c=relaxed/simple;
-	bh=8AUdrHCbpTYrFbHD+RQ6Y2Jj8+xz9I7kVU8dMMD3ovw=;
+	s=arc-20240116; t=1786393572; c=relaxed/simple;
+	bh=jlzaWT67ROlF0vfbvokOde288YAFHqOzVK71vsJxpdg=;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:In-Reply-To:
-	 References:Message-ID; b=MArbgUFRoqH+2CEe3qWKnn1gHXzwXs3ifkE2IsR1ZmOTFbHqVYb2B1KxK18qdOU/+5OTuXrWAno58YApH0DBl1NireovYVxksCiOI7Qgen0uIRJZA9W0KBdMfkXdI7lXdGE4ilqpWr9GT7A63YVrF+2j0Ihm5Wtgj+2+DlxGH/g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=q/X0hZ25; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=liT53Kc2; arc=none smtp.client-ip=54.240.11.32
+	 References:Message-ID; b=C28cpEtTWS3rhwXj+eVuGbqIchqr7heS5U9Iavji7czLBwe3APWRIwhW5ATSph2CXSW2uoTmC2aY3T6PiplE0p+Wdbq7MJdiwmmcDgqfCNANga7onxW324vpGuzicrv+rV86P3Fr/rsSkMXpOjWzHdlqeNamJQgN2V9MS0ZG89I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=lGS9I+AT; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=ifS33NOT; arc=none smtp.client-ip=54.240.11.80
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="q/X0hZ25";
-	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="liT53Kc2"
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="lGS9I+AT";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="ifS33NOT"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1786393557;
+	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1786393569;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id;
-	bh=8AUdrHCbpTYrFbHD+RQ6Y2Jj8+xz9I7kVU8dMMD3ovw=;
-	b=q/X0hZ25Lhyxm+DgQ76C4RFrIhaLbsNDtc4R7bSK8Me2Geoe5SqN99ws8znvaTHc
-	MbeZBAnimSzy1gFscPAStE5yeKPzZHS0hVGFeUG50i7V7Qq+FMT+LvZ1bDriS9WeNb4
-	H7PtnUbqMHN9vdcQByCIE3QmZDGZL502hN05YpxE=
+	bh=jlzaWT67ROlF0vfbvokOde288YAFHqOzVK71vsJxpdg=;
+	b=lGS9I+ATknj9B1YCRSvnciUiZKSNweGCxe32f0LROMEHN3xP/SrfWEsdAvrsLHIF
+	iG3yP50CAmfIMIz3qV5yj/YQiSA33W9UKRy1Uf51eaiXr1Eg2nfQQyRVHSbua37DYI3
+	GmIiqs28CcYck8GThPMJW035AUgNHnuQ3zMEXQIo=
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1786393557;
+	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1786393569;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id:Feedback-ID;
-	bh=8AUdrHCbpTYrFbHD+RQ6Y2Jj8+xz9I7kVU8dMMD3ovw=;
-	b=liT53Kc2Itc7ev/HyboFpD0IhrqUutuX0YCzNpR7bWzyqAwcu3jNP7dii/OP6f9J
-	rAGjYcsWjW1n5/EhiWx44uBgDDPEWZELlOBpJEwKwImLexS/xIiHD+tbJTA4LeqfkQ+
-	6x1jYrgG+WIFQJp9DUtjpXLlY//rPq9Ul5ywH1Qc=
-Subject: [PATCH v13 11/12] famfs: Report device capacity via statfs so df
- works
+	bh=jlzaWT67ROlF0vfbvokOde288YAFHqOzVK71vsJxpdg=;
+	b=ifS33NOTfcs6ck4PCf6QQr5PXxApjrbMC9lx8HuEbWV7xZCJxjip9IhJXQr+4g7Q
+	2/unBRkeA9N2cj03zaXj+bDrGErpbcN6r6xoBqdpyCSIgz99pNFw1cD3QmCU4Rt0z88
+	xXL107PYC+HiCaiavirbq/ZidMELEODt7PhzS4Tc=
+Subject: [PATCH v13 12/12] famfs: Add documentation
 From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
 To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
 	=?UTF-8?Q?Miklos_Szeredi?= <miklos@szeredi.hu>, 
@@ -87,8 +86,9 @@ Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>,
 	=?UTF-8?Q?linux-cxl=40vger=2Ekernel=2Eorg?= <linux-cxl@vger.kernel.org>, 
 	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>, 
 	=?UTF-8?Q?fuse-devel=40lists=2Elinux=2E?= =?UTF-8?Q?dev?= <fuse-devel@lists.linux.dev>, 
-	=?UTF-8?Q?John_Groves?= <john@groves.net>
-Date: Mon, 10 Aug 2026 20:25:57 +0000
+	=?UTF-8?Q?John_Groves?= <john@groves.net>, 
+	=?UTF-8?Q?Jonathan_Cameron?= <jonathan.cameron@huawei.com>
+Date: Mon, 10 Aug 2026 20:26:09 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -101,139 +101,135 @@ In-Reply-To:
  <0100019fed5850ec-2bdfb17a-3086-44ea-8fdd-777d3ce12a33-000000@email.amazonses.com>
 References: 
  <0100019fed5850ec-2bdfb17a-3086-44ea-8fdd-777d3ce12a33-000000@email.amazonses.com> 
- <20260810202549.96400-1-john@jagalactic.com>
+ <20260810202559.96415-1-john@jagalactic.com>
 X-Mailer: Amazon WorkMail
-Thread-Index: AQHdKQYd8BhJGjNjSyqPwMCz2Vr35AAAFVF8
-Thread-Topic: [PATCH v13 11/12] famfs: Report device capacity via statfs so
- df works
-X-Wm-Sent-Timestamp: 1786393556
+Thread-Index: AQHdKQYd8BhJGjNjSyqPwMCz2Vr35AAAFwXs
+Thread-Topic: [PATCH v13 12/12] famfs: Add documentation
+X-Wm-Sent-Timestamp: 1786393567
 X-Original-Mailer: git-send-email 2.55.0
-Message-ID: <0100019fed5a7936-f613e396-d14b-455f-bfd0-e2a0c1f4f844-000000@email.amazonses.com>
+Message-ID: <0100019fed5aa95d-21a4a553-a4af-476a-9903-43dd5af8a017-000000@email.amazonses.com>
 Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
-X-SES-Outgoing: 2026.08.10-54.240.11.32
+X-SES-Outgoing: 2026.08.10-54.240.11.80
 
-From: John Groves <john@groves.net>=0D=0A=0D=0AReplace simple_statfs(), w=
-hich reports zero blocks (so df omits the mount),=0D=0Awith famfs_statfs(=
-) reporting real capacity and usage.=0D=0A=0D=0AAdd dax_fsdev_size() in d=
-rivers/dax/fsdev.c, returning the size fsdev=0D=0Acaches at probe (dev_da=
-x->cached_size - the sum of the device's ranges,=0D=0Astable while bound)=
-, exported. It lives in fsdev.c because cached_size is=0D=0Aset only by t=
-he fsdev driver, and famfs only ever holds fsdev-mode daxdevs=0D=0A(fs_da=
-x_get() enforces DAXDRV_FSDEV_TYPE); famfs.ko therefore depends on=0D=0Af=
-sdev_dax.ko.=0D=0A=0D=0Afamfs tracks two byte counters under a new stats_=
-sem:=0D=0A - total_capacity: summed in famfs_install_daxdev() from dax_fs=
-dev_size(),=0D=0A   covering the mount primary and every DAXDEV_OPEN seco=
-ndary, counted once=0D=0A   per daxdev (on the valid 0->1 transition).=0D=
-=0A - used_capacity: summed in famfs_file_init_dax() from the fmap's mapp=
-ed=0D=0A   device bytes (superblock + log + data files).=0D=0A=0D=0Afamfs=
-_statfs() reports total and free (total - used). Free is an=0D=0Aapproxim=
-ation of the userspace allocator's free space (it ignores allocator=0D=0A=
-gaps and reserved regions), which is adequate for df.=0D=0A=0D=0A(Side no=
-te: I am the maintainer of drivers/dax/fsdev.c)=0D=0A=0D=0ASigned-off-by:=
- John Groves <john@groves.net>=0D=0A---=0D=0A drivers/dax/fsdev.c       |=
- 19 +++++++++++++++=0D=0A fs/famfs/famfs_file.c     |  5 ++++=0D=0A fs/fa=
-mfs/famfs_inode.c    | 49 ++++++++++++++++++++++++++++++++++-----=0D=0A f=
-s/famfs/famfs_internal.h |  8 +++++++=0D=0A include/linux/dax.h       |  =
-1 +=0D=0A 5 files changed, 76 insertions(+), 6 deletions(-)=0D=0A=0D=0Adi=
-ff --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c=0D=0Aindex 188b2526b=
-ee4..a5b4b2d79428 100644=0D=0A--- a/drivers/dax/fsdev.c=0D=0A+++ b/driver=
-s/dax/fsdev.c=0D=0A@@ -104,6 +104,25 @@ static size_t fsdev_dax_recovery_=
-write(struct dax_device *dax_dev, pgoff_t pgoff=0D=0A =09return _copy_fro=
-m_iter_flushcache(addr, bytes, i);=0D=0A }=0D=0A=20=0D=0A+/**=0D=0A+ * da=
-x_fsdev_size() - total size in bytes of an fsdev dax device=0D=0A+ * @dax=
-_dev: the dax device (must be bound to this driver)=0D=0A+ *=0D=0A+ * Ret=
-urns the size cached at probe time (sum of all ranges); it cannot change=0D=
-=0A+ * while the driver is bound. Only valid for fsdev dax devices - call=
-ers=0D=0A+ * ensure that (e.g. fs_dax_get() enforces DAXDRV_FSDEV_TYPE). =
-Returns 0 if the=0D=0A+ * device is not alive.=0D=0A+ */=0D=0A+u64 dax_fs=
-dev_size(struct dax_device *dax_dev)=0D=0A+{=0D=0A+=09struct dev_dax *dev=
-_dax =3D dax_get_private(dax_dev);=0D=0A+=0D=0A+=09if (!dev_dax)=0D=0A+=09=
-=09return 0;=0D=0A+=09return dev_dax->cached_size;=0D=0A+}=0D=0A+EXPORT_S=
-YMBOL_GPL(dax_fsdev_size);=0D=0A+=0D=0A static const struct dax_operation=
-s dev_dax_ops =3D {=0D=0A =09.direct_access =3D fsdev_dax_direct_access,=0D=
-=0A =09.zero_page_range =3D fsdev_dax_zero_page_range,=0D=0Adiff --git a/=
-fs/famfs/famfs_file.c b/fs/famfs/famfs_file.c=0D=0Aindex e7fa7324c374..17=
-359fa4007b 100644=0D=0A--- a/fs/famfs/famfs_file.c=0D=0A+++ b/fs/famfs/fa=
-mfs_file.c=0D=0A@@ -282,6 +282,11 @@ famfs_file_init_dax(struct file *fil=
-e, void __user *arg)=0D=0A =09}=0D=0A =09inode_unlock(inode);=0D=0A=20=0D=
-=0A+=09/* Account the mapped device bytes for statfs (only on success) */=
-=0D=0A+=09if (!rc) {=0D=0A+=09=09scoped_guard(rwsem_write, &fsi->stats_se=
-m)=0D=0A+=09=09=09fsi->used_capacity +=3D extent_total;=0D=0A+=09}=0D=0A =
-out:=0D=0A =09kvfree(fmap_buf);=0D=0A =09if (meta)=0D=0Adiff --git a/fs/f=
-amfs/famfs_inode.c b/fs/famfs/famfs_inode.c=0D=0Aindex 2f1938adbfbc..61b6=
-68b299ef 100644=0D=0A--- a/fs/famfs/famfs_inode.c=0D=0A+++ b/fs/famfs/fam=
-fs_inode.c=0D=0A@@ -24,6 +24,7 @@=0D=0A #include <linux/iomap.h>=0D=0A #i=
-nclude <linux/path.h>=0D=0A #include <linux/namei.h>=0D=0A+#include <linu=
-x/statfs.h>=0D=0A=20=0D=0A #include "famfs_internal.h"=0D=0A=20=0D=0A@@ -=
-348,8 +349,38 @@ famfs_evict_inode(struct inode *inode)=0D=0A =09clear_in=
-ode(inode);=0D=0A }=0D=0A=20=0D=0A+/*=0D=0A+ * famfs_statfs() - report de=
-vice capacity and consumption so 'df' works.=0D=0A+ * @total_capacity is =
-the sum of installed daxdev sizes; @used_capacity is the=0D=0A+ * sum of =
-device bytes mapped by fmaps (superblock + log + data files). Free is=0D=0A=
-+ * the difference - an approximation of the userspace allocator's free s=
-pace=0D=0A+ * (it ignores allocator gaps / reserved regions), which is fi=
-ne for df.=0D=0A+ */=0D=0A+static int=0D=0A+famfs_statfs(struct dentry *d=
-entry, struct kstatfs *buf)=0D=0A+{=0D=0A+=09struct famfs_fs_info *fsi =3D=
- dentry->d_sb->s_fs_info;=0D=0A+=09u64 total, used, free;=0D=0A+=0D=0A+=09=
-scoped_guard(rwsem_read, &fsi->stats_sem) {=0D=0A+=09=09total =3D fsi->to=
-tal_capacity;=0D=0A+=09=09used  =3D fsi->used_capacity;=0D=0A+=09}=0D=0A+=
-=09free =3D total > used =3F total - used : 0;=0D=0A+=0D=0A+=09buf->f_typ=
-e    =3D FAMFS_SUPER_MAGIC;=0D=0A+=09buf->f_bsize   =3D PAGE_SIZE;=0D=0A+=
-=09buf->f_frsize  =3D PAGE_SIZE;=0D=0A+=09buf->f_blocks  =3D total >> PAG=
-E_SHIFT;=0D=0A+=09buf->f_bfree   =3D free  >> PAGE_SHIFT;=0D=0A+=09buf->f=
-_bavail  =3D free  >> PAGE_SHIFT;=09/* no root reservation */=0D=0A+=09bu=
-f->f_namelen =3D NAME_MAX;=0D=0A+=09buf->f_fsid    =3D u64_to_fsid(huge_e=
-ncode_dev(dentry->d_sb->s_dev));=0D=0A+=09return 0;=0D=0A+}=0D=0A+=0D=0A =
-static const struct super_operations famfs_super_ops =3D {=0D=0A-=09.stat=
-fs=09=09=3D simple_statfs,=0D=0A+=09.statfs=09=09=3D famfs_statfs,=0D=0A =
-=09.drop_inode=09=3D inode_just_drop,=0D=0A =09.show_options=09=3D famfs_=
-show_options,=0D=0A =09.evict_inode    =3D famfs_evict_inode,=0D=0A@@ -44=
-4,6 +475,7 @@ famfs_install_daxdev(=0D=0A =09const char *name)=0D=0A {=0D=
-=0A =09struct famfs_daxdev *daxdev;=0D=0A+=09struct dax_device *devp =3D =
-NULL;=0D=0A =09int rc =3D 0;=0D=0A=20=0D=0A =09if (index >=3D fsi->dax_de=
-vlist->nslots) {=0D=0A@@ -507,6 +539,15 @@ famfs_install_daxdev(=0D=0A=20=
-=0D=0A =09=09wmb(); /* All other fields must be visible before valid */=0D=
-=0A =09=09daxdev->valid =3D 1;=0D=0A+=09=09devp =3D daxdev->devp;=0D=0A+=09=
-}=0D=0A+=0D=0A+=09/* Freshly installed: add its capacity to the statfs ac=
-counting */=0D=0A+=09if (devp) {=0D=0A+=09=09u64 sz =3D dax_fsdev_size(de=
-vp);=0D=0A+=0D=0A+=09=09scoped_guard(rwsem_write, &fsi->stats_sem)=0D=0A+=
-=09=09=09fsi->total_capacity +=3D sz;=0D=0A =09}=0D=0A=20=0D=0A =09return=
- 0;=0D=0A@@ -769,6 +810,7 @@ famfs_init_fs_context(struct fs_context *fc)=
-=0D=0A =09=09return -ENOMEM;=0D=0A=20=0D=0A =09init_rwsem(&fsi->devlist_s=
-em);=0D=0A+=09init_rwsem(&fsi->stats_sem);=0D=0A =09atomic64_set(&fsi->op=
-ts, FAMFS_OPT_DEFAULT);=0D=0A =09fsi->mount_opts.mode =3D FAMFS_DEFAULT_M=
-ODE;=0D=0A =09fc->s_fs_info        =3D fsi;=0D=0A@@ -802,16 +844,11 @@ st=
-atic struct file_system_type famfs_fs_type =3D {=0D=0A /*****************=
-*************************************************************=0D=0A  * Mo=
-dule stuff=0D=0A  */=0D=0A-#define FAMFS_MODULE_INCOMPLETE 1=0D=0A-=0D=0A=
- static int __init=0D=0A init_famfs_fs(void)=0D=0A {=0D=0A =09int rc;=0D=0A=
-=20=0D=0A-=09if (FAMFS_MODULE_INCOMPLETE)=0D=0A-=09=09return -ENODEV;=0D=0A=
--=0D=0A =09rc =3D register_filesystem(&famfs_fs_type);=0D=0A=20=0D=0A =09=
-return rc;=0D=0Adiff --git a/fs/famfs/famfs_internal.h b/fs/famfs/famfs_i=
-nternal.h=0D=0Aindex 5e043b5a0ddd..8765be41e4a7 100644=0D=0A--- a/fs/famf=
-s/famfs_internal.h=0D=0A+++ b/fs/famfs/famfs_internal.h=0D=0A@@ -123,6 +1=
-23,11 @@ struct famfs_dax_devlist {=0D=0A  *               point, or if o=
-ther "shutdown" conditions exist=0D=0A  * @dax_devlist: Table of backing =
-daxdevs (slot 0 is the mount primary)=0D=0A  * @devlist_sem: Serializes i=
-nstalls into, and teardown of, @dax_devlist=0D=0A+ * @stats_sem:   Protec=
-ts the statfs accounting counters below=0D=0A+ * @total_capacity: Sum of =
-installed daxdev sizes, in bytes (grows as daxdevs=0D=0A+ *              =
- are added)=0D=0A+ * @used_capacity:  Sum of installed fmap sizes, in byt=
-es (grows as MAP_CREATE=0D=0A+ *               attaches fmaps; this is de=
-vice bytes consumed, not file size)=0D=0A  */=0D=0A struct famfs_fs_info =
-{=0D=0A =09struct famfs_mount_opts   mount_opts;=0D=0A@@ -130,6 +135,9 @@=
- struct famfs_fs_info {=0D=0A =09bool                      deverror;=0D=0A=
- =09struct famfs_dax_devlist *dax_devlist;=0D=0A =09struct rw_semaphore  =
-     devlist_sem;=0D=0A+=09struct rw_semaphore       stats_sem;=0D=0A+=09=
-u64                       total_capacity;=0D=0A+=09u64                   =
-    used_capacity;=0D=0A };=0D=0A=20=0D=0A /*=0D=0Adiff --git a/include/l=
-inux/dax.h b/include/linux/dax.h=0D=0Aindex 29113eb95e72..c25ef499d04f 10=
-0644=0D=0A--- a/include/linux/dax.h=0D=0A+++ b/include/linux/dax.h=0D=0A@=
-@ -256,6 +256,7 @@ static inline void dax_break_layout_final(struct inode=
- *inode)=0D=0A=20=0D=0A bool dax_alive(struct dax_device *dax_dev);=0D=0A=
- void *dax_get_private(struct dax_device *dax_dev);=0D=0A+u64 dax_fsdev_s=
-ize(struct dax_device *dax_dev);=0D=0A int dax_set_ops(struct dax_device =
-*dax_dev, const struct dax_operations *ops);=0D=0A long dax_direct_access=
-(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,=0D=0A =09=09en=
-um dax_access_mode mode, void **kaddr, unsigned long *pfn);=0D=0A--=20=0D=
-=0A2.53.0=0D=0A=0D=0A
+From: John Groves <john@groves.net>=0D=0A=0D=0AAdd Documentation/filesyst=
+ems/famfs.rst and update MAINTAINERS=0D=0A=0D=0AReviewed-by: Randy Dunlap=
+ <rdunlap@infradead.org>=0D=0ATested-by: Randy Dunlap <rdunlap@infradead.=
+org>=0D=0AReviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>=0D=0A=
+Signed-off-by: John Groves <john@groves.net>=0D=0A---=0D=0A Documentation=
+/filesystems/famfs.rst | 142 ++++++++++++++++++++++++++++=0D=0A Documenta=
+tion/filesystems/index.rst |   1 +=0D=0A MAINTAINERS                     =
+    |   1 +=0D=0A 3 files changed, 144 insertions(+)=0D=0A create mode 10=
+0644 Documentation/filesystems/famfs.rst=0D=0A=0D=0Adiff --git a/Document=
+ation/filesystems/famfs.rst b/Documentation/filesystems/famfs.rst=0D=0Ane=
+w file mode 100644=0D=0Aindex 000000000000..048791bcbcfd=0D=0A--- /dev/nu=
+ll=0D=0A+++ b/Documentation/filesystems/famfs.rst=0D=0A@@ -0,0 +1,142 @@=0D=
+=0A+.. SPDX-License-Identifier: GPL-2.0=0D=0A+=0D=0A+.. _famfs_index:=0D=0A=
++=0D=0A+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0D=0A+famfs: Th=
+e fabric-attached memory file system=0D=0A+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=0D=0A+=0D=0A+- Copyright (C) 2024-2026 Micron Technolo=
+gy, Inc.=0D=0A+=0D=0A+Introduction=0D=0A+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=0D=0A+Compute Express Link (CXL) provides a mechanism for disaggregat=
+ed or=0D=0A+fabric-attached memory (FAM). This creates opportunities for =
+data sharing;=0D=0A+clustered apps that would otherwise have to shard or =
+replicate data can=0D=0A+share one copy in disaggregated memory.=0D=0A+=0D=
+=0A+Famfs, which is not CXL-specific in any way, provides a mechanism for=
+=0D=0A+multiple hosts to concurrently access data in shared memory, by gi=
+ving it=0D=0A+a file system interface. With famfs, any app that understan=
+ds files can=0D=0A+access data sets in shared memory. Although famfs supp=
+orts read and write,=0D=0A+the real point is to support mmap, which provi=
+des direct (dax) access to=0D=0A+the memory - either writable or read-onl=
+y.=0D=0A+=0D=0A+Shared memory can pose complex coherency and synchronizat=
+ion issues, but=0D=0A+there are also simple cases. Two simple and eminent=
+ly useful patterns that=0D=0A+occur frequently in data analytics and AI a=
+re:=0D=0A+=0D=0A+* Serial Sharing - Only one host or process at a time ha=
+s access to a file=0D=0A+* Read-only Sharing - Multiple hosts or processe=
+s share read-only access=0D=0A+  to a file=0D=0A+=0D=0A+The famfs file sy=
+stem is part of the famfs framework; user space=0D=0A+components [1] hand=
+le metadata allocation and distribution, and populate=0D=0A+the in-kernel=
+ files (via ioctls) so that they map directly to shared=0D=0A+memory.=0D=0A=
++=0D=0A+The famfs framework manages coherency of its own metadata and str=
+uctures,=0D=0A+but does not attempt to manage coherency for applications.=
+=0D=0A+=0D=0A+Famfs also provides data isolation between files. That is, =
+even though=0D=0A+the host has access to an entire memory "device" (as a =
+devdax device), apps=0D=0A+cannot write to memory for which the file is r=
+ead-only, and mapping one=0D=0A+file provides isolation from the memory o=
+f all other files. This is pretty=0D=0A+basic, but some experimental shar=
+ed memory usage patterns provide no such=0D=0A+isolation.=0D=0A+=0D=0A+Pr=
+inciples of Operation=0D=0A+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=0D=0A+=0D=0A+Famfs is a file system with one or =
+more devdax devices as a first-class=0D=0A+backing device(s). Metadata ma=
+intenance and query operations happen=0D=0A+entirely in user space.=0D=0A=
++=0D=0A+The famfs user space provides each file's map (fmap) and its back=
+ing=0D=0A+devdax devices to the kernel through ioctls (FAMFSIOC_MAP_CREAT=
+E and=0D=0A+FAMFSIOC_DAXDEV_OPEN), after which read/write/mapping faults =
+are handled=0D=0A+entirely in the kernel with no up-calls for all active =
+files.=0D=0A+=0D=0A+The famfs user space is responsible for maintaining a=
+nd distributing=0D=0A+consistent metadata. This is currently handled via =
+an append-only=0D=0A+metadata log within the memory, but this is orthogon=
+al to the famfs=0D=0A+kernel code.=0D=0A+=0D=0A+Once instantiated, "the s=
+ame file" on each host points to the same shared=0D=0A+memory, but in-mem=
+ory metadata (inodes, etc.) is ephemeral on each host=0D=0A+that has a fa=
+mfs instance mounted. Use cases are free to allow or not=0D=0A+allow muta=
+tions to data on a file-by-file basis.=0D=0A+=0D=0A+When an app accesses =
+a data object in a famfs file, there is no page cache=0D=0A+involvement. =
+The CPU cache is loaded directly from the shared memory. In=0D=0A+some us=
+e cases, this is an enormous reduction in read amplification=0D=0A+compar=
+ed to loading an entire page into the page cache.=0D=0A+=0D=0A+=0D=0A+Fam=
+fs is Not a Conventional File System=0D=0A+------------------------------=
+---------=0D=0A+=0D=0A+Famfs files can be accessed by conventional means,=
+ but there are=0D=0A+limitations. The famfs kernel module is not involved=
+ in the allocation of=0D=0A+backing memory for files at all; the famfs us=
+er space creates files and=0D=0A+supplies their fmaps and devdax device i=
+nfo to the kernel via ioctls.=0D=0A+=0D=0A+Famfs differs in some importan=
+t ways from conventional file systems:=0D=0A+=0D=0A+* Files must be pre-a=
+llocated by the famfs framework; allocation is never=0D=0A+  performed on=
+ (or after) write.=0D=0A+* Any operation that changes a file's size is co=
+nsidered to put the file=0D=0A+  in an invalid state, disabling access to=
+ the data. It may be possible to=0D=0A+  revisit this in the future. (Typ=
+ically the famfs user space can restore=0D=0A+  files to a valid state by=
+ replaying the famfs metadata log.)=0D=0A+=0D=0A+Famfs exists to apply th=
+e existing file system abstractions to shared=0D=0A+memory so application=
+s and workflows can more easily adapt to an=0D=0A+environment with disagg=
+regated shared memory.=0D=0A+=0D=0A+Memory Error Handling=0D=0A+=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0D=0A+=0D=0A+Possi=
+ble memory errors include timeouts, poison, and unexpected=0D=0A+reconfig=
+uration of an underlying dax device. In all of these cases, famfs=0D=0A+r=
+eceives a call from the devdax layer via its=0D=0A+dax_holder_operations-=
+>notify_failure() function. If any memory errors have=0D=0A+been detected=
+, access to the affected=0D=0A+daxdev is disabled to avoid further errors=
+ or corruption.=0D=0A+=0D=0A+In all known cases, famfs can be unmounted c=
+leanly. In most cases errors=0D=0A+can be cleared by re-initializing the =
+memory - at which point a new famfs=0D=0A+file system can be created.=0D=0A=
++=0D=0A+Key Requirements=0D=0A+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=0D=0A+=0D=0A+The primary requirements for famfs are:=0D=0A+=0D=0A+=
+1. Must support a file system abstraction backed by sharable devdax memor=
+y=0D=0A+2. Files must efficiently handle VMA faults=0D=0A+3. Must support=
+ metadata distribution in a sharable way=0D=0A+4. Must handle clients wit=
+h a stale copy of metadata=0D=0A+=0D=0A+The famfs kernel component takes =
+care of 1-2 above by caching each file's=0D=0A+mapping metadata in the ke=
+rnel.=0D=0A+=0D=0A+Requirements 3 and 4 are handled by the user space com=
+ponents, and are=0D=0A+largely orthogonal to the functionality of the fam=
+fs kernel module.=0D=0A+=0D=0A+Requirements 3 and 4 cannot be met by conv=
+entional fs-dax file systems=0D=0A+(e.g. xfs) because they use write-back=
+ metadata; it is not valid to mount=0D=0A+such a file system on two hosts=
+ from the same in-memory image.=0D=0A+=0D=0A+=0D=0A+Famfs Usage=0D=0A+=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0D=0A+=0D=0A+Famfs usage is documented at =
+[1].=0D=0A+=0D=0A+=0D=0A+References=0D=0A+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0D=
+=0A+=0D=0A+- [1] Famfs user space repository and documentation=0D=0A+    =
+  https://github.com/cxl-micron-reskit/famfs=0D=0Adiff --git a/Documentat=
+ion/filesystems/index.rst b/Documentation/filesystems/index.rst=0D=0Ainde=
+x 1f71cf159547..97a9a1f1e96a 100644=0D=0A--- a/Documentation/filesystems/=
+index.rst=0D=0A+++ b/Documentation/filesystems/index.rst=0D=0A@@ -91,6 +9=
+1,7 @@ Documentation for filesystem implementations.=0D=0A    ext3=0D=0A =
+   ext4/index=0D=0A    f2fs=0D=0A+   famfs=0D=0A    gfs2/index=0D=0A    h=
+fs=0D=0A    hfsplus=0D=0Adiff --git a/MAINTAINERS b/MAINTAINERS=0D=0Ainde=
+x 156fa62f7086..605b8d06f7d8 100644=0D=0A--- a/MAINTAINERS=0D=0A+++ b/MAI=
+NTAINERS=0D=0A@@ -9910,6 +9910,7 @@ M:=09John Groves <john@groves.net>=0D=
+=0A L:=09linux-fsdevel@vger.kernel.org=0D=0A L:=09linux-cxl@vger.kernel.o=
+rg=0D=0A S:=09Supported=0D=0A+F:=09Documentation/filesystems/famfs.rst=0D=
+=0A F:=09fs/famfs/=0D=0A=20=0D=0A FANOTIFY=0D=0A--=20=0D=0A2.53.0=0D=0A=0D=
+=0A
