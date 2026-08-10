@@ -1,38 +1,38 @@
-Received: from a11-174.smtp-out.amazonses.com (a11-174.smtp-out.amazonses.com [54.240.11.174])
+Received: from a10-70.smtp-out.amazonses.com (a10-70.smtp-out.amazonses.com [54.240.10.70])
 	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5126A37F300;
-	Mon, 10 Aug 2026 20:23:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 234E1353A69;
+	Mon, 10 Aug 2026 20:24:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.10.70
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786393419; cv=none; b=R403LhmiJlydcOX/I306PNdhoyC4j8JeBk713PB9lzuKAMR7A9b0e4zxskAy/ToTmYZAqqg5Fbpt7xtHGZmhu6zQ0dJ6uNsyHZlGUGxED94pNSIVIe41s1+5y9p1cxNpxu7ReBnzE11LgE6uvXxp2DI5trIGaF9MQkDQO/Sbwn8=
+	t=1786393459; cv=none; b=gkmdQmYwGVlIMUBYfdCUadisBaFmLYIsoYglVjJzS0kAfSBzKjaXCsv3cx/KvlxlRBNkSEsHH8MkeHeR8oibnhBA/YR6yitbU4Il31LNGh4NLy1zxAHsGUJeWqshNCnHTozmgVTiR8I7yqUUU3iflLJDxgmQMbYWOXxVrHfd8io=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786393419; c=relaxed/simple;
-	bh=d0CSqObjb+GjkcI5dizLFpN48hdd5rA81MwgT6rZ0vc=;
-	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:References:
-	 Message-ID; b=nZ7pGi7OdDyHxGo4ypuQKPyMBDPlUQykphCAYW8rdHFOAfFgBD5CAXiekoaPUPg3lfmFW4FjzOTBEtZCGV6zV5VpN1CKAVV9vNWONcgD/hCiKROT9veLAKDD2CDk1R9PQ9AL2H2i8d6BSY+sDhi4U2LdQZny3XBondb1K074vKQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=eirgdkVh; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=h9CA2PyW; arc=none smtp.client-ip=54.240.11.174
+	s=arc-20240116; t=1786393459; c=relaxed/simple;
+	bh=+fy9cm4m55bWZEx/8BSia07AAKCSfZvSBmDtpnMAqtE=;
+	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:In-Reply-To:
+	 References:Message-ID; b=Gy4T048FVu8aSa9TO6KjAtWZp6b7N2jzHvBWD2W5ib1Y+cMEF7u9Jt/42+ynLBcUcN2m9YbdIao0zHtj0DlpgCLNZpjRrjdBeQX5V7jf0aEnDX6RwRUwAWKm9P60zvuXScVvx1Ew7BAWBzodOyyiWfYuFp7QjFEjx/Q/eJGW9w8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=Cfl+NHL8; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=AAOhqbEi; arc=none smtp.client-ip=54.240.10.70
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="eirgdkVh";
-	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="h9CA2PyW"
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="Cfl+NHL8";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="AAOhqbEi"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1786393416;
-	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:References:Message-Id;
-	bh=d0CSqObjb+GjkcI5dizLFpN48hdd5rA81MwgT6rZ0vc=;
-	b=eirgdkVhzV02zmGcDo4sIrJLcwIIqDYqT9NJMGRYTo243Y7zOpAktRPfag090CwU
-	75jiKR51c5deXEtQWLrXa7zMAIOJCapdNNdua4dJr/tylY76fVgsOWTZdo/XWd3lmfV
-	ijh3wcRdncrT3ZtivnV7hS4HSfw8HWDeP+T+t/5g=
+	s=o25mqk5iffcfzgc3wo2zjhkohcyjzsoq; d=jagalactic.com; t=1786393456;
+	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id;
+	bh=+fy9cm4m55bWZEx/8BSia07AAKCSfZvSBmDtpnMAqtE=;
+	b=Cfl+NHL8ZCvLWS3PBGDiZFB3+hk6clBr63eqBEwI6RU2KvKXMJlBhCBcVlvkiV19
+	Cks2/aCoXHulj2m8GahlTNBnwuuDsbJBnNqjqdawthi5ZqtKbiUFo8l0q4U8AcecSVD
+	IBr/T6o47fahMmP6R6WeSwnTi+QIW+qqnhkkpADg=
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1786393416;
-	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:References:Message-Id:Feedback-ID;
-	bh=d0CSqObjb+GjkcI5dizLFpN48hdd5rA81MwgT6rZ0vc=;
-	b=h9CA2PyWFhNhMx/r9sCMopNezJjOBEmv7vkCZqB7tDnjyCypoSep6bXSmCbhLzHV
-	hMHPxT3ip226B8WM1kmBSvIkdcrHOmm6w8jJHasQtD7TaUPkUy8cipbWxb45mhwKj0N
-	blIaPPFVlPX10vh8iPeo6IwJdDJjU9kHqcULrlFM=
-Subject: [PATCH v13 00/12] famfs: the Fabric-Attached Memory File System
- (standalone)
+	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1786393456;
+	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id:Feedback-ID;
+	bh=+fy9cm4m55bWZEx/8BSia07AAKCSfZvSBmDtpnMAqtE=;
+	b=AAOhqbEi8yeDvvNpgdLkMicX4vAPeDG8Bby/VH7UHNgZSszmZ1jjKwEdUC8p0yp+
+	YH1cYC7I8KvnwFdgdBNf187zzTb5SxI4DG/63sdP2HN6q6LjoZAnh8lDAh/aiSit5CB
+	cM1XuqQ2jaJMVaeNJUuShrJc6HE79avP40zpJEnk=
+Subject: [PATCH v13 01/12] dax: replace exported dax_dev_get() with
+ non-allocating dax_dev_find()
 From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
 To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
 	=?UTF-8?Q?Miklos_Szeredi?= <miklos@szeredi.hu>, 
@@ -88,7 +88,7 @@ Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>,
 	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>, 
 	=?UTF-8?Q?fuse-devel=40lists=2Elinux=2E?= =?UTF-8?Q?dev?= <fuse-devel@lists.linux.dev>, 
 	=?UTF-8?Q?John_Groves?= <john@groves.net>
-Date: Mon, 10 Aug 2026 20:23:35 +0000
+Date: Mon, 10 Aug 2026 20:24:16 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -97,130 +97,98 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
-References: <20260810202325.96202-1-john@jagalactic.com>
+In-Reply-To: 
+ <0100019fed5850ec-2bdfb17a-3086-44ea-8fdd-777d3ce12a33-000000@email.amazonses.com>
+References: 
+ <0100019fed5850ec-2bdfb17a-3086-44ea-8fdd-777d3ce12a33-000000@email.amazonses.com> 
+ <20260810202407.96226-1-john@jagalactic.com>
 X-Mailer: Amazon WorkMail
-Thread-Index: AQHdKQYd8BhJGjNjSyqPwMCz2Vr35A==
-Thread-Topic: [PATCH v13 00/12] famfs: the Fabric-Attached Memory File System
- (standalone)
-X-Wm-Sent-Timestamp: 1786393414
+Thread-Index: AQHdKQYd8BhJGjNjSyqPwMCz2Vr35AAABlEq
+Thread-Topic: [PATCH v13 01/12] dax: replace exported dax_dev_get() with
+ non-allocating dax_dev_find()
+X-Wm-Sent-Timestamp: 1786393455
 X-Original-Mailer: git-send-email 2.55.0
-Message-ID: <0100019fed5850ec-2bdfb17a-3086-44ea-8fdd-777d3ce12a33-000000@email.amazonses.com>
+Message-ID: <0100019fed58f034-28446b61-b3bc-4094-9356-6c2c8e464021-000000@email.amazonses.com>
 Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
-X-SES-Outgoing: 2026.08.10-54.240.11.174
+X-SES-Outgoing: 2026.08.10-54.240.10.70
 
-From: John Groves <john@groves.net>=0D=0A=0D=0AThis is v13 of famfs, as a=
- standalone file system. v12 is at [7].=0D=0A=0D=0AMost of this cover let=
-ter repeats v12. If you have read it, skip to "Changes=0D=0Asince v12" be=
-low and to the per-patch changelogs under the "---" line of each=0D=0Apat=
-ch. The history goes back to 2023, and is briefly covered in the v12=0D=0A=
-cover.=0D=0A=0D=0AThe most important thing to know about famfs is that it=
- CANNOT be used as a=0D=0Ageneral purpose file system. It is for enabling=
- file-based byte-level access=0D=0A(including direct mmap) to very large =
-(e.g. 100TB) shared/disaggregated=0D=0Amemory appliances - which have bec=
-ome available during this long process,=0D=0Aand which are in need of Lin=
-ux support.=0D=0A=0D=0ASo famfs cannot be used by anybody who doesn't kno=
-w why they need it. Making=0D=0Afamfs standalone means it can't affect us=
-ers who don't use it. Micron, as=0D=0Awell as other memory companies, nee=
-d it, and do not intend to abandon it -=0D=0Abut imagine if we did: fs/fa=
-mfs/ should be removed if the memory companies=0D=0Acan't be bothered to =
-maintain it.=0D=0A=0D=0AThis code base has been in active CI and used glo=
-bally by early adopters and=0D=0Atesters of disaggregated memory since 20=
-24. I believe it is solid.=0D=0A=0D=0AWhy standalone (short version)=0D=0A=
-=0D=0Afamfs was introduced at LPC 2023 and LSFMM 2024 [1] as a standalone=
- file=0D=0Asystem, then spent close to a year being ported to fuse/libfus=
-e. After=0D=0Amaintaining famfs in both forms, I have concluded it makes =
-more sense as a=0D=0Astandalone file system: fuse adds complexity to famf=
-s (more complex, less=0D=0Aadaptable, less performant - and famfs files a=
-re memory, so access must run=0D=0Aat memory speed), while famfs adds com=
-plexity to fuse that is unlikely to see=0D=0Aconstructive re-use. The ful=
-l history and argument are in the v12 cover=0D=0Aletter [7].=0D=0A=0D=0AC=
-hanges since v12=0D=0A-----------------=0D=0A=0D=0A- Patch 01 split, per =
-Alison Schofield: the removal of the now-unused=0D=0A  dax_dev_get() expo=
-rt is a standalone DAX cleanup that goes via the DAX tree=0D=0A  and is p=
-osted separately [8]. Patch 01 of this series is reduced to adding=0D=0A =
- the non-allocating lookup helper dax_dev_find().=0D=0A=0D=0A- Darrick Wo=
-ng's review comments are addressed across the series: the=0D=0A  kill_*_s=
-uper() rationale in the mount patch, the page_mkwrite/pfn_mkwrite=0D=0A  =
-write-fault comment, dropping the operation flags from iomap->flags in th=
-e=0D=0A  resolver, and more.=0D=0A=0D=0A- A number of findings from the S=
-ashiko review bot are fixed:=0D=0A    * mprotect() could bypass the FAMFS=
-_OPT_WRITE gate (the check looked at=0D=0A      VM_WRITE only, not VM_MAY=
-WRITE);=0D=0A    * rename() over an existing target bypassed the FAMFS_OP=
-T_UNLINK /=0D=0A      FAMFS_OPT_RMDIR policy that unlink()/rmdir() enforc=
-e;=0D=0A    * splice()/sendfile() returned zeroes on these DAX files=0D=0A=
-      (filemap_splice_read -> copy_splice_read);=0D=0A    * create/mkdir/=
-mknod updated the child inode's timestamps instead of the=0D=0A      pare=
-nt directory's;=0D=0A    * .map_pages (filemap_map_pages) was a no-op on =
-DAX and is removed;=0D=0A    * mount-parameter and module-namespace hygie=
-ne (reject unknown mount=0D=0A      options; prefix the non-static lookup=
-_daxdev()).=0D=0A  A few Sashiko findings were considered and declined wi=
-th rationale - for=0D=0A  example generic_write_sync(), which is inert fo=
-r a filesystem with no page=0D=0A  cache, no writeback, and a noop_fsync =
-->fsync. Those are noted under the=0D=0A  relevant patch.=0D=0A=0D=0A- fa=
-mfs now accepts 4 KiB extent alignment in addition to 2 MiB: the=0D=0A  a=
-llocation unit may be 4 KiB or 2 MiB. 2 MiB-aligned extents still map wit=
-h=0D=0A  huge pages; 4 KiB-granular extents map with PTEs (the DAX fault =
-path already=0D=0A  falls back PMD -> PTE).=0D=0A=0D=0A- MAP_SYNC is now =
-supported (FOP_MMAP_SYNC). famfs fmap metadata is immutable=0D=0A  after =
-MAP_CREATE, so the MAP_SYNC durability guarantee is met with no=0D=0A  me=
-tadata sync required.=0D=0A=0D=0A- famfs is explicitly 64-bit only now (d=
-epends on 64BIT); it targets=0D=0A  CXL/fabric-attached memory, which doe=
-s not exist on 32-bit systems.=0D=0A=0D=0AFamfs Overview=0D=0A=0D=0AFamfs=
- exposes sharable disaggregated memory as a file system. Famfs consumes=0D=
-=0Ashared memory from [usually shared memory] dax devices, and provides=0D=
-=0Amemory-mappable files that map directly to the memory - no page cache=0D=
-=0Ainvolvement. Famfs differs from conventional file systems in fs-dax mo=
-de,=0D=0Ain that it handles in-memory metadata in a sharable way (which b=
-egins with=0D=0Anever caching dirty shared metadata). So a famfs file sys=
-tem can be mounted=0D=0Afrom multiple nodes, provided they have access to=
- the memory.=0D=0A=0D=0AThe key performance requirement is that famfs mus=
-t resolve mapping faults=0D=0Awith minimal overhead. This is achieved by =
-fully caching the file-to-devdax=0D=0Ametadata for all active files.=0D=0A=
-=0D=0AFamfs remains the first fs-dax file system that is backed by devdax=
- rather=0D=0Athan pmem in fs-dax mode (hence the need for the new dax mod=
-e).=0D=0A=0D=0AFamfs depends on the 'fsdev' dax mode which landed in 7.1 =
-- it will only run=0D=0Awith an fsdev-mode (aka famfs-mode) daxdev as its=
- backing device(s).=0D=0A=0D=0AThe famfs user space can be found at [6].=0D=
-=0A=0D=0A[1] https://lwn.net/Articles/983105/ (Famfs at LSFMM 2024)=0D=0A=
-[2] https://lwn.net/Articles/1020170/ (Famfs at LSFMM 2025, with patch li=
-nk)=0D=0A[3] https://lwn.net/Articles/1068686/ (LWN coverage of the patch=
- thread)=0D=0A[4] https://lwn.net/Articles/1082687/ (Famfs at LSFMM 2026)=
-=0D=0A[5] https://lore.kernel.org/linux-fsdevel/0100019f7d9fbe81-6cb16662=
--2522-47ea-a152-fab0ee3d9b35-000000@email.amazonses.com/#b=0D=0A[6] https=
-://famfs.org=0D=0A[7] https://lore.kernel.org/linux-fsdevel/2026080605340=
-9.GL3560084@frogsfrogsfrogs/T/#t (v12)=0D=0A[8] https://lore.kernel.org/l=
-inux-cxl/0100019fd478eb93-a6bd48e4-b5f1-4871-93d4-582802956e6c-000000@ema=
-il.amazonses.com/T/#u (Partial dax patch)=0D=0A=0D=0A=0D=0AJohn Groves (1=
-2):=0D=0A  dax: replace exported dax_dev_get() with non-allocating dax_de=
-v_find()=0D=0A  famfs: Module operations, fs_context, and mount=0D=0A  fa=
-mfs: Add daxdev table and dax notify_failure support=0D=0A  famfs: Introd=
-uce inode_operations and super_operations=0D=0A  famfs: Introduce file_op=
-erations read/write=0D=0A  famfs: Introduce mmap and VM fault handling=0D=
-=0A  famfs: MAP_CREATE ioctl and fmap ingest (ABI 44)=0D=0A  famfs: iomap=
-_begin and file-to-dax offset resolution=0D=0A  famfs: Register secondary=
- daxdevs by path (FAMFSIOC_DAXDEV_OPEN)=0D=0A  famfs: Add runtime operati=
-on-permission (opts) framework=0D=0A  famfs: Report device capacity via s=
-tatfs so df works=0D=0A  famfs: Add documentation=0D=0A=0D=0A Documentati=
-on/filesystems/famfs.rst           |  142 +++=0D=0A Documentation/filesys=
-tems/index.rst           |    1 +=0D=0A .../userspace-api/ioctl/ioctl-num=
-ber.rst      |    1 +=0D=0A MAINTAINERS                                  =
- |    8 +=0D=0A drivers/dax/fsdev.c                           |   19 +=0D=
-=0A drivers/dax/super.c                           |   38 +-=0D=0A fs/Kcon=
-fig                                    |    2 +=0D=0A fs/Makefile        =
-                           |    1 +=0D=0A fs/famfs/Kconfig               =
-               |   12 +=0D=0A fs/famfs/Makefile                          =
-   |    5 +=0D=0A fs/famfs/famfs_file.c                         | 1007 ++=
-+++++++++++++++=0D=0A fs/famfs/famfs_inode.c                        |  86=
-9 ++++++++++++++=0D=0A fs/famfs/famfs_internal.h                     |  1=
-62 +++=0D=0A fs/namei.c                                    |    1 +=0D=0A=
- fs/super.c                                    |    7 +=0D=0A include/lin=
-ux/dax.h                           |    7 +-=0D=0A include/linux/fs.h    =
-                        |    1 +=0D=0A include/uapi/linux/famfs_ioctl.h  =
-            |  160 +++=0D=0A include/uapi/linux/magic.h                  =
-  |    1 +=0D=0A 19 files changed, 2441 insertions(+), 3 deletions(-)=0D=0A=
- create mode 100644 Documentation/filesystems/famfs.rst=0D=0A create mode=
- 100644 fs/famfs/Kconfig=0D=0A create mode 100644 fs/famfs/Makefile=0D=0A=
- create mode 100644 fs/famfs/famfs_file.c=0D=0A create mode 100644 fs/fam=
-fs/famfs_inode.c=0D=0A create mode 100644 fs/famfs/famfs_internal.h=0D=0A=
- create mode 100644 include/uapi/linux/famfs_ioctl.h=0D=0A=0D=0A--=20=0D=0A=
+From: John Groves <john@groves.net>=0D=0A=0D=0AThis fix is in response to=
+ a Sashiko review, and some subsequent=0D=0Aanalysis.=0D=0A=0D=0Adax_dev_=
+get() uses iget5_locked() which creates a new inode if no=0D=0Amatching o=
+ne exists. This is correct for the internal caller=0D=0A(alloc_dax), but =
+dangerous for external callers that look up devices=0D=0Afrom user-suppli=
+ed or metadata-supplied dev_t values:=0D=0A=0D=0A1. A new inode is create=
+d with DAXDEV_ALIVE set but no backing driver,=0D=0A   no ops, and no IDA=
+-allocated minor number.=0D=0A=0D=0A2. On teardown, dax_destroy_inode() w=
+arns because kill_dax() was never=0D=0A   called, and dax_free_inode() ca=
+lls ida_free() for a minor that was=0D=0A   never ida_alloc'd -- potentia=
+lly freeing the minor of a real device.=0D=0A=0D=0AAdd dax_dev_find() whi=
+ch uses ilookup5() for lookup-only semantics:=0D=0Ait returns an existing=
+ dax_device with an elevated inode reference, or=0D=0ANULL if no device w=
+ith the given dev_t exists. It never creates inodes.=0D=0AA dax_alive() c=
+heck under dax_read_lock() guards against returning a=0D=0Adevice that is=
+ concurrently being torn down by kill_dax().=0D=0A=0D=0AMake dax_dev_get(=
+) static again (internal to super.c for alloc_dax),=0D=0Aexport dax_dev_f=
+ind() instead, and update the two external callers=0D=0A(famfs_inode.c, f=
+amfs.c). Also add the missing CONFIG_DAX=3Dn stub.=0D=0A=0D=0AAbout the '=
+fixes' tag: this removes the export of dax_dev_get(),=0D=0Awhich was flaw=
+ed, and replaces is with dax_dev_find(). It feels like=0D=0Athe fixes tag=
+ makes sense for correcting an ABI error.=0D=0A=0D=0AFixes: 2ae624d5a555d=
+ ("dax: export dax_dev_get()")=0D=0A=0D=0AReviewed-by: Dave Jiang <dave.j=
+iang@intel.com>=0D=0AReviewed-by: Alison Schofield <alison.schofield@inte=
+l.com>=0D=0ASigned-off-by: John Groves <john@groves.net>=0D=0A---=0D=0Av1=
+3:=0D=0A - Alison requested that this be split in 2, as only the first ha=
+lf is=20=0D=0A   ready to merge before the rest of famfs. I sent the firs=
+t half to Alison,=0D=0A   but this is the un-split whole (because it does=
+n't apply cleanly=20=0D=0A   otherwise). We'll deal with this on merge (h=
+opefully with her merging=0D=0A   the first half before any of famfs, and=
+ then with a fixup of this=0D=0A   series.=0D=0A=0D=0A   * The removal of=
+ the unused dax_dev_get() export is now a standalone=0D=0A     DAX cleanu=
+p patch (make it static again, drop the header decl), with=0D=0A     no f=
+amfs dependency and no Fixes: tag - it names the offending commit=0D=0A  =
+   in prose instead. It goes via the DAX tree.=0D=0A   * The second patch=
+ is reduced to adding/exporting the lookup-only=0D=0A     dax_dev_find(),=
+ which rides with the famfs series.=0D=0A=0D=0A drivers/dax/super.c | 38 =
+++++++++++++++++++++++++++++++++++++--=0D=0A include/linux/dax.h |  6 +++=
+++-=0D=0A 2 files changed, 41 insertions(+), 3 deletions(-)=0D=0A=0D=0Adi=
+ff --git a/drivers/dax/super.c b/drivers/dax/super.c=0D=0Aindex 25cf99dd9=
+360..0fc14d4f8198 100644=0D=0A--- a/drivers/dax/super.c=0D=0A+++ b/driver=
+s/dax/super.c=0D=0A@@ -521,7 +521,7 @@ static int dax_set(struct inode *i=
+node, void *data)=0D=0A =09return 0;=0D=0A }=0D=0A=20=0D=0A-struct dax_de=
+vice *dax_dev_get(dev_t devt)=0D=0A+static struct dax_device *dax_dev_get=
+(dev_t devt)=0D=0A {=0D=0A =09struct dax_device *dax_dev;=0D=0A =09struct=
+ inode *inode;=0D=0A@@ -544,7 +544,41 @@ struct dax_device *dax_dev_get(d=
+ev_t devt)=0D=0A=20=0D=0A =09return dax_dev;=0D=0A }=0D=0A-EXPORT_SYMBOL_=
+GPL(dax_dev_get);=0D=0A+=0D=0A+/**=0D=0A+ * dax_dev_find - look up an exi=
+sting dax_device by dev_t=0D=0A+ * @devt: the device number to find=0D=0A=
++ *=0D=0A+ * Returns a dax_device with an elevated inode reference, or NU=
+LL if no=0D=0A+ * device with the given dev_t exists. Unlike dax_dev_get(=
+), this never=0D=0A+ * allocates a new inode -- it is safe for external c=
+allers that are looking=0D=0A+ * up devices from user-supplied or metadat=
+a-supplied dev_t values.=0D=0A+ *=0D=0A+ * Caller must put_dax() the retu=
+rned device when done.=0D=0A+ */=0D=0A+struct dax_device *dax_dev_find(de=
+v_t devt)=0D=0A+{=0D=0A+=09struct dax_device *dax_dev;=0D=0A+=09struct in=
+ode *inode;=0D=0A+=09int id;=0D=0A+=0D=0A+=09inode =3D ilookup5(dax_super=
+block, hash_32(devt + DAXFS_MAGIC, 31),=0D=0A+=09=09=09 dax_test, &devt);=
+=0D=0A+=09if (!inode)=0D=0A+=09=09return NULL;=0D=0A+=0D=0A+=09dax_dev =3D=
+ to_dax_dev(inode);=0D=0A+=09id =3D dax_read_lock();=0D=0A+=09if (!dax_al=
+ive(dax_dev)) {=0D=0A+=09=09dax_read_unlock(id);=0D=0A+=09=09iput(inode);=
+=0D=0A+=09=09return NULL;=0D=0A+=09}=0D=0A+=09dax_read_unlock(id);=0D=0A+=
+=0D=0A+=09return dax_dev;=0D=0A+}=0D=0A+EXPORT_SYMBOL_GPL(dax_dev_find);=0D=
+=0A=20=0D=0A struct dax_device *alloc_dax(void *private, const struct dax=
+_operations *ops)=0D=0A {=0D=0Adiff --git a/include/linux/dax.h b/include=
+/linux/dax.h=0D=0Aindex fe6c3ded1b50..29113eb95e72 100644=0D=0A--- a/incl=
+ude/linux/dax.h=0D=0A+++ b/include/linux/dax.h=0D=0A@@ -54,7 +54,7 @@ str=
+uct dax_device *alloc_dax(void *private, const struct dax_operations *ops=
+);=0D=0A void *dax_holder(struct dax_device *dax_dev);=0D=0A void put_dax=
+(struct dax_device *dax_dev);=0D=0A void kill_dax(struct dax_device *dax_=
+dev);=0D=0A-struct dax_device *dax_dev_get(dev_t devt);=0D=0A+struct dax_=
+device *dax_dev_find(dev_t devt);=0D=0A void dax_write_cache(struct dax_d=
+evice *dax_dev, bool wc);=0D=0A bool dax_write_cache_enabled(struct dax_d=
+evice *dax_dev);=0D=0A bool dax_synchronous(struct dax_device *dax_dev);=0D=
+=0A@@ -92,6 +92,10 @@ static inline void put_dax(struct dax_device *dax_d=
+ev)=0D=0A static inline void kill_dax(struct dax_device *dax_dev)=0D=0A {=
+=0D=0A }=0D=0A+static inline struct dax_device *dax_dev_find(dev_t devt)=0D=
+=0A+{=0D=0A+=09return NULL;=0D=0A+}=0D=0A static inline void dax_write_ca=
+che(struct dax_device *dax_dev, bool wc)=0D=0A {=0D=0A }=0D=0A--=20=0D=0A=
 2.53.0=0D=0A=0D=0A
