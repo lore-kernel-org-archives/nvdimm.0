@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EAF15175A92;
-	Tue, 11 Aug 2026 06:50:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4115399361;
+	Tue, 11 Aug 2026 06:51:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786431061; cv=none; b=MoNVRjMk6r90bai30yGCEcm40G9vPSzGaYUb2jGH/Lfhmc0qdZtE7w6o76r+HYFddQuIVxxqUT/qkPj8xljMkzLkMUG/tJem2/nxOgFc55yblzU4vlvNBTyTLU3NGRZx+TZ/hGVi0zx4sHlzkt3apmB2LisQ92CLoHV0eXDYwYU=
+	t=1786431085; cv=none; b=ZMePz23sw2wrxBwOfpDOgV6ux7zoRHt2LyEDF9uW7fDVcz4A0nNl0TWomWwy614XpZSv9uZiJ8xTL0FSMaap1WHwFS4wrnnI2iRQoMs9U/yvmxX7Aw0dT65tKZtwFdOHXUzdrU3Eog0IMEmvN5zSUhXDtCnTufOVmxKTslAagkI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786431061; c=relaxed/simple;
-	bh=HrGcXOxsEiHOZ9sw1wM/Rl8E34dfSFE8KfEeWRQca6I=;
+	s=arc-20240116; t=1786431085; c=relaxed/simple;
+	bh=DudxcLDljg/G6dw3rG0QkvxwwiAuIacFrIoPhg8EqyY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=PRiZ29JTr3CgZcLeG1ZerGhHnyjs8Cl4ugHZOlXoZQPzMgxnd3MNt3W0I6Swa9+nGvNLyEdaUbTwpPuKeHf4bXbsRaISfZk3mtVDfPaFqbcQ4RoGpqj0NX4E65psj0GB7KFs/s8E8J7JZFf4lJZTARcB09AoXsKt8IoapEwOE9k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mJa3rjA2; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=WFEqXvLWBH+FOTqFzdPtQFn8SDzQI/olgnBVRDgT+b66WGXi6USbo01fsFdtkunw/XE221KYuGu/wcs4MscnvcC/TvYVFN30mtJoSsbc+JSEKROyQErJhsQhiJUo8PSmlUM2sI5dOHYrpmlut7DzOOE/V0pzXZXtX0JKLnTE7g8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JTO+nPNW; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mJa3rjA2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2912D1F000E9;
-	Tue, 11 Aug 2026 06:50:38 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JTO+nPNW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00F961F00A3A;
+	Tue, 11 Aug 2026 06:50:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786431059;
-	bh=C+9hiXpXk+RF8JQJr27eKfNX6hlmDHXfTNks49kHzYI=;
+	s=k20260515; t=1786431082;
+	bh=pfGU0D4O9zWwbK/+6nySjeIYfyifqCkehvfkgADgAsc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=mJa3rjA20KL8lNSxF5KU0hdiNe68KVTsh9sMGQ9juZ4OyUCePaOecdnVALJTdojHP
-	 IdmBCPV+KUKlntW5/WfmTHRhxHhUsrqyS5p3gacvuI7EtpDSJwtTgQ1/51HqLJ/JZy
-	 c0s1P6yI8RQTJ/bYmSRk/+j3Bj7SkmptDRbYpF/iv8OxToBU53zxkNkBeqAE5qAwfr
-	 btRHRG/nhl6mTqpNwtig+aVWQMgiFyfYKZckv5viDrrrp7MTyPgqUhLjKEAWuu97p1
-	 VNjN1p0qdHyiRkChYQpmqlRfztcVoMJNoArAHtAU50VY+daaPhw1eUnZuF8by7ZjjP
-	 W+SN50JGsPckA==
+	b=JTO+nPNWDvTHekKlIpYyVDRk6JWPhYJM+EKnrISSJLN8SnB3I43R86b+3Tv6AsjZv
+	 BY3nuwJTENw7AdEw8GhVocapJqAMQwu6bMCKH7U29rx3sgoGnsIGeDPSLvpWyG4QRY
+	 /2DK4YuBgDjvL1LDsHsC1WmRetLMmLROkOX2XNzglP7Prqa7JCaim8h77wLKpDA0S7
+	 IDrfq1ZJlw6LBLCxMgA4Tmr+8WFFP4VmMfiKMgmZ+EXWPcR0lXFfgEhkMWdqa1EAo5
+	 XZkWeLObdJn/oOWaHLqCt1r47YG1rl/tK4kUMeZ6Dz/XsqsueMpzInOri1CLdNuPpe
+	 HWgmGtDbhZ/rw==
 From: Yu Kuai <yukuai@kernel.org>
 To: Jens Axboe <axboe@kernel.dk>,
 	Tejun Heo <tj@kernel.org>,
@@ -76,9 +76,9 @@ Cc: Yu Kuai <yukuai@fygo.io>,
 	gfs2@lists.linux.dev,
 	linux-fsdevel@vger.kernel.org,
 	linux-mm@kvack.org
-Subject: [RFC PATCH v2 2/4] blk-cgroup: use a request_queue rhashtable for blkg lookup
-Date: Tue, 11 Aug 2026 14:47:42 +0800
-Message-ID: <20260811064744.1139446-3-yukuai@kernel.org>
+Subject: [RFC PATCH v2 3/4] blk-cgroup: store blkcg in bio instead of blkg
+Date: Tue, 11 Aug 2026 14:47:43 +0800
+Message-ID: <20260811064744.1139446-4-yukuai@kernel.org>
 X-Mailer: git-send-email 2.51.0
 In-Reply-To: <20260811064744.1139446-1-yukuai@kernel.org>
 References: <20260811064744.1139446-1-yukuai@kernel.org>
@@ -92,469 +92,1208 @@ Content-Transfer-Encoding: 8bit
 
 From: Yu Kuai <yukuai@fygo.io>
 
-blkg lookup currently uses a per-blkcg radix tree keyed by request queue
-ID, plus a lookup hint for the common case. This spreads the queue-local
-blkcg association index across every blkcg and requires radix-tree
-preloading before creating a blkg while holding q->queue_lock.
+A bio currently stores and pins a queue-local blkg. This forces bio
+association and remap paths to look up or create a blkg even when no
+blkcg policy will use the bio, and ties the stored state to the current
+block device.
 
-Replace the radix tree and lookup hint with a request_queue-owned
-rhashtable keyed by the blkcg CSS ID. Cache the ID in each blkg; the blkg
-holds a CSS reference until after it leaves the hash, so the ID cannot be
-reused while it is hash-visible. The integer key also reduces hashing and
-comparison work relative to a pointer-sized key on 64-bit systems.
+Store and reference the queue-independent blkcg in the bio instead. Add
+helpers that lazily look up or create the queue-local blkg when a policy
+needs it, and pin the result until the bio changes devices or releases
+its cgroup state.
 
-Keep entries until blkg_release() and provide blkg_lookup_any() for callers
-which need to find dying entries. blkg_lookup() filters offline entries so
-existing lookup semantics remain unchanged.
+If blkg creation fails while walking down the hierarchy, use the closest
+available ancestor and update the bio's blkcg association before recording
+the blkg reference. This keeps later CSS ID hash lookups matched with the
+pinned blkg.
 
-Keep q->blkg_list for ordered policy and scheduler walks. Initialize and
-destroy the hash with request_queue, and remove the radix-tree preload
-paths which are no longer needed.
+Keep lookup-only users from creating missing blkgs. A pinned blkg remains
+in the queue hash until the bio drops its reference, so allow the bio to
+recover it from the hash after the blkg starts dying. Rename the bio
+association helpers to describe the blkcg state they now store.
 
 Signed-off-by: Yu Kuai <yukuai@fygo.io>
 ---
- block/blk-cgroup.c     | 59 +++++++++++++++++-------------------------
- block/blk-cgroup.h     | 42 ++++++++++++++++++++----------
- block/blk-core.c       |  9 +++++--
- include/linux/blkdev.h |  2 ++
- 4 files changed, 62 insertions(+), 50 deletions(-)
+ Documentation/admin-guide/cgroup-v2.rst |   2 +-
+ block/bfq-cgroup.c                      |  16 +-
+ block/bfq-iosched.c                     |  19 +-
+ block/bio.c                             |  22 +--
+ block/blk-cgroup-fc-appid.c             |  10 +-
+ block/blk-cgroup.c                      | 237 +++++++++++++++---------
+ block/blk-cgroup.h                      |  26 ++-
+ block/blk-crypto-fallback.c             |   2 +-
+ block/blk-iocost.c                      |  12 +-
+ block/blk-iolatency.c                   |  11 +-
+ block/blk-ioprio.c                      |   2 +-
+ block/blk-throttle.c                    |   2 +-
+ block/blk-throttle.h                    |   2 +-
+ drivers/md/bcache/request.c             |   2 +-
+ drivers/md/dm.c                         |   2 +-
+ drivers/md/md.c                         |   2 +-
+ drivers/nvdimm/nd_virtio.c              |   2 +-
+ fs/gfs2/lops.c                          |   3 +-
+ include/linux/bio.h                     |  26 +--
+ include/linux/blk_types.h               |   9 +-
+ include/linux/writeback.h               |   2 +-
+ mm/page_io.c                            |  13 +-
+ 22 files changed, 266 insertions(+), 158 deletions(-)
 
-diff --git a/block/blk-cgroup.c b/block/blk-cgroup.c
-index 229348273437..23e18aacdcfa 100644
---- a/block/blk-cgroup.c
-+++ b/block/blk-cgroup.c
-@@ -61,10 +61,17 @@ bool blkcg_debug_stats = false;
+diff --git a/Documentation/admin-guide/cgroup-v2.rst b/Documentation/admin-guide/cgroup-v2.rst
+index 14b8c571c0d1..bbd79931d5ab 100644
+--- a/Documentation/admin-guide/cgroup-v2.rst
++++ b/Documentation/admin-guide/cgroup-v2.rst
+@@ -3233,11 +3233,11 @@ incompatible.
+ wbc_init_bio() binds the specified bio to its cgroup.  Depending on
+ the configuration, the bio may be executed at a lower priority and if
+ the writeback session is holding shared resources, e.g. a journal
+ entry, may lead to priority inversion.  There is no one easy solution
+ for the problem.  Filesystems can try to work around specific problem
+-cases by skipping wbc_init_bio() and using bio_associate_blkg()
++cases by skipping wbc_init_bio() and using bio_associate_blkcg()
+ directly.
  
- static DEFINE_RAW_SPINLOCK(blkg_stat_lock);
  
- #define BLKG_DESTROY_BATCH_SIZE  64
+ Deprecated v1 Core Features
+ ===========================
+diff --git a/block/bfq-cgroup.c b/block/bfq-cgroup.c
+index e82ff03bda02..720f11b389ac 100644
+--- a/block/bfq-cgroup.c
++++ b/block/bfq-cgroup.c
+@@ -361,15 +361,17 @@ void bfqg_and_blkg_put(struct bfq_group *bfqg)
+ 	bfqg_put(bfqg);
+ }
  
-+const struct rhashtable_params blkg_hash_params = {
-+	.key_len		= sizeof_field(struct blkcg_gq, blkcg_id),
-+	.key_offset		= offsetof(struct blkcg_gq, blkcg_id),
-+	.head_offset		= offsetof(struct blkcg_gq, q_hash_node),
-+	.automatic_shrinking	= true,
-+};
-+
- /*
-  * Lockless lists for tracking IO stats update
-  *
-  * New IO stats are stored in the percpu iostat_cpu within blkcg_gq (blkg).
-  * There are multiple blkg's (one for each block device) attached to each
-@@ -191,10 +198,15 @@ static void blkg_release(struct percpu_ref *ref)
+ void bfqg_stats_update_legacy_io(struct request_queue *q, struct request *rq)
  {
- 	struct blkcg_gq *blkg = container_of(ref, struct blkcg_gq, refcnt);
- 	struct blkcg *blkcg = blkg->blkcg;
- 	int cpu;
+-	struct bfq_group *bfqg = blkg_to_bfqg(rq->bio->bi_blkg);
++	struct blkcg_gq *blkg = bio_blkg_lookup(rq->bio);
++	struct bfq_group *bfqg;
  
-+	if (!list_empty(&blkg->q_node))
-+		WARN_ON_ONCE(rhashtable_remove_fast(&blkg->q->blkg_hash,
-+						    &blkg->q_hash_node,
-+						    blkg_hash_params));
+-	if (!bfqg)
++	if (!blkg)
+ 		return;
+ 
++	bfqg = blkg_to_bfqg(blkg);
+ 	blkg_rwstat_add(&bfqg->stats.bytes, rq->cmd_flags, blk_rq_bytes(rq));
+ 	blkg_rwstat_add(&bfqg->stats.ios, rq->cmd_flags, 1);
+ }
+ 
+ /* @stats = 0 */
+@@ -604,27 +606,29 @@ static void bfq_link_bfqg(struct bfq_data *bfqd, struct bfq_group *bfqg)
+ 	}
+ }
+ 
+ struct bfq_group *bfq_bio_bfqg(struct bfq_data *bfqd, struct bio *bio)
+ {
+-	struct blkcg_gq *blkg = bio->bi_blkg;
++	struct blkcg_gq *blkg = bio_blkg_lookup(bio);
+ 	struct bfq_group *bfqg;
+ 
+ 	while (blkg) {
+ 		if (!blkg->online) {
+ 			blkg = blkg->parent;
+ 			continue;
+ 		}
 +
- 	/*
- 	 * Flush all the non-empty percpu lockless lists before releasing
- 	 * us, given these stat belongs to us.
- 	 *
- 	 * blkg_stat_lock is for serializing blkg stat update
-@@ -324,10 +336,11 @@ static struct blkcg_gq *blkg_alloc(struct blkcg *blkcg, struct gendisk *disk,
- 		goto out_put_queue;
+ 		bfqg = blkg_to_bfqg(blkg);
+ 		if (bfqg->pd.online) {
+-			bio_associate_blkg_from_css(bio, &blkg->blkcg->css);
++			bio_associate_blkcg_from_css(bio, &blkg->blkcg->css);
+ 			return bfqg;
+ 		}
+ 		blkg = blkg->parent;
+ 	}
+-	bio_associate_blkg_from_css(bio,
+-				&bfqg_to_blkg(bfqd->root_group)->blkcg->css);
++
++	blkg = bfqg_to_blkg(bfqd->root_group);
++	bio_associate_blkcg_from_css(bio, &blkg->blkcg->css);
+ 	return bfqd->root_group;
+ }
  
- 	blkg->q = disk->queue;
- 	INIT_LIST_HEAD(&blkg->q_node);
- 	blkg->blkcg = blkcg;
-+	blkg->blkcg_id = blkcg->css.id;
- 	blkg->iostat.blkg = blkg;
- #ifdef CONFIG_BLK_CGROUP_PUNT_BIO
- 	spin_lock_init(&blkg->async_bio_lock);
- 	bio_list_init(&blkg->async_bios);
- 	INIT_WORK(&blkg->async_bio_work, blkg_async_bio_workfn);
-@@ -420,11 +433,12 @@ static struct blkcg_gq *blkg_create(struct blkcg *blkcg, struct gendisk *disk,
- 			pol->pd_init_fn(blkg->pd[i]);
+ /**
+  * bfq_bfqq_move - migrate @bfqq to @bfqg.
+diff --git a/block/bfq-iosched.c b/block/bfq-iosched.c
+index 0f75301b3115..d4f657bc7a4e 100644
+--- a/block/bfq-iosched.c
++++ b/block/bfq-iosched.c
+@@ -126,10 +126,11 @@
+ 
+ #include <trace/events/block.h>
+ 
+ #include "elevator.h"
+ #include "blk.h"
++#include "blk-cgroup.h"
+ #include "blk-mq.h"
+ #include "blk-mq-sched.h"
+ #include "bfq-iosched.h"
+ #include "blk-wbt.h"
+ 
+@@ -2450,19 +2451,20 @@ static bool bfq_bio_merge(struct request_queue *q, struct bio *bio,
+ 	struct bfq_data *bfqd = q->elevator->elevator_data;
+ 	struct bfq_io_cq *bic = bfq_bic_lookup(q);
+ 	struct request *free = NULL;
+ 	bool ret;
+ 
++#ifdef CONFIG_BFQ_GROUP_IOSCHED
++	/* blkg creation takes q->queue_lock, so do it before bfqd->lock. */
++	if (bic)
++		bio_blkg(bio);
++#endif
++
+ 	spin_lock_irq(&bfqd->lock);
+ 
+ 	if (bic) {
+-		/*
+-		 * Make sure cgroup info is uptodate for current process before
+-		 * considering the merge.
+-		 */
+ 		bfq_bic_update_cgroup(bic, bio);
+-
+ 		bfqd->bio_bfqq = bic_to_bfqq(bic, op_is_sync(bio->bi_opf),
+ 					     bfq_actuator_index(bfqd, bio));
+ 	} else {
+ 		bfqd->bio_bfqq = NULL;
+ 	}
+@@ -6243,10 +6245,17 @@ static void bfq_insert_request(struct blk_mq_hw_ctx *hctx, struct request *rq,
+ 	bool idle_timer_disabled = false;
+ 	blk_opf_t cmd_flags;
+ 	LIST_HEAD(free);
+ 
+ #ifdef CONFIG_BFQ_GROUP_IOSCHED
++	/*
++	 * Pin the blkg used to look up bfqg.  If this is the first IO for
++	 * the blkcg on this queue, create the bfqg before holding bfqd->lock.
++	 */
++	if (rq->bio && !bio_flagged(rq->bio, BIO_BLKG_REF))
++		bio_blkg(rq->bio);
++
+ 	if (!cgroup_subsys_on_dfl(io_cgrp_subsys) && rq->bio)
+ 		bfqg_stats_update_legacy_io(q, rq);
+ #endif
+ 	spin_lock_irq(&bfqd->lock);
+ 	bfqq = bfq_init_rq(rq);
+diff --git a/block/bio.c b/block/bio.c
+index 6a2f6fc3413e..db33c993c296 100644
+--- a/block/bio.c
++++ b/block/bio.c
+@@ -177,16 +177,11 @@ static inline gfp_t try_alloc_gfp(gfp_t gfp)
+ 		__GFP_NOMEMALLOC | __GFP_NORETRY | __GFP_NOWARN;
+ }
+ 
+ void bio_uninit(struct bio *bio)
+ {
+-#ifdef CONFIG_BLK_CGROUP
+-	if (bio->bi_blkg) {
+-		blkg_put(bio->bi_blkg);
+-		bio->bi_blkg = NULL;
+-	}
+-#endif
++	bio_clear_blkcg(bio);
+ 	if (bio_integrity(bio))
+ 		bio_integrity_free(bio);
+ 
+ 	bio_crypt_free_ctx(bio);
+ }
+@@ -231,14 +226,14 @@ void bio_init(struct bio *bio, struct block_device *bdev, struct bio_vec *table,
+ 	bio->bi_iter.bi_idx = 0;
+ 	bio->bi_iter.bi_bvec_done = 0;
+ 	bio->bi_end_io = NULL;
+ 	bio->bi_private = NULL;
+ #ifdef CONFIG_BLK_CGROUP
+-	bio->bi_blkg = NULL;
++	bio->bi_blkcg = NULL;
+ 	bio->issue_time_ns = 0;
+ 	if (bdev)
+-		bio_associate_blkg(bio);
++		bio_associate_blkcg(bio);
+ #ifdef CONFIG_BLK_CGROUP_IOCOST
+ 	bio->bi_iocost_cost = 0;
+ #endif
+ #endif
+ #ifdef CONFIG_BLK_INLINE_ENCRYPTION
+@@ -279,11 +274,11 @@ void bio_reset(struct bio *bio, struct block_device *bdev, blk_opf_t opf)
+ 	memset(bio, 0, BIO_RESET_BYTES);
+ 	atomic_set(&bio->__bi_remaining, 1);
+ 	bio->bi_io_vec = bv;
+ 	bio->bi_bdev = bdev;
+ 	if (bio->bi_bdev)
+-		bio_associate_blkg(bio);
++		bio_associate_blkcg(bio);
+ 	bio->bi_opf = opf;
+ }
+ EXPORT_SYMBOL(bio_reset);
+ 
+ /**
+@@ -863,11 +858,11 @@ static int __bio_clone(struct bio *bio, struct bio *bio_src, gfp_t gfp)
+ 
+ 	if (bio->bi_bdev) {
+ 		if (bio->bi_bdev == bio_src->bi_bdev &&
+ 		    bio_flagged(bio_src, BIO_REMAPPED))
+ 			bio_set_flag(bio, BIO_REMAPPED);
+-		bio_clone_blkg_association(bio, bio_src);
++		bio_clone_blkcg_association(bio, bio_src);
  	}
  
- 	/* insert */
- 	spin_lock(&blkcg->lock);
--	ret = radix_tree_insert(&blkcg->blkg_tree, disk->queue->id, blkg);
-+	ret = rhashtable_insert_fast(&disk->queue->blkg_hash,
-+				     &blkg->q_hash_node, blkg_hash_params);
- 	if (likely(!ret)) {
- 		hlist_add_head_rcu(&blkg->blkcg_node, &blkcg->blkg_list);
- 		list_add(&blkg->q_node, &disk->queue->blkg_list);
+ 	if (bio_crypt_clone(bio, bio_src, gfp) < 0)
+ 		return -ENOMEM;
+ 	if (bio_integrity(bio_src) &&
+@@ -1801,21 +1796,16 @@ void bio_endio(struct bio *bio)
+ 	if (bio->bi_end_io == bio_chain_endio) {
+ 		bio = __bio_chain_endio(bio);
+ 		goto again;
+ 	}
  
- 		for (i = 0; i < BLKCG_MAX_POLS; i++) {
-@@ -473,13 +487,10 @@ static struct blkcg_gq *blkg_lookup_create(struct blkcg *blkcg,
+-#ifdef CONFIG_BLK_CGROUP
+ 	/*
+ 	 * Release cgroup info.  We shouldn't have to do this here, but quite
+ 	 * a few callers of bio_init fail to call bio_uninit, so we cover up
+ 	 * for that here at least for now.
+ 	 */
+-	if (bio->bi_blkg) {
+-		blkg_put(bio->bi_blkg);
+-		bio->bi_blkg = NULL;
+-	}
+-#endif
++	bio_clear_blkcg(bio);
+ 
+ 	if (bio->bi_end_io)
+ 		bio->bi_end_io(bio);
+ }
+ EXPORT_SYMBOL(bio_endio);
+diff --git a/block/blk-cgroup-fc-appid.c b/block/blk-cgroup-fc-appid.c
+index 3ec21333f393..7589c6209989 100644
+--- a/block/blk-cgroup-fc-appid.c
++++ b/block/blk-cgroup-fc-appid.c
+@@ -48,10 +48,16 @@ EXPORT_SYMBOL_GPL(blkcg_set_fc_appid);
+  *
+  * On success return the fc_app_id, on failure return NULL
+  */
+ char *blkcg_get_fc_appid(struct bio *bio)
+ {
+-	if (!bio->bi_blkg || bio->bi_blkg->blkcg->fc_app_id[0] == '\0')
++	struct blkcg *blkcg = bio_blkcg(bio);
++
++	if (!blkcg)
++		return NULL;
++
++	if (blkcg->fc_app_id[0] == '\0')
+ 		return NULL;
+-	return bio->bi_blkg->blkcg->fc_app_id;
++
++	return blkcg->fc_app_id;
+ }
+ EXPORT_SYMBOL_GPL(blkcg_get_fc_appid);
+diff --git a/block/blk-cgroup.c b/block/blk-cgroup.c
+index 23e18aacdcfa..1de2f2433d11 100644
+--- a/block/blk-cgroup.c
++++ b/block/blk-cgroup.c
+@@ -251,19 +251,19 @@ static void blkg_async_bio_workfn(struct work_struct *work)
+  * cgroup.  Use this helper instead of submit_bio to punt the actual issuing to
+  * a dedicated per-blkcg work item to avoid such priority inversions.
+  */
+ void blkcg_punt_bio_submit(struct bio *bio)
+ {
+-	struct blkcg_gq *blkg = bio->bi_blkg;
++	struct blkcg_gq *blkg = bio_blkg(bio);
+ 
+-	if (blkg->parent) {
++	if (blkg && blkg->parent) {
+ 		spin_lock(&blkg->async_bio_lock);
+ 		bio_list_add(&blkg->async_bios, bio);
+ 		spin_unlock(&blkg->async_bio_lock);
+ 		queue_work(blkcg_punt_bio_wq, &blkg->async_bio_work);
+ 	} else {
+-		/* never bounce for the root cgroup */
++		/* Never bounce if there is no non-root blkg to queue on. */
+ 		submit_bio(bio);
+ 	}
+ }
+ EXPORT_SYMBOL_GPL(blkcg_punt_bio_submit);
+ 
+@@ -287,13 +287,17 @@ subsys_initcall(blkcg_punt_bio_init);
+  * associated. Callers are expected to either handle %NULL or know association
+  * has been done prior to calling this.
+  */
+ struct cgroup_subsys_state *bio_blkcg_css(struct bio *bio)
+ {
+-	if (!bio || !bio->bi_blkg)
++	struct blkcg *blkcg;
++
++	if (!bio)
+ 		return NULL;
+-	return &bio->bi_blkg->blkcg->css;
++
++	blkcg = bio_blkcg(bio);
++	return blkcg ? &blkcg->css : NULL;
+ }
+ EXPORT_SYMBOL_GPL(bio_blkcg_css);
+ 
+ /**
+  * blkcg_parent - get the parent of a blkcg
+@@ -465,32 +469,48 @@ static struct blkcg_gq *blkg_create(struct blkcg *blkcg, struct gendisk *disk,
+ 	if (new_blkg)
+ 		blkg_free(new_blkg);
+ 	return ERR_PTR(ret);
+ }
+ 
++/*
++ * The root blkg holds a live reference while the disk is active, so walking
++ * the parent chain always finds a blkg which can be pinned.
++ */
++static struct blkcg_gq *blkg_lookup_tryget(struct blkcg_gq *blkg)
++{
++	while (!blkg_tryget(blkg))
++		blkg = blkg->parent;
++	return blkg;
++}
++
+ /**
+  * blkg_lookup_create - lookup blkg, try to create one if not there
+  * @blkcg: blkcg of interest
+  * @disk: gendisk of interest
+  *
+  * Lookup blkg for the @blkcg - @disk pair.  If it doesn't exist, try to
+  * create one.  blkg creation is performed recursively from blkcg_root such
+- * that all non-root blkg's have access to the parent blkg.  This function
+- * should be called under RCU read lock and takes @disk->queue->queue_lock.
++ * that all non-root blkg's have access to the parent blkg.
++ *
++ * Must be called with @disk->queue->queue_lock held.
+  *
+- * Returns the blkg or the closest blkg if blkg_create() fails as it walks
+- * down from root.
++ * Returns the closest blkg with an extra reference acquired.  If
++ * blkg_create() fails while walking down from root, the returned blkg may
++ * belong to an ancestor of @blkcg.  This function never returns %NULL.
+  */
+ static struct blkcg_gq *blkg_lookup_create(struct blkcg *blkcg,
+ 		struct gendisk *disk)
+ {
+ 	struct request_queue *q = disk->queue;
  	struct blkcg_gq *blkg;
  
++	lockdep_assert_held(&q->queue_lock);
++
  	rcu_read_lock();
  	blkg = blkg_lookup(blkcg, q);
  	if (blkg) {
--		if (blkcg != &blkcg_root &&
--		    blkg != rcu_dereference(blkcg->blkg_hint))
--			rcu_assign_pointer(blkcg->blkg_hint, blkg);
++		blkg = blkg_lookup_tryget(blkg);
  		rcu_read_unlock();
  		return blkg;
  	}
  	rcu_read_unlock();
  
-@@ -543,21 +554,12 @@ static void blkg_destroy(struct blkcg_gq *blkg)
+@@ -522,11 +542,11 @@ static struct blkcg_gq *blkg_lookup_create(struct blkcg *blkcg,
  		}
- 	}
- 
- 	blkg->online = false;
- 
--	radix_tree_delete(&blkcg->blkg_tree, blkg->q->id);
- 	hlist_del_init_rcu(&blkg->blkcg_node);
- 
--	/*
--	 * Both setting lookup hint to and clearing it from @blkg are done
--	 * under queue_lock.  If it's not pointing to @blkg now, it never
--	 * will.  Hint assignment itself can race safely.
--	 */
--	if (rcu_access_pointer(blkcg->blkg_hint) == blkg)
--		rcu_assign_pointer(blkcg->blkg_hint, NULL);
--
- 	/*
- 	 * Put the reference taken at the time of creation so that when all
- 	 * queues are gone, group can be destroyed.
- 	 */
- 	percpu_ref_kill(&blkg->refcnt);
-@@ -877,47 +879,37 @@ int blkg_conf_prep(struct blkcg *blkcg, const struct blkcg_policy *pol,
- 		if (unlikely(!new_blkg)) {
- 			ret = -ENOMEM;
- 			goto fail_exit;
- 		}
- 
--		if (radix_tree_preload(GFP_KERNEL)) {
--			blkg_free(new_blkg);
--			ret = -ENOMEM;
--			goto fail_exit;
--		}
--
- 		spin_lock_irq(&q->queue_lock);
- 
- 		if (!blkcg_policy_enabled(q, pol)) {
- 			blkg_free(new_blkg);
- 			ret = -EOPNOTSUPP;
--			goto fail_preloaded;
-+			goto fail_unlock;
- 		}
- 
- 		blkg = blkg_lookup(pos, q);
- 		if (blkg) {
- 			blkg_free(new_blkg);
- 		} else {
- 			blkg = blkg_create(pos, disk, new_blkg);
- 			if (IS_ERR(blkg)) {
- 				ret = PTR_ERR(blkg);
--				goto fail_preloaded;
-+				goto fail_unlock;
- 			}
- 		}
- 
--		radix_tree_preload_end();
--
  		if (pos == blkcg)
- 			goto success;
- 	}
- success:
- 	mutex_unlock(&q->blkcg_mutex);
- 	ctx->blkg = blkg;
- 	return 0;
- 
--fail_preloaded:
--	radix_tree_preload_end();
- fail_unlock:
- 	spin_unlock_irq(&q->queue_lock);
- fail_exit:
- 	mutex_unlock(&q->blkcg_mutex);
- 	/*
-@@ -1405,11 +1397,10 @@ blkcg_css_alloc(struct cgroup_subsys_state *parent_css)
- 		cpd->plid = i;
+ 			break;
  	}
  
- 	spin_lock_init(&blkcg->lock);
- 	refcount_set(&blkcg->online_pin, 1);
--	INIT_RADIX_TREE(&blkcg->blkg_tree, GFP_NOWAIT);
- 	INIT_HLIST_HEAD(&blkcg->blkg_list);
- #ifdef CONFIG_CGROUP_WRITEBACK
- 	INIT_LIST_HEAD(&blkcg->cgwb_list);
- #endif
- 	list_add_tail(&blkcg->all_blkcgs_node, &all_blkcgs);
-@@ -1442,21 +1433,26 @@ static int blkcg_css_online(struct cgroup_subsys_state *css)
- 	if (parent)
- 		blkcg_pin_online(&parent->css);
- 	return 0;
+-	return blkg;
++	return blkg_lookup_tryget(blkg);
  }
  
--void blkg_init_queue(struct request_queue *q)
-+int blkg_init_queue(struct request_queue *q)
+ static void blkg_destroy(struct blkcg_gq *blkg)
  {
- 	INIT_LIST_HEAD(&q->blkg_list);
- 	mutex_init(&q->blkcg_mutex);
-+	return rhashtable_init(&q->blkg_hash, &blkg_hash_params);
+ 	struct blkcg *blkcg = blkg->blkcg;
+@@ -2034,133 +2054,169 @@ void blkcg_add_delay(struct blkcg_gq *blkg, u64 now, u64 delta)
+ 		return;
+ 	blkcg_scale_delay(blkg, now);
+ 	atomic64_add(delta, &blkg->delay_nsec);
+ }
+ 
+-static inline struct blkcg_gq *blkg_lookup_tryget(struct blkcg_gq *blkg)
++/*
++ * Return the blkg pinned by @bio through BIO_BLKG_REF.  The returned blkg is
++ * already owned by @bio and no extra reference is acquired.
++ */
++static struct blkcg_gq *bio_pinned_blkg(struct bio *bio)
+ {
+-retry:
+-	if (blkg_tryget(blkg))
+-		return blkg;
++	struct request_queue *q = bdev_get_queue(bio->bi_bdev);
++	struct blkcg_gq *blkg;
+ 
+-	blkg = blkg->parent;
+-	if (blkg)
+-		goto retry;
++	rcu_read_lock();
++	blkg = blkg_lookup_any(bio_blkcg(bio), q);
++	rcu_read_unlock();
+ 
+-	return NULL;
++	WARN_ON_ONCE(!blkg);
++	return blkg;
+ }
++
++static void bio_set_blkg_ref(struct bio *bio, struct blkcg_gq *blkg)
++{
++	if (bio_blkcg(bio) != blkg->blkcg) {
++		css_get(&blkg->blkcg->css);
++		bio_clear_blkcg(bio);
++		bio->bi_blkcg = blkg->blkcg;
++	}
++	bio_set_flag(bio, BIO_BLKG_REF);
 +}
 +
-+void blkg_exit_queue(struct request_queue *q)
-+{
-+	rhashtable_destroy(&q->blkg_hash);
- }
- 
- int blkcg_init_disk(struct gendisk *disk)
- {
- 	struct request_queue *q = disk->queue;
- 	struct blkcg_gq *new_blkg, *blkg;
--	bool preloaded;
- 
- 	/*
- 	 * If the queue is shared across disk rebind (e.g., SCSI), the
- 	 * previous disk's blkcg state is cleaned up asynchronously via
- 	 * disk_release() -> blkcg_exit_disk(). Wait for all old blkgs to be
-@@ -1466,30 +1462,23 @@ int blkcg_init_disk(struct gendisk *disk)
- 
- 	new_blkg = blkg_alloc(&blkcg_root, disk, GFP_KERNEL);
- 	if (!new_blkg)
- 		return -ENOMEM;
- 
--	preloaded = !radix_tree_preload(GFP_KERNEL);
--
- 	/* Make sure the root blkg exists. */
- 	/* spin_lock_irq can serve as RCU read-side critical section. */
- 	spin_lock_irq(&q->queue_lock);
- 	blkg = blkg_create(&blkcg_root, disk, new_blkg);
- 	if (IS_ERR(blkg))
- 		goto err_unlock;
- 	q->root_blkg = blkg;
- 	spin_unlock_irq(&q->queue_lock);
- 
--	if (preloaded)
--		radix_tree_preload_end();
--
- 	return 0;
- 
- err_unlock:
- 	spin_unlock_irq(&q->queue_lock);
--	if (preloaded)
--		radix_tree_preload_end();
- 	return PTR_ERR(blkg);
- }
- 
- void blkcg_exit_disk(struct gendisk *disk)
- {
-diff --git a/block/blk-cgroup.h b/block/blk-cgroup.h
-index 615390f751aa..ab558d6434a7 100644
---- a/block/blk-cgroup.h
-+++ b/block/blk-cgroup.h
-@@ -17,10 +17,11 @@
- #include <linux/blk-cgroup.h>
- #include <linux/cgroup.h>
- #include <linux/kthread.h>
- #include <linux/blk-mq.h>
- #include <linux/llist.h>
-+#include <linux/rhashtable.h>
- #include "blk.h"
- 
- struct blkcg_gq;
- struct blkg_policy_data;
- 
-@@ -54,13 +55,15 @@ struct blkg_iostat_set {
- 
- /* association between a blk cgroup and a request queue */
- struct blkcg_gq {
- 	/* Pointer to the associated request_queue */
- 	struct request_queue		*q;
-+	struct rhash_head		q_hash_node;
- 	struct list_head		q_node;
- 	struct hlist_node		blkcg_node;
- 	struct blkcg			*blkcg;
-+	int				blkcg_id;
- 
- 	/* all non-root blkcg_gq's are guaranteed to have access to parent */
- 	struct blkcg_gq			*parent;
- 
- 	/* reference count */
-@@ -96,12 +99,10 @@ struct blkcg {
- 	spinlock_t			lock;
- 	refcount_t			online_pin;
- 	/* If there is block congestion on this cgroup. */
- 	atomic_t			congestion_count;
- 
--	struct radix_tree_root		blkg_tree;
--	struct blkcg_gq	__rcu		*blkg_hint;
- 	struct hlist_head		blkg_list;
- 
- 	struct blkcg_policy_data	*cpd[BLKCG_MAX_POLS];
- 
- 	struct list_head		all_blkcgs_node;
-@@ -190,12 +191,14 @@ struct blkcg_policy {
- 	blkcg_pol_stat_pd_fn		*pd_stat_fn;
- };
- 
- extern struct blkcg blkcg_root;
- extern bool blkcg_debug_stats;
-+extern const struct rhashtable_params blkg_hash_params;
- 
--void blkg_init_queue(struct request_queue *q);
-+int blkg_init_queue(struct request_queue *q);
-+void blkg_exit_queue(struct request_queue *q);
- int blkcg_init_disk(struct gendisk *disk);
- void blkcg_exit_disk(struct gendisk *disk);
- 
- /* Blkio controller policy registration */
- int blkcg_policy_register(struct blkcg_policy *pol);
-@@ -247,15 +250,31 @@ static inline bool bio_issue_as_root_blkg(struct bio *bio)
- {
- 	return (bio->bi_opf & (REQ_META | REQ_SWAP)) != 0;
- }
- 
  /**
-- * blkg_lookup - lookup blkg for the specified blkcg - q pair
-+ * blkg_lookup_any - lookup any blkg for the specified blkcg - q pair
-  * @blkcg: blkcg of interest
-  * @q: request_queue of interest
+- * blkg_tryget_closest - try and get a blkg ref on the closet blkg
++ * bio_blkg_lookup - look up a blkg associated with a bio
+  * @bio: target bio
+- * @css: target css
   *
-- * Lookup blkg for the @blkcg - @q pair.
-+ * Lookup a blkg for the @blkcg - @q pair, whether it is online or dying.
-+ *
-+ * Must be called in a RCU critical section.
-+ */
-+static inline struct blkcg_gq *blkg_lookup_any(struct blkcg *blkcg,
-+					       struct request_queue *q)
-+{
-+	return rhashtable_lookup(&q->blkg_hash, &blkcg->css.id,
-+				 blkg_hash_params);
+- * As the failure mode here is to walk up the blkg tree, this ensure that the
+- * blkg->parent pointers are always valid.  This returns the blkg that it ended
+- * up taking a reference on or %NULL if no reference was taken.
++ * Return the blkg already pinned by @bio, or %NULL if @bio doesn't own a blkg
++ * reference.  Call bio_blkg() instead when a missing blkg should be created.
+  */
+-static inline struct blkcg_gq *blkg_tryget_closest(struct bio *bio,
+-		struct cgroup_subsys_state *css)
++struct blkcg_gq *bio_blkg_lookup(struct bio *bio)
+ {
+-	struct request_queue *q = bio->bi_bdev->bd_queue;
+-	struct blkcg *blkcg = css_to_blkcg(css);
++	if (!bio_flagged(bio, BIO_BLKG_REF))
++		return NULL;
++	return bio_pinned_blkg(bio);
 +}
++EXPORT_SYMBOL_GPL(bio_blkg_lookup);
 +
 +/**
-+ * blkg_lookup - lookup an online blkg for the specified blkcg - q pair
-+ * @blkcg: blkcg of interest
-+ * @q: request_queue of interest
++ * bio_put_blkg_ref - drop the blkg reference pinned by a bio
++ * @bio: target bio
 + *
-+ * Lookup an online blkg for the @blkcg - @q pair.
-  *
-  * Must be called in a RCU critical section.
-  */
- static inline struct blkcg_gq *blkg_lookup(struct blkcg *blkcg,
- 					   struct request_queue *q)
-@@ -263,17 +282,12 @@ static inline struct blkcg_gq *blkg_lookup(struct blkcg *blkcg,
++ * Drop the bio-owned blkg reference acquired by bio_blkg(), if any.
++ */
++void bio_put_blkg_ref(struct bio *bio)
++{
++	if (bio_flagged(bio, BIO_BLKG_REF)) {
++		struct blkcg_gq *blkg = bio_pinned_blkg(bio);
++
++		if (blkg)
++			blkg_put(blkg);
++		bio_clear_flag(bio, BIO_BLKG_REF);
++	}
++}
++EXPORT_SYMBOL_GPL(bio_put_blkg_ref);
++
++/**
++ * bio_blkg - look up the blkg associated with a bio
++ * @bio: target bio
++ *
++ * Look up the queue-local blkg for @bio's current device and blkcg.  If this
++ * is the first policy use of @bio, create the missing blkg hierarchy if
++ * necessary, pin the closest available blkg, and update @bio's blkcg
++ * association if allocation falls back to an ancestor.
++ */
++struct blkcg_gq *bio_blkg(struct bio *bio)
++{
++	struct blkcg *blkcg = bio_blkcg(bio);
++	struct gendisk *disk;
++	struct request_queue *q;
  	struct blkcg_gq *blkg;
  
- 	if (blkcg == &blkcg_root)
- 		return q->root_blkg;
+-	rcu_read_lock();
+-	blkg = blkg_lookup(blkcg, q);
+-	if (likely(blkg))
+-		blkg = blkg_lookup_tryget(blkg);
+-	rcu_read_unlock();
++	if (!blkcg || !bio->bi_bdev)
++		return NULL;
  
--	blkg = rcu_dereference_check(blkcg->blkg_hint,
--			lockdep_is_held(&q->queue_lock));
--	if (blkg && blkg->q == q)
+-	if (blkg)
 -		return blkg;
++	if (bio_flagged(bio, BIO_BLKG_REF))
++		return bio_pinned_blkg(bio);
++
++	disk = bio->bi_bdev->bd_disk;
++	q = disk->queue;
+ 
+-	/*
+-	 * Fast path failed, we're probably issuing IO in this cgroup the first
+-	 * time, hold lock to create new blkg.
+-	 */
+ 	spin_lock_irq(&q->queue_lock);
+-	blkg = blkg_lookup_create(blkcg, bio->bi_bdev->bd_disk);
+-	if (blkg)
+-		blkg = blkg_lookup_tryget(blkg);
++	blkg = blkg_lookup_create(blkcg, disk);
+ 	spin_unlock_irq(&q->queue_lock);
+ 
++	bio_set_blkg_ref(bio, blkg);
+ 	return blkg;
+ }
++EXPORT_SYMBOL_GPL(bio_blkg);
+ 
+ /**
+- * bio_associate_blkg_from_css - associate a bio with a specified css
++ * bio_associate_blkcg_from_css - associate a bio with a specified css
+  * @bio: target bio
+  * @css: target css
+  *
+- * Associate @bio with the blkg found by combining the css's blkg and the
+- * request_queue of the @bio.  An association failure is handled by walking up
+- * the blkg tree.  Therefore, the blkg associated can be anything between @blkg
+- * and q->root_blkg.  This situation only happens when a cgroup is dying and
+- * then the remaining bios will spill to the closest alive blkg.
++ * Associate @bio with the blkcg found from @css.  The queue-local blkg is
++ * created and pinned by bio_blkg() when blkcg policies need it.  If @css
++ * can't be referenced online, associate @bio with the root blkcg instead.
+  *
+- * A reference will be taken on the blkg and will be released when @bio is
++ * A reference will be taken on the blkcg and will be released when @bio is
+  * freed.
+  */
+-void bio_associate_blkg_from_css(struct bio *bio,
+-				 struct cgroup_subsys_state *css)
++void bio_associate_blkcg_from_css(struct bio *bio,
++				  struct cgroup_subsys_state *css)
+ {
+-	if (bio->bi_blkg)
+-		blkg_put(bio->bi_blkg);
++	struct blkcg *blkcg;
+ 
+-	if (css && css->parent) {
+-		bio->bi_blkg = blkg_tryget_closest(bio, css);
+-	} else {
+-		blkg_get(bdev_get_queue(bio->bi_bdev)->root_blkg);
+-		bio->bi_blkg = bdev_get_queue(bio->bi_bdev)->root_blkg;
++	if (!css || !css_tryget_online(css)) {
++		css = &blkcg_root.css;
++		css_get(css);
++	}
++
++	blkcg = css_to_blkcg(css);
++	if (bio_blkcg(bio) == blkcg) {
++		css_put(css);
++		return;
+ 	}
++
++	bio_clear_blkcg(bio);
++	bio->bi_blkcg = blkcg;
+ }
+-EXPORT_SYMBOL_GPL(bio_associate_blkg_from_css);
++EXPORT_SYMBOL_GPL(bio_associate_blkcg_from_css);
+ 
+ /**
+- * bio_associate_blkg - associate a bio with a blkg
++ * bio_associate_blkcg - associate a bio with a blkcg
+  * @bio: target bio
+  *
+- * Associate @bio with the blkg found from the bio's css and request_queue.
+- * If one is not found, bio_lookup_blkg() creates the blkg.  If a blkg is
+- * already associated, the css is reused and association redone as the
+- * request_queue may have changed.
++ * Associate @bio with the blkcg found from the bio's css.  If a blkcg is
++ * already associated, keep it as blkcg association is not queue-local.
+  */
+-void bio_associate_blkg(struct bio *bio)
++void bio_associate_blkcg(struct bio *bio)
+ {
+-	struct cgroup_subsys_state *css;
 -
--	blkg = radix_tree_lookup(&blkcg->blkg_tree, q->id);
--	if (blkg && blkg->q != q)
-+	blkg = blkg_lookup_any(blkcg, q);
-+	if (blkg && !READ_ONCE(blkg->online))
+ 	if (blk_op_is_passthrough(bio->bi_opf))
+ 		return;
+ 
+-	if (bio->bi_blkg) {
+-		css = bio_blkcg_css(bio);
+-		bio_associate_blkg_from_css(bio, css);
+-	} else {
+-		rcu_read_lock();
+-		css = blkcg_css();
+-		if (!css_tryget_online(css))
+-			css = NULL;
+-		rcu_read_unlock();
++	if (bio_blkcg(bio))
++		return;
+ 
+-		bio_associate_blkg_from_css(bio, css);
+-		if (css)
+-			css_put(css);
+-	}
++	rcu_read_lock();
++	bio_associate_blkcg_from_css(bio, blkcg_css());
++	rcu_read_unlock();
+ }
+-EXPORT_SYMBOL_GPL(bio_associate_blkg);
++EXPORT_SYMBOL_GPL(bio_associate_blkcg);
+ 
+ /**
+- * bio_clone_blkg_association - clone blkg association from src to dst bio
++ * bio_clone_blkcg_association - clone blkcg association from src to dst bio
+  * @dst: destination bio
+  * @src: source bio
+  */
+-void bio_clone_blkg_association(struct bio *dst, struct bio *src)
++void bio_clone_blkcg_association(struct bio *dst, struct bio *src)
+ {
+-	if (src->bi_blkg)
+-		bio_associate_blkg_from_css(dst, bio_blkcg_css(src));
++	if (bio_blkcg(src))
++		bio_associate_blkcg_from_css(dst, bio_blkcg_css(src));
+ }
+-EXPORT_SYMBOL_GPL(bio_clone_blkg_association);
++EXPORT_SYMBOL_GPL(bio_clone_blkcg_association);
+ 
+ static int blk_cgroup_io_type(struct bio *bio)
+ {
+ 	if (op_is_discard(bio->bi_opf))
+ 		return BLKG_IOSTAT_DISCARD;
+@@ -2169,24 +2225,31 @@ static int blk_cgroup_io_type(struct bio *bio)
+ 	return BLKG_IOSTAT_READ;
+ }
+ 
+ void blk_cgroup_bio_start(struct bio *bio)
+ {
+-	struct blkcg *blkcg = bio->bi_blkg->blkcg;
++	struct blkcg *blkcg = bio_blkcg(bio);
++	struct blkcg_gq *blkg;
+ 	int rwd = blk_cgroup_io_type(bio), cpu;
+ 	struct blkg_iostat_set *bis;
+ 	unsigned long flags;
+ 
+ 	if (!cgroup_subsys_on_dfl(io_cgrp_subsys))
+ 		return;
++	if (!blkcg)
++		return;
+ 
+ 	/* Root-level stats are sourced from system-wide IO stats */
+ 	if (!cgroup_parent(blkcg->css.cgroup))
+ 		return;
+ 
++	blkg = bio_blkg_lookup(bio);
++	if (!blkg)
++		return;
++
+ 	cpu = get_cpu();
+-	bis = per_cpu_ptr(bio->bi_blkg->iostat_cpu, cpu);
++	bis = per_cpu_ptr(blkg->iostat_cpu, cpu);
+ 	flags = u64_stats_update_begin_irqsave(&bis->sync);
+ 
+ 	/*
+ 	 * If the bio is flagged with BIO_CGROUP_ACCT it means this is a split
+ 	 * bio and we would have already accounted for the size of the bio.
+diff --git a/block/blk-cgroup.h b/block/blk-cgroup.h
+index ab558d6434a7..3d113f6f6d25 100644
+--- a/block/blk-cgroup.h
++++ b/block/blk-cgroup.h
+@@ -123,10 +123,15 @@ struct blkcg {
+ static inline struct blkcg *css_to_blkcg(struct cgroup_subsys_state *css)
+ {
+ 	return css ? container_of(css, struct blkcg, css) : NULL;
+ }
+ 
++static inline struct blkcg *bio_blkcg(struct bio *bio)
++{
++	return bio->bi_blkcg;
++}
++
+ /*
+  * A blkcg_gq (blkg) is association between a block cgroup (blkcg) and a
+  * request_queue (q).  This is used by blkcg policies which need to track
+  * information per blkcg - q pair.
+  *
+@@ -288,10 +293,13 @@ static inline struct blkcg_gq *blkg_lookup(struct blkcg *blkcg,
+ 	if (blkg && !READ_ONCE(blkg->online))
  		blkg = NULL;
  	return blkg;
  }
  
++struct blkcg_gq *bio_blkg_lookup(struct bio *bio);
++struct blkcg_gq *bio_blkg(struct bio *bio);
++
  /**
-@@ -479,12 +493,14 @@ struct blkcg_policy {
+  * blkg_to_pd - get policy private data
+  * @blkg: blkg of interest
+  * @pol: policy of interest
+  *
+@@ -355,10 +363,22 @@ static inline bool blkg_tryget(struct blkcg_gq *blkg)
+ static inline void blkg_put(struct blkcg_gq *blkg)
+ {
+ 	percpu_ref_put(&blkg->refcnt);
+ }
+ 
++static inline void bio_clear_blkcg(struct bio *bio)
++{
++	struct blkcg *blkcg = bio_blkcg(bio);
++
++	bio_put_blkg_ref(bio);
++
++	if (blkcg) {
++		css_put(&blkcg->css);
++		bio->bi_blkcg = NULL;
++	}
++}
++
+ /**
+  * blkg_for_each_descendant_pre - pre-order walk of a blkg's descendants
+  * @d_blkg: loop cursor pointing to the current descendant
+  * @pos_css: used for iteration
+  * @p_blkg: target blkg to walk descendants of
+@@ -467,11 +487,11 @@ static inline void blkcg_clear_delay(struct blkcg_gq *blkg)
+  * match. The latter is necessary as we don't want to throttle e.g. a metadata
+  * update because it happens to be next to a regular IO.
+  */
+ static inline bool blk_cgroup_mergeable(struct request *rq, struct bio *bio)
+ {
+-	return rq->bio->bi_blkg == bio->bi_blkg &&
++	return bio_blkcg(rq->bio) == bio_blkcg(bio) &&
+ 		bio_issue_as_root_blkg(rq->bio) == bio_issue_as_root_blkg(bio);
+ }
+ 
+ static inline bool blkcg_policy_enabled(struct request_queue *q,
+ 				const struct blkcg_policy *pol)
+@@ -493,10 +513,13 @@ struct blkcg_policy {
  };
  
  struct blkcg {
  };
  
-+static inline struct blkcg_gq *blkg_lookup_any(struct blkcg *blkcg, void *key) { return NULL; }
++static inline struct blkcg *bio_blkcg(struct bio *bio) { return NULL; }
++static inline struct blkcg_gq *bio_blkg_lookup(struct bio *bio) { return NULL; }
++static inline struct blkcg_gq *bio_blkg(struct bio *bio) { return NULL; }
+ static inline struct blkcg_gq *blkg_lookup_any(struct blkcg *blkcg, void *key) { return NULL; }
  static inline struct blkcg_gq *blkg_lookup(struct blkcg *blkcg, void *key) { return NULL; }
--static inline void blkg_init_queue(struct request_queue *q) { }
-+static inline int blkg_init_queue(struct request_queue *q) { return 0; }
-+static inline void blkg_exit_queue(struct request_queue *q) { }
+ static inline int blkg_init_queue(struct request_queue *q) { return 0; }
+ static inline void blkg_exit_queue(struct request_queue *q) { }
  static inline int blkcg_init_disk(struct gendisk *disk) { return 0; }
- static inline void blkcg_exit_disk(struct gendisk *disk) { }
- static inline int blkcg_policy_register(struct blkcg_policy *pol) { return 0; }
- static inline void blkcg_policy_unregister(struct blkcg_policy *pol) { }
- static inline int blkcg_activate_policy(struct gendisk *disk,
-diff --git a/block/blk-core.c b/block/blk-core.c
-index 365641266c9e..7063e7246540 100644
---- a/block/blk-core.c
-+++ b/block/blk-core.c
-@@ -301,10 +301,11 @@ static void blk_free_queue(struct request_queue *q)
- {
- 	blk_free_queue_stats(q->stats);
- 	if (queue_is_mq(q))
- 		blk_mq_release(q);
+@@ -511,10 +534,11 @@ static inline void blkcg_deactivate_policy(struct gendisk *disk,
+ static inline struct blkg_policy_data *blkg_to_pd(struct blkcg_gq *blkg,
+ 						  const struct blkcg_policy *pol) { return NULL; }
+ static inline struct blkcg_gq *pd_to_blkg(struct blkg_policy_data *pd) { return NULL; }
+ static inline void blkg_get(struct blkcg_gq *blkg) { }
+ static inline void blkg_put(struct blkcg_gq *blkg) { }
++static inline void bio_clear_blkcg(struct bio *bio) { }
+ static inline void blk_cgroup_bio_start(struct bio *bio) { }
+ static inline bool blk_cgroup_mergeable(struct request *rq, struct bio *bio) { return true; }
  
-+	blkg_exit_queue(q);
- 	ida_free(&blk_queue_ida, q->id);
- 	lockdep_unregister_key(&q->io_lock_cls_key);
- 	lockdep_unregister_key(&q->q_lock_cls_key);
- 	call_rcu(&q->rcu_head, blk_free_queue_rcu);
- }
-@@ -479,21 +480,23 @@ struct request_queue *blk_alloc_queue(struct queue_limits *lim, int node_id)
- 	spin_lock_init(&q->queue_lock);
- 
- 	init_waitqueue_head(&q->mq_freeze_wq);
- 	mutex_init(&q->mq_freeze_lock);
- 
--	blkg_init_queue(q);
-+	error = blkg_init_queue(q);
-+	if (error)
-+		goto fail_stats;
+ #define blk_queue_for_each_rl(rl, q)	\
+ 	for ((rl) = &(q)->root_rl; (rl); (rl) = NULL)
+diff --git a/block/blk-crypto-fallback.c b/block/blk-crypto-fallback.c
+index 2a5c52ab74b4..5ef4baab444b 100644
+--- a/block/blk-crypto-fallback.c
++++ b/block/blk-crypto-fallback.c
+@@ -185,11 +185,11 @@ static struct bio *blk_crypto_alloc_enc_bio(struct bio *bio_src,
+ 	bio->bi_end_io		= blk_crypto_fallback_encrypt_endio;
+ 	bio->bi_ioprio		= bio_src->bi_ioprio;
+ 	bio->bi_write_hint	= bio_src->bi_write_hint;
+ 	bio->bi_write_stream	= bio_src->bi_write_stream;
+ 	bio->bi_iter.bi_sector	= bio_src->bi_iter.bi_sector;
+-	bio_clone_blkg_association(bio, bio_src);
++	bio_clone_blkcg_association(bio, bio_src);
  
  	/*
- 	 * Init percpu_ref in atomic mode so that it's faster to shutdown.
- 	 * See blk_register_queue() for details.
+ 	 * Move page array up in the allocated memory for the bio vecs as far as
+ 	 * possible so that we can start filling biovecs from the beginning
+ 	 * without overwriting the temporary page array.
+diff --git a/block/blk-iocost.c b/block/blk-iocost.c
+index 8b2aeba2e1e3..3d1679c1101d 100644
+--- a/block/blk-iocost.c
++++ b/block/blk-iocost.c
+@@ -2684,11 +2684,11 @@ iocg_handle_over_budget(struct rq_qos *rqos, struct ioc_gq *iocg,
+ 	return action_wait;
+ }
+ 
+ static void ioc_rqos_throttle(struct rq_qos *rqos, struct bio *bio)
+ {
+-	struct blkcg_gq *blkg = bio->bi_blkg;
++	struct blkcg_gq *blkg = bio_blkg(bio);
+ 	struct ioc *ioc = rqos_to_ioc(rqos);
+ 	struct ioc_gq *iocg = blkg_to_iocg(blkg);
+ 	struct ioc_now now;
+ 	struct iocg_wait wait;
+ 	u64 abs_cost, cost, vtime;
+@@ -2773,11 +2773,11 @@ static void ioc_rqos_throttle(struct rq_qos *rqos, struct bio *bio)
+ }
+ 
+ static void ioc_rqos_merge(struct rq_qos *rqos, struct request *rq,
+ 			   struct bio *bio)
+ {
+-	struct ioc_gq *iocg = blkg_to_iocg(bio->bi_blkg);
++	struct ioc_gq *iocg = blkg_to_iocg(bio_blkg(bio));
+ 	struct ioc *ioc = rqos_to_ioc(rqos);
+ 	sector_t bio_end = bio_end_sector(bio);
+ 	struct ioc_now now;
+ 	u64 vtime, abs_cost, cost;
+ 	unsigned long flags;
+@@ -2831,13 +2831,17 @@ static void ioc_rqos_merge(struct rq_qos *rqos, struct request *rq,
+ 	spin_unlock_irqrestore(&ioc->lock, flags);
+ }
+ 
+ static void ioc_rqos_done_bio(struct rq_qos *rqos, struct bio *bio)
+ {
+-	struct ioc_gq *iocg = blkg_to_iocg(bio->bi_blkg);
++	struct ioc_gq *iocg;
++
++	if (!bio->bi_iocost_cost)
++		return;
+ 
+-	if (iocg && bio->bi_iocost_cost)
++	iocg = blkg_to_iocg(bio_blkg_lookup(bio));
++	if (iocg)
+ 		atomic64_add(bio->bi_iocost_cost, &iocg->done_vtime);
+ }
+ 
+ static void ioc_rqos_done(struct rq_qos *rqos, struct request *rq)
+ {
+diff --git a/block/blk-iolatency.c b/block/blk-iolatency.c
+index cef02b6c5fa9..7ad18a538d7e 100644
+--- a/block/blk-iolatency.c
++++ b/block/blk-iolatency.c
+@@ -461,11 +461,11 @@ static void check_scale_change(struct iolatency_grp *iolat)
+ }
+ 
+ static void blkcg_iolatency_throttle(struct rq_qos *rqos, struct bio *bio)
+ {
+ 	struct blk_iolatency *blkiolat = BLKIOLATENCY(rqos);
+-	struct blkcg_gq *blkg = bio->bi_blkg;
++	struct blkcg_gq *blkg = bio_blkg(bio);
+ 	bool issue_as_root = bio_issue_as_root_blkg(bio);
+ 
+ 	if (!blkiolat->enabled)
+ 		return;
+ 
+@@ -588,15 +588,18 @@ static void blkcg_iolatency_done_bio(struct rq_qos *rqos, struct bio *bio)
+ 	u64 window_start;
+ 	u64 now;
+ 	bool issue_as_root = bio_issue_as_root_blkg(bio);
+ 	int inflight = 0;
+ 
+-	blkg = bio->bi_blkg;
+-	if (!blkg || !bio_flagged(bio, BIO_QOS_THROTTLED))
++	if (!bio_flagged(bio, BIO_QOS_THROTTLED))
+ 		return;
+ 
+-	iolat = blkg_to_lat(bio->bi_blkg);
++	blkg = bio_blkg_lookup(bio);
++	if (!blkg)
++		return;
++
++	iolat = blkg_to_lat(blkg);
+ 	if (!iolat)
+ 		return;
+ 
+ 	if (!iolat->blkiolat->enabled)
+ 		return;
+diff --git a/block/blk-ioprio.c b/block/blk-ioprio.c
+index 8fa8bca35062..5e3f8e49550d 100644
+--- a/block/blk-ioprio.c
++++ b/block/blk-ioprio.c
+@@ -130,11 +130,11 @@ static struct blkcg_policy ioprio_policy = {
+ 	.cpd_free_fn	= ioprio_free_cpd,
+ };
+ 
+ void blkcg_set_ioprio(struct bio *bio)
+ {
+-	struct ioprio_blkcg *blkcg = blkcg_to_ioprio_blkcg(bio->bi_blkg->blkcg);
++	struct ioprio_blkcg *blkcg = blkcg_to_ioprio_blkcg(bio_blkcg(bio));
+ 	u16 prio;
+ 
+ 	if (!blkcg || blkcg->prio_policy == POLICY_NO_CHANGE)
+ 		return;
+ 
+diff --git a/block/blk-throttle.c b/block/blk-throttle.c
+index ffc3b70065d4..3828c3857900 100644
+--- a/block/blk-throttle.c
++++ b/block/blk-throttle.c
+@@ -1790,11 +1790,11 @@ static bool tg_within_limit(struct throtl_grp *tg, struct bio *bio, bool rw)
+ }
+ 
+ bool __blk_throtl_bio(struct bio *bio)
+ {
+ 	struct request_queue *q = bdev_get_queue(bio->bi_bdev);
+-	struct blkcg_gq *blkg = bio->bi_blkg;
++	struct blkcg_gq *blkg = bio_blkg(bio);
+ 	struct throtl_qnode *qn = NULL;
+ 	struct throtl_grp *tg = blkg_to_tg(blkg);
+ 	struct throtl_service_queue *sq;
+ 	bool rw = bio_data_dir(bio);
+ 	bool throttled = false;
+diff --git a/block/blk-throttle.h b/block/blk-throttle.h
+index 9d7a42c039a1..609a126c7ccb 100644
+--- a/block/blk-throttle.h
++++ b/block/blk-throttle.h
+@@ -171,11 +171,11 @@ static inline bool blk_should_throtl(struct bio *bio)
+ 	int rw = bio_data_dir(bio);
+ 
+ 	if (!blk_throtl_activated(bio->bi_bdev->bd_queue))
+ 		return false;
+ 
+-	tg = blkg_to_tg(bio->bi_blkg);
++	tg = blkg_to_tg(bio_blkg(bio));
+ 	if (!cgroup_subsys_on_dfl(io_cgrp_subsys)) {
+ 		if (!bio_flagged(bio, BIO_CGROUP_ACCT)) {
+ 			bio_set_flag(bio, BIO_CGROUP_ACCT);
+ 			blkg_rwstat_add(&tg->stat_bytes, bio->bi_opf,
+ 					bio->bi_iter.bi_size);
+diff --git a/drivers/md/bcache/request.c b/drivers/md/bcache/request.c
+index 3fa3b13a410f..c0f945b8d941 100644
+--- a/drivers/md/bcache/request.c
++++ b/drivers/md/bcache/request.c
+@@ -846,11 +846,11 @@ static CLOSURE_CALLBACK(cached_dev_read_done)
+ 	if (s->iop.bio) {
+ 		bio_reset(s->iop.bio, s->cache_miss->bi_bdev, REQ_OP_READ);
+ 		s->iop.bio->bi_iter.bi_sector =
+ 			s->cache_miss->bi_iter.bi_sector;
+ 		s->iop.bio->bi_iter.bi_size = s->insert_bio_sectors << 9;
+-		bio_clone_blkg_association(s->iop.bio, s->cache_miss);
++		bio_clone_blkcg_association(s->iop.bio, s->cache_miss);
+ 		bch_bio_map(s->iop.bio, NULL);
+ 
+ 		bio_copy_data(s->cache_miss, s->iop.bio);
+ 
+ 		bio_put(s->cache_miss);
+diff --git a/drivers/md/dm.c b/drivers/md/dm.c
+index d413bfaf3527..cd68eec77f5a 100644
+--- a/drivers/md/dm.c
++++ b/drivers/md/dm.c
+@@ -1371,11 +1371,11 @@ void dm_submit_bio_remap(struct bio *clone, struct bio *tgt_clone)
+ 
+ 	/* establish bio that will get submitted */
+ 	if (!tgt_clone)
+ 		tgt_clone = clone;
+ 
+-	bio_clone_blkg_association(tgt_clone, io->orig_bio);
++	bio_clone_blkcg_association(tgt_clone, io->orig_bio);
+ 
+ 	/*
+ 	 * Account io->origin_bio to DM dev on behalf of target
+ 	 * that took ownership of IO with DM_MAPIO_SUBMITTED.
  	 */
- 	error = percpu_ref_init(&q->q_usage_counter,
- 				blk_queue_usage_counter_release,
- 				PERCPU_REF_INIT_ATOMIC, GFP_KERNEL);
- 	if (error)
--		goto fail_stats;
-+		goto fail_blkg;
- 	lockdep_register_key(&q->io_lock_cls_key);
- 	lockdep_register_key(&q->q_lock_cls_key);
- 	lockdep_init_map(&q->io_lockdep_map, "&q->q_usage_counter(io)",
- 			 &q->io_lock_cls_key, 0);
- 	lockdep_init_map(&q->q_lockdep_map, "&q->q_usage_counter(queue)",
-@@ -508,10 +511,12 @@ struct request_queue *blk_alloc_queue(struct queue_limits *lim, int node_id)
- 	q->nr_requests = BLKDEV_DEFAULT_RQ;
- 	q->async_depth = BLKDEV_DEFAULT_RQ;
+diff --git a/drivers/md/md.c b/drivers/md/md.c
+index d1465bcd86c8..af55f8efa46b 100644
+--- a/drivers/md/md.c
++++ b/drivers/md/md.c
+@@ -9353,11 +9353,11 @@ void md_submit_discard_bio(struct mddev *mddev, struct md_rdev *rdev,
+ 	__blkdev_issue_discard(rdev->bdev, start, size, GFP_NOIO, &discard_bio);
+ 	if (!discard_bio)
+ 		return;
  
- 	return q;
+ 	bio_chain(discard_bio, bio);
+-	bio_clone_blkg_association(discard_bio, bio);
++	bio_clone_blkcg_association(discard_bio, bio);
+ 	mddev_trace_remap(mddev, discard_bio, bio->bi_iter.bi_sector);
+ 	submit_bio_noacct(discard_bio);
+ }
+ EXPORT_SYMBOL_GPL(md_submit_discard_bio);
  
-+fail_blkg:
-+	blkg_exit_queue(q);
- fail_stats:
- 	blk_free_queue_stats(q->stats);
- fail_id:
- 	ida_free(&blk_queue_ida, q->id);
- fail_q:
-diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
-index 9213a5716f95..0c0afd83d7ce 100644
---- a/include/linux/blkdev.h
-+++ b/include/linux/blkdev.h
-@@ -25,10 +25,11 @@
- #include <linux/sbitmap.h>
- #include <linux/uuid.h>
- #include <linux/xarray.h>
- #include <linux/file.h>
- #include <linux/lockdep.h>
-+#include <linux/rhashtable-types.h>
+diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
+index 4176046627be..54e4adb0ccb7 100644
+--- a/drivers/nvdimm/nd_virtio.c
++++ b/drivers/nvdimm/nd_virtio.c
+@@ -119,11 +119,11 @@ int async_pmem_flush(struct nd_region *nd_region, struct bio *bio)
+ 					      REQ_OP_WRITE | REQ_PREFLUSH,
+ 					      GFP_ATOMIC);
  
- struct module;
- struct request_queue;
- struct elevator_queue;
- struct blk_trace;
-@@ -579,10 +580,11 @@ struct request_queue {
+ 		if (!child)
+ 			return -ENOMEM;
+-		bio_clone_blkg_association(child, bio);
++		bio_clone_blkcg_association(child, bio);
+ 		child->bi_iter.bi_sector = -1;
+ 		bio_chain(child, bio);
+ 		submit_bio(child);
+ 		return 0;
+ 	}
+diff --git a/fs/gfs2/lops.c b/fs/gfs2/lops.c
+index 6dabe73ad790..6512dbd9516f 100644
+--- a/fs/gfs2/lops.c
++++ b/fs/gfs2/lops.c
+@@ -482,11 +482,11 @@ static struct bio *gfs2_chain_bio(struct bio *prev, unsigned int nr_iovecs,
+ 				  sector_t sector, blk_opf_t opf)
+ {
+ 	struct bio *new;
  
- 	struct list_head	icq_list;
+ 	new = bio_alloc(prev->bi_bdev, nr_iovecs, opf, GFP_NOIO);
+-	bio_clone_blkg_association(new, prev);
++	bio_clone_blkcg_association(new, prev);
+ 	new->bi_iter.bi_sector = sector;
+ 	bio_chain(new, prev);
+ 	submit_bio(prev);
+ 	return new;
+ }
+@@ -1112,6 +1112,5 @@ const struct gfs2_log_operations *gfs2_log_ops[] = {
+ 	&gfs2_databuf_lops,
+ 	&gfs2_buf_lops,
+ 	&gfs2_revoke_lops,
+ 	NULL,
+ };
+-
+diff --git a/include/linux/bio.h b/include/linux/bio.h
+index 8f33f717b14f..fee031045767 100644
+--- a/include/linux/bio.h
++++ b/include/linux/bio.h
+@@ -501,35 +501,39 @@ static inline void bio_release_pages(struct bio *bio, bool mark_dirty)
+ 
+ #define bio_dev(bio) \
+ 	disk_devt((bio)->bi_bdev->bd_disk)
+ 
  #ifdef CONFIG_BLK_CGROUP
- 	DECLARE_BITMAP		(blkcg_pols, BLKCG_MAX_POLS);
- 	struct blkcg_gq		*root_blkg;
-+	struct rhashtable	blkg_hash;
- 	struct list_head	blkg_list;
- 	struct mutex		blkcg_mutex;
- #endif
+-void bio_associate_blkg(struct bio *bio);
+-void bio_associate_blkg_from_css(struct bio *bio,
+-				 struct cgroup_subsys_state *css);
+-void bio_clone_blkg_association(struct bio *dst, struct bio *src);
++void bio_associate_blkcg(struct bio *bio);
++void bio_associate_blkcg_from_css(struct bio *bio,
++				  struct cgroup_subsys_state *css);
++void bio_clone_blkcg_association(struct bio *dst, struct bio *src);
++void bio_put_blkg_ref(struct bio *bio);
+ void blkcg_punt_bio_submit(struct bio *bio);
+ #else	/* CONFIG_BLK_CGROUP */
+-static inline void bio_associate_blkg(struct bio *bio) { }
+-static inline void bio_associate_blkg_from_css(struct bio *bio,
+-					       struct cgroup_subsys_state *css)
++static inline void bio_associate_blkcg(struct bio *bio) { }
++static inline void bio_associate_blkcg_from_css(struct bio *bio,
++						struct cgroup_subsys_state *css)
+ { }
+-static inline void bio_clone_blkg_association(struct bio *dst,
+-					      struct bio *src) { }
++static inline void bio_clone_blkcg_association(struct bio *dst,
++					       struct bio *src) { }
++static inline void bio_put_blkg_ref(struct bio *bio) { }
+ static inline void blkcg_punt_bio_submit(struct bio *bio)
+ {
+ 	submit_bio(bio);
+ }
+ #endif	/* CONFIG_BLK_CGROUP */
  
- 	int			node;
+ static inline void bio_set_dev(struct bio *bio, struct block_device *bdev)
+ {
+ 	bio_clear_flag(bio, BIO_REMAPPED);
+-	if (bio->bi_bdev != bdev)
++	if (bio->bi_bdev != bdev) {
++		bio_put_blkg_ref(bio);
+ 		bio_clear_flag(bio, BIO_BPS_THROTTLED);
++	}
+ 	bio->bi_bdev = bdev;
+-	bio_associate_blkg(bio);
++	bio_associate_blkcg(bio);
+ }
+ 
+ /*
+  * BIO list management for use by remapping drivers (e.g. DM or MD) and loop.
+  *
+diff --git a/include/linux/blk_types.h b/include/linux/blk_types.h
+index 8808ee76e73c..5f95c2e0e90b 100644
+--- a/include/linux/blk_types.h
++++ b/include/linux/blk_types.h
+@@ -244,16 +244,14 @@ struct bio {
+ 	};
+ 	bio_end_io_t		*bi_end_io;
+ 	void			*bi_private;
+ #ifdef CONFIG_BLK_CGROUP
+ 	/*
+-	 * Represents the association of the css and request_queue for the bio.
+-	 * If a bio goes direct to device, it will not have a blkg as it will
+-	 * not have a request_queue associated with it.  The reference is put
+-	 * on release of the bio.
++	 * Represents the blkcg css association for the bio.  The reference is
++	 * put on release of the bio.
+ 	 */
+-	struct blkcg_gq		*bi_blkg;
++	struct blkcg		*bi_blkcg;
+ 	/* Time that this bio was issued. */
+ 	u64			issue_time_ns;
+ #ifdef CONFIG_BLK_CGROUP_IOCOST
+ 	u64			bi_iocost_cost;
+ #endif
+@@ -307,10 +305,11 @@ enum {
+ 	BIO_BPS_THROTTLED,	/* This bio has already been subjected to
+ 				 * throttling rules. Don't do it again. */
+ 	BIO_TRACE_COMPLETION,	/* bio_endio() should trace the final completion
+ 				 * of this bio. */
+ 	BIO_CGROUP_ACCT,	/* has been accounted to a cgroup */
++	BIO_BLKG_REF,		/* bio pins the associated blkg */
+ 	BIO_QOS_THROTTLED,	/* bio went through rq_qos throttle path */
+ 	/*
+ 	 * This bio has completed bps throttling at the single tg granularity,
+ 	 * which is different from BIO_BPS_THROTTLED. When the bio is enqueued
+ 	 * into the sq->queued of the upper tg, or is about to be dispatched,
+diff --git a/include/linux/writeback.h b/include/linux/writeback.h
+index 62552a2ce5b9..4f869fe9cc90 100644
+--- a/include/linux/writeback.h
++++ b/include/linux/writeback.h
+@@ -260,11 +260,11 @@ static inline void wbc_init_bio(struct writeback_control *wbc, struct bio *bio)
+ 	 * out.  This is intentional as we don't want the function to block
+ 	 * behind a slow cgroup.  Ultimately, we want pageout() to kick off
+ 	 * regular writeback instead of writing things out itself.
+ 	 */
+ 	if (wbc->wb)
+-		bio_associate_blkg_from_css(bio, wbc->wb->blkcg_css);
++		bio_associate_blkcg_from_css(bio, wbc->wb->blkcg_css);
+ }
+ 
+ void inode_switch_wbs_work_fn(struct work_struct *work);
+ 
+ #else	/* CONFIG_CGROUP_WRITEBACK */
+diff --git a/mm/page_io.c b/mm/page_io.c
+index b23f494fcc83..a4a1b8a8a0e3 100644
+--- a/mm/page_io.c
++++ b/mm/page_io.c
+@@ -314,11 +314,11 @@ static inline void count_swpout_vm_event(struct folio *folio)
+ 	count_memcg_folio_events(folio, PSWPOUT, folio_nr_pages(folio));
+ 	count_vm_events(PSWPOUT, folio_nr_pages(folio));
+ }
+ 
+ #if defined(CONFIG_MEMCG) && defined(CONFIG_BLK_CGROUP)
+-static void bio_associate_blkg_from_page(struct bio *bio, struct folio *folio)
++static void bio_associate_blkcg_from_page(struct bio *bio, struct folio *folio)
+ {
+ 	struct cgroup_subsys_state *css;
+ 	struct mem_cgroup *memcg;
+ 
+ 	if (!folio_memcg_charged(folio))
+@@ -329,16 +329,19 @@ static void bio_associate_blkg_from_page(struct bio *bio, struct folio *folio)
+ 	css = cgroup_e_css(memcg->css.cgroup, &io_cgrp_subsys);
+ 	if (!css || !css_tryget(css))
+ 		css = NULL;
+ 	rcu_read_unlock();
+ 
+-	bio_associate_blkg_from_css(bio, css);
++	bio_associate_blkcg_from_css(bio, css);
+ 	if (css)
+ 		css_put(css);
+ }
+ #else
+-#define bio_associate_blkg_from_page(bio, folio)		do { } while (0)
++static inline void bio_associate_blkcg_from_page(struct bio *bio,
++						 struct folio *folio)
++{
++}
+ #endif /* CONFIG_MEMCG && CONFIG_BLK_CGROUP */
+ 
+ struct swap_iocb {
+ 	struct kiocb		iocb;
+ 	struct bio_vec		bvecs[SWAP_CLUSTER_MAX];
+@@ -434,11 +437,11 @@ static void swap_writepage_bdev_sync(struct folio *folio,
+ 
+ 	bio_init(&bio, sis->bdev, &bv, 1, REQ_OP_WRITE | REQ_SWAP);
+ 	bio.bi_iter.bi_sector = swap_folio_sector(folio);
+ 	bio_add_folio_nofail(&bio, folio, folio_size(folio), 0);
+ 
+-	bio_associate_blkg_from_page(&bio, folio);
++	bio_associate_blkcg_from_page(&bio, folio);
+ 	count_swpout_vm_event(folio);
+ 
+ 	folio_start_writeback(folio);
+ 	folio_unlock(folio);
+ 
+@@ -454,11 +457,11 @@ static void swap_writepage_bdev_async(struct folio *folio,
+ 	bio = bio_alloc(sis->bdev, 1, REQ_OP_WRITE | REQ_SWAP, GFP_NOIO);
+ 	bio->bi_iter.bi_sector = swap_folio_sector(folio);
+ 	bio->bi_end_io = end_swap_bio_write;
+ 	bio_add_folio_nofail(bio, folio, folio_size(folio), 0);
+ 
+-	bio_associate_blkg_from_page(bio, folio);
++	bio_associate_blkcg_from_page(bio, folio);
+ 	count_swpout_vm_event(folio);
+ 	folio_start_writeback(folio);
+ 	folio_unlock(folio);
+ 	submit_bio(bio);
+ }
 -- 
 2.51.0
 
