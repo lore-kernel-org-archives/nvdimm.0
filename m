@@ -1,252 +1,612 @@
-Received: from fra-out-008.esa.eu-central-1.outbound.mail-perimeter.amazon.com (fra-out-008.esa.eu-central-1.outbound.mail-perimeter.amazon.com [35.158.23.94])
+Received: from relay.hostedemail.com (smtprelay0013.hostedemail.com [216.40.44.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D02E13EB100;
-	Tue, 11 Aug 2026 19:39:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=35.158.23.94
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786477157; cv=fail; b=Aaj5voHrCZ+q174lkzEJ5MsFiBd85XDhjwNmzPNjLNT038AUrBCv19A/fNXcgZbpho3tqQ5Q0JPn0KpNMKKfAlMIMTk7zPIeXflZAHfIaCFuWyiYfOIrAGeEpyCJkwm7gPzCVoKEK6GWmM+xezQdTuyntgE61sGVGR8TbHal8qo=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786477157; c=relaxed/simple;
-	bh=clhqFhxe43HjxLrmM70uctPVK8n8jlM4UjOhp2O+SiE=;
-	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=Vp1x8TScOCPTRSmVardlxhli2Y8GkKnJvh1n9bzR5uNVOnl8UuCqJ749MLzleQwgAE9XR8cl8lB3HNdhig9d8xlJPSKHUBjBioTwaJLxMaKw3qn59VJyTlrJI8bLAHIQ7a8ewBSyzOe37J1YC4E1j5Tj2hWj2T5yGWCQOvde2Mo=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.de; spf=pass smtp.mailfrom=amazon.de; dkim=pass (2048-bit key) header.d=amazon.de header.i=@amazon.de header.b=qWn+5QP2; arc=fail smtp.client-ip=35.158.23.94
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=amazon.de header.i=@amazon.de header.b="qWn+5QP2"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.de; i=@amazon.de; q=dns/txt; s=amazoncorp2;
-  t=1786477156; x=1818013156;
-  h=from:to:cc:subject:date:message-id:references:
-   in-reply-to:content-id:content-transfer-encoding:
-   mime-version;
-  bh=clhqFhxe43HjxLrmM70uctPVK8n8jlM4UjOhp2O+SiE=;
-  b=qWn+5QP2e9MzDa+8p5mmlBrj5qK+prE7BwcaEOfPCCqQPfD3I5YrDMvv
-   0SWZkErGAZQsXUPOLF1i2rjWjhlLZTCm2Kyetg4gAGSKrBLpeRp0yZQV4
-   L4FaWRpfALvfP6xky+IXojohV9i8wmN4Mz5F3oZAN5zG12tHS265GsLSW
-   64zjnQgEtf3KGcphK3Alz5bRoiF6NJcmoWVgyKOMeu/6yoiBvb15p381G
-   72wH6yfDtPsVfKXFwJhfYfRWw4klQT0zKya8MkR69VUM9Ho2L4K6HLiUU
-   4FBlQmdSQqS9FU78o0cnUiuD/eTSW4B7qjbAzPu9J+pqpY7S9jkKbQsKS
-   Q==;
-X-CSE-ConnectionGUID: mUaYkykFR2+OWxeoCvmQxg==
-X-CSE-MsgGUID: pgfhdobtSIajdyh3t9weYQ==
-X-IronPort-AV: E=Sophos;i="6.25,218,1779148800"; 
-   d="scan'208";a="17740146"
-Received: from ip-10-6-3-216.eu-central-1.compute.internal (HELO smtpout.naws.eu-central-1.prod.farcaster.email.amazon.dev) ([10.6.3.216])
-  by internal-fra-out-008.esa.eu-central-1.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Aug 2026 19:39:11 +0000
-Received: from EX19MTAEUC002.ant.amazon.com [54.240.197.236:9237]
- by smtpin.naws.eu-central-1.prod.farcaster.email.amazon.dev [10.0.5.30:2525] with esmtp (Farcaster)
- id 9c524804-f29f-4650-b1c5-7133a4900679; Tue, 11 Aug 2026 19:39:11 +0000 (UTC)
-X-Farcaster-Flow-ID: 9c524804-f29f-4650-b1c5-7133a4900679
-Received: from EX19EXOEUA001.ant.amazon.com (10.252.50.110) by
- EX19MTAEUC002.ant.amazon.com (10.252.51.181) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.45;
- Tue, 11 Aug 2026 19:39:11 +0000
-Received: from BEUP281CU002.outbound.protection.outlook.com (10.252.50.44) by
- EX19EXOEUA001.ant.amazon.com (10.252.50.110) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.45
- via Frontend Transport; Tue, 11 Aug 2026 19:39:11 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=sPHBiksfcYquggQ24++eNYBCPjQpMS9fGP5w+QU+ODhFeIthZwZvol1N7sUXrttVy97spkyAmB3w9vnb/kA+XJ5lsJ3qCW1nYQRWdRsd22GV7BDkbZsRoZjjkDqwOOPnWUAWkbxyhD6GOZV+EYf13u1bC7M2nnbBn4uAFdg7/H5XTq5/zfPLJMqAfOXzBojpzAe9lDhMOqR3Vt4YLPBYk4G06sWcvccFJbg8bQs1zlzAPhKliQ/kpQS/ID7TZpmc/xZlu42V/jAnM3Q1AhH9p+D68WPcnFC3I8QIkDfh183NpyxVYFPPB3n86ZpSVSEeAVhDE9m2WIdStu3Jvs8xIQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=clhqFhxe43HjxLrmM70uctPVK8n8jlM4UjOhp2O+SiE=;
- b=l0sine5eK3O1KgE/BwwOi44vBoxsbf/ZmtLZjcdXNLwpo+TjpcQU1qrvn9lGo6fQH6T5Z7THQVQyq4i4kjU0r7zCw6T/Q91mzCgrOAQoTL4RQdJU8uXWPpz+X+pUYcYFlyzlJLATyTs2UcQejfTEu9ISsN6F+Re5xZvkKz3XYo6Oy000KLGdIgQ2ABDp+wCMO8hJ2r7lLNYxFtEbzqd2nMZPZ76gknLsPEoO/3kkkvIfwg6EpDAHDnZk/bh+aqeZDh7TyK1E6WOh+O3M0pd6X4e+By8hWm4Bm+bIgPnwOkpcGvOgCHUKAi0dQZqeNmynOeERvi6yxYPE7cbntrCj9g==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amazon.de; dmarc=pass action=none header.from=amazon.de;
- dkim=pass header.d=amazon.de; arc=none
-Received: from BE3P281MB6244.DEUP281.PROD.OUTLOOK.COM (2603:10a6:b10:103::21)
- by FR2P281MB1671.DEUP281.PROD.OUTLOOK.COM (2603:10a6:d10:8e::9) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.315.11; Tue, 11 Aug
- 2026 19:39:01 +0000
-Received: from BE3P281MB6244.DEUP281.PROD.OUTLOOK.COM
- ([fe80::6854:a8a7:80a6:2c71]) by BE3P281MB6244.DEUP281.PROD.OUTLOOK.COM
- ([fe80::6854:a8a7:80a6:2c71%6]) with mapi id 15.21.0315.008; Tue, 11 Aug 2026
- 19:39:01 +0000
-From: "Graf (AWS), Alexander" <graf@amazon.de>
-To: Stefan Hajnoczi <stefanha@redhat.com>
-CC: Jason Wang <jasowangio@gmail.com>, "Michael S. Tsirkin" <mst@redhat.com>,
-	Alex Williamson <alex@shazbot.org>, David Airlie <airlied@redhat.com>,
-	"Dmitry Osipenko" <dmitry.osipenko@collabora.com>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	=?utf-8?B?RXVnZW5pbyBQw6lyZXo=?= <eperezma@redhat.com>, Feng Liu
-	<feliu@nvidia.com>, Gerd Hoffmann <kraxel@redhat.com>, Halil Pasic
-	<pasic@linux.ibm.com>, Jens Axboe <axboe@kernel.dk>, Jiri Pirko
-	<jiri@resnulli.us>, Jonathan Corbet <corbet@lwn.net>,
-	"linux-block@vger.kernel.org" <linux-block@vger.kernel.org>,
-	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"nh-open-source@amazon.com" <nh-open-source@amazon.com>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, Pankaj Gupta
-	<pankaj.gupta.linux@gmail.com>, "Paolo Bonzini" <pbonzini@redhat.com>, Parav
- Pandit <parav@nvidia.com>, Shuah Khan <skhan@linuxfoundation.org>,
-	"virtualization@lists.linux.dev" <virtualization@lists.linux.dev>, Xuan Zhuo
-	<xuanzhuo@linux.alibaba.com>, Yishai Hadas <yishaih@nvidia.com>
-Subject: Re: [RFC PATCH 00/12] virtio: support devices that own their
- virtqueue memory
-Thread-Topic: [RFC PATCH 00/12] virtio: support devices that own their
- virtqueue memory
-Thread-Index: AQHdKCvtDU5a/eUH/0KGzQdKr73+dLaXwDWAgAGBjQA=
-Date: Tue, 11 Aug 2026 19:39:01 +0000
-Message-ID: <235f84ba-0327-4dd4-8f37-e566bf000656@amazon.com>
-References: <20260809182010.32931-1-graf@amazon.com>
- <20260810203901.GA35278@fedora>
-In-Reply-To: <20260810203901.GA35278@fedora>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amazon.de;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: BE3P281MB6244:EE_|FR2P281MB1671:EE_
-x-ms-office365-filtering-correlation-id: 1e4016fa-f33a-4d70-0a9f-08def7e031c6
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;ARA:13230040|376014|7416014|366016|1800799024|23010399003|10067099003|11063799006|4143699003|56012099006|18002099003|22082099003|38070700021;
-x-microsoft-antispam-message-info: wiMbNP9qCHwkeBr0vRDuvspNfN4d04hnj30MWvBRN4bpcHuzUG0X/hcCGi8qDPeppuli+vHNFVgyDtLwUhBdNlGaFKJ312+QeDDkJ+4gp3sDsLSlNq0+1/V3O+ufTAHLZUuFi7qY54/iWJ6PRTZeJkveHjU0viFh5VanTKLotxBi808kbT6KLtSXf0lcMn0WQY7TQNF3UeBIZNVwaQyeTJFH3pDY1tFrIp+oMkoqSUWLPdM/NDY8W4+d4OS8HKpf5O6+yjBbY0GcZCekp069LzWKxY/LNlBgydNsjQ0IRLDC5eTG78dzGlbhqqKXEj0pGrdo+kcq5/Dymfpp6uel3ijClBBkAKU3PGgWpXSNFioZCav4nKWs3Sx5hjr8oOIFqkiLMnQlCKfsxZJu8YHO/AVq9jliAR9V2vwVv3Qb7im2gV6VwSBEB2We0XHDr00I1W5COGJL8Y+R+Mk3ghzC+RB6l2lSXUTedQfRDqAyzJxRmhDiRIMRtj/8yY2u89m/KUZlFjisZJMd6fiVT3LxDRwsatoWfY754/5nI+tc8vV3eM5DexuEYDEnh/WmSMqFRrgEDXcg3x1HaQKvPF/9vuTRXDgKccn3gMNR9iP8eX6Qtca4LWXW6B8O1C3/DKOKPOmYMF3jCteDK5xfW32O7XxRZ+gcGl2CIFzfEO68zxw=
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BE3P281MB6244.DEUP281.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(376014)(7416014)(366016)(1800799024)(23010399003)(10067099003)(11063799006)(4143699003)(56012099006)(18002099003)(22082099003)(38070700021);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?utf-8?B?ZHZkclQ3TDYxWFdqaTlsNW1HWldsR2VHdUUrVHd2ZFVZRlZWL3phVHh5THZt?=
- =?utf-8?B?VktIaTFMa1BKcW55YjRDNlA5NkpaMzdwaXdqbTlSRHUzTlNjTVdqWlRoOThj?=
- =?utf-8?B?SEExVzhIandEZDZkZE9MWSsrR0lyQVUvNGVHU3RiS3ZoQkhqZFdjMWxRUHVV?=
- =?utf-8?B?TmFWV0Q0STQrdm1ac0JRMzhiaW5NR2dpWnp1VDBLa00wdisrR2p3SmhhdlFz?=
- =?utf-8?B?dlR5MnJoK3hUK1JXMnNWVUZlTGFRTkkvYXpEWnFRZ1dxZzVIK2M2dlRLTmdZ?=
- =?utf-8?B?a2l1b2pnSWk1OEZod1p3VEZiRm1zQWZNeHBDMzYzNVAveUdQZnpDd3l1d1hO?=
- =?utf-8?B?cWZVdU1rV1JObEUvK3Q4QkZsZ3VmdFhoUEhPUFNucjBDMGxsK0Q1ZmdSZFdI?=
- =?utf-8?B?c0RpWVlRS2xaamRDaENHdXRLYWRmdXhPbmp0Z0FWK3BlK0N6S21PZUI3aXlu?=
- =?utf-8?B?WEZFUlpMd1F4NkZTanlWRm9Jd25XU09ZS3JZSmlMYXBycENFNlUyVkNqZWJa?=
- =?utf-8?B?RjRlLzBOSzJZZ2JyeEhGU0p3K1g4VUZwVjI5SERoaVBCcFFyV1FNSGZzYWli?=
- =?utf-8?B?S05ULzNxU2tHNTR1bTRvTmJZbGtjK0QyMks0RTNvT0xiMmhaS08vanR5L2ZO?=
- =?utf-8?B?QUFObkxPZjhoaEIzN2xsaVNzY3VDUmphaGF3QkJ0ZjQyUFdURXYwNTB6NktX?=
- =?utf-8?B?MFkva3U5Nk9DK1A3S0xxazd2OS9XNWJzT1Z2Ulc3RGdCN0o0bk5KSGw2dmVn?=
- =?utf-8?B?MTNubEd6UGxoNjk1a29XcTJmV0k4MWo3UExiWFpLazM4OFlUSzNLaklpb0l1?=
- =?utf-8?B?NE0vdnFORnBKVzFGYTJWbEJJaDEwUXZnWmgrTjZ6TGM3QU1OOEtFMnFYWEYy?=
- =?utf-8?B?SSthRFN5dFNHQzZjRnA4SWh2NFpIRTI5T2tUcVFpeWszcmNGRFdkSUlBMXdm?=
- =?utf-8?B?ZGEzN29tTUV1Z0FvbnE5MStHS3Fkdm1xbkdOQ1hJY2kvTFBuR3RiYnBsdmtJ?=
- =?utf-8?B?Ti9YOXRZejJqNGsvVHJwT0VTTndCaEtEdWpCN1NCcFJpbUh4V0JWR205bVlV?=
- =?utf-8?B?SDFGMWVTNm1RTi9kZjk4UlBTWGNBU3ZObkpZSEFIRmNjc3RrdTMxNGEwTExr?=
- =?utf-8?B?czhwaXVMTDFZRlM3N3MyQzk5SkRYZEw3WEFDTUgwM3gvaHVtZWdnSCsxdVJq?=
- =?utf-8?B?WVpWZUtTZUhIc1BjVDdMbHB0L0NtUXNrdDdIVkIxRG5lTnZNdnhqbGU3eHhq?=
- =?utf-8?B?OGNORG13emx4em1ma1JhemRLZ2VoSFg3c2dvNXc5RTNJYXBpY0JsQ2Jlc3lw?=
- =?utf-8?B?SFdOWjdwNEZBMXEzOFpjck1OT3d2ZFlwNkRiTVR6SDYvQ2FrczN2cTZ3R3Zm?=
- =?utf-8?B?NHdkK3l5WEVvTSs2RjZUT3dCckVPb2Fld1VMVnZIbHNPaFBERGVPWk9scVFk?=
- =?utf-8?B?NkxMUkFhSkJQaGdHSTI4a09qT1RFZkQ4V2NqQnZDS1ppSEZidkM1S0FWamQ5?=
- =?utf-8?B?TlVlRFUzbHdvcFFzVEN3N21sSGt0WkJ5ZnV2QkREV0VoV290WTRFRmcxY1p1?=
- =?utf-8?B?Y2NxeXNWcFpVYklYdjI3Q0w0NWM3TDNJODVFZ0hMUGFTTzRtd3pSZkxqWm8x?=
- =?utf-8?B?a0JsRXEwTTlPS0JoMjRxSmx6Z3NkSjhKZTJlamdHNlBQZ0UxZDg1TnJhOXM3?=
- =?utf-8?B?Mk5BVFViSlB0dW9WbVBNc1l1NGd3R3JxbUpUVWZialRHSCtBWUNmd3BZQmxO?=
- =?utf-8?B?YnBJbWZXRTRkUDg0dmpCNFIybjNlbEFNVkljemRYRTZVa2tIT090K0Z4TjMr?=
- =?utf-8?B?bW9OWjF3UHR2aEhISy9DSHl0eFJBZkNGUVluTHd2N0I0MUU0dWNBNHM5TDNP?=
- =?utf-8?B?RUZ3bEtpbmtuUVZDTXF4dEY3VnhVMzl0REkyTG9WOEZ5cmxmZXBGSGwrZEVF?=
- =?utf-8?B?MU9HdExRQjNFYys5Nkx0SU44RDZzUHR4OS9UUUtvVlo2MWtCcEhaM0RvYUpZ?=
- =?utf-8?B?QVR2bDU2ZkR0TDNFeTVzRFBOQUl0Ymd4RW5iNVZBSEVvWEYvdGhCaEM4YUdz?=
- =?utf-8?B?NWRMVkE1UCtGaXcrZ0VGVFJjL2ZLaTVpZnhUQXRHT1JhazlqS1VaaElWZHZF?=
- =?utf-8?B?alg0c0xXYjRybkg4UFROWVZLYU1OWFNoWXFEbjk5aEFEOTZmY3dWdHJRV0xX?=
- =?utf-8?B?UksrN0xNczRGTnNvYnhJQjVveERsT090NzBiUnVjejlkL280dVRObnM4em04?=
- =?utf-8?Q?4mRm/IOIrOozymEFDE+eIXPDSc7Mz27VQyL1cimelU=3D?=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <E09010C422A0D841893AD23F8CDD35BD@DEUP281.PROD.OUTLOOK.COM>
-Content-Transfer-Encoding: base64
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6F0634678E;
+	Tue, 11 Aug 2026 22:18:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.13
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786486701; cv=none; b=Rwn9XGH/gS7s+J0CbYSnHQCoXSkCJSmqLHHKd/ePSBpb/MgNKihRqbWwN6pHkeEEkfMMNSGSiSSYG5iaTkBYGPL5w6TP7drxtlxvDYZE4VLj7i9yy/Wb1q6aBHxbNMovvBhNdjNiqxkjBZi5NBl2T0RwLsSpFOG6HLjhpgiJpHg=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786486701; c=relaxed/simple;
+	bh=GdqizPjNKUS/sESjWTPlE2DUDtjAaePnChP7exL3IAg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=iDYPnyT1aq1aTRlL135/dSicGgsETxnvRp975EYAQHtVeuFoPg7vF0lYXOgDDmxwoxB04DjJ6ZOAFz69KAiWddToTMXMjYIzxzLfuiX23UTzXTQL0fkpmeC0f17/jpqKUIk+xDXwQ/zFrAuCEtlOpvA9ITD7fpgBXCJwGxVWECg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=groves.net
+Received: from omf09.hostedemail.com (lb01a-stub [10.200.18.249])
+	by unirelay05.hostedemail.com (Postfix) with ESMTP id 7F66040127;
+	Tue, 11 Aug 2026 22:18:08 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf09.hostedemail.com (Postfix) with ESMTPA id 89AC620028;
+	Tue, 11 Aug 2026 22:17:51 +0000 (UTC)
+Date: Tue, 11 Aug 2026 17:17:50 -0500
+From: John Groves <john@groves.net>
+To: Richard Cheng <icheng@nvidia.com>
+Cc: John Groves <john@jagalactic.com>, Miklos Szeredi <miklos@szeredi.hu>, 
+	Dan Williams <djbw@kernel.org>, Bernd Schubert <bschubert@ddn.com>, 
+	Alison Schofield <alison.schofield@intel.com>, John Groves <jgroves@micron.com>, 
+	Jonathan Corbet <corbet@lwn.net>, Jake Edge <jake@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, David Hildenbrand <david@kernel.org>, 
+	Christian Brauner <brauner@kernel.org>, "Darrick J . Wong" <djwong@kernel.org>, 
+	Randy Dunlap <rdunlap@infradead.org>, Jeff Layton <jlayton@kernel.org>, 
+	Amir Goldstein <amir73il@gmail.com>, Jonathan Cameron <jic23@kernel.org>, 
+	Stefan Hajnoczi <shajnocz@redhat.com>, Joanne Koong <joannelkoong@gmail.com>, 
+	Josef Bacik <josef@toxicpanda.com>, Bagas Sanjaya <bagasdotme@gmail.com>, 
+	Chen Linxuan <chenlinxuan@uniontech.com>, James Morse <james.morse@arm.com>, Fuad Tabba <tabba@google.com>, 
+	Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
+	Ackerley Tng <ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, 
+	Andrew Morton <akpm@linux-foundation.org>, Namjae Jeon <linkinjeon@kernel.org>, 
+	Lorenzo Stoakes <ljs@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Ira Weiny <iweiny@kernel.org>, Pasha Tatashin <pasha.tatashin@soleen.com>, 
+	Haren Myneni <haren@linux.ibm.com>, Pratyush Yadav <pratyush@kernel.org>, 
+	Giovanni Cabiddu <giovanni.cabiddu@intel.com>, Jiri Slaby <jirislaby@kernel.org>, 
+	Ethan Nelson-Moore <enelsonmoore@gmail.com>, Gabriel Whigham <gabewhigham@gmail.com>, 
+	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, 
+	"venkataravis@micron.com" <venkataravis@micron.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, 
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
+	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, 
+	"fuse-devel@lists.linux.dev" <fuse-devel@lists.linux.dev>
+Subject: Re: [PATCH v13 07/12] famfs: MAP_CREATE ioctl and fmap ingest (ABI
+ 44)
+Message-ID: <ant9osbVPJyUPdWB@groves.net>
+References: <0100019fed5850ec-2bdfb17a-3086-44ea-8fdd-777d3ce12a33-000000@email.amazonses.com>
+ <20260810202510.96332-1-john@jagalactic.com>
+ <0100019fed59de28-dde6a382-affe-4bc6-a91d-d4054a7c61a5-000000@email.amazonses.com>
+ <anrUDcyctLFe8dZL@MWDK4CY14F>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Exchange-RoutingPolicyChecked: RajQSfP/AXkYKmVAj6RcvApir/SQTW1U4RIaQp06OuMZetZC8FSEl3IUYFb0PF5y4dSULbFX+6MKpkOa2s+50cTnHihQYkb4cr//sgIMWdv8Lp1UTzKBLGt4CjjVr1qxzXGZZbugIDj9naU587C376UAcbakDCS90530rryEUrFpX6wUGVMBfGaG+qnaqzC2I9zeD6eGTO6bJ8jKYjaXxY4oayT/PYJs0kOrdJQYZTg0ABnFU8TyYZAUGhQxmyoaEkWQ9xs5C0jGg+PGKk23nBN8EYWnvO1o8cJbvYWEWyiRzwKN0QzJLNM1DFqmzFG0iS3BYPhhO18uoRzEOcH1Gg==
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: BE3P281MB6244.DEUP281.PROD.OUTLOOK.COM
-X-MS-Exchange-CrossTenant-Network-Message-Id: 1e4016fa-f33a-4d70-0a9f-08def7e031c6
-X-MS-Exchange-CrossTenant-originalarrivaltime: 11 Aug 2026 19:39:01.2393
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 5280104a-472d-4538-9ccf-1e1d0efe8b1b
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: CcvW4ppFK++JUT42wOdDo7l0KNGlgrd77+4VwCQ6qN0vbq/J86pFtIWB5HFit/Rw
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: FR2P281MB1671
-X-OriginatorOrg: amazon.de
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <anrUDcyctLFe8dZL@MWDK4CY14F>
+X-Rspamd-Server: rspamout05
+X-Rspamd-Queue-Id: 89AC620028
+X-Stat-Signature: ynebxmmcuweffp5fb4m4pjfzamtnzggb
+X-Session-Marker: 6A6F686E4067726F7665732E6E6574
+X-Session-ID: U2FsdGVkX18Nyk1cH53UsnaHL+/i1VTMUr0fDQgLRiE=
+X-HE-Tag: 1786486671-23516
+X-HE-Meta: U2FsdGVkX1/UO05OxbgKtK/k8D2whFwfdTnxCJPhimnTNePAyb8qCaOvtXPU3Nla+lUST9sB7E8hR84T3m7kl92gNPsUlQ4Yd1RvjbeRFMqta4TgQ5VbpW+8FlrHADyN8qfCDmxKOVrEt4cDOhS5bOo3Uy8YiJF7DqFV8aMMReHjPmGg96EQxTC2mnuEmxnQnXy0BFOjEU9mddAGFL4aKxS4XLFsEIgnd6HYSmfee+DDMZbQzZsZSeUb4w/+2c6E1VZl42qwAUk+JQWaCKKTPFNuZxjBC5Z6BPII266sSBKBYYIO7+HwkPGXTbDWVqqkQq/Qug6vM6LUSi/Ul0jR2bxnmHo0PxgzpsAc3nYsTb4XQnWCBCdNDHCF/Pk0mb6G
 
-DQpPbiAxMC4wOC4yNiAyMjozOSwgU3RlZmFuIEhham5vY3ppIHdyb3RlOg0KPiBPbiBTdW4sIEF1
-ZyAwOSwgMjAyNiBhdCAwNjoxOTo1OFBNICswMDAwLCBBbGV4YW5kZXIgR3JhZiB3cm90ZToNCj4+
-IFZpcnRpbyBkcml2ZXJzIHVzZSBndWVzdCBtZW1vcnkgdG8gYmFjayB2aXJ0cXVldWVzIGFuZCB0
-aGVpciBidWZmZXJzLg0KPj4gVGhhdCBtZWFucyBhIFZNTSBuZWVkcyB0byBiZSBhYmxlIHRvIG1h
-cCBndWVzdCBtZW1vcnkuIFRoYXQgaXMgb2sgaW4gdGhlDQo+PiBub3JtYWwgdmlydCBjYXNlLiBJ
-dCBnZXRzIGlja3kgd2l0aCBjb25maWRlbnRpYWwgY29tcHV0aW5nICh3aGVyZSB3ZSB1c2UNCj4+
-IHN3aW90bGIgYXMgd29ya2Fyb3VuZCkgYW5kIGl0IGRlZmVhdHMgdGhlIHB1cnBvc2Ugb2YgaXNv
-bGF0ZWQgdmhvc3QtdXNlcg0KPj4gYmFja2luZyBkZXZpY2VzLCBiZWNhdXNlIHRoZXkgZW5kIHVw
-IHdpdGggZnVsbCBSQU0gYWNjZXNzIHRvIHRoZSBndWVzdC4NCj4+DQo+PiBTbyBpbnN0ZWFkLCBJ
-J20gcHJvcG9zaW5nIGFuIGV4dGVuc2lvbiB0byB2aXJ0aW8gd2hpY2ggYWxsb3dzIGl0IHRvIGdp
-dmUNCj4+IGVhY2ggdmlydGlvIGRldmljZSBpdHMgb3duIGRlZGljYXRlZCBtZW1vcnkgcmVnaW9u
-IHRvIGNvbW11bmljYXRlIHdpdGggdGhlDQo+PiBob3N0LCBjYWxsZWQgRE1CIChEZXZpY2UgTWVt
-b3J5IEJ1ZmZlcikuIEEgdHJ1c3RlZCBoeXBlcnZpc29yIGNhbiBmb3JjZQ0KPj4gRE1CIHRvIGJl
-IHByZXNlbnQsIHdoaWNoIHRoZW4gZW5hYmxlcyBzYWZlciwgbW9yZSBpc29sYXRlZCBhbmQgcmVz
-aWxpZW50DQo+PiBjb21tdW5pY2F0aW9uIGJldHdlZW4gZ3Vlc3QgYW5kIGhvc3QuDQo+Pg0KPj4g
-V2l0aCBETUIsIHRoZSBkZXZpY2UgcHJvdmlkZXMgYSBzaGFyZWQgbWVtb3J5IHJlZ2lvbiB0aGF0
-IGJvdGggcGFydGllcw0KPj4gYWdyZWUgaXMgdGhlIGZ1bGwgbWVtb3J5IG1hcCBib3RoIGhhdmUg
-YWNjZXNzIHRvLiBBbGwgbWVtb3J5IG9mZnNldHMNCj4+IHRoYXQgcHJldmlvdXNseSB3b3VsZCBo
-YXZlIGJlZW4gaW50byBndWVzdCBSQU0sIGFyZSB0aGVuIG9mZnNldHMgaW50bw0KPj4gdGhpcyBz
-aGFyZWQgbWVtb3J5IGJ1ZmZlciByZWdpb24uIE9uZSBuaWNlIHByb3BlcnR5IG9mIHRoaXMgaXMg
-dGhhdCBpdA0KPj4gaXMgYSBnZW5lcmljIG1lY2hhbmlzbSBpbiB0aGUgdmlydGlvIHRyYW5zcG9y
-dCBsYXllciwgc28gaGlnaGVyIGxldmVsDQo+PiBkcml2ZXJzIHdvcmsgdW5tb2RpZmllZC4NCj4g
-VGhpcyBpcyBzaW1pbGFyIHRvIFZJUlRJTydzIFNoYXJlZCBNZW1vcnkgUmVnaW9ucy4gQSBwcm9i
-bGVtIHdpdGggdGhpcw0KPiBraW5kIG9mIGFwcHJvYWNoIGlzIHRoYXQgZ3Vlc3Qgc29mdHdhcmUg
-dGhhdCBkZXBlbmRzIG9uIHplcm8tY29weSwNCj4gT19ESVJFQ1QsIHRoZSBhYmlsaXR5IHRvIG1t
-YXAsIGV0YyBtYXkgYnJlYWsgd2hlbiBwYXNzaW5nIGFuIGFkZHJlc3MNCj4gZnJvbSBvbmUgZGV2
-aWNlIHRvIGFub3RoZXIgZGV2aWNlLg0KPg0KPiBGb3IgZXhhbXBsZSwgYSBndWVzdCB1c2Vyc3Bh
-Y2UgYXBwbGljYXRpb24gd3JpdGluZyB0byBhIHZpcnRpby1ibGsNCj4gZGV2aWNlIHdpdGggT19E
-SVJFQ1QgY2FuIHBhc3MgYW55IHNvdXJjZSBtZW1vcnkgYnVmZmVyLiBPbmUgVklSVElPDQo+IGRl
-dmljZSB3aWxsIGJlIHVuYWJsZSB0byBhZGRyZXNzIGFub3RoZXIgVklSVElPIGRldmljZSdzIERN
-Qi4gVGhpcw0KPiBwcm9ibGVtIGFsc28gZXh0ZW5kcyB0byB2aG9zdC11c2VyIHdoZXJlIG9uZSBi
-YWNrLWVuZCBjYW5ub3QgYWNjZXNzDQo+IGFub3RoZXIgYmFjay1lbmQncyBETUIgb3IgU2hhcmVk
-IE1lbW9yeSBSZWdpb25zLg0KPg0KPiBNYXliZSB5b3VyIHVzZSBjYXNlIHdpbGwgbmV2ZXIgaGl0
-IHRoaXMgcHJvYmxlbSBiZWNhdXNlIHlvdSBjYW4gcmVseSBvbg0KPiB0aGUgZ3Vlc3Qgc29mdHdh
-cmUgbmV2ZXIgdG8gYXNzdW1lIHplcm8tY29weS9PX0RJUkVDVC9ldGMgd29ya3MuDQo+IHZpcnRp
-b2ZzIGhpdCBpdCB3aXRoIGl0cyBEQVggU2hhcmVkIE1lbW9yeSBSZWdpb25zLg0KDQoNClZpcnRp
-b2ZzIGlzIGEgYml0IHRyaWNraWVyLiBJdCBhc3N1bWVzIHJldmVyc2UgbWFwcGluZyBvcmRlciAo
-aG9zdCBtYXBzIA0KbWVtb3J5IGludG8gZ3Vlc3QgYWRkcmVzcyBzcGFjZSdzIFNITSByZWdpb24p
-IHdoaWNoIGlzIHNvbWV0aGluZyBJJ20gbm90IA0KbG9va2luZyB0byBzdXBwb3J0LiBUaGUgbWFp
-biByZWFzb24geW91IGRpZCBydW4gaW50byBpdCBpcyBiZWNhdXNlIHRoZSANCnBhZ2UgY2FjaGUg
-aXMgYWN0dWFsbHkgaW1wbGVtZW50ZWQgYnkgdGhlIFNITSByZWdpb24sIHNvIExpbnV4IA0KKHJp
-Z2h0ZnVsbHkpIGFzc3VtZXMgdGhhdCBpdCBoYXMgZGlyZWN0IGFjY2VzcyB0byBpdC4NCg0KRm9y
-IG5vcm1hbCB2aXJ0aW8gZGV2aWNlIG9wZXJhdGlvbnMgKGxpa2UgT19ESVJFQ1Qgb24gdmlydGlv
-LWJsayksIEkgYW0gDQpub3Qgc3VyZSB3aGV0aGVyIHdlIGNhbiBldmVyIHJ1biBpbnRvIGEgY2Fz
-ZSB3aGVyZSBhbnl0aGluZyBpbiB0aGUgDQpkcml2ZXIgYXNzdW1lcyB0aGF0IGJvdGggZGV2aWNl
-cyBzaGFyZSB0aGUgc2FtZSBJT1ZBIHNwYWNlLiBUaGFua3MgYSBsb3QgDQpmb3IgdGhlIGhlYWRz
-LXVwIHRob3VnaCwgSSdsbCB0YWtlIGEgZGVlcGVyIGxvb2sgdG8gbWFrZSBzdXJlIHRoYXQgdGhp
-cyANCmlzIHRoZSBjYXNlLiBCdXQgZXZlbiBpZiBpdCBpcywgSU1ITyB3ZSBjYW4gY29uc2lkZXIg
-aXQgYSBndWVzdCBidWcgYW5kIA0KZml4IGl0IGluIHRoZSBndWVzdCBjb2RlIHdoZW4gRE1CIGlz
-IGFjdGl2ZS4NCg0KDQo+IEknbSBtZW50aW9uZWQgaXQgaW4gY2FzZSB0aGlzIGlzIHNvbWV0aGlu
-ZyB5b3Ugd2FudCB0byB0aGluayBhYm91dA0KPiBiZWZvcmUgZGVwbG95aW5nIHRoaXMgYXBwcm9h
-Y2guDQo+DQo+PiBJIHdhcyBleHBsb3JpbmcgdG8gdXNlIHN3aW90bGIgaW5zdGVhZCB0byBjcmVh
-dGUgaW5kaXZpZHVhbCBwb29scy4gQnV0DQo+PiB0aGF0IGFwcHJvYWNoIGhhcyBtdWx0aXBsZSBk
-b3duc2lkZXM6DQo+Pg0KPj4gMS4gU3dpb3RsYiBpcyBhbiBPUyBwcmltaXRpdmUgd2hpY2ggaXMg
-bm90IGF2YWlsYWJsZSBpbiBhbGwgT3BlcmF0aW5nDQo+PiBTeXN0ZW1zLiBETUIgaG93ZXZlciBs
-aXZlcyBpbiB0aGUgdmlydGlvIHRyYW5zcG9ydCBsYXllciwgd2hpY2ggbWVhbnMgd2UNCj4+IGNh
-biBhZGQgc3VwcG9ydCBmb3IgaXQgaW4gYW55IE9TIGluZGVwZW5kZW50IG9mIGdlbmVyaWMgbGF5
-ZXJzLiBUaGlzDQo+PiBoZWxwcyB3aXRoIFdpbmRvd3Mgc3VwcG9ydC4NCj4+DQo+PiAyLiBXZSBt
-dW5nZSBETUEgc3BhY2UgdG9nZXRoZXIuIERNQiBwcm92aWRlcyBhIHNlcGFyYXRlIERNQSBzcGFj
-ZSBwZXINCj4+IHZpcnRpbyBkZXZpY2UuIFRoaXMgbWVhbnMgd2UgY2FuIGZvciBleGFtcGxlIGlt
-cGxlbWVudCBhIGRldmljZSBpbg0KPj4gdmhvc3QtdXNlciBhbmQgZ2l2ZSB0aGUgaW1wbGVtZW50
-aW5nIHByb2Nlc3Mgb25seSB2aXNpYmlsaXR5IHRvIHRoZSBETUINCj4+IHJlZ2lvbiwgbm90IGFs
-bCBvZiBndWVzdCBtZW1vcnkuIFRoYXQgcmVkdWNlcyB0aGUgZXhwb3N1cmUgdGhlDQo+PiB2aG9z
-dC11c2VyIHByb3ZpZGVyIGhhcywgaW1wcm92aW5nIHNlY3VyaXR5Lg0KPiBDb25ub3IgS2l0ZSBp
-cyB3b3JraW5nIG9uIGEgZGlmZmVyZW50IGFwcHJvYWNoIGZvciB2aG9zdC11c2VyIG1lbW9yeQ0K
-PiBpc29sYXRpb24gaGVyZToNCj4gaHR0cHM6Ly9sb3JlLmtlcm5lbC5vcmcvcWVtdS1kZXZlbC8y
-MDI2MDcyMy12aG9zdC11c2VyLWlzb2xhdGVkLW1lbW9yeS12MS0wLTZiOTdjNDM5ZWIyOEBnbWFp
-bC5jb20vVC8jdA0KPg0KPiBJdCBpbnZvbHZlcyBhIGJvdW5jZSBidWZmZXIgYXQgdGhlIFZNTSBs
-ZXZlbC4gVW5tb2RpZmllZCB2aG9zdC11c2VyDQo+IGJhY2stZW5kcyBuZXZlciBzZWVzIGd1ZXN0
-IFJBTS4gR3Vlc3QgZHJpdmVycyBhcmUgYWxzbyB1bm1vZGlmaWVkLiBUaGUNCj4gY29zdCBvZiBk
-b2luZyB0aGlzIGlzIHRoYXQgdGhlIFZNTSBoYXMgdG8gaW50ZXJjZXB0IGtpY2sgYW5kIGNhbGwN
-Cj4gZXZlbnRmZHMgaW4gb3JkZXIgdG8gY29weSBiZXR3ZWVuIHRoZSBib3VuY2UgYnVmZmVyIGFu
-ZCBndWVzdCBSQU0uDQo+DQo+IEkgZG9uJ3Qgc2VlIERNQiBvciB2aG9zdC11c2VyIG1lbW9yeSBp
-c29sYXRpb24gYXMgY29uZmxpY3RpbmcgZmVhdHVyZXMuDQo+IFRoZXJlIGNhbiBiZSB0d28gd2F5
-cyBvZiBzb2x2aW5nIHRoZSBzYW1lIHByb2JsZW0gd2l0aCBkaWZmZXJlbnQNCj4gdHJhZGUtb2Zm
-cy4gSSBqdXN0IHdhbnRlZCB0byBzaGFyZSBhIGxpbmsgdG8gQ29ubm9yJ3Mgb25nb2luZyB3b3Jr
-Lg0KDQoNClRoYW5rcyBhIGJ1bmNoIDopLiBNeSBkZXNpZ24gbW90aXZhdGlvbiBpcyBhIGJpdCBk
-aWZmZXJlbnQsIGJ1dCBpdCdzIA0KZ3JlYXQgdG8gc2VlIG1vcmUgcGVvcGxlIGludGVyZXN0ZWQg
-aW4gaXNvbGF0aW9uIQ0KDQoNCkFsZXgNCg==
+On 26/08/11 04:03PM, Richard Cheng wrote:
+> On Mon, Aug 10, 2026 at 08:25:17PM +0800, John Groves wrote:
+> > From: John Groves <john@groves.net>
+> >
+> 
+> Hi John,
+> 
+> I have some questions below.
+>  
+> > Add the famfs file ioctl handler (FAMFSIOC_NOP, FAMFSIOC_MAP_CREATE) and
+> > the KABI-44 self-describing fmap message: the wire ABI in famfs_ioctl.h
+> > (famfs_ioc_fmap_header plus the simple and interleaved extent structs), the
+> > in-core famfs_file_meta, and famfs_file_init_dax(), which copies the
+> > message in, parses both the simple-extent and interleaved (striped) wire
+> > forms into inode->i_private, and sets S_DAX.
+> > 
+> > Resolving those mappings to dax-device offsets (iomap_begin) is added in
+> > the following commit; the read/write/fault paths keep their NULL iomap_ops
+> > stub until then.
+> > 
+> > Famfs now accepts extent and chunk alignment at either PMD or PTE. PMD
+> > is the normal case, and it guarantees PMD faults - which is right for
+> > large files, which are the original use case. But there are also active
+> > use cases that use zillions of small files, and those need PTE support
+> > to avoid big space amplification.
+> > 
+> > Also add famfs ioctls to ioctl-number.rst
+> > 
+> > Signed-off-by: John Groves <john@groves.net>
+> > ---
+> > v13:
+> >  - Renamed the read-only module parameter famfs_kabi_version -> kabi_version;
+> >    it already lives under /sys/module/famfs/parameters/, so the famfs_ prefix
+> >    was redundant. New path: /sys/module/famfs/parameters/kabi_version (same
+> >    for =y and =m).
+> >  - Dropped the proposed GET_GEOMETRY ioctl (Darrick suggested turning the NOP
+> >    ioctl into one reporting the abi version and page/pmd sizes). The abi
+> >    version and supported allocation units are module-wide and needed before
+> >    mount, where an ioctl cannot reach; they are exposed as read-only module
+> >    parameters instead (kabi_version already is; alloc-unit reporting will
+> >    follow when sub-PMD support lands). FAMFSIOC_NOP is retained as the
+> >    "is this famfs?" probe (Darrick).
+> >  - Accept 4 KiB extent alignment, not only 2 MiB. Extent offset and length
+> >    (simple extents and interleaved strips) must now be PAGE_SIZE-aligned
+> >    instead of PMD_SIZE-aligned -- page alignment is a superset, so 2 MiB
+> >    fmaps still pass, and a 4 KiB-granular fmap is now accepted and maps as
+> >    PTEs (the fault path already falls back PMD -> PTE, while 2 MiB-aligned
+> >    extents still get huge pages). The interleaved striping chunk_size must be
+> >    exactly one supported allocation unit -- PAGE_SIZE (4 KiB) or PMD_SIZE
+> >    (2 MiB) -- not an arbitrary page multiple. The alloc-unit module param to
+> >    advertise supported granularities is deferred.
+> > 
+> >  .../userspace-api/ioctl/ioctl-number.rst      |   1 +
+> >  fs/famfs/famfs_file.c                         | 328 +++++++++++++++++-
+> >  fs/famfs/famfs_inode.c                        |   1 +
+> >  fs/famfs/famfs_internal.h                     |  46 +++
+> >  include/uapi/linux/famfs_ioctl.h              |  91 +++++
+> >  5 files changed, 464 insertions(+), 3 deletions(-)
+> >  create mode 100644 include/uapi/linux/famfs_ioctl.h
+> > 
+> > diff --git a/Documentation/userspace-api/ioctl/ioctl-number.rst b/Documentation/userspace-api/ioctl/ioctl-number.rst
+> > index 3f0ef1e27eb0..5e244dec1b98 100644
+> > --- a/Documentation/userspace-api/ioctl/ioctl-number.rst
+> > +++ b/Documentation/userspace-api/ioctl/ioctl-number.rst
+> > @@ -299,6 +299,7 @@ Code  Seq#    Include File                                             Comments
+> >  'u'   00-2F  linux/ublk_cmd.h                                          conflict!
+> >  'u'   20-3F  linux/uvcvideo.h                                          USB video class host driver
+> >  'u'   40-4f  linux/udmabuf.h                                           userspace dma-buf misc device
+> > +'u'   50-5F  linux/famfs_ioctl.h                                       famfs shared memory file system
+> >  'v'   00-1F  linux/ext2_fs.h                                           conflict!
+> >  'v'   00-1F  linux/fs.h                                                conflict!
+> >  'v'   00-0F  linux/sonypi.h                                            conflict!
+> > diff --git a/fs/famfs/famfs_file.c b/fs/famfs/famfs_file.c
+> > index 9c1cd2f67489..ba19b17e80b1 100644
+> > --- a/fs/famfs/famfs_file.c
+> > +++ b/fs/famfs/famfs_file.c
+> > @@ -13,9 +13,315 @@
+> >  #include <linux/mm.h>
+> >  #include <linux/dax.h>
+> >  #include <linux/iomap.h>
+> > +#include <linux/capability.h>
+> >  
+> > +#include <linux/famfs_ioctl.h>
+> >  #include "famfs_internal.h"
+> >  
+> > +/* Expose famfs kernel abi version as a read-only module parameter */
+> > +static int kabi_version = FAMFS_KABI_VERSION;
+> > +module_param(kabi_version, int, 0444);
+> > +MODULE_PARM_DESC(kabi_version, "famfs kernel abi version");
+> > +
+> > +void
+> > +famfs_meta_free(struct famfs_file_meta *map)
+> > +{
+> > +	if (map) {
+> > +		switch (map->fm_extent_type) {
+> > +		case FAMFS_IOC_EXT_SIMPLE:
+> > +			kfree(map->se);
+> > +			break;
+> > +		case FAMFS_IOC_EXT_INTERLEAVE:
+> > +			if (map->ie) {
+> > +				u32 i;
+> > +
+> > +				for (i = 0; i < map->fm_niext; i++)
+> > +					kfree(map->ie[i].ie_strips);
+> > +			}
+> > +			kfree(map->ie);
+> > +			break;
+> > +		default:
+> > +			break;
+> > +		}
+> > +	}
+> > +	kfree(map);
+> > +}
+> > +
+> > +static int
+> > +famfs_check_ext_alignment(struct famfs_meta_simple_ext *se)
+> > +{
+> > +	int errs = 0;
+> > +
+> > +	if (!IS_ALIGNED(se->ext_offset, PAGE_SIZE))
+> > +		errs++;
+> > +	if (!IS_ALIGNED(se->ext_len, PAGE_SIZE))
+> > +		errs++;
+> > +
+> > +	return errs;
+> > +}
+> > +
+> > +/**
+> > + * famfs_file_init_dax() - FAMFSIOC_MAP_CREATE ioctl handler
+> > + * @file: the un-initialized file
+> > + * @arg:  user pointer to a self-describing fmap message
+> > + *
+> > + * The map-create ioctl carries the fmap as a self-describing message: a
+> > + * struct famfs_ioc_fmap_header followed by an extent list. The message is
+> > + * copied in, parsed into a famfs_file_meta, and published on inode->i_private.
+> > + * Both the simple-extent and the interleaved (striped) wire forms are handled.
+> > + * The wire layout byte-matches the fmap carried in a fuse famfs GET_FMAP reply.
+> > + */
+> > +static int
+> > +famfs_file_init_dax(struct file *file, void __user *arg)
+> > +{
+> > +	struct famfs_ioc_fmap_header fmh;
+> > +	struct famfs_file_meta *meta = NULL;
+> > +	struct famfs_fs_info *fsi;
+> > +	struct super_block *sb;
+> > +	struct inode *inode;
+> > +	void *fmap_buf = NULL;
+> > +	size_t extent_total = 0;
+> > +	size_t next_offset;
+> > +	int errs = 0;
+> > +	int rc;
+> > +	u32 i, j;
+> > +
+> > +	inode = file_inode(file);
+> > +	if (!inode)
+> > +		return -EBADF;
+> > +	if (inode->i_private)
+> > +		return -EEXIST;
+> > +
+> > +	sb  = inode->i_sb;
+> > +	fsi = sb->s_fs_info;
+> > +	if (fsi->deverror)
+> > +		return -ENODEV;
+> > +	if (!famfs_opt_enabled(fsi, FAMFS_OPT_MAP_CREATE))
+> > +		return -EPERM;
+> > +
+> 
+> I think this only check whether MAP_CREATE is enabled for the mount ?
+> 
+> Does it check whether the caller is trusted or not ? I think no ?
+> 
+> Maybe we require more privilege such as CAP_SYS_RAWIO, FMODE_WRITE?
+
+CAP_SYS_RAWIO is checked on DAXDEV_OPEN, so no daxdevs can be enabled
+without it. But it's a fair point that if CAP_SYS_RAWIO is not checked
+when initializing a file map (MAP_CREATE) files could be created 
+that point where they shouldn't...within the set of daxdevs that were
+provided with the CAP_SYS_RAWIO gate.
+
+I'll add a CAP_SYS_RAWIO check here too.
+
+Thanks!
+
+> 
+> 
+> > +	if (copy_from_user(&fmh, arg, sizeof(fmh)))
+> > +		return -EFAULT;
+> > +
+> > +	if (fmh.fmap_version != FAMFS_FMAP_VERSION)
+> > +		return -EINVAL;
+> > +	if (fmh.fmap_size < sizeof(fmh))
+> > +		return -EINVAL;
+> > +	if (fmh.fmap_size > FAMFS_FMAP_MSG_MAX)
+> > +		return -EFBIG;
+> > +	if (fmh.nextents < 1)
+> > +		return -EINVAL;
+> > +
+> > +	fmap_buf = kvmalloc(fmh.fmap_size, GFP_KERNEL);
+> > +	if (!fmap_buf)
+> > +		return -ENOMEM;
+> > +
+> > +	if (copy_from_user(fmap_buf, arg, fmh.fmap_size)) {
+> > +		rc = -EFAULT;
+> > +		goto out;
+> > +	}
+> > +	next_offset = sizeof(fmh);	/* start of the extent list */
+> > +
+> > +	meta = kzalloc_obj(*meta, GFP_KERNEL);
+> > +	if (!meta) {
+> > +		rc = -ENOMEM;
+> > +		goto out;
+> > +	}
+> > +
+> > +	meta->error = false;
+> > +	meta->file_type = fmh.file_type;
+> > +	meta->file_size = fmh.file_size;
+> > +	meta->fm_extent_type = fmh.ext_type;
+> > +
+> > +	switch (fmh.ext_type) {
+> > +	case FAMFS_IOC_EXT_SIMPLE: {
+> > +		struct famfs_ioc_simple_ext *se_in = fmap_buf + next_offset;
+> > +
+> > +		next_offset += (size_t)fmh.nextents * sizeof(*se_in);
+> > +		if (next_offset > fmh.fmap_size) {
+> > +			rc = -EINVAL;
+> > +			goto out;
+> > +		}
+> > +
+> > +		meta->fm_nextents = fmh.nextents;
+> > +		meta->se = kcalloc(meta->fm_nextents, sizeof(*meta->se),
+> > +				   GFP_KERNEL);
+> > +		if (!meta->se) {
+> > +			rc = -ENOMEM;
+> > +			goto out;
+> > +		}
+> > +
+> > +		for (i = 0; i < fmh.nextents; i++) {
+> > +			meta->se[i].dev_index  = se_in[i].se_devindex;
+> > +			meta->se[i].ext_offset = se_in[i].se_offset;
+> > +			meta->se[i].ext_len    = se_in[i].se_len;
+> > +
+> > +			if (meta->se[i].dev_index >= FAMFS_MAX_DAXDEVS) {
+> > +				rc = -EINVAL;
+> > +				goto out;
+> > +			}
+> > +			meta->dev_bitmap |= BIT_ULL(meta->se[i].dev_index);
+> > +			errs += famfs_check_ext_alignment(&meta->se[i]);
+> > +			extent_total += meta->se[i].ext_len;
+> 
+> offset + length + entent_total can overflow, and file_size can be larger
+> than MAX_LFS_FILESIZE. And overflow can wrap the DAX address back to 0
+> and map the wrong memory.
+> 
+> Maybe check_add_overflow() can be utilized ?
+
+Good idea, thanks!
+
+> 
+> 
+> > +		}
+> > +		break;
+> > +	}
+> > +
+> > +	case FAMFS_IOC_EXT_INTERLEAVE: {
+> > +		s64 size_remainder = meta->file_size;
+> > +		u32 niext = fmh.nextents;
+> > +
+> > +		meta->fm_niext = niext;
+> > +		meta->ie = kcalloc(niext, sizeof(*meta->ie), GFP_KERNEL);
+> > +		if (!meta->ie) {
+> > +			rc = -ENOMEM;
+> > +			goto out;
+> > +		}
+> > +
+> > +		/* Outer loop is over the separate interleaved extents */
+> > +		for (i = 0; i < niext; i++) {
+> > +			struct famfs_ioc_iext *ie_in = fmap_buf + next_offset;
+> > +			struct famfs_ioc_simple_ext *sie_in;
+> > +			u64 nstrips;
+> > +
+> > +			next_offset += sizeof(*ie_in);
+> > +			if (next_offset > fmh.fmap_size) {
+> > +				rc = -EINVAL;
+> > +				goto out;
+> > +			}
+> > +
+> > +			/* chunk_size must be exactly one supported alloc unit */
+> > +			if (ie_in->ie_chunk_size != PAGE_SIZE &&
+> > +			    ie_in->ie_chunk_size != PMD_SIZE) {
+> > +				rc = -EINVAL;
+> > +				goto out;
+> > +			}
+> > +			if (ie_in->ie_nbytes == 0) {
+> > +				rc = -EINVAL;
+> > +				goto out;
+> > +			}
+> > +
+> > +			nstrips = ie_in->ie_nstrips;
+> > +			if (nstrips < 1) {
+> > +				rc = -EINVAL;
+> > +				goto out;
+> > +			}
+> > +
+> > +			meta->ie[i].fie_chunk_size = ie_in->ie_chunk_size;
+> > +			meta->ie[i].fie_nstrips    = ie_in->ie_nstrips;
+> > +			meta->ie[i].fie_nbytes     = ie_in->ie_nbytes;
+> > +
+> > +			/* The strip extents follow the interleaved-ext header */
+> > +			sie_in = fmap_buf + next_offset;
+> > +			next_offset += nstrips * sizeof(*sie_in);
+> > +			if (next_offset > fmh.fmap_size) {
+> > +				rc = -EINVAL;
+> > +				goto out;
+> > +			}
+> > +
+> > +			meta->ie[i].ie_strips =
+> > +				kcalloc(nstrips,
+> > +					sizeof(meta->ie[i].ie_strips[0]),
+> > +					GFP_KERNEL);
+> > +			if (!meta->ie[i].ie_strips) {
+> > +				rc = -ENOMEM;
+> > +				goto out;
+> > +			}
+> > +
+> > +			/* Inner loop is over the strips */
+> > +			for (j = 0; j < nstrips; j++) {
+> > +				struct famfs_meta_simple_ext *so =
+> > +					&meta->ie[i].ie_strips[j];
+> > +
+> > +				so->dev_index  = sie_in[j].se_devindex;
+> > +				so->ext_offset = sie_in[j].se_offset;
+> > +				so->ext_len    = sie_in[j].se_len;
+> > +
+> > +				if (so->dev_index >= FAMFS_MAX_DAXDEVS) {
+> > +					rc = -EINVAL;
+> > +					goto out;
+> > +				}
+> > +				meta->dev_bitmap |= BIT_ULL(so->dev_index);
+> > +				errs += famfs_check_ext_alignment(so);
+> > +				extent_total += so->ext_len;
+> > +				size_remainder -= so->ext_len;
+> 
+> We use physical allocation size here to check logical file coverage,
+> it doesn't make sense to me.
+> For example, file_size can be 1MB and ie_nbytes only 4KB, but a 1MB ext_len makes this check pass, and you access the area after the first 4 KB will fail,
+> because it has no logical mapping.
+> 
+> Maybe we should make sure the sum of ie_nbytes covers file_size, and
+> separately check that each strip's ext_len is large enough for its assigned
+> chunks ?
+
+Chapeau to you for actually studying this code. Not many have gone
+there. It's arcane, but logically not too complicated.
+
+You're right that famfs_file_init_dax() doesn't check for pathological
+strip sizes or overflows. It does do some basic checking, but would
+not catch a short strip followed by one or more "correct" strips.
+That stuff would indicate a buggy or malicious caller, since it
+violates the fmap logic.
+
+However, the vma fault handler for interleaved files, 
+famfs_meta_to_dax_offset_interleaved(), *does* check for strip 
+overflows. It resolves a file offset to an offset in a specific
+strip (based on strip count and chunk size), and then checks that 
+it falls within the strip and not past the end.
+
+Here is that code:
+
+	/*
+	 * MAP_CREATE only checks that the strips' combined
+	 * length covers the file, not that each strip is large
+	 * enough for the chunks striped onto it. Guard against a
+	 * malformed fmap with an undersized strip so we never
+	 * resolve to a dax offset past the strip's extent.
+	 */
+	if (strip_offset >= strip->ext_len)
+		goto err_out;
+
+	daxdev = famfs_daxdev_from_index(fsi, strip->dev_index, &rc);
+	if (!daxdev) {
+		meta->error = true;
+		return rc;
+	}
+
+	iomap->addr    = strip->ext_offset + strip_offset;
+	iomap->offset  = file_offset;
+	iomap->length  = min_t(loff_t, len, chunk_remainder);
+	iomap->length  = min_t(loff_t, iomap->length,
+			       strip->ext_len - strip_offset);
+	iomap->dax_dev = daxdev;
+	iomap->type    = IOMAP_MAPPED;
+
+	return 0;
+
+Since this condition is an error or malice on the part of the 
+MAP_CREATE caller, I'm comfortable with catching it at fault time.
+
+> 
+> 
+> > +			}
+> > +		}
+> > +
+> > +		if (size_remainder > 0) {
+> > +			/* Strips do not cover the whole file */
+> > +			rc = -EINVAL;
+> > +			goto out;
+> > +		}
+> > +		break;
+> > +	}
+> > +
+> > +	default:
+> > +		rc = -EINVAL;
+> > +		goto out;
+> > +	}
+> > +
+> > +	if (errs > 0) {
+> > +		rc = -EINVAL;
+> > +		goto out;
+> > +	}
+> > +	if (extent_total < meta->file_size) {
+> > +		rc = -EINVAL;
+> > +		goto out;
+> > +	}
+> > +
+> > +	/* Publish the famfs metadata on inode->i_private */
+> > +	inode_lock(inode);
+> > +	if (inode->i_private) {
+> > +		rc = -EEXIST; /* file already has famfs metadata */
+> > +	} else {
+> > +		inode->i_private = meta;
+> > +		i_size_write(inode, meta->file_size);
+> > +		inode->i_flags |= S_DAX;
+> > +		meta = NULL; /* owned by the inode now */
+> > +		rc = 0;
+> > +	}
+> > +	inode_unlock(inode);
+> > +
+> > +out:
+> > +	kvfree(fmap_buf);
+> > +	if (meta)
+> > +		famfs_meta_free(meta);
+> > +	return rc;
+> > +}
+> > +
+> > +/**
+> > + * famfs_file_ioctl() - Top-level famfs file ioctl handler
+> > + * @file: the file
+> > + * @cmd:  ioctl opcode
+> > + * @arg:  ioctl opcode argument (if any)
+> > + */
+> > +static long
+> > +famfs_file_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+> > +{
+> > +	struct inode *inode = file_inode(file);
+> > +	struct famfs_fs_info *fsi = inode->i_sb->s_fs_info;
+> > +	long rc;
+> > +
+> > +	if (fsi->deverror && (cmd != FAMFSIOC_NOP))
+> > +		return -ENODEV;
+> > +
+> > +	switch (cmd) {
+> > +	case FAMFSIOC_NOP:
+> > +		rc = 0;
+> > +		break;
+> > +
+> > +	case FAMFSIOC_MAP_CREATE:
+> > +		rc = famfs_file_init_dax(file, (void __user *)arg);
+> > +		break;
+> > +
+> > +	default:
+> > +		rc = -ENOTTY;
+> > +		break;
+> > +	}
+> > +
+> > +	return rc;
+> > +}
+> > +
+> >  /*********************************************************************
+> >   * vm_operations
+> >   */
+> > @@ -94,9 +400,25 @@ const struct vm_operations_struct famfs_file_vm_ops = {
+> >  static ssize_t
+> >  famfs_file_invalid(struct inode *inode)
+> >  {
+> > +	struct famfs_file_meta *meta = inode->i_private;
+> > +	size_t i_size = i_size_read(inode);
+> > +
+> > +	if (!meta) {
+> > +		pr_debug("%s: un-initialized famfs file\n", __func__);
+> > +		return -EIO;
+> > +	}
+> > +	if (meta->error) {
+> > +		pr_debug("%s: previously detected metadata errors\n", __func__);
+> > +		return -EIO;
+> > +	}
+> > +	if (i_size != meta->file_size) {
+> > +		pr_warn("%s: i_size overwritten from %ld to %ld\n",
+> > +		       __func__, meta->file_size, i_size);
+> > +		meta->error = true;
+> > +		return -ENXIO;
+> > +	}
+> >  	if (!IS_DAX(inode)) {
+> > -		pr_debug("%s: inode %llx IS_DAX is false\n",
+> > -			 __func__, (u64)inode);
+> > +		pr_debug("%s: inode %llx IS_DAX is false\n", __func__, (u64)inode);
+> >  		return -ENXIO;
+> >  	}
+> >  	return 0;
+> > @@ -233,7 +555,7 @@ const struct file_operations famfs_file_operations = {
+> >  	/* Custom famfs operations */
+> >  	.write_iter	   = famfs_dax_write_iter,
+> >  	.read_iter	   = famfs_dax_read_iter,
+> > -	.unlocked_ioctl    = NULL /*famfs_file_ioctl*/,
+> > +	.unlocked_ioctl    = famfs_file_ioctl,
+> >  	.mmap		   = famfs_file_mmap,
+> > 
+> 
+> We don't have compat_ioctl handler, a 32-bit application on a 64-bit
+> kernel will get ENOTTY, if we will have that scenario I think the handler
+> should be added.
+> 
+> Best regards,
+> Richard Cheng.
+
+This one is simple but arcane. Here are the kconfig deps:
+
+FAMFS -> FS_DAX -> ZONE_DEVICE -> MEMORY_HOTPLUG
+
+And MEMORY_HOTPLUG is depends on 64BIT. So famfs is definitively 64BIT-only.
+
+In this series I added a direct dependency on 64BIT, to make it more 
+clear...
+
+Thanks,
+John
+
+<snip>
+
