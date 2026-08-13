@@ -1,22 +1,22 @@
 Received: from cstnet.cn (smtp21.cstnet.cn [159.226.251.21])
 	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39D60486621
-	for <nvdimm@lists.linux.dev>; Thu, 13 Aug 2026 15:13:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A6EA48167A
+	for <nvdimm@lists.linux.dev>; Thu, 13 Aug 2026 15:16:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786634026; cv=none; b=uqstdvHXe3Vqq3iLaC4Ow2EIgN5Eq7vT5PNQGpeE+WhjDbvB4Iw38/RfVkw1kJByoNLV2Ynveiwq5NTdSNfGrWxma+jBDaK5pNN+PPnR4XDM+qa5gm9l3oemFguU0uHrAIJD0mIRjKnbNm8WsFKRZseB/VqnylwrHEs9leSPzbY=
+	t=1786634179; cv=none; b=ZWLOXn/LXQ0McY3vKUMA9KlnGsNg1n9Qh7YmdwFe6MURgFY7pQ8cfDaTs3BrWEfuOVB+BHKOIq15wX38msJ8+w52PissoDI4y71p42hl49dX4wM0I9H5KKHwTt9GdgAKJRR7+/6F0GhPJIupoM3yAmqcQHNwfnQvhqShbGPRNXw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786634026; c=relaxed/simple;
-	bh=Uqnv31TYchVuebYUHgIZFHrFafrbMUbdtChxqy5njbw=;
+	s=arc-20240116; t=1786634179; c=relaxed/simple;
+	bh=xdf0t7m7Bhn3KmbAQhElZb+68JO5fpEcRK1bl1cz6yM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Uu9g2d6DRWn34L7AaSdB3BmXM+ort0q8T1C824KrxxdEFhShuKzFcraxAw6uuWQ4+3WFDM/fFjFMogfnCULjYGRkca35/JrmMIndMw0Z9a+yi5Y+q9vusSgu05xzB3Wf58g8RmCCl44jEIcToD6LVFwMe+0vuNRLpHnlMWKXt24=
+	 MIME-Version:Content-Type; b=S2RSlIRa3jXhhCDNDr4dAcWHE96Dvy7JM4ru7WGwNZE05995ZT4C24KPFRG4ERgrC+wcOZ+Xkw3jd+/gQgKNM4nYCWpIrbktTHe4PcRGFmgC3wpT+jXYS23NeTSToAF1A16SYcKRdijfot/F4bNwMgj0UC8lj5vaXLiH8oeqbN4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.21
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
 Received: from localhost.localdomain (unknown [111.196.241.250])
-	by APP-01 (Coremail) with SMTP id qwCowAAHofQk331qCzZ5BQ--.20056S2;
-	Thu, 13 Aug 2026 23:13:41 +0800 (CST)
+	by APP-01 (Coremail) with SMTP id qwCowAB3Se29331qEEx5BQ--.9196S2;
+	Thu, 13 Aug 2026 23:16:14 +0800 (CST)
 From: Pengpeng Hou <pengpeng@iscas.ac.cn>
 To: Dan Williams <djbw@kernel.org>
 Cc: Vishal Verma <vishal.l.verma@intel.com>,
@@ -31,9 +31,9 @@ Cc: Vishal Verma <vishal.l.verma@intel.com>,
 	linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Pengpeng Hou <pengpeng@iscas.ac.cn>
-Subject: [PATCH v2 2/5] ACPI: NFIT: accept SPA structures with an unused location cookie
-Date: Thu, 13 Aug 2026 23:13:40 +0800
-Message-ID: <20260813151340.20276-1-pengpeng@iscas.ac.cn>
+Subject: [PATCH v2 3/5] ACPI: NFIT: validate interleave and flush array extents
+Date: Thu, 13 Aug 2026 23:16:12 +0800
+Message-ID: <20260813151612.21777-1-pengpeng@iscas.ac.cn>
 X-Mailer: git-send-email 2.50.1
 In-Reply-To: <20260813150948.17239-1-pengpeng@iscas.ac.cn>
 References: <20260813150948.17239-1-pengpeng@iscas.ac.cn>
@@ -45,10 +45,10 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:qwCowAAHofQk331qCzZ5BQ--.20056S2
-X-Coremail-Antispam: 1UD129KBjvJXoWxGryUGr1UXF4UJF17tw4ktFb_yoW5WF15pF
-	sIka4SyF9rJr47CF43Ww45J34Ykwn7ZF48ArZrC34qy3Z3Xr12kFn7KFyYqFyrtrWv9w43
-	CF4ktFW5CrWqvw7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+X-CM-TRANSID:qwCowAB3Se29331qEEx5BQ--.9196S2
+X-Coremail-Antispam: 1UD129KBjvJXoW7CF45CF4xur1UurW5Zw4fZrb_yoW8ury5pF
+	40gasFyr4xJr13G3y3tw4rAw45Aan3AF12yFy8Ca43A3Zakr4UGF4rKFyYqFy5Xrn3Cw43
+	uF4kKa45uFWkZr7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
 	9KBjDU0xBIdaVrnRJUUU9Y14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
 	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
 	1l84ACjcxK6xIIjxv20xvE14v26r4j6ryUM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26F4j
@@ -64,87 +64,66 @@ X-Coremail-Antispam: 1UD129KBjvJXoWxGryUGr1UXF4UJF17tw4ktFb_yoW5WF15pF
 	nIWIevJa73UjIFyTuYvjfUoq2MUUUUU
 X-CM-SenderInfo: pshqw1xhqjqxpvfd2hldfou0/
 
-ACPI 6.4 extended the System Physical Address Range Structure from 56
-to 64 bytes by appending an eight-byte location cookie. The cookie-valid
-flag describes whether that field contains usable data; it does not
-select the structure length.
+Interleave and flush subtables carry a fixed header followed by arrays
+whose element counts come from firmware. sizeof_idt() and sizeof_flush()
+derive the copy size from those counts but do not require the result to
+fit in the subtable's advertised length.
 
-sizeof_spa() instead derives the expected length from the flag. It
-therefore rejects a valid 64-byte ACPI 6.4 structure when the cookie is
-present but not valid. It can also compare 64 bytes against a previously
-saved 56-byte structure without first checking that the saved allocation
-has the same length.
+A short subtable with a large line_count or hint_count can consequently
+make add_idt() or add_flush() copy beyond the subtable. The outer NFIT
+extent check cannot catch this because the following subtable bytes are
+still inside the enclosing ACPI table.
 
-Accept either the legacy 56-byte layout or the ACPI 6.4 64-byte layout.
-Require the cookie-valid flag to be clear for the legacy layout, and
-compare saved entries only when their validated lengths match.
+Use struct_size() for both variable arrays and reject a derived size that
+exceeds the current subtable.
 
-Fixes: e9cfd259c6d3 ("ACPI: NFIT: Fix support for variable 'SPA' structure size")
+Fixes: b94d5230d06e ("libnvdimm, nfit: initial libnvdimm infrastructure and NFIT support")
 Assisted-by: Codex:gpt-5
 Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
 ---
- drivers/acpi/nfit/core.c | 28 +++++++++++++++++++++-------
- 1 file changed, 21 insertions(+), 7 deletions(-)
+ drivers/acpi/nfit/core.c | 18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 4428adb6a1ab..f68edfe64952 100644
+index f68edfe64952..bf4ddc56494e 100644
 --- a/drivers/acpi/nfit/core.c
 +++ b/drivers/acpi/nfit/core.c
-@@ -705,9 +705,20 @@ int nfit_spa_type(struct acpi_nfit_system_address *spa)
+@@ -882,9 +882,16 @@ static bool add_bdw(struct acpi_nfit_desc *acpi_desc,
  
- static size_t sizeof_spa(struct acpi_nfit_system_address *spa)
+ static size_t sizeof_idt(struct acpi_nfit_interleave *idt)
  {
-+	size_t legacy_size = offsetof(struct acpi_nfit_system_address,
-+				      location_cookie);
-+	size_t size = spa->header.length;
++	size_t size;
 +
-+	if (size == sizeof(*spa))
-+		return size;
+ 	if (idt->header.length < sizeof(*idt))
+ 		return 0;
+-	return sizeof(*idt) + sizeof(u32) * idt->line_count;
 +
-+	if (size != legacy_size)
-+		return 0;
-+
- 	if (spa->flags & ACPI_NFIT_LOCATION_COOKIE_VALID)
--		return sizeof(*spa);
--	return sizeof(*spa) - 8;
++	size = struct_size(idt, line_offset, idt->line_count);
++	if (size > idt->header.length)
 +		return 0;
 +
 +	return size;
  }
  
- static bool add_spa(struct acpi_nfit_desc *acpi_desc,
-@@ -716,23 +727,26 @@ static bool add_spa(struct acpi_nfit_desc *acpi_desc,
+ static bool add_idt(struct acpi_nfit_desc *acpi_desc,
+@@ -921,9 +928,16 @@ static bool add_idt(struct acpi_nfit_desc *acpi_desc,
+ 
+ static size_t sizeof_flush(struct acpi_nfit_flush_address *flush)
  {
- 	struct device *dev = acpi_desc->dev;
- 	struct nfit_spa *nfit_spa;
-+	size_t size = sizeof_spa(spa);
- 
--	if (spa->header.length != sizeof_spa(spa))
-+	if (!size)
- 		return false;
- 
- 	list_for_each_entry(nfit_spa, &prev->spas, list) {
--		if (memcmp(nfit_spa->spa, spa, sizeof_spa(spa)) == 0) {
-+		if (sizeof_spa(nfit_spa->spa) != size)
-+			continue;
++	size_t size;
 +
-+		if (memcmp(nfit_spa->spa, spa, size) == 0) {
- 			list_move_tail(&nfit_spa->list, &acpi_desc->spas);
- 			return true;
- 		}
- 	}
+ 	if (flush->header.length < sizeof(*flush))
+ 		return 0;
+-	return struct_size(flush, hint_address, flush->hint_count);
++
++	size = struct_size(flush, hint_address, flush->hint_count);
++	if (size > flush->header.length)
++		return 0;
++
++	return size;
+ }
  
--	nfit_spa = devm_kzalloc(dev, sizeof(*nfit_spa) + sizeof_spa(spa),
--			GFP_KERNEL);
-+	nfit_spa = devm_kzalloc(dev, sizeof(*nfit_spa) + size, GFP_KERNEL);
- 	if (!nfit_spa)
- 		return false;
- 	INIT_LIST_HEAD(&nfit_spa->list);
--	memcpy(nfit_spa->spa, spa, sizeof_spa(spa));
-+	memcpy(nfit_spa->spa, spa, size);
- 	list_add_tail(&nfit_spa->list, &acpi_desc->spas);
- 	dev_dbg(dev, "spa index: %d type: %s\n",
- 			spa->range_index,
+ static bool add_flush(struct acpi_nfit_desc *acpi_desc,
 -- 
 2.50.1 (Apple Git-155)
 
