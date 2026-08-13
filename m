@@ -1,101 +1,82 @@
-Received: from mail-qv1-f50.google.com (mail-qv1-f50.google.com [209.85.219.50])
+Received: from mail-qk1-f170.google.com (mail-qk1-f170.google.com [209.85.222.170])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFB3D12E1DC
-	for <nvdimm@lists.linux.dev>; Thu, 13 Aug 2026 01:21:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63E2220ADF8
+	for <nvdimm@lists.linux.dev>; Thu, 13 Aug 2026 02:37:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786584074; cv=none; b=ltg26Y48JrdqUVTM3/CkwOmM6U2YicQsjjw2RoaxVOv2oqermi/rWUKonWyOUZ3bu5yAq9cXw6GMrp0s1r39dBsXE2rJLQAgStwhudo7e5OQTvqyaVo2vJ26JtQAXJVHvXQCmI6K66QKJvKuwIhlsDYBg49vmEzxAWbJi4GZEZI=
+	t=1786588632; cv=none; b=jPh0CwUNbbSORqZ1DzJ5J6fJYOKcJsm43WZ0a9Iqf/aYBbjHL5I9j296ozcafWuYGuK1wGYDMRpKAMSyNERlSPITZncwKrcA8ekuey36WTg93KSk8ixIqRKzWCBvLSpqnVaLtawUXoFd/8fU22fhNcZeo9bp5supYVL1pbWo8C4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786584074; c=relaxed/simple;
-	bh=jQAWRVENXd5JGHsxo/hf6vUttuV6ujE/QtYCehIVHRI=;
+	s=arc-20240116; t=1786588632; c=relaxed/simple;
+	bh=ZAxW5Wglg+eNEd/7E2VgSitqFFT3iAHesn5itEgojfI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=AibxK2RFVK0mXyna3T6qLd+U7doSJ99/8NVPAlIe0VOPk+y62kcW+IH1vEaWa5b24WVsBdL/AnCHvweXCs1i0SSpptRcQ9tcu8z/NDaolBBW4mMjNT3bcMV61k1h8BD97IrCTZ4WqSHM+2qcgHm4NexMKPaQ4O1Ajf6BwIXXqpk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=UhdYbJXs; arc=none smtp.client-ip=209.85.219.50
+	 Content-Type:Content-Disposition:In-Reply-To; b=sE+0Ttr/MPGMwJc63axv1lbjYIbkhG6Hr9giqlHC3N+1BZ026Fyuw5UHAH1XYRxB33/dNv3yoyKfKCYEsn5yid2uBbUvMFFghMfQpOO/6XslaDDryBeIirV7i4uXz+zePG0xXPzxC8gUjkCkIyicNJRT9iDlD74XXAOaXktGfWk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=NOS0flO0; arc=none smtp.client-ip=209.85.222.170
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="UhdYbJXs"
-Received: by mail-qv1-f50.google.com with SMTP id 6a1803df08f44-9030f8ea3b3so1893286d6.1
-        for <nvdimm@lists.linux.dev>; Wed, 12 Aug 2026 18:21:12 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="NOS0flO0"
+Received: by mail-qk1-f170.google.com with SMTP id af79cd13be357-92e65e18969so39503885a.1
+        for <nvdimm@lists.linux.dev>; Wed, 12 Aug 2026 19:37:11 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1786584071; x=1787188871; darn=lists.linux.dev;
+        d=gourry.net; s=google; t=1786588630; x=1787193430; darn=lists.linux.dev;
         h=in-reply-to:content-disposition:content-type:mime-version
          :references:message-id:subject:cc:to:from:date:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=ZGIPGO62vUWJJtnlWOV7HnIzQD6+wbjwlpycp53S1ew=;
-        b=UhdYbJXs0QWMtav9IKzsNtYjnjbYfJ3m2nvXjiagbk7FMpPXpPQdLmPFLRBFuB/b1h
-         9ejERz5LE1jkHiC4fTsivCIYKoOh/LTmTbIu84cgrrXrMirRDRnqo9SRmycv4qw9gxjx
-         zfIh1uBwy0Tnn5czqnIUZfnj0Z5SytnfYC/0eheziy5pO+ZedaQyjVBqg+4yiy1FP2Yh
-         No2d0LtS3FNhH/gPksuKlKcoj/1ivANatU9aYz84ZqqocAWtb0R8+VSm0Fa2DDu0MdRu
-         jKduyAYyd7IDVKmr+iQNQr+PXehSKMPFq4O70+2UfcDJ9V+12g7SgGw6n6K6m3QT4XLb
-         jqbg==
+        bh=iAIlYFnXn3LVoMPX9IDRNtgfCfuZ8em86m2CaDU8/H0=;
+        b=NOS0flO0eeGHeH8K8qp3eI8kxK0yXK+Wvg0Q2zXYqwKJC62CtGDEx8n2W5cOdElz3e
+         54MctC7dmJ3CNmmGqdEsna/04sqYxUW0d+LvFBNZ9IHXVhixC4pvEMhUtTeUm/8XCh5r
+         oLiwge8luzzm4eo73mcrtEw/yzYL1A+DGPTenSFnUEvMQAhpyDnAt4ZGf6IN0zWkGvPY
+         tFqg0UrzRn/m7SCr9Sma8Klhm6bmoUkxRgVWNMJQCzWWXf5gLhSKqm6vhrmG86CTrI8U
+         ByVFC+Xr/SxzzWS/pOcuAgI1kSAn9y/jfFyfRfeE9C4xkuLNvbTAtnPkhp+WKtzwHBQG
+         AeIw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786584071; x=1787188871;
+        d=1e100.net; s=20251104; t=1786588630; x=1787193430;
         h=in-reply-to:content-disposition:content-type:mime-version
          :references:message-id:subject:cc:to:from:date:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=ZGIPGO62vUWJJtnlWOV7HnIzQD6+wbjwlpycp53S1ew=;
-        b=eAUrT27rhJp/GpXDhiABkYNy9CdGHd78qjle17R930x7asx2p9kooU7EQ8E+elzzYf
-         C71VMS9rJZLfBBiWVAYV1UcmpNkwXEcPutYJEvFIHZeppELJXqPFQXQTR6fkGXl1OTP7
-         w9Fv94LYn+fGRzN+W8sKoPeGGFWIwIS8fafOgvpzQ+xSMJtHhdN9hm+DYCsKwtNDnw8A
-         TOxYt7/DvpwlF72f5A8c3qEpm0XkrwFKgbyAD07Maqdn2LAwXKQBkfLgyxBjsV8J6ExE
-         sIAtP6hR4tBMqkbypi0Y6r9nfCBYbRfeoUQnpGBtRfr1nNzkPHfkyioN0Jgyzy68YFgG
-         vADg==
-X-Forwarded-Encrypted: i=1; AHgh+RrLjUNivufBv1pH45jDLmxKF7LjT4oG+qCuU6EIRNas5Z2csxsMF3je9amitdGjuSbZ5zF3bps=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yz/axdDPp5Nm8P8gNdxI4GF0NYYJYL+U2R52US5BH+CZTIRb1YZ
-	ijSUS+snE+x90f+SS49cyAbBX2Y4jSAK9WjaPBYG/Rvb0Dj/1ddPxNRdWprVuWx5I6Y=
-X-Gm-Gg: AR+sD13KtpuD/tdS+S8SgGyD7v+ef/etkNz6jSEh/86bJL5vPp184LoXtUWIai/LfgZ
-	Ez15lM/SX29o96vMm9tD7gkGlCuQB8lfkQtRBV6DkNCD8QlzACPxzoY1jikk7wPJ0FuX4q/nvtj
-	jdYzBkb1/xuPs04VDhJjktanUb3wqkEHf1OLMna4ilEdkE29pksOz9jfFrPGaT/AHGhRNQX+YZG
-	ykaRuk4dFbeaTKzC3Kh/UBDngVbkfi01FR3RQfhK6kqu1+/uImo34x2QnNNJmWnEdI0E9PU0zVG
-	p/v4IqVD2lUTo/cwPQuq1rNxsv1MjRySCqJRBdxrKgpNalwtQMo8HViq+y8z4RifpTlusnPquEQ
-	DuQLWo4ZbBV1ZyX51jf2SeqvS3daSI6t3JueHoP3A2BSyShed66TX3i6sAEE/M/5ZHCGCCBbgWn
-	bsoVwX4+hPMxel1FLEj95NWqPavDZAinw3JlkAu6RPHIxYj3U=
-X-Received: by 2002:a05:6214:500b:b0:8f0:d710:26ba with SMTP id 6a1803df08f44-90a80bb0b74mr17793966d6.31.1786584071577;
-        Wed, 12 Aug 2026 18:21:11 -0700 (PDT)
+        bh=iAIlYFnXn3LVoMPX9IDRNtgfCfuZ8em86m2CaDU8/H0=;
+        b=gnbrL/FOT0rk0/6EXZ27V8ds4Qghi57iwdaWrzNXUOMLlm1KEIaWq2jChCkCTgqlXy
+         y3LiwTeu7DQ1ml3u8FIrHqjzp76lvG4qE4XD3yxBzXgz+y1qth1uYqbbu2Lz2pyalny1
+         Xk6tc8hRISNe5Bj1RQj9oWSH0S3nNXkljhOChfCALE8fv8gEEvltIHwhVB2zA8KOdl9i
+         xv2Jyd/OVrGDeE8cD04B1QVZbtW2P/B1Fvo2VHfJCY1oEOmpdE7x05WCAhPHndiUR99g
+         kxOhQ7ygKez/5rsz58wXsUYCJ0LmQGuhrtl41oSBk0DlAsh+Tx+xIISiM4Cb3H+L3kze
+         rUJA==
+X-Forwarded-Encrypted: i=1; AHgh+RoQsWceTlDULwlRppJTtS2q8j4vOLntcXaoTaHe/zOP98jmAaVUIy+U9bziYNchqVCfC6B9u4Q=@lists.linux.dev
+X-Gm-Message-State: AOJu0YwfSO5KO3X8iBcdcp+674rY8nd6/Ur/x/sJ0IOohXhO3cwaKcRp
+	DvBSQvRxb6Vk8HDwGF+sVzcY36ZdO1hOFTP6uGYwzrnp1qyPlVEOF7nAXsdw2gwwnRE=
+X-Gm-Gg: AR+sD106DY/WdbnMy+j+Q8AVGmgV+vz0X9mHPabWjsEghfmKk7lqx+nAqV5RLk5LnvC
+	AudH10J9YeIf9qXSTUHHPHCbVFiffJBLP/5qpmvVEg9klfxZLeEJJwSnQJKOX2rr6WMdUYfQFrB
+	yPNq3+pMVhcw8t+TbeV38e02tWcrEdrkpa8VEeDfkK5TJR+kvh5WOmojyeMaBTIWHm1uYj1lLdP
+	ud2WpL1OkVWyMG9Qmv7HMhKYuDb7bonPNGbFkxQ+3NV1UJDF0WNLy8MYj4Ih7z+OatX7wKaXGxG
+	4Hi4pDOqo0ANZJqS2RMlZGb/6vQw64QDDhVmBY4Ewv6VnvFPRq9ZVYSpeLO3Sm6a1nmm8fHZ0d5
+	HQXKqxpwORWNTFoEDpongBQ9DjKV6r8VhvQ8E3vXSjwD+CycH0CBFzgOpxZ3+pKP12wZVtH//wd
+	lB9bf8cjGhGRLFdDhggyKSuS9I7iZ4lbcMCYp3DPOmmIezlw==
+X-Received: by 2002:a05:620a:2727:b0:92b:3203:ea70 with SMTP id af79cd13be357-936c0b68fa2mr178922485a.12.1786588630298;
+        Wed, 12 Aug 2026 19:37:10 -0700 (PDT)
 Received: from fedora ([2601:19e:8500:d3c0::28fe])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-90a8179e350sm4119856d6.6.2026.08.12.18.21.06
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-936c199108csm48835385a.19.2026.08.12.19.37.08
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 12 Aug 2026 18:21:10 -0700 (PDT)
-Date: Wed, 12 Aug 2026 21:21:04 -0400
+        Wed, 12 Aug 2026 19:37:09 -0700 (PDT)
+Date: Wed, 12 Aug 2026 22:37:06 -0400
 From: Gregory Price <gourry@gourry.net>
-To: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Cc: linux-mm@kvack.org, Zhigang.Luo@amd.com, arun.george@samsung.com,
-	balbirs@nvidia.com, brendan.jackman@linux.dev, yuzenghui@huawei.com,
-	apopple@nvidia.com, alucerop@amd.com, matthew.brost@intel.com,
-	akpm@linux-foundation.org, david@kernel.org, ljs@kernel.org,
-	liam@infradead.org, vbabka@kernel.org, rppt@kernel.org,
-	surenb@google.com, mhocko@suse.com, corbet@lwn.net,
-	skhan@linuxfoundation.org, gregkh@linuxfoundation.org,
-	rafael@kernel.org, dakr@kernel.org, djbw@kernel.org,
-	vishal.l.verma@intel.com, dave.jiang@intel.com,
-	alison.schofield@intel.com, osandov@osandov.com, jannh@google.com,
-	pfalcato@suse.de, jackmanb@google.com, hannes@cmpxchg.org,
-	ziy@nvidia.com, pbonzini@redhat.com, osalvador@suse.de,
-	joshua.hahnjy@gmail.com, rakie.kim@sk.com, byungchul@sk.com,
-	ying.huang@linux.alibaba.com, kasong@tencent.com,
-	qi.zheng@linux.dev, shakeel.butt@linux.dev, baohua@kernel.org,
-	axelrasmussen@google.com, yuanchu@google.com, weixugc@google.com,
-	yury.norov@gmail.com, linux@rasmusvillemoes.dk, longman@redhat.com,
-	ridong.chen@linux.dev, tj@kernel.org, mkoutny@suse.com,
-	sj@kernel.org, jgg@ziepe.ca, jhubbard@nvidia.com, peterx@redhat.com,
-	baolin.wang@linux.alibaba.com, npache@redhat.com,
-	ryan.roberts@arm.com, dev.jain@arm.com, lance.yang@linux.dev,
-	usama.arif@linux.dev, xu.xin16@zte.com.cn, chengming.zhou@linux.dev,
-	roman.gushchin@linux.dev, muchun.song@linux.dev,
-	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-	driver-core@lists.linux.dev, nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org, linux-debuggers@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, kvm@vger.kernel.org,
-	cgroups@vger.kernel.org, damon@lists.linux.dev,
-	linux-kselftest@vger.kernel.org, kernel-team@meta.com,
-	"Gupta, Pankaj" <pankaj.gupta@amd.com>
-Subject: Re: [PATCH v5 00/36] Private Memory NUMA Nodes
-Message-ID: <an0cAMh_m8ZhGIm2@fedora>
-References: <20260720193431.3841992-1-gourry@gourry.net>
- <CAM9Jb+jpJ-Ui4qDHxsp2WiERiv8gmrQfKQ8Z0BmabefeQ6pg4A@mail.gmail.com>
+To: Rakie Kim <rakie.kim@sk.com>
+Cc: akpm@linux-foundation.org, linux-mm@kvack.org,
+	linux-kernel@vger.kernel.org, linux-cxl@vger.kernel.org,
+	nvdimm@lists.linux.dev, ziy@nvidia.com, matthew.brost@intel.com,
+	joshua.hahnjy@gmail.com, byungchul@sk.com,
+	ying.huang@linux.alibaba.com, apopple@nvidia.com, david@kernel.org,
+	ljs@kernel.org, liam@infradead.org, vbabka@kernel.org,
+	rppt@kernel.org, surenb@google.com, mhocko@suse.com,
+	dave@stgolabs.net, jic23@kernel.org, dave.jiang@intel.com,
+	alison.schofield@intel.com, vishal.l.verma@intel.com,
+	ira.weiny@intel.com, harry@kernel.org, kernel_team@skhynix.com,
+	honggyu.kim@sk.com, yunjeong.mun@sk.com
+Subject: Re: [PATCH 0/4] mm/mempolicy: introduce package-aware weighted
+ interleave
+Message-ID: <an0t0mP9JB8f4ILK@fedora>
+References: <20260806080936.421-1-rakie.kim@sk.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -104,39 +85,30 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAM9Jb+jpJ-Ui4qDHxsp2WiERiv8gmrQfKQ8Z0BmabefeQ6pg4A@mail.gmail.com>
+In-Reply-To: <20260806080936.421-1-rakie.kim@sk.com>
 
-On Wed, Aug 12, 2026 at 02:01:12PM +0200, Pankaj Gupta wrote:
-> >
-> > Bonus Configuration: HBM device memory tiering
-> > ==============================================
-> > echo 1 > dax0.0/private       # make the node private
-> > echo 0 > dax0.0/adistance     # highest tier
-> > echo 1 > dax0.0/reclaim       # reclaim active
-> > echo 1 > dax0.0/demotion      # may demote from the node
-> > echo 1 > dax0.0/user_numa     # mbind()
-> > echo online_movable > dax0.0/state
-> > echo 1 > numa/demotion_enabled
-> 
-> I am bit confused by the HBM device example being discovered as a DAX
-> device. Is it to
-> only to showcase the use-case? Or we see HBM device is actually
-> expected to be discovered as
-> DAX device with N_MEMORY_PRIVATE?
-> 
+On Thu, Aug 06, 2026 at 05:09:31PM +0900, Rakie Kim wrote:
+> Package-aware weighted interleave places a task's weighted-interleave
+> pages on the NUMA nodes of its local package, so that interleave traffic
+> does not have to cross the interconnect to another package. This keeps
+> each node's weight aligned with the bandwidth the task actually gets
+> from it, so effective bandwidth holds up on a system that has more than
+> one package. (A package is a CPU socket together with the memory
+> attached to it.)
+>
 
-"actually expected to be" -> no.  there's no requirement HBM be
-discovered and boudn to DAX, DAX is simply a convenient intermediary
-to memory-hotplug.  This is at best a demonstration.
+The only major question I have before I dig into the actual patches is
+whether you actually need this on a *per-task* basis, rather than simply
+a *per-process* basis - because that's all this really buys you.
 
-A device driver could very well just call memory-hotplug directly,
-or its memory could be brought up as a private node via a boot
-paremeter (which I have sculpted for v7).  The former is preferred,
-but there's a bit of a chicken/egg scenario for bootstrapping.
+You can already do what is described here by simply using a combination
+of cpuset and mempolicy
 
-Most of these UAPI extensions are going to be consolidated into a
-debugfs interface for testing purposes only in v7.  I've been working
-on aggressive Linux Test Project test expansion to ensure there is no
-UAPI regressions.
+cpuset.mems = 0,2
+mempolicy = weighted interleave --all
+
+If this is actually required on a per-task basis, then I agree this
+concept is reasonable.  I just want to make we're grounded on a real
+use case before we go adding this complexity.
 
 ~Gregory
