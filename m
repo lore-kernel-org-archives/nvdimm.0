@@ -1,22 +1,22 @@
 Received: from cstnet.cn (smtp21.cstnet.cn [159.226.251.21])
 	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0B975FDA7
-	for <nvdimm@lists.linux.dev>; Thu, 13 Aug 2026 15:11:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39D60486621
+	for <nvdimm@lists.linux.dev>; Thu, 13 Aug 2026 15:13:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786633875; cv=none; b=NJkRTo0wDblr4d1wm1ukbKurL4I/Q1U0ie3Fg2YDqgxNK/Iuzpw87CDr9K8xF6zfP4YcrehKuOvdh+SKeo2aeFxHncPdhMz8z5ewy9CEJkSF7l7s2JX45RjqeN/jj3k9udIvuYDyMHOeT5Fl+ToaG4zcIxXzHT6GsaBTZ6VA0NQ=
+	t=1786634026; cv=none; b=uqstdvHXe3Vqq3iLaC4Ow2EIgN5Eq7vT5PNQGpeE+WhjDbvB4Iw38/RfVkw1kJByoNLV2Ynveiwq5NTdSNfGrWxma+jBDaK5pNN+PPnR4XDM+qa5gm9l3oemFguU0uHrAIJD0mIRjKnbNm8WsFKRZseB/VqnylwrHEs9leSPzbY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786633875; c=relaxed/simple;
-	bh=EOHknXKR03tLn6shY7J3WMfMv6mpknYWTz0pPDrdGl8=;
+	s=arc-20240116; t=1786634026; c=relaxed/simple;
+	bh=Uqnv31TYchVuebYUHgIZFHrFafrbMUbdtChxqy5njbw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=QIRy12qHd5kc/RRJ8qlzdwyoBXTOqaESfj/Otf8F56FJWM52TDVdFbXDbj35gNHksmfrQWNlyylrQhMqiLd/BdS1oIcJq6iYBgJrIo1JarhBajGjvCt7XfyRQkCJO60r65Vaia8Bt+LDtYdK1zxpOs+IOXSXnkhozPj8Lga/4wg=
+	 MIME-Version:Content-Type; b=Uu9g2d6DRWn34L7AaSdB3BmXM+ort0q8T1C824KrxxdEFhShuKzFcraxAw6uuWQ4+3WFDM/fFjFMogfnCULjYGRkca35/JrmMIndMw0Z9a+yi5Y+q9vusSgu05xzB3Wf58g8RmCCl44jEIcToD6LVFwMe+0vuNRLpHnlMWKXt24=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.21
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
 Received: from localhost.localdomain (unknown [111.196.241.250])
-	by APP-01 (Coremail) with SMTP id qwCowADnu++P3n1qNB55BQ--.55902S2;
-	Thu, 13 Aug 2026 23:11:11 +0800 (CST)
+	by APP-01 (Coremail) with SMTP id qwCowAAHofQk331qCzZ5BQ--.20056S2;
+	Thu, 13 Aug 2026 23:13:41 +0800 (CST)
 From: Pengpeng Hou <pengpeng@iscas.ac.cn>
 To: Dan Williams <djbw@kernel.org>
 Cc: Vishal Verma <vishal.l.verma@intel.com>,
@@ -31,9 +31,9 @@ Cc: Vishal Verma <vishal.l.verma@intel.com>,
 	linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Pengpeng Hou <pengpeng@iscas.ac.cn>
-Subject: [PATCH v2 1/5] ACPI: NFIT: validate subtable extents before dispatch
-Date: Thu, 13 Aug 2026 23:11:11 +0800
-Message-ID: <20260813151111.18434-1-pengpeng@iscas.ac.cn>
+Subject: [PATCH v2 2/5] ACPI: NFIT: accept SPA structures with an unused location cookie
+Date: Thu, 13 Aug 2026 23:13:40 +0800
+Message-ID: <20260813151340.20276-1-pengpeng@iscas.ac.cn>
 X-Mailer: git-send-email 2.50.1
 In-Reply-To: <20260813150948.17239-1-pengpeng@iscas.ac.cn>
 References: <20260813150948.17239-1-pengpeng@iscas.ac.cn>
@@ -45,72 +45,106 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:qwCowADnu++P3n1qNB55BQ--.55902S2
-X-Coremail-Antispam: 1UD129KBjvJXoW7tw1rAFW7Gr15Zr1kKFyDZFb_yoW8AF47p3
-	WUKa4ayrs8GFsFvw17Aa1FvFy5tws5AFy7K348A34q9w15G3W8JFy8KFy2qas5Jrs5CF4a
-	vF4ktFy5AF4kZr7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUU9j14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
+X-CM-TRANSID:qwCowAAHofQk331qCzZ5BQ--.20056S2
+X-Coremail-Antispam: 1UD129KBjvJXoWxGryUGr1UXF4UJF17tw4ktFb_yoW5WF15pF
+	sIka4SyF9rJr47CF43Ww45J34Ykwn7ZF48ArZrC34qy3Z3Xr12kFn7KFyYqFyrtrWv9w43
+	CF4ktFW5CrWqvw7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUU9Y14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
 	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
-	1l84ACjcxK6xIIjxv20xvE14v26r4j6ryUM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
-	6F4UM28EF7xvwVC2z280aVAFwI0_GcCE3s1l84ACjcxK6I8E87Iv6xkF7I0E14v26rxl6s
-	0DM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj6xII
-	jxv20xvE14v26r126r1DMcIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x0Yz7v_Jr0_Gr
-	1lF7xvr2IYc2Ij64vIr41lF7I21c0EjII2zVCS5cI20VAGYxC7M4IIrI8v6xkF7I0E8cxa
-	n2IY04v7MxkF7I0En4kS14v26r1q6r43MxAIw28IcxkI7VAKI48JMxC20s026xCaFVCjc4
-	AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE
-	17CEb7AF67AKxVWUtVW8ZwCIc40Y0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r1j6r1xMI
-	IF0xvE2Ix0cI8IcVCY1x0267AKxVW8JVWxJwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4l
-	IxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280aVCY1x0267AKxVW8JVW8JrUvcSsGvf
-	C2KfnxnUUI43ZEXa7VUbtxhJUUUUU==
+	1l84ACjcxK6xIIjxv20xvE14v26r4j6ryUM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26F4j
+	6r4UJwA2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x0267AKxVW0oV
+	Cq3wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0
+	I7IYx2IY67AKxVWUAVWUtwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFVCjc4AY6r1j6r
+	4UM4x0Y48IcxkI7VAKI48JM4x0x7Aq67IIx4CEVc8vx2IErcIFxwACI402YVCY1x02628v
+	n2kIc2xKxwCY1x0262kKe7AKxVWUtVW8ZwCF04k20xvY0x0EwIxGrwCFx2IqxVCFs4IE7x
+	kEbVWUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4vE14v26r106r1rMI8E
+	67AF67kF1VAFwI0_Jw0_GFylIxkGc2Ij64vIr41lIxAIcVC0I7IYx2IY67AKxVWUCVW8Jw
+	CI42IY6xIIjxv20xvEc7CjxVAFwI0_Cr0_Gr1UMIIF0xvE42xK8VAvwI8IcIk0rVWUJVWU
+	CwCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6xkF7I0E14v26r4j6r4UJbIYCT
+	nIWIevJa73UjIFyTuYvjfUoq2MUUUUU
 X-CM-SenderInfo: pshqw1xhqjqxpvfd2hldfou0/
 
-add_table() checks only that the subtable cursor is before the end of
-the NFIT before reading the two-field subtable header. A cursor with
-fewer than sizeof(struct acpi_nfit_header) bytes remaining therefore
-makes the header read cross the mapped table.
+ACPI 6.4 extended the System Physical Address Range Structure from 56
+to 64 bytes by appending an eight-byte location cookie. The cookie-valid
+flag describes whether that field contains usable data; it does not
+select the structure length.
 
-The function also advances by the firmware-provided length without
-checking that the advertised subtable fits in the enclosing NFIT. A
-malformed length can move the parser beyond the table and make the next
-iteration read unrelated memory.
+sizeof_spa() instead derives the expected length from the flag. It
+therefore rejects a valid 64-byte ACPI 6.4 structure when the cookie is
+present but not valid. It can also compare 64 bytes against a previously
+saved 56-byte structure without first checking that the saved allocation
+has the same length.
 
-Require a complete header and bind the advertised length to both the
-header size and the bytes remaining in the NFIT before dispatching the
-subtable.
+Accept either the legacy 56-byte layout or the ACPI 6.4 64-byte layout.
+Require the cookie-valid flag to be clear for the legacy layout, and
+compare saved entries only when their validated lengths match.
 
-Fixes: b94d5230d06e ("libnvdimm, nfit: initial libnvdimm infrastructure and NFIT support")
+Fixes: e9cfd259c6d3 ("ACPI: NFIT: Fix support for variable 'SPA' structure size")
 Assisted-by: Codex:gpt-5
 Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
 ---
- drivers/acpi/nfit/core.c | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ drivers/acpi/nfit/core.c | 28 +++++++++++++++++++++-------
+ 1 file changed, 21 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index cb771d9cadb2..4428adb6a1ab 100644
+index 4428adb6a1ab..f68edfe64952 100644
 --- a/drivers/acpi/nfit/core.c
 +++ b/drivers/acpi/nfit/core.c
-@@ -963,14 +963,18 @@ static void *add_table(struct acpi_nfit_desc *acpi_desc,
+@@ -705,9 +705,20 @@ int nfit_spa_type(struct acpi_nfit_system_address *spa)
+ 
+ static size_t sizeof_spa(struct acpi_nfit_system_address *spa)
+ {
++	size_t legacy_size = offsetof(struct acpi_nfit_system_address,
++				      location_cookie);
++	size_t size = spa->header.length;
++
++	if (size == sizeof(*spa))
++		return size;
++
++	if (size != legacy_size)
++		return 0;
++
+ 	if (spa->flags & ACPI_NFIT_LOCATION_COOKIE_VALID)
+-		return sizeof(*spa);
+-	return sizeof(*spa) - 8;
++		return 0;
++
++	return size;
+ }
+ 
+ static bool add_spa(struct acpi_nfit_desc *acpi_desc,
+@@ -716,23 +727,26 @@ static bool add_spa(struct acpi_nfit_desc *acpi_desc,
+ {
  	struct device *dev = acpi_desc->dev;
- 	struct acpi_nfit_header *hdr;
- 	void *err = ERR_PTR(-ENOMEM);
-+	size_t table_len;
+ 	struct nfit_spa *nfit_spa;
++	size_t size = sizeof_spa(spa);
  
- 	if (table >= end)
- 		return NULL;
-+	table_len = end - table;
-+	if (table_len < sizeof(*hdr))
-+		return NULL;
+-	if (spa->header.length != sizeof_spa(spa))
++	if (!size)
+ 		return false;
  
- 	hdr = table;
--	if (!hdr->length) {
--		dev_warn(dev, "found a zero length table '%d' parsing nfit\n",
--			hdr->type);
-+	if (hdr->length < sizeof(*hdr) || hdr->length > table_len) {
-+		dev_warn(dev, "invalid table length %u for type %u parsing nfit\n",
-+			 hdr->length, hdr->type);
- 		return NULL;
+ 	list_for_each_entry(nfit_spa, &prev->spas, list) {
+-		if (memcmp(nfit_spa->spa, spa, sizeof_spa(spa)) == 0) {
++		if (sizeof_spa(nfit_spa->spa) != size)
++			continue;
++
++		if (memcmp(nfit_spa->spa, spa, size) == 0) {
+ 			list_move_tail(&nfit_spa->list, &acpi_desc->spas);
+ 			return true;
+ 		}
  	}
  
+-	nfit_spa = devm_kzalloc(dev, sizeof(*nfit_spa) + sizeof_spa(spa),
+-			GFP_KERNEL);
++	nfit_spa = devm_kzalloc(dev, sizeof(*nfit_spa) + size, GFP_KERNEL);
+ 	if (!nfit_spa)
+ 		return false;
+ 	INIT_LIST_HEAD(&nfit_spa->list);
+-	memcpy(nfit_spa->spa, spa, sizeof_spa(spa));
++	memcpy(nfit_spa->spa, spa, size);
+ 	list_add_tail(&nfit_spa->list, &acpi_desc->spas);
+ 	dev_dbg(dev, "spa index: %d type: %s\n",
+ 			spa->range_index,
 -- 
 2.50.1 (Apple Git-155)
 
