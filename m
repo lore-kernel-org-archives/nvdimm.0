@@ -1,22 +1,22 @@
 Received: from cstnet.cn (smtp21.cstnet.cn [159.226.251.21])
 	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD8BE46AA7B
-	for <nvdimm@lists.linux.dev>; Thu, 13 Aug 2026 15:18:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F1B248167A
+	for <nvdimm@lists.linux.dev>; Thu, 13 Aug 2026 15:20:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786634328; cv=none; b=gIUOfSKbNCGiiti131DveqcQSg1FKe8a36pnwqaSLsEtu6s3q738LdaFf9PMp/DcXgNjYV2xMYqvVANYOB0PVNRSCKszjT+Wi7qC9ztZ6v5QgHKc4KWi6Z4pQoV9IOhVhQqdI7I5PBjlHqmBnRDnP+ieuKZXtRLYzyVRioKuPw0=
+	t=1786634442; cv=none; b=B1liPjBDC63L73cZiy0crQfMVIEML7V0pZFTQamBJZXWU1eXGDynXTf4RCC6XEXzLEinjA/mUWAPHEUvCJqyLEyJlR5mCZGO1/ycozuflL+LkdPDl75OFKg2W01jc/CPtnov9M4NC/RhIoy0vVUQni8Ck43voqU3bSlB4y22Nj4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786634328; c=relaxed/simple;
-	bh=yuDC1gRxHvrdCLXoPP0tdkI+BRFORJkxV2MDo3+744w=;
+	s=arc-20240116; t=1786634442; c=relaxed/simple;
+	bh=I9t4BQUYK3njp/kCF9ay0weQak0qIG7++Gl7VIfpS1M=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=JNS0SsE4mWvjPxyLrz3mDsi0v5Tfzo+ypDrUbKk0sVCJgakqoNjUHHcG3HfC1rMfUdp6Hsd1kSL9nruyRlqOnT1DaUR4gFHTrhu11uun2aplEQeXBTsWUQ8vCpf5wMC7ZVR41BjNp6zHilU3qq+8/cqBYJUKsnptW4iZoxdK/gc=
+	 MIME-Version:Content-Type; b=pSZuYN2o1ztgDMR7B645YFALGR5whKmGqEu8phk3DwFblaIjWymrgME+jbYlch/IQEu1dz6ESvbnLLBo7jE1pjG2BwAfzq5eMX0dmYrFt8yF16n5iYIByBBif+QZXPE5bg9yCPD4GsLYDScgWuakTZLuuVB3DtxRk6Rd8bX9rr8=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.21
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
 Received: from localhost.localdomain (unknown [111.196.241.250])
-	by APP-01 (Coremail) with SMTP id qwCowAAX7O9T4H1qDWZ5BQ--.56168S2;
-	Thu, 13 Aug 2026 23:18:44 +0800 (CST)
+	by APP-01 (Coremail) with SMTP id qwCowAAn+ezG4H1qJHR5BQ--.54510S2;
+	Thu, 13 Aug 2026 23:20:38 +0800 (CST)
 From: Pengpeng Hou <pengpeng@iscas.ac.cn>
 To: Dan Williams <djbw@kernel.org>
 Cc: Vishal Verma <vishal.l.verma@intel.com>,
@@ -31,9 +31,9 @@ Cc: Vishal Verma <vishal.l.verma@intel.com>,
 	linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Pengpeng Hou <pengpeng@iscas.ac.cn>
-Subject: [PATCH v2 4/5] ACPI: NFIT: validate control region extent
-Date: Thu, 13 Aug 2026 23:18:43 +0800
-Message-ID: <20260813151843.24305-1-pengpeng@iscas.ac.cn>
+Subject: [PATCH v2 5/5] ACPI: NFIT: bound the platform capability mask
+Date: Thu, 13 Aug 2026 23:20:37 +0800
+Message-ID: <20260813152037.25828-1-pengpeng@iscas.ac.cn>
 X-Mailer: git-send-email 2.50.1
 In-Reply-To: <20260813150948.17239-1-pengpeng@iscas.ac.cn>
 References: <20260813150948.17239-1-pengpeng@iscas.ac.cn>
@@ -45,10 +45,10 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:qwCowAAX7O9T4H1qDWZ5BQ--.56168S2
-X-Coremail-Antispam: 1UD129KBjvJXoW7tryrZF1Dtry8tr1DJF13Jwb_yoW8Ary8pF
-	4Ut3sxArn7ta15Aw12kw45Zay5Zan3AF47C397J342kr9akw1UJF90yFyYqayUJrs7GrW3
-	CF4ktF95AF98Ar7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+X-CM-TRANSID:qwCowAAn+ezG4H1qJHR5BQ--.54510S2
+X-Coremail-Antispam: 1UD129KBjvJXoWxJry7ur47GF45GF1DWw1ftFb_yoW8WF1rpr
+	Z7K3W3K3ykWF4ayw4qyr40vFy5AasYvFy7GFW8W343uwnxu3WqyF1DCFyrtF1jyFnaga15
+	AFZ2ya95uFWDZaUanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
 	9KBjDU0xBIdaVrnRJUUU9Y14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
 	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
 	1l84ACjcxK6xIIjxv20xvE14v26r4j6ryUM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26F4j
@@ -64,53 +64,44 @@ X-Coremail-Antispam: 1UD129KBjvJXoW7tryrZF1Dtry8tr1DJF13Jwb_yoW8Ary8pF
 	nIWIevJa73UjIFyTuYvjfUoq2MUUUUU
 X-CM-SenderInfo: pshqw1xhqjqxpvfd2hldfou0/
 
-A control region with no block windows may legally stop before the
-window-size fields, so sizeof_dcr() first reads the windows count from
-the shortened fixed portion. When the count is nonzero, however, the
-helper returns sizeof(*dcr) without checking that the advertised
-subtable contains the remaining fields.
+The platform capability subtable parser reads highest_capability and
+capabilities without first requiring the fixed structure to be present.
+It also shifts a signed integer by highest_capability + 1. Firmware can
+therefore trigger an out-of-bounds read with a short subtable and an
+undefined shift with a value at or above 31.
 
-add_dcr() then copies that full size. A malformed subtable that ends
-immediately after a nonzero windows count can therefore make the copy
-read beyond the control region.
+Require the fixed structure before reading either field. For capability
+indices that cover all bits representable by the current u32 field, use
+U32_MAX. This ignores capabilities beyond the implemented 32-bit field
+rather than rejecting future firmware that advertises a higher index.
 
-Compute the required size from the windows count and require that size
-to fit in the advertised subtable before returning it.
-
-Fixes: b94d5230d06e ("libnvdimm, nfit: initial libnvdimm infrastructure and NFIT support")
+Fixes: 06e8ccdab15f ("acpi: nfit: Add support for detect platform CPU cache flush on power loss")
 Assisted-by: Codex:gpt-5
 Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
 ---
- drivers/acpi/nfit/core.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ drivers/acpi/nfit/core.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index bf4ddc56494e..84c70f1941c5 100644
+index 84c70f1941c5..7638d4dc8c6d 100644
 --- a/drivers/acpi/nfit/core.c
 +++ b/drivers/acpi/nfit/core.c
-@@ -817,12 +817,20 @@ EXPORT_SYMBOL_GPL(nfit_get_smbios_id);
-  */
- static size_t sizeof_dcr(struct acpi_nfit_control_region *dcr)
- {
-+	size_t size;
-+
- 	if (dcr->header.length < offsetof(struct acpi_nfit_control_region,
- 				window_size))
- 		return 0;
- 	if (dcr->windows)
--		return sizeof(*dcr);
--	return offsetof(struct acpi_nfit_control_region, window_size);
-+		size = sizeof(*dcr);
-+	else
-+		size = offsetof(struct acpi_nfit_control_region, window_size);
-+
-+	if (size > dcr->header.length)
-+		return 0;
-+
-+	return size;
- }
+@@ -987,7 +987,14 @@ static bool add_platform_cap(struct acpi_nfit_desc *acpi_desc,
+ 	struct device *dev = acpi_desc->dev;
+ 	u32 mask;
  
- static bool add_dcr(struct acpi_nfit_desc *acpi_desc,
+-	mask = (1 << (pcap->highest_capability + 1)) - 1;
++	if (pcap->header.length < sizeof(*pcap))
++		return false;
++
++	if (pcap->highest_capability >= 31)
++		mask = U32_MAX;
++	else
++		mask = (1U << (pcap->highest_capability + 1)) - 1;
++
+ 	acpi_desc->platform_cap = pcap->capabilities & mask;
+ 	dev_dbg(dev, "cap: %#x\n", acpi_desc->platform_cap);
+ 	return true;
 -- 
 2.50.1 (Apple Git-155)
 
