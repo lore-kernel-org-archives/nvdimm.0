@@ -1,21 +1,22 @@
 Received: from cstnet.cn (smtp21.cstnet.cn [159.226.251.21])
 	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AB99484236
-	for <nvdimm@lists.linux.dev>; Thu, 13 Aug 2026 15:09:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0B975FDA7
+	for <nvdimm@lists.linux.dev>; Thu, 13 Aug 2026 15:11:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786633795; cv=none; b=qFTbs/Xv5wAFhoPkc468PuFP8ng9Z7dsGBkj2jDWfgIFtxp+ravZ1lwkOeShcXJsD7ionF//mFpUmoWDzlgUI3vlJZfFMgwt5IYdm3qwmiXzef2KaSAbidyjBZgh9iSWdLYiZEcpjSXYCyaaC2jCHas/fjjPh0nX9UQ0XR8jkZQ=
+	t=1786633875; cv=none; b=NJkRTo0wDblr4d1wm1ukbKurL4I/Q1U0ie3Fg2YDqgxNK/Iuzpw87CDr9K8xF6zfP4YcrehKuOvdh+SKeo2aeFxHncPdhMz8z5ewy9CEJkSF7l7s2JX45RjqeN/jj3k9udIvuYDyMHOeT5Fl+ToaG4zcIxXzHT6GsaBTZ6VA0NQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786633795; c=relaxed/simple;
-	bh=4fTqmbW/Ir1kfvekNBcHHdO6gaMAAD/9ejt8y9ZjxnA=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=HsDXc+gBbd6MnbaUZRIFNbn4JRDDmIctoGZ2uhVYB0G4CEzfB330HWOixHYji7LMxf+YIG5kBbF6jN3OG5k3YvbI9DBEQWiH6hzhBVUT0zSFejsTf1VzMvM9sBL2sw3OoX9gxHexoRVLR7OJ7gJlxVBj9Q+PpP/RoZXWu1QmJfE=
+	s=arc-20240116; t=1786633875; c=relaxed/simple;
+	bh=EOHknXKR03tLn6shY7J3WMfMv6mpknYWTz0pPDrdGl8=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=QIRy12qHd5kc/RRJ8qlzdwyoBXTOqaESfj/Otf8F56FJWM52TDVdFbXDbj35gNHksmfrQWNlyylrQhMqiLd/BdS1oIcJq6iYBgJrIo1JarhBajGjvCt7XfyRQkCJO60r65Vaia8Bt+LDtYdK1zxpOs+IOXSXnkhozPj8Lga/4wg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.21
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
 Received: from localhost.localdomain (unknown [111.196.241.250])
-	by APP-01 (Coremail) with SMTP id qwCowAAn+u093n1qWAt5BQ--.55707S2;
-	Thu, 13 Aug 2026 23:09:50 +0800 (CST)
+	by APP-01 (Coremail) with SMTP id qwCowADnu++P3n1qNB55BQ--.55902S2;
+	Thu, 13 Aug 2026 23:11:11 +0800 (CST)
 From: Pengpeng Hou <pengpeng@iscas.ac.cn>
 To: Dan Williams <djbw@kernel.org>
 Cc: Vishal Verma <vishal.l.verma@intel.com>,
@@ -30,10 +31,12 @@ Cc: Vishal Verma <vishal.l.verma@intel.com>,
 	linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Pengpeng Hou <pengpeng@iscas.ac.cn>
-Subject: [PATCH v2 0/5] ACPI: NFIT: harden subtable extent validation
-Date: Thu, 13 Aug 2026 23:09:48 +0800
-Message-ID: <20260813150948.17239-1-pengpeng@iscas.ac.cn>
+Subject: [PATCH v2 1/5] ACPI: NFIT: validate subtable extents before dispatch
+Date: Thu, 13 Aug 2026 23:11:11 +0800
+Message-ID: <20260813151111.18434-1-pengpeng@iscas.ac.cn>
 X-Mailer: git-send-email 2.50.1
+In-Reply-To: <20260813150948.17239-1-pengpeng@iscas.ac.cn>
+References: <20260813150948.17239-1-pengpeng@iscas.ac.cn>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -42,61 +45,72 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:qwCowAAn+u093n1qWAt5BQ--.55707S2
-X-Coremail-Antispam: 1UD129KBjvJXoW7Ary3tryUtF1rtFy8Gw48Zwb_yoW8AFy8pF
-	WrG343GF4kJF47A343Aa10qa45u395JFZxWasxG348Z3Wa9w18GFyIkFyjqFy7WryfG3Wa
-	9F4jvr97CFWDZ37anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+X-CM-TRANSID:qwCowADnu++P3n1qNB55BQ--.55902S2
+X-Coremail-Antispam: 1UD129KBjvJXoW7tw1rAFW7Gr15Zr1kKFyDZFb_yoW8AF47p3
+	WUKa4ayrs8GFsFvw17Aa1FvFy5tws5AFy7K348A34q9w15G3W8JFy8KFy2qas5Jrs5CF4a
+	vF4ktFy5AF4kZr7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
 	9KBjDU0xBIdaVrnRJUUU9j14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
 	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
-	1l84ACjcxK6xIIjxv20xvE14v26r1I6r4UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
+	1l84ACjcxK6xIIjxv20xvE14v26r4j6ryUM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
 	6F4UM28EF7xvwVC2z280aVAFwI0_GcCE3s1l84ACjcxK6I8E87Iv6xkF7I0E14v26rxl6s
 	0DM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj6xII
-	jxv20xvE14v26r1Y6r17McIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x0Yz7v_Jr0_Gr
+	jxv20xvE14v26r126r1DMcIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x0Yz7v_Jr0_Gr
 	1lF7xvr2IYc2Ij64vIr41lF7I21c0EjII2zVCS5cI20VAGYxC7M4IIrI8v6xkF7I0E8cxa
 	n2IY04v7MxkF7I0En4kS14v26r1q6r43MxAIw28IcxkI7VAKI48JMxC20s026xCaFVCjc4
 	AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE
 	17CEb7AF67AKxVWUtVW8ZwCIc40Y0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r1j6r1xMI
 	IF0xvE2Ix0cI8IcVCY1x0267AKxVW8JVWxJwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4l
 	IxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280aVCY1x0267AKxVW8JVW8JrUvcSsGvf
-	C2KfnxnUUI43ZEXa7VUb_Ma5UUUUU==
+	C2KfnxnUUI43ZEXa7VUbtxhJUUUUU==
 X-CM-SenderInfo: pshqw1xhqjqxpvfd2hldfou0/
 
-NFIT parsing has several independent extent contracts: the outer table
-must contain each advertised subtable, and variable or versioned records
-must fit inside that subtable.  The original patch mixed those contracts
-and also derived the SPA structure length from the location-cookie-valid
-flag.
+add_table() checks only that the subtable cursor is before the end of
+the NFIT before reading the two-field subtable header. A cursor with
+fewer than sizeof(struct acpi_nfit_header) bytes remaining therefore
+makes the header read cross the mapped table.
 
-Split the checks by record type.  Patch 1 validates the generic subtable
-header and outer extent.  Patch 2 accepts both defined SPA layouts while
-treating the cookie flag as a validity bit, not a size selector.  Patches
-3 and 4 validate the variable arrays and the control-region extent.
-Patch 5 bounds the 32-bit capability mask without rejecting future
-firmware that advertises a higher capability index.
+The function also advances by the firmware-provided length without
+checking that the advertised subtable fits in the enclosing NFIT. A
+malformed length can move the parser beyond the table and make the next
+iteration read unrelated memory.
 
-Changes since v1:
-https://lore.kernel.org/all/20260722041701.21078-1-pengpeng@iscas.ac.cn/
-- split the generic and type-specific contracts into separate patches
-- handle both 56-byte and 64-byte SPA structures
-- add the control-region extent check identified during review
-- clamp the implemented capability mask instead of rejecting future bits
-- describe the exact fields protected by each check
+Require a complete header and bind the advertised length to both the
+header size and the bytes remaining in the NFIT before dispatching the
+subtable.
 
-The series was reviewed statically against the current tree. I did not
-run an NFIT firmware fault-injection test.
+Fixes: b94d5230d06e ("libnvdimm, nfit: initial libnvdimm infrastructure and NFIT support")
+Assisted-by: Codex:gpt-5
+Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
+---
+ drivers/acpi/nfit/core.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-Pengpeng Hou (5):
-  ACPI: NFIT: validate subtable extents before dispatch
-  ACPI: NFIT: accept SPA structures with an unused location cookie
-  ACPI: NFIT: validate interleave and flush array extents
-  ACPI: NFIT: validate control region extent
-  ACPI: NFIT: bound the platform capability mask
-
- drivers/acpi/nfit/core.c | 77 ++++++++++++++++++++++++++++++++--------
- 1 file changed, 62 insertions(+), 15 deletions(-)
-
-base-commit: f5bbbfec59b4e2fb7520a91de3df8a6174325d6a
-
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index cb771d9cadb2..4428adb6a1ab 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -963,14 +963,18 @@ static void *add_table(struct acpi_nfit_desc *acpi_desc,
+ 	struct device *dev = acpi_desc->dev;
+ 	struct acpi_nfit_header *hdr;
+ 	void *err = ERR_PTR(-ENOMEM);
++	size_t table_len;
+ 
+ 	if (table >= end)
+ 		return NULL;
++	table_len = end - table;
++	if (table_len < sizeof(*hdr))
++		return NULL;
+ 
+ 	hdr = table;
+-	if (!hdr->length) {
+-		dev_warn(dev, "found a zero length table '%d' parsing nfit\n",
+-			hdr->type);
++	if (hdr->length < sizeof(*hdr) || hdr->length > table_len) {
++		dev_warn(dev, "invalid table length %u for type %u parsing nfit\n",
++			 hdr->length, hdr->type);
+ 		return NULL;
+ 	}
+ 
 -- 
 2.50.1 (Apple Git-155)
 
