@@ -1,182 +1,163 @@
-Received: from invmail4.hynix.com (exvmail4.skhynix.com [166.125.252.92])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id AE6451AAE17
-	for <nvdimm@lists.linux.dev>; Thu, 13 Aug 2026 06:24:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=166.125.252.92
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786602246; cv=none; b=TBet4bDHj3DZ8jUYSi04E9MKolzRpf0jUAeWZTmqLUccYCcvgu8x/7vdBT5Ur3RHqDMateMnsgfcQGyIuK2kVcmzQObvgis7VA8crx1DQO8B2DDs55SOnIwZdDot4MPy52YYK1bvh6C7bvNmK7PkFsRqL6t3mtc7xOtSBx9uJ0E=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786602246; c=relaxed/simple;
-	bh=p9vlB+ACUZNAVmnFgplEx9kechMV0utghaut9CeHgiA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Q07cMdlWV9QMezEFrjhPKGYBAv2mC4sIjE8mV17cdga1AJCuHy443VCvTQxEhHiLkSS0g4siDmMSSVPGecMG/Yu2VoCUPpyoaDcQmeHP1VTRA5YZxyqwgQ1AlEJuMmFDtX8xtr1LH3HKZ/vu+kF+D/kyDvmjwhGesXUlYFULEOg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sk.com; spf=pass smtp.mailfrom=sk.com; arc=none smtp.client-ip=166.125.252.92
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sk.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sk.com
-X-AuditID: a67dfc5b-c2dff70000001609-ad-6a7d62f9452f
-From: Rakie Kim <rakie.kim@sk.com>
-To: Gregory Price <gourry@gourry.net>
-Cc: akpm@linux-foundation.org,
-	linux-mm@kvack.org,
-	linux-kernel@vger.kernel.org,
-	linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev,
-	ziy@nvidia.com,
-	matthew.brost@intel.com,
-	joshua.hahnjy@gmail.com,
-	byungchul@sk.com,
-	ying.huang@linux.alibaba.com,
-	apopple@nvidia.com,
-	david@kernel.org,
-	ljs@kernel.org,
-	liam@infradead.org,
-	vbabka@kernel.org,
-	rppt@kernel.org,
-	surenb@google.com,
-	mhocko@suse.com,
-	dave@stgolabs.net,
-	jic23@kernel.org,
-	dave.jiang@intel.com,
-	alison.schofield@intel.com,
-	vishal.l.verma@intel.com,
-	ira.weiny@intel.com,
-	harry@kernel.org,
-	kernel_team@skhynix.com,
-	honggyu.kim@sk.com,
-	yunjeong.mun@sk.com,
-	Rakie Kim <rakie.kim@sk.com>
-Subject: Re: [PATCH 0/4] mm/mempolicy: introduce package-aware weighted interleave
-Date: Thu, 13 Aug 2026 15:23:48 +0900
-Message-ID: <20260813062351.1856-1-rakie.kim@sk.com>
-X-Mailer: git-send-email 2.52.0.windows.1
-In-Reply-To: <an0t0mP9JB8f4ILK@fedora>
-References: 
+Received: from mail-pg1-f170.google.com (mail-pg1-f170.google.com [209.85.215.170])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C40B54432FF
+	for <nvdimm@lists.linux.dev>; Thu, 13 Aug 2026 08:55:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.215.170
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786611327; cv=pass; b=TNpQgnZvRk4+7ymYvn2RZmD+uRRcT4yKli1/LE9m6xCTa1XVswy8DvOH6H0hkUR/W0KcqdhfTstVB/EP2h+2iAlMbnuuth1pFEfZ3QDIOuSwkY63NXAu/xB1AYYe/X7mfSn0nnvJNrnGxj9MH1QYvYuaekUBikRXPFzYb3awhRU=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786611327; c=relaxed/simple;
+	bh=Jzc8k1yrWfBTMmPd/uTV9o0ew6ZOvHlbY2BVlHKCDmQ=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=BgFGSQQepINFJld7384NJQ76jMHPBgu/97Az13bme7w5wTReIPc80ofwrv26Hxt1+zYuA3DJSszJpIClUZfkNmK5jlSBvaqrQNrHlK0p9kwZCxNRuH2pojd2aeGoDkJMMT5Ulc23aD9R3RhXogQbbcwAoX3M7vnD2rMv4uhesps=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=F+5UcjpV; arc=pass smtp.client-ip=209.85.215.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="F+5UcjpV"
+Received: by mail-pg1-f170.google.com with SMTP id 41be03b00d2f7-c9b373d5af0so424200a12.2
+        for <nvdimm@lists.linux.dev>; Thu, 13 Aug 2026 01:55:25 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1786611325; cv=none;
+        d=google.com; s=arc-20260327;
+        b=oCSnK4YwdPXtMV9ryZLuk1KP5o84Adg7s4X+SBVBPmV0l6qrROJTHuR57rXMijFVsn
+         +y/aBuxXazh9k0OEiDRFKlH+5D6jbtitd+hmcZehsX9tLihKdfrELX1NcxVHgVYey57W
+         EhG/ir7q0F4zfKhX0kMk3TvqdyislmoR9E7j2EaZfh3HQLSxjlEVLMZdIuyC6N/TPnCR
+         BQW9GDnr8ZvWQoH6pWRgEoBdUDZwTST2Uv4T3eaVplthA4StYtr4GH+7xiAQSDmE+Ozi
+         1ymVjeivCOEogXBHeO1Z02n985BGVmZ4IlAbsYHsXk4GYBMAgf2+pbjPeS6crYaIXxqU
+         jxkA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=iQkBGHUJCah+5IraL6W1VGnCKmw1qeB0IxjLs3arhcU=;
+        fh=JSSsvZv32692Nla4lZQCmrvxpncgby2gtRU8W3z3DHE=;
+        b=PNcJZPj/Bwp2TxD9fUgxvbm3+RYLsrg+mXs6YiGSG9HkQLFOu28UX+w3zWqtKO8cTB
+         rzu7bX6S0oX8OW0IneLY6BoKCnQS76YiWSTR9ROrXYPG+O84OsnTQJw86PNxGVyAySHO
+         bQfDRCdxYGfQLynQJ4HE5xUtZCmde6NZ5TJ8Da3uQUaP2kexnkJL5EvwEwqJvb6pT6EY
+         2i6W4Y+0EiLcq6EJhEwgRFcoMdxP6lBNkMbeTsK6kWYWouAvyN+s07vQtRy68kA1hHzz
+         elN7lEAR5EFL7ho0MvWt5fEMeE3JFmUA+Q1RydsjGpHxN8N8mDCF7CxfxXShwlLuVWoW
+         z3Zw==;
+        darn=lists.linux.dev
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1786611325; x=1787216125; darn=lists.linux.dev;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=iQkBGHUJCah+5IraL6W1VGnCKmw1qeB0IxjLs3arhcU=;
+        b=F+5UcjpVBRplijmxQSvRBTO82+o5SwKCfhOA3TjPyujTw2xWiWZnZ8zLpKMJuA4NZ5
+         EkmffUQYA+Wc8in6nba6ZRH4CTpBkWJq/HUrDR/BNQKsLQQzqmlle4csYzfvjP9dax1K
+         48l9z52J2KplaIJ+lYs7mu9YxAkQG44Ic7KAbSv4SaaPHX2hHGJlG47XSdk1tKg1nTzm
+         AbDcJ6ZABdCm1bxsyQOK/w7c8ceO3xSHCe/SgmkjFEQuSveLV5mPT5I41bxbL9sSru6c
+         enDqYvmfrLegpM5eTAhIuPBHP/ZwLQP2a4S0Nbb3HwAfsz56+Y2HSg0/dl/WO2lzOh/x
+         9e3Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1786611325; x=1787216125;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=iQkBGHUJCah+5IraL6W1VGnCKmw1qeB0IxjLs3arhcU=;
+        b=VE0CdbsIKljNgOUUad+OBU94E5HnNhpDxYgbmNOR+ueaJW4RkJOtorsNYP5Bz+pV2P
+         X/A026xLu1qjAV4lVxHgC5xS5qQwkulMjietGUbpCO/crPPV/Wfu0A8ELlZ8ayco+3aK
+         k4WAXsJCAq9Ku4Njq7jQbT8Lzegen4KUxRGAt1rUMRINa7RAKr4ZTkQKwB/EJ18Lb1NM
+         RWYEusPUfcBrm5WCk7fV5N+hw08u2ByjbGD91/xHT/KSp6UMDBnzXEoJwT8+3wu4xTVW
+         kuoXP3RKi0JYtp4woA60vuiAZs5DsRCcdJsp1I2Y/BFJ0v77kiyN+6RQfoGmtZIFKaL1
+         hV5g==
+X-Forwarded-Encrypted: i=1; AHgh+Ro11NAhwa3vjZMVcyXHTXVjA3z2O6pRS8ehJlylw8Y/6Z2egGAiFqJaNv976GXwlT1v05oUss4=@lists.linux.dev
+X-Gm-Message-State: AOJu0YwR9ffvQ9jGDj5R/DGgSPmkb3B7EKHkURV0k4B7PpXRi6fUhOcP
+	m+Z4NYhStemgwsX6YXjUDrXmu0ktcR9OgnIehOJANS0Rs+Jbq1Si8k8fUp3bqh3CbITrJU/BEK4
+	SlsVb69rQgSO15vsJQASn0q8rzmb1nwE=
+X-Gm-Gg: AR+sD10bA0kddz+a/O+oifbMNzAvsD6R41/J1WGsXA/QBsv+vsh2eixeXx1Df5v7L9g
+	8YQQsTT1cBQJnm71HPwpV1+9qos01KTG+IZ86MNpT6KQ4DwNRZZaa95DYMcUvxA+i4Sdpb8y5xB
+	kO1WRJnohntImpmqWY48yxAOu6xi+wuagkJdZrAJuvtqq90JI170rey+0xltzc4QmchgxhdPRv5
+	hmViTtSzyAt33E5o3siiZsfYDTM2AXxqojrf+nWuv1u6gRauT4uGiyYZqKV4OhrVyN8e5KSr3RV
+	CwMgFzzSEPIHe9NxtZczmYfhekSXKIlDvFKR+dkcntfUmFc=
+X-Received: by 2002:a05:6a21:150b:b0:3bf:8604:9a3c with SMTP id
+ adf61e73a8af0-3cc553f513emr5787899637.28.1786611324791; Thu, 13 Aug 2026
+ 01:55:24 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrFIsWRmVeSWpSXmKPExsXC9ZZnoe6vpNosg3n9bBZz1q9hs7j7+AKb
-	xa4bIRYnbjayWay+uYbR4vnWX4wWP+8eZ7e4fmslo8X+p89ZLB40rWKyOL51HrvFulOH2CzO
-	zzrFYnF51xw2i3tr/rNavHnsZvGtT9rifp+Dxcoff1gtjqzfzmQx+dICNouOl/dZLG5NOMZk
-	sXpNhsXso/fYHSQ9ds66y+6xYFOpR3fbZXaPzSu0PBbvecnksWlVJ5vHpk+T2D1OzPjN4rHz
-	oaXHi80zGT16m9+xeUydXe+xfstVFo/Pm+QC+KK4bFJSczLLUov07RK4Mg5ezC+4IV/R9PkB
-	SwPjE4kuRg4OCQETif5LJl2MnGDm+oa7rCBhNgEliWN7Y0BMEQFVibYr7iAVzALbWCVuXdQE
-	sYUFgiS6pj9nBLFZgErWPp3LBGLzAk3ZsKmJDWKipsS6jbdYQGxOATWJrn8QNUICPBKvNuxn
-	hKgXlDg58wkLxHx5ieats5m7GLmAej+yS5xYcYQJYpCkxMEVN1gmMPLPQtIzC0nPAkamVYxC
-	mXlluYmZOSZ6GZV5mRV6yfm5mxiBMbqs9k/0DsZPF4IPMQpwMCrx8GY012QJsSaWFVfmHmKU
-	4GBWEuGtXlWVJcSbklhZlVqUH19UmpNafIhRmoNFSZzX6Ft5ipBAemJJanZqakFqEUyWiYNT
-	qoHRKHdT8Zr9rAVME2yOhHoHX1/Zwb542v6LL+4WvFpnwxHUtI+h8+AJWaN0/f8aYisCM4LP
-	e36OrLmRb3rqFfPuvxH/N+s8+m4mnKz4RX3z/Nh1K+z3lC+eWOCf57F3QVW+2clF2+Z92Hfx
-	nqG09JV7T1T2TVz1s+T4xp0GeY6fyjY03Km4Lfy5QomlOCPRUIu5qDgRAOp90W3NAgAA
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrFIsWRmVeSWpSXmKPExsXCNUM9RvdnUm2WwcH1BhZz1q9hs7j7+AKb
-	xa4bIRbnpsxmszhxs5HNYvXNNYwWz7f+YrT4efc4u8X1WysZLT4/e81ssf/pcxaLB02rmCyO
-	b53HbnF47klWi3WnDrFZnJ91isXi8q45bBb31vxntXjz2M3iW5+0xf0+B4uVP/6wWhy69pzV
-	4sj67UwWky8tYLPoeHmfxeLWhGNMFqvXZFj83raCzWL20XvsDnIeO2fdZfdYsKnUo7vtMrvH
-	5hVaHov3vGTy2LSqk81j06dJ7B4nZvxm8dj50NLjxeaZjB69ze/YPL7d9vBY/OIDk8fU2fUe
-	67dcZfH4vEkuQCCKyyYlNSezLLVI3y6BK+PgxfyCG/IVTZ8fsDQwPpHoYuTkkBAwkVjfcJe1
-	i5GDg01ASeLY3hgQU0RAVaLtijtIBbPANlaJWxc1QWxhgSCJrunPGUFsFqCStU/nMoHYvEBT
-	NmxqYoOYqCmxbuMtFhCbU0BNousfRI2QAI/Eqw37GSHqBSVOznzCAjFfXqJ562zmCYw8s5Ck
-	ZiFJLWBkWsUokplXlpuYmWOqV5ydUZmXWaGXnJ+7iREYo8tq/0zcwfjlsvshRgEORiUe3ozm
-	miwh1sSy4srcQ4wSHMxKIrzVq6qyhHhTEiurUovy44tKc1KLDzFKc7AoifN6hacmCAmkJ5ak
-	ZqemFqQWwWSZODilGhinT3rebX9+cXDdo8Nu/jMcpDMlz39/clMud6LFTZ2N/fu21W1W3hvh
-	n7aqwfOtZ3HWrxP/t05M3CjyTsHmkKmtkWqWqlML04RVb22rLk4NF970+Y3m1K7VTXdNrmlf
-	XrDkvY+L8wHzNXy/H8h0RN5J7Pvxxm1PiMO530f5zBdbrr3ZaKvLX52jxFKckWioxVxUnAgA
-	4pG6rs0CAAA=
-X-CFilter-Loop: Reflected
+References: <20260720193431.3841992-1-gourry@gourry.net> <CAM9Jb+jpJ-Ui4qDHxsp2WiERiv8gmrQfKQ8Z0BmabefeQ6pg4A@mail.gmail.com>
+ <an0cAMh_m8ZhGIm2@fedora>
+In-Reply-To: <an0cAMh_m8ZhGIm2@fedora>
+From: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Date: Thu, 13 Aug 2026 10:55:13 +0200
+X-Gm-Features: AUfX_mx5aRT_GeBsew982Oll4m1v2zeTSERp4DtDb2YI-VK1slYjLWUFWPkF2ZE
+Message-ID: <CAM9Jb+jmxPdL-CdWQHYMT5G=qmjB6z2WFg+4K8Fod5n=2N6YCQ@mail.gmail.com>
+Subject: Re: [PATCH v5 00/36] Private Memory NUMA Nodes
+To: Gregory Price <gourry@gourry.net>
+Cc: linux-mm@kvack.org, Zhigang.Luo@amd.com, arun.george@samsung.com, 
+	balbirs@nvidia.com, brendan.jackman@linux.dev, yuzenghui@huawei.com, 
+	apopple@nvidia.com, alucerop@amd.com, matthew.brost@intel.com, 
+	akpm@linux-foundation.org, david@kernel.org, ljs@kernel.org, 
+	liam@infradead.org, vbabka@kernel.org, rppt@kernel.org, surenb@google.com, 
+	mhocko@suse.com, corbet@lwn.net, skhan@linuxfoundation.org, 
+	gregkh@linuxfoundation.org, rafael@kernel.org, dakr@kernel.org, 
+	djbw@kernel.org, "Gupta, Pankaj" <pankaj.gupta@amd.com>, vishal.l.verma@intel.com, 
+	dave.jiang@intel.com, alison.schofield@intel.com, osandov@osandov.com, 
+	jannh@google.com, pfalcato@suse.de, jackmanb@google.com, hannes@cmpxchg.org, 
+	ziy@nvidia.com, pbonzini@redhat.com, osalvador@suse.de, 
+	joshua.hahnjy@gmail.com, rakie.kim@sk.com, byungchul@sk.com, 
+	ying.huang@linux.alibaba.com, kasong@tencent.com, qi.zheng@linux.dev, 
+	shakeel.butt@linux.dev, baohua@kernel.org, axelrasmussen@google.com, 
+	yuanchu@google.com, weixugc@google.com, yury.norov@gmail.com, 
+	linux@rasmusvillemoes.dk, longman@redhat.com, ridong.chen@linux.dev, 
+	tj@kernel.org, mkoutny@suse.com, sj@kernel.org, jgg@ziepe.ca, 
+	jhubbard@nvidia.com, peterx@redhat.com, baolin.wang@linux.alibaba.com, 
+	npache@redhat.com, ryan.roberts@arm.com, dev.jain@arm.com, 
+	lance.yang@linux.dev, usama.arif@linux.dev, xu.xin16@zte.com.cn, 
+	chengming.zhou@linux.dev, roman.gushchin@linux.dev, muchun.song@linux.dev, 
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, 
+	driver-core@lists.linux.dev, nvdimm@lists.linux.dev, 
+	linux-cxl@vger.kernel.org, linux-debuggers@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, kvm@vger.kernel.org, cgroups@vger.kernel.org, 
+	damon@lists.linux.dev, linux-kselftest@vger.kernel.org, kernel-team@meta.com
+Content-Type: text/plain; charset="UTF-8"
 
-On Wed, 12 Aug 2026 22:37:06 -0400 Gregory Price <gourry@gourry.net> wrote:
-> On Thu, Aug 06, 2026 at 05:09:31PM +0900, Rakie Kim wrote:
-> > Package-aware weighted interleave places a task's weighted-interleave
-> > pages on the NUMA nodes of its local package, so that interleave traffic
-> > does not have to cross the interconnect to another package. This keeps
-> > each node's weight aligned with the bandwidth the task actually gets
-> > from it, so effective bandwidth holds up on a system that has more than
-> > one package. (A package is a CPU socket together with the memory
-> > attached to it.)
+> > > Bonus Configuration: HBM device memory tiering
+> > > ==============================================
+> > > echo 1 > dax0.0/private       # make the node private
+> > > echo 0 > dax0.0/adistance     # highest tier
+> > > echo 1 > dax0.0/reclaim       # reclaim active
+> > > echo 1 > dax0.0/demotion      # may demote from the node
+> > > echo 1 > dax0.0/user_numa     # mbind()
+> > > echo online_movable > dax0.0/state
+> > > echo 1 > numa/demotion_enabled
+> >
+> > I am bit confused by the HBM device example being discovered as a DAX
+> > device. Is it to
+> > only to showcase the use-case? Or we see HBM device is actually
+> > expected to be discovered as
+> > DAX device with N_MEMORY_PRIVATE?
 > >
 >
-> The only major question I have before I dig into the actual patches is
-> whether you actually need this on a *per-task* basis, rather than simply
-> a *per-process* basis - because that's all this really buys you.
+> "actually expected to be" -> no.  there's no requirement HBM be
+> discovered and boudn to DAX, DAX is simply a convenient intermediary
+> to memory-hotplug.  This is at best a demonstration.
 >
-> You can already do what is described here by simply using a combination
-> of cpuset and mempolicy
+> A device driver could very well just call memory-hotplug directly,
+> or its memory could be brought up as a private node via a boot
+> paremeter (which I have sculpted for v7).  The former is preferred,
+> but there's a bit of a chicken/egg scenario for bootstrapping.
+
+I find this interesting as this appears to be evolving towards a vendor
+agnostic framework for hotplugging memory directly to private nodes.
+
+How you see this working? In particular, How would the kernel know which
+memory ranges correspond to HBM or other device memory?
+
+Please also CC me when you post v7: pankaj.gupta@amd.com
+
+Thanks,
+Pankaj
 >
-> cpuset.mems = 0,2
-> mempolicy = weighted interleave --all
->
-> If this is actually required on a per-task basis, then I agree this
-> concept is reasonable.  I just want to make we're grounded on a real
-> use case before we go adding this complexity.
+> Most of these UAPI extensions are going to be consolidated into a
+> debugfs interface for testing purposes only in v7.  I've been working
+> on aggressive Linux Test Project test expansion to ensure there is no
+> UAPI regressions.
 >
 > ~Gregory
-
-Hello Gregory,
-
-Thank you for reviewing this series. My description was not precise
-enough, and it seems to have confused several people. Let me go over
-the example again.
-
-I labelled the rows "from CPU 0" and "from CPU 1", which reads as two
-separate tasks, each pinned to one place. What the rows were meant to
-show is which package the allocation is requested from:
-
-                  node0  node1  node2  node3
-from package 0:     2      0      1      0
-from package 1:     0      2      0      1
-
-Both rows come from one policy at the same time. Which row applies is
-decided per allocation, by the package the requesting CPU is in.
-
-The cpuset.mems = 0,2 you describe is the node set of package 0, so
-the tasks in that cgroup use node0 and node2 wherever they run.
-
-The feature I am proposing does not fix a package that way. It uses
-the nodes of the package the request comes from.
-
-To build the feature I am proposing with cpuset, I think you would
-need a cgroup per package and would have to place each thread in the
-one matching the package its CPU is in.
-
-cpuset.mems does not follow the CPU, so unless cpuset.cpus is set
-alongside it, a thread running on a CPU of package 1 would use node0
-and node2. For a program with tens or hundreds of threads, keeping
-that placement right does not look easy.
-
-To put it plainly, what this series aims for is that when a process
-with many threads runs across several packages, each thread's
-allocations are weighted-interleaved within the nodes of the package
-that thread is on.
-
-There is one process and one policy, but the nodes actually used
-differ with where each thread sits. That is why I think this has to be
-per task rather than per process.
-
-The workloads I had in mind are memory-intensive server workloads:
-vector databases as used in AI applications, or in-memory key-value
-caching services that sit in front of large services and keep their
-data in memory.
-
-They run with a great many threads, spread across several packages and
-running at the same time, and they want as much memory bandwidth as
-they can get.
-
-That is also why the numbers were measured with MLC. It produces high
-bandwidth from many threads, much like those workloads, while still
-giving a quantitative result.
-
-The runs used "numactl -w all mlc" with no CPU binding, so the threads
-were spread over both packages, and in that configuration the
-bandwidth was higher than with the existing weighted interleave.
-
-That is the reasoning behind my thinking that this belongs at the task
-level. In the next version I will strengthen the documentation,
-including why this feature is needed.
-
-Thank you for taking the time to review this and for the question. It
-made it much clearer to me what the cover letter still needs to
-explain.
-
-Rakie Kim
