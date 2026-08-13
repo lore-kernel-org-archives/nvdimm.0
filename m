@@ -1,107 +1,126 @@
-Received: from cstnet.cn (smtp21.cstnet.cn [159.226.251.21])
-	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F1B248167A
-	for <nvdimm@lists.linux.dev>; Thu, 13 Aug 2026 15:20:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69F9A48550D
+	for <nvdimm@lists.linux.dev>; Thu, 13 Aug 2026 15:33:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786634442; cv=none; b=B1liPjBDC63L73cZiy0crQfMVIEML7V0pZFTQamBJZXWU1eXGDynXTf4RCC6XEXzLEinjA/mUWAPHEUvCJqyLEyJlR5mCZGO1/ycozuflL+LkdPDl75OFKg2W01jc/CPtnov9M4NC/RhIoy0vVUQni8Ck43voqU3bSlB4y22Nj4=
+	t=1786635203; cv=none; b=rNzymj9CbGlYAykB0nSFOqHbvGZAT5coxU/02MPZUyPEwCT5HWG7r04t8qwxkB5au6ukttOZasE1EESbOmCVJkkKbBfpkvpB+60aT9K9JYOXh6q5om0Rh3ap1PgtMtI3G7tSY85f9cBrKlx6+K0IJdiMSUTuOAmeNk+ZtrAydoc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786634442; c=relaxed/simple;
-	bh=I9t4BQUYK3njp/kCF9ay0weQak0qIG7++Gl7VIfpS1M=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=pSZuYN2o1ztgDMR7B645YFALGR5whKmGqEu8phk3DwFblaIjWymrgME+jbYlch/IQEu1dz6ESvbnLLBo7jE1pjG2BwAfzq5eMX0dmYrFt8yF16n5iYIByBBif+QZXPE5bg9yCPD4GsLYDScgWuakTZLuuVB3DtxRk6Rd8bX9rr8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.21
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
-Received: from localhost.localdomain (unknown [111.196.241.250])
-	by APP-01 (Coremail) with SMTP id qwCowAAn+ezG4H1qJHR5BQ--.54510S2;
-	Thu, 13 Aug 2026 23:20:38 +0800 (CST)
-From: Pengpeng Hou <pengpeng@iscas.ac.cn>
-To: Dan Williams <djbw@kernel.org>
-Cc: Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Ira Weiny <iweiny@kernel.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Jeff Moyer <jmoyer@redhat.com>,
-	Ross Zwisler <zwisler@kernel.org>,
-	nvdimm@lists.linux.dev,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Pengpeng Hou <pengpeng@iscas.ac.cn>
-Subject: [PATCH v2 5/5] ACPI: NFIT: bound the platform capability mask
-Date: Thu, 13 Aug 2026 23:20:37 +0800
-Message-ID: <20260813152037.25828-1-pengpeng@iscas.ac.cn>
-X-Mailer: git-send-email 2.50.1
-In-Reply-To: <20260813150948.17239-1-pengpeng@iscas.ac.cn>
+	s=arc-20240116; t=1786635203; c=relaxed/simple;
+	bh=luKL1VhcogGIwjJM7/W9cpfJB7D9yEipC54Sl/hf9iU=;
+	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
+	 Message-Id; b=ThYj0Ig4DwpfoeAj7Z6GmmyTIvWc+GJ0AXF7D+AdsE23rmWz/9CtMXGRY5ca2xJTX+jSZhEnppDGtyBz3ABv5gbVYpSItLRns7wh+I2aABHkTvXC7fWffhdUebOXXBdP3llH1FMYyqSg+TUpqe9zQUmzJfR1N3OwCnPeN5whs+M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CEMBUb0f; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CEMBUb0f"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D71F51F000E9;
+	Thu, 13 Aug 2026 15:33:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1786635202;
+	bh=WsmhTakhmRQl84qYKh82bo/zIE5dl5JZ/rkETpqctks=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=CEMBUb0f8DntqC3gm3/m6+/t+fJTKWM3MRQs1KzVerM8EUDC7yxz4zh0NOjPA+Ut2
+	 gdw/Szw4469a/IL5XJ1S9LR5AnDC8RM5aw6jWozMg3mE/S7/VlzyaRepxBMSCyrNGT
+	 sHUAcxE+s38MTZOfX3X0aHIRHb2V7EgNRI+ririSo94jPh0mzuCixcVRYOWEiVMjiX
+	 28Iit7IFilDdB1amVtltCij6d40+nx0BWjbbPOjOs5SpukDho26fBL0aCy/SYURGqg
+	 8YUpXI3qcj0IurSmEqWGueA+T9p0ZTdiNLwiVxty+F960/GhfmMmiTfASck/3GA1PN
+	 dKWjE24PjJCCA==
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH v2 5/5] ACPI: NFIT: bound the platform capability mask
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Pengpeng Hou" <pengpeng@iscas.ac.cn>
+Cc: nvdimm@lists.linux.dev
+In-Reply-To: <20260813152037.25828-1-pengpeng@iscas.ac.cn>
 References: <20260813150948.17239-1-pengpeng@iscas.ac.cn>
+ <20260813152037.25828-1-pengpeng@iscas.ac.cn>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Thu, 13 Aug 2026 15:33:21 +0000
+Message-Id: <20260813153321.D71F51F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:qwCowAAn+ezG4H1qJHR5BQ--.54510S2
-X-Coremail-Antispam: 1UD129KBjvJXoWxJry7ur47GF45GF1DWw1ftFb_yoW8WF1rpr
-	Z7K3W3K3ykWF4ayw4qyr40vFy5AasYvFy7GFW8W343uwnxu3WqyF1DCFyrtF1jyFnaga15
-	AFZ2ya95uFWDZaUanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUU9Y14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
-	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
-	1l84ACjcxK6xIIjxv20xvE14v26r4j6ryUM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26F4j
-	6r4UJwA2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x0267AKxVW0oV
-	Cq3wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0
-	I7IYx2IY67AKxVWUAVWUtwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFVCjc4AY6r1j6r
-	4UM4x0Y48IcxkI7VAKI48JM4x0x7Aq67IIx4CEVc8vx2IErcIFxwACI402YVCY1x02628v
-	n2kIc2xKxwCY1x0262kKe7AKxVWUtVW8ZwCF04k20xvY0x0EwIxGrwCFx2IqxVCFs4IE7x
-	kEbVWUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4vE14v26r106r1rMI8E
-	67AF67kF1VAFwI0_Jw0_GFylIxkGc2Ij64vIr41lIxAIcVC0I7IYx2IY67AKxVWUCVW8Jw
-	CI42IY6xIIjxv20xvEc7CjxVAFwI0_Cr0_Gr1UMIIF0xvE42xK8VAvwI8IcIk0rVWUJVWU
-	CwCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6xkF7I0E14v26r4j6r4UJbIYCT
-	nIWIevJa73UjIFyTuYvjfUoq2MUUUUU
-X-CM-SenderInfo: pshqw1xhqjqxpvfd2hldfou0/
+
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+s) to consider:
+
+Pre-existing issues:
+- [High] The `acpi_nfit_init` function fails to restore list elements on er=
+ror paths, leading to memory leaks and complete state corruption for existi=
+ng NVDIMM devices during hot-updates.
+--
+
+--- Patch [5]: [PATCH v2 5/5] ACPI: NFIT: bound the platform capability mas=
+k ---
+commit bbbfd46d3c5bf4ec32e49479ec84620dc0f64973
+Author: Pengpeng Hou <pengpeng@iscas.ac.cn>
+
+ACPI: NFIT: bound the platform capability mask
 
 The platform capability subtable parser reads highest_capability and
 capabilities without first requiring the fixed structure to be present.
-It also shifts a signed integer by highest_capability + 1. Firmware can
-therefore trigger an out-of-bounds read with a short subtable and an
-undefined shift with a value at or above 31.
+This commit adds checks to prevent out-of-bounds reads and undefined shifts.
 
-Require the fixed structure before reading either field. For capability
-indices that cover all bits representable by the current u32 field, use
-U32_MAX. This ignores capabilities beyond the implemented 32-bit field
-rather than rejecting future firmware that advertises a higher index.
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index 84c70f1941c57..7638d4dc8c6da 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -987,7 +987,14 @@ static bool add_platform_cap(struct acpi_nfit_desc *=
+acpi_desc,
+>  	struct device *dev =3D acpi_desc->dev;
+>  	u32 mask;
+> =20
+> -	mask =3D (1 << (pcap->highest_capability + 1)) - 1;
+> +	if (pcap->header.length < sizeof(*pcap))
+> +		return false;
 
-Fixes: 06e8ccdab15f ("acpi: nfit: Add support for detect platform CPU cache flush on power loss")
-Assisted-by: Codex:gpt-5
-Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
----
- drivers/acpi/nfit/core.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+[Severity: High]
+This is a pre-existing issue, but does adding this new early return expose
+a state corruption bug during hot-updates?
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 84c70f1941c5..7638d4dc8c6d 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -987,7 +987,14 @@ static bool add_platform_cap(struct acpi_nfit_desc *acpi_desc,
- 	struct device *dev = acpi_desc->dev;
- 	u32 mask;
- 
--	mask = (1 << (pcap->highest_capability + 1)) - 1;
-+	if (pcap->header.length < sizeof(*pcap))
-+		return false;
-+
-+	if (pcap->highest_capability >= 31)
-+		mask = U32_MAX;
-+	else
-+		mask = (1U << (pcap->highest_capability + 1)) - 1;
-+
- 	acpi_desc->platform_cap = pcap->capabilities & mask;
- 	dev_dbg(dev, "cap: %#x\n", acpi_desc->platform_cap);
- 	return true;
--- 
-2.50.1 (Apple Git-155)
+In acpi_nfit_init(), existing NFIT resources are moved to a local stack
+variable before parsing:
 
+acpi_nfit_init() {
+        ...
+        list_cut_position(&prev.spas, &acpi_desc->spas,
+                          acpi_desc->spas.prev);
+        ...
+
+If the newly added capability length check fails, it appears the table
+parsing aborts:
+
+        if (IS_ERR(data)) {
+                dev_dbg(dev, "nfit table parsing error: %ld\n", PTR_ERR(dat=
+a));
+                rc =3D PTR_ERR(data);
+                goto out_unlock;
+        }
+
+Which jumps directly to the exit label:
+
+out_unlock:
+        mutex_unlock(&acpi_desc->init_mutex);
+        return rc;
+}
+
+Since the elements in the local prev lists are never restored to
+acpi_desc on this error path, do these devm-managed items become permanently
+leaked with dangling list pointers when prev goes out of scope?
+
+> +
+> +	if (pcap->highest_capability >=3D 31)
+> +		mask =3D U32_MAX;
+> +	else
+> +		mask =3D (1U << (pcap->highest_capability + 1)) - 1;
+> +
+>  	acpi_desc->platform_cap =3D pcap->capabilities & mask;
+>  	dev_dbg(dev, "cap: %#x\n", acpi_desc->platform_cap);
+>  	return true;
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260813150948.1723=
+9-1-pengpeng@iscas.ac.cn?part=3D5
