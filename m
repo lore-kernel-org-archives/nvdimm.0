@@ -1,34 +1,39 @@
-Received: from va-2-56.ptr.blmpb.com (va-2-56.ptr.blmpb.com [209.127.231.56])
+Received: from va-2-42.ptr.blmpb.com (va-2-42.ptr.blmpb.com [209.127.231.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5AE542BC54
-	for <nvdimm@lists.linux.dev>; Fri, 14 Aug 2026 07:50:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.127.231.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9055041D63F
+	for <nvdimm@lists.linux.dev>; Fri, 14 Aug 2026 07:53:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.127.231.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786693827; cv=none; b=kwGiGOEIUfnljJ9eqZRTpklMYDopQfafAGJXRsQlQOQOnVyE7U0Ztu+pHWqsVQbqkGmpCkDjSE/Lrq7rDd1NPvnH40dLqzEJ1YKVBt1BvUy7KcSQEs3I/dOYIElAu2/6PBXvFF+C4Z2pddG91wW2Yf0yhmFOIXQxt75wfE6c9Q4=
+	t=1786694041; cv=none; b=aj07g66gYkCyHKHsBlrM0xMKBRPCMBBbK8BIff+VJWLEtTOlNgxewOap3xijr/4cuTJN2BNtkB6aI+IKj+vIpi+hw2AQbk+QA2PeVno4RiCa0rM4Vc+E0RKwKsjNsryxQ6habRZtkn5fWSpkykrgbFWoa3wKAVdpS1bPVNwNJIA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786693827; c=relaxed/simple;
-	bh=Y2jZkZG5IdEinfxaABKa1bNtQfxrrDOJa1w7kxN9I5Y=;
-	h=References:Content-Type:Cc:In-Reply-To:To:Date:Subject:Message-Id:
-	 Mime-Version:From; b=Bkv04ClJPBuYyYmM9V9wi01Z4JVlhw89WoBQ6bXvY5wAAD/uaiCeW7GrtYBtzb2YXcEexidJI06Rd/RNCLMxKDPPeHYp98P0DEtz/LcnTc68OUTev4Sb41S8faEywBUoPvTRtxjJL+OLtZIkRSk+/dXhj/NFpGAzxbWJYjDp26E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=fnnas.com; spf=pass smtp.mailfrom=fnnas.com; dkim=pass (2048-bit key) header.d=fnnas-com.20200927.dkim.feishu.cn header.i=@fnnas-com.20200927.dkim.feishu.cn header.b=L7/Sqr2Y; arc=none smtp.client-ip=209.127.231.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=fnnas.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fnnas.com
+	s=arc-20240116; t=1786694041; c=relaxed/simple;
+	bh=QFfjU+Q2WwZUl8Er+UJiH8Rzzjka7vbj49Vhc47ZS7k=;
+	h=Date:Message-Id:In-Reply-To:Content-Type:Cc:References:To:Subject:
+	 Mime-Version:From; b=BcIHAsLsdF5DdA00vVDEY+rACdyqXABszeWeKu6zrQFO6UE572pJXttr3zLi/6nSZG/Kw/0hJtePZ6nvRI0dd4OmTpx97n2R/ziYfcctcyjN/I7RbtLoVCdXyl0MBm2sogHkQGKL3P/a+It15TnNHI0ADU0YkUW88/4Q5fS/3Sc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fygo.io; spf=pass smtp.mailfrom=fygo.io; dkim=pass (2048-bit key) header.d=fygo-io.20200929.dkim.larksuite.com header.i=@fygo-io.20200929.dkim.larksuite.com header.b=C+kIyFuY; arc=none smtp.client-ip=209.127.231.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fygo.io
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fygo.io
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fnnas-com.20200927.dkim.feishu.cn header.i=@fnnas-com.20200927.dkim.feishu.cn header.b="L7/Sqr2Y"
+	dkim=pass (2048-bit key) header.d=fygo-io.20200929.dkim.larksuite.com header.i=@fygo-io.20200929.dkim.larksuite.com header.b="C+kIyFuY"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
- s=s1; d=fnnas-com.20200927.dkim.feishu.cn; t=1786693811;
+ s=s1; d=fygo-io.20200929.dkim.larksuite.com; t=1786694034;
   h=from:subject:mime-version:from:date:message-id:subject:to:cc:
  reply-to:content-type:mime-version:in-reply-to:message-id;
- bh=JbnLgklqOUcOfZtgfE8qoZAa4WQi1t4pHM8VNSJ95PY=;
- b=L7/Sqr2YloWcCd+CLuHsctvb17T7wRA1u8EeyL71rexTLznirImCcRNGShoamsifvNP838
- CY/EyFMwObsNum1JoF8LIjq/RFrSC8vStettKoF6i51yLAW07hcudtN3mivQCrsafYgAl4
- KkT7BYhMbbM5oNRcU+Nh6x34Y1KgWh9in+oxdMjmqF45CRc0eLxrise6z06fzJ7uQc/NuN
- 0y1mz0aUe8jnT/KsiQ+e1V3qFagpdJUZGm3swFRJLfIImlS3w1nJI9e2LTDiiVEW9uIaYp
- UatwlhWuY5fbRtuq6gNXTOQ7brg2wieqFZPdJEkCgsBRf04R6+onPRRTelpNfw==
-References: <20260811064744.1139446-1-yukuai@kernel.org> <20260811064744.1139446-3-yukuai@kernel.org> <20260814071232.GA9784@lst.de>
+ bh=d5X4CvU+1L3LRx9eYxrJOuZyHPoADtah9tMj/5sRYWk=;
+ b=C+kIyFuY5Y/bvPNvTJ+xbcMYIkxz55i1ZKwol98/UpscSvJuvFaVOSKqHv6Bnold2SAj7X
+ wEvEvfW0Hs+HAvFSWDsyJXULpaid0K9t7Ln9ef3ZjBshUJGFAVdonZa07Wsx4zqeG0ngSv
+ xwJ2FuAdRcwP1MzmFBS/6kIxqx2QTVsZie8qipkEwVP2cy1qFIPjWfcNphITqAX8+2jExW
+ FU9IrXGFjOYNQYAu71ij7jqcgFhtWP/vFDy7Izw9T6fEfMLKcg06WmxvfqdLVbw4jNeukq
+ lTbMvfW4AQWdp5XD5KwG4wqN1MG7GV8FUb4rUe9QTYJlo4oPqZIZQ219AXkxsg==
+Received: from [192.168.1.104] ([39.182.0.156]) by smtp.larksuite.com with ESMTPS; Fri, 14 Aug 2026 07:53:53 +0000
+Date: Fri, 14 Aug 2026 15:53:44 +0800
+Message-Id: <d1d47b32-b746-42d1-a391-5e37d4e373fb@fygo.io>
+X-Original-From: yu kuai <yukuai@fygo.io>
+In-Reply-To: <20260814064537.GA9355@lst.de>
+User-Agent: Mozilla Thunderbird
 Content-Type: text/plain; charset=UTF-8
-Received: from [192.168.1.104] ([39.182.0.156]) by smtp.feishu.cn with ESMTPS; Fri, 14 Aug 2026 15:50:07 +0800
+Reply-To: yukuai@fygo.io
 Cc: "Jens Axboe" <axboe@kernel.dk>, "Tejun Heo" <tj@kernel.org>, 
 	"Josef Bacik" <josef@toxicpanda.com>, 
 	"Johannes Weiner" <hannes@cmpxchg.org>, 
@@ -62,77 +67,163 @@ Cc: "Jens Axboe" <axboe@kernel.dk>, "Tejun Heo" <tj@kernel.org>,
 	<nvdimm@lists.linux.dev>, <virtualization@lists.linux.dev>, 
 	<gfs2@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>, 
 	<linux-mm@kvack.org>
-Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <20260814071232.GA9784@lst.de>
-User-Agent: Mozilla Thunderbird
-X-Lms-Return-Path: <lba+26a7ec8b1+184449+lists.linux.dev+yukuai@fnnas.com>
-X-Original-From: Yu Kuai <yukuai@fnnas.com>
+References: <20260811064744.1139446-1-yukuai@kernel.org> <20260814064537.GA9355@lst.de>
 To: "Christoph Hellwig" <hch@lst.de>, "yu kuai" <yukuai@fygo.io>
-Date: Fri, 14 Aug 2026 15:50:04 +0800
-Subject: Re: [RFC PATCH v2 2/4] blk-cgroup: use a request_queue rhashtable for blkg lookup
-Message-Id: <f7350050-062a-4ced-9396-05ac33ac3e60@fnnas.com>
+Subject: Re: [RFC PATCH v2 0/4] blk-cgroup: store blkcg in bio before blkcg_mutex conversion
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 Mime-Version: 1.0
-Reply-To: yukuai@fygo.io
-From: "Yu Kuai" <yukuai@fnnas.com>
+Content-Transfer-Encoding: quoted-printable
+X-Lms-Return-Path: <lba+26a7ec991+22c2d5+lists.linux.dev+yukuai@fygo.io>
+From: "yu kuai" <yukuai@fygo.io>
 
-Hi=EF=BC=8C
+Hi,
 
-=E5=9C=A8 2026/8/14 15:12, Christoph Hellwig =E5=86=99=E9=81=93:
-> On Tue, Aug 11, 2026 at 02:47:42PM +0800, Yu Kuai wrote:
->> Keep q->blkg_list for ordered policy and scheduler walks. Initialize and
->> destroy the hash with request_queue, and remove the radix-tree preload
->> paths which are no longer needed.
-> Are these fast path operations?  Otherwise we can walk all rhashtable
-> entries without an extra list, but it might be slower.
+=E5=9C=A8 2026/8/14 14:45, Christoph Hellwig =E5=86=99=E9=81=93:
+> What tree does this apply to?  I get failures both for Jens'
+> for-7.3/block and for-next trees in bfq-cgroups.c and bio.c
 
-All users are from sysfs/cgroupfs API, I think they can be considered slow =
-path,
-however currently spinlock is held in these procedures, I think it's better=
- to
-convert them to blkg_lookup based iterate after spinlock is converted to th=
-e
-blkcg_mutex.
+Oh, just realize this set is cooked based on Jens' initial for-7.3/block
+branch. With the other set that is already applied:
 
->
->> @@ -191,10 +198,15 @@ static void blkg_release(struct percpu_ref *ref)
->>   {
->>   	struct blkcg_gq *blkg =3D container_of(ref, struct blkcg_gq, refcnt);
->>   	struct blkcg *blkcg =3D blkg->blkcg;
->>   	int cpu;
->>  =20
->> +	if (!list_empty(&blkg->q_node))
->> +		WARN_ON_ONCE(rhashtable_remove_fast(&blkg->q->blkg_hash,
->> +						    &blkg->q_hash_node,
->> +						    blkg_hash_params));
->> +
-> The list_empty case is for initialization failure?  Or can we end up
-> with that by other means?
+30d0c34b72f8 (HEAD -> block-7.3-blkg_list-rhashtable) blk-cgroup: move asyn=
+c bio punt state to blkcg
+1aa13cdcc027 blk-cgroup: store blkcg in bio instead of blkg
+058ff5f9c8ac blk-cgroup: use a request_queue rhashtable for blkg lookup
+fefb6604e496 blk-cgroup: wait for old blkgs to leave queue before disk rebi=
+nd
+f2690679ecf3 (for-7.3/block) blk-cgroup: factor policy pd teardown loop int=
+o helper
+ed3105cce735 blk-cgroup: skip dying blkg in blkcg_activate_policy()
+415bd622f1a3 blk-cgroup: fix race between policy activation and blkg destru=
+ction
+4cc0299aea5d blk-cgroup: protect q->blkg_list iteration in blkg_destroy_all=
+() with blkcg_mutex
+f5098b6bae76 (tag: v7.2-rc5, block-7.2) Linux 7.2-rc5
 
-Yes, this is for initialization failure, blkg_alloc() failure after percpu_=
-ref_init(),
-or blkg_create() failure before rhashtable_insert succeed.
+I'll rebase to the latest for-7.3/block branch in the next version.
 
 >
->> + * Lookup a blkg for the @blkcg - @q pair, whether it is online or dyin=
-g.
->> + *
->> + * Must be called in a RCU critical section.
->> + */
-> Please add must_hold and/or lockdep annotations for this instead of just
-> a comment.
->
-> Also maybe mention that this does not acquire a reference and the caller
-> must already hold one?
-
-Perhaps it's more accurate that the blkg is pinned by IO or caller already
-hold one?
-
->
+> On Tue, Aug 11, 2026 at 02:47:40PM +0800, Yu Kuai wrote:
+>> From: Yu Kuai <yukuai@fygo.io>
+>>
+>> This RFC remains a preparatory series for the blkcg_mutex conversion
+>> proposed in the related blkcg_mutex RFC v2 series [1].  That conversion
+>> moves queue-local blkg topology synchronization from q->queue_lock to
+>> q->blkcg_mutex, which is awkward while bios directly store queue-local
+>> blkg references.
+>>
+>> v1 made the stored bio association queue-independent by replacing bi_blk=
+g
+>> with bi_blkcg, but a bio-owned blkg reference still had to be recovered =
+by
+>> looking up the bio's blkcg and current request_queue.  Tao Cui reported =
+that
+>> cgroup removal deletes a dying blkg from the per-blkcg radix tree before=
+ a
+>> throttled bio drops its reference.  A later lookup for that pinned blkg =
+then
+>> fails, triggers the warning in bio_pinned_blkg(), and leaks the referenc=
+e.
+>>
+>> v2 makes request_queue the authoritative lookup owner before converting =
+the
+>> bio association.  A queue-owned rhashtable, keyed by the blkcg CSS ID, k=
+eeps
+>> dying blkgs discoverable until their references drain while q->blkg_list
+>> remains available for ordered walks.  The bio conversion then stores and
+>> pins the blkcg CSS, lazily creates a blkg only for users which need one,=
+ and
+>> uses lookup-only access for completion and accounting paths which alread=
+y
+>> own a blkg reference.  Async bio punt state is finally moved from blkg t=
+o
+>> blkcg so punting alone does not instantiate a queue-local blkg.
+>>
+>> Changes since v1:
+>>
+>>    - Add patch 1 to wait for every old blkg to leave q->blkg_list before=
+ a
+>>      shared request_queue is rebound, instead of treating root_blkg =3D=
+=3D NULL
+>>      as completion of asynchronous blkg teardown.
+>>    - Add patch 2 to replace the per-blkcg radix tree and lookup hint wit=
+h a
+>>      request_queue rhashtable keyed by blkcg->css.id, as suggested by
+>>      Christoph Hellwig.  Keep dying pinned blkgs in the hash until
+>>      blkg_release() so bio-owned references remain discoverable.
+>>    - Fold the v1 helper-only patch into patch 3, as suggested by Jan Kar=
+a and
+>>      Christoph Hellwig, and make bio_blkcg() naturally return NULL for a=
+n
+>>      unassociated bio.
+>>    - Rework patch 3 so blkg_lookup_create() acquires the bio-owned refer=
+ence,
+>>      falls back to a live parent when creation or tryget fails, and upda=
+tes
+>>      bi_blkcg when the returned blkg belongs to an ancestor.
+>>    - Make bio_blkg_lookup() lookup-only: it returns NULL unless BIO_BLKG=
+_REF
+>>      is already set.  Use bio_blkg() in the BFQ and IOCOST merge paths w=
+hich
+>>      may need to create a blkg, while keeping blk_cgroup_bio_start() and
+>>      completion paths lookup-only.
+>>    - Move CSS online-reference handling into
+>>      bio_associate_blkcg_from_css(), including fallback to the root blkc=
+g, so
+>>      bio_associate_blkcg() does not take a redundant reference.
+>>    - Keep the v1 async bio punt conversion as patch 4 and document that
+>>      async_bio_lock protects async_bios.
+>>
+>> Previous versions:
+>>    v1: https://lore.kernel.org/r/20260804065313.2092022-1-yukuai@kernel.=
+org
+>>
+>> Related series:
+>>    [1] RFC v2 blk-cgroup: protect blkgs with blkcg_mutex
+>>        https://lore.kernel.org/r/20260724123037.3004560-1-yukuai@kernel.=
+org
+>>
+>> Yu Kuai (4):
+>>    blk-cgroup: wait for old blkgs to leave queue before disk rebind
+>>    blk-cgroup: use a request_queue rhashtable for blkg lookup
+>>    blk-cgroup: store blkcg in bio instead of blkg
+>>    blk-cgroup: move async bio punt state to blkcg
+>>
+>>   Documentation/admin-guide/cgroup-v2.rst |   2 +-
+>>   block/bfq-cgroup.c                      |  16 +-
+>>   block/bfq-iosched.c                     |  19 +-
+>>   block/bio.c                             |  22 +-
+>>   block/blk-cgroup-fc-appid.c             |  10 +-
+>>   block/blk-cgroup.c                      | 348 ++++++++++++++----------
+>>   block/blk-cgroup.h                      |  82 ++++--
+>>   block/blk-core.c                        |   9 +-
+>>   block/blk-crypto-fallback.c             |   2 +-
+>>   block/blk-iocost.c                      |  12 +-
+>>   block/blk-iolatency.c                   |  11 +-
+>>   block/blk-ioprio.c                      |   2 +-
+>>   block/blk-throttle.c                    |   2 +-
+>>   block/blk-throttle.h                    |   2 +-
+>>   drivers/md/bcache/request.c             |   2 +-
+>>   drivers/md/dm.c                         |   2 +-
+>>   drivers/md/md.c                         |   2 +-
+>>   drivers/nvdimm/nd_virtio.c              |   2 +-
+>>   fs/gfs2/lops.c                          |   3 +-
+>>   include/linux/bio.h                     |  26 +-
+>>   include/linux/blk_types.h               |   9 +-
+>>   include/linux/blkdev.h                  |   2 +
+>>   include/linux/writeback.h               |   2 +-
+>>   mm/page_io.c                            |  13 +-
+>>   24 files changed, 357 insertions(+), 245 deletions(-)
+>>
+>>
+>> base-commit: f2690679ecf3a3151688ebef766dd2512ff95854
+>> --=20
+>> 2.51.0
+> ---end quoted text---
 >
 --=20
 Thanks,
