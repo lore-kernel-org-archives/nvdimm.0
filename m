@@ -1,198 +1,167 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
+Received: from verein.lst.de (verein.lst.de [213.95.11.211])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C83B2EBBB9
-	for <nvdimm@lists.linux.dev>; Thu, 13 Aug 2026 22:51:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.15
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786661515; cv=fail; b=IrAX3bRMHwzomRZzJjebVGXjq3CwS8z0vgFYKmrZnqU+ZdNKKUq7KKnQPl813N0mLBRogRmRGnoU/PmcduApYG2yFC3IUKz+9y7jLWV6Cc6cUGsqhaNN+TwsUzPLY9WcsYUZPRca/jTD/LUxuaN5fHEXcOhkd5z907+Lpm6DLKY=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786661515; c=relaxed/simple;
-	bh=C0hOzO0VpGzBAGI1PRfI1/J9ImE1ivrq7KW6O/PRuPw=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=knobFtTuGgFH+k8+ntTlUU7lxGh17Lwhfap7d4z97vaGmnxSaIXXgnZdOrfJoKmjLO5IXdu+z0ybTjDDargHhuJVqynsiHafTQd6+l7VH+Ob1UGdBVnVeVDmc2/eoKStvPfRmR9YIh50mngee2sqrBiqXmUiu1/mOyarYtAEO0c=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=B3d6ddp3; arc=fail smtp.client-ip=192.198.163.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="B3d6ddp3"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1786661514; x=1818197514;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=C0hOzO0VpGzBAGI1PRfI1/J9ImE1ivrq7KW6O/PRuPw=;
-  b=B3d6ddp3SXY86JMrGbCs3aefBz5ZvD3bcufDbVnqo5VAZzRCvm6Imjxg
-   CDP8qNy/hhD5GVp2jzOXKgU3lzEEKkmxOTh3Cyw6xnvN1mgvC53aiYEBE
-   /PGXVZCM+M1iZlTmjzCMQIuqRHGa8Gko0xX1i/NGiHxDGXkthZHJEPiuO
-   ISSZRmmOeFhVvBI/9+ZRQqIfL0Z5z4UcHmI6JQ2SXBmJjQb0a/FA8Svws
-   nYUBuradDiY4ZKu3Wj1Rhl3i5ytX7yNA5cLpz81eInJJn+5McVctwq1mB
-   7oF+QWpHWGM99doEcNpHi5jDQHTn7iwvLKj2Ugb7a0P7EVozwdJovLI6i
-   A==;
-X-CSE-ConnectionGUID: Diog8UT8RgWnpCcFkKSmmg==
-X-CSE-MsgGUID: cY3F9HOyQaujDrRklPi38A==
-X-IronPort-AV: E=McAfee;i="6800,10657,11874"; a="87374331"
-X-IronPort-AV: E=Sophos;i="6.25,222,1779174000"; 
-   d="scan'208";a="87374331"
-Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Aug 2026 15:51:53 -0700
-X-CSE-ConnectionGUID: ll3KLogKQGabO5U8i2BWhA==
-X-CSE-MsgGUID: 4w6m7oR/QGSgRbbXJ6BXVQ==
-X-ExtLoop1: 1
-Received: from fmsmsx901.amr.corp.intel.com ([10.18.126.90])
-  by fmviesa003.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Aug 2026 15:51:53 -0700
-Received: from FMSMSX902.amr.corp.intel.com (10.18.126.91) by
- fmsmsx901.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45; Thu, 13 Aug 2026 15:51:52 -0700
-Received: from fmsedg901.ED.cps.intel.com (10.1.192.143) by
- FMSMSX902.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45 via Frontend Transport; Thu, 13 Aug 2026 15:51:52 -0700
-Received: from BL0PR03CU003.outbound.protection.outlook.com (52.101.53.15) by
- edgegateway.intel.com (192.55.55.81) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45; Thu, 13 Aug 2026 15:51:52 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=e29sp9UffEuPc0UEGgY27lZUwp0neJZiG4JcC1lRkonAN0s08nf5EijO+BPo4gYOB3kA1UulabNj1dxJi82FdsX8vMd08M1KQLx6J2GWfcJRKV67WjN5yV2vkzWG/P8Rpw7zPO81ecjvmGnQuVapIgWLGo2KFrQ+xCVPuoWBqte+d5zqIlMGTxhY8vYGWAGdh71p1T6pjvONf6bSXHhZL7aWyA+sNTrZYG+u+ipeb9eyuAp/BuBJc7chTzG2j7NY2nD6EdCv6ygjXbAuLj7pFbWYSUj8RgXAhYQzx1W6Ov8H6wR/m+44EYeeT3bC9Pit4qMILjvT8wNISriBDVYxVw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=l45dI5KQgnjlGWwtwK5niUj2s3CNiaFDyulF0uD2BWc=;
- b=LhPEj9fIVg/zCaFIjPd+geSq5sX99QCbovXlZCUs9aZHT2YRsYA6361VS2cdZyOdUg/cUrIBKd+8eIaUicuGcWHxWv6jNn48Fe7Fkia4+BiTzB37W+KOM9pEfamjhvf9KyV/66UcvkJCv/JSbIJhoVQB04SApVgOLkey6sF2Dvn5pzP9e5oIch5m5+/7ULmwz2YfAnmWSxLZpUIACqxft1AuDy9FE43MdJ5JmOFQ0vl9C4LiZzA6FOwwZfh5HQliRWiQm5fAPw2WGAUHcQ+AN+msj+c2nvx5tyGoY3et05RzdszWghMILi77x8zxeZnR2mjXE0ARxPF4j1z7KyogYg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com (2603:10b6:f:fc02::9)
- by DS7PR11MB7835.namprd11.prod.outlook.com (2603:10b6:8:db::10) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.315.15; Thu, 13 Aug
- 2026 22:51:49 +0000
-Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com
- ([fe80::e721:90d7:9214:2d53]) by DS4PPF0BAC23327.namprd11.prod.outlook.com
- ([fe80::e721:90d7:9214:2d53%6]) with mapi id 15.21.0315.014; Thu, 13 Aug 2026
- 22:51:49 +0000
-Date: Thu, 13 Aug 2026 15:51:38 -0700
-From: Alison Schofield <alison.schofield@intel.com>
-To: Pengpeng Hou <pengpeng@iscas.ac.cn>
-CC: Dan Williams <djbw@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <iweiny@kernel.org>, "Rafael J.
- Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Jeff Moyer
-	<jmoyer@redhat.com>, Ross Zwisler <zwisler@kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-acpi@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v2 0/5] ACPI: NFIT: harden subtable extent validation
-Message-ID: <an5KepVGGITAfr2M@aschofie-mobl2.lan>
-References: <20260813150948.17239-1-pengpeng@iscas.ac.cn>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20260813150948.17239-1-pengpeng@iscas.ac.cn>
-X-ClientProxiedBy: SJ0PR13CA0099.namprd13.prod.outlook.com
- (2603:10b6:a03:2c5::14) To DS4PPF0BAC23327.namprd11.prod.outlook.com
- (2603:10b6:f:fc02::9)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F48E344DAE;
+	Fri, 14 Aug 2026 06:45:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.11.211
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786689947; cv=none; b=PjUkBlOaNPr/BzJjCcL6mu3C3KOa+TKmzXBMYtyguzLX90KGtI/n6IS5NNxr+QoexhXvZRiCaSDndmuMb11LsdKOeFYebisJJy9JQxc6ykNDOV0rSfB4OfF2y1nwSiSmDPSpiI7typn534EpRtPYUryd4PbSH8fHcYgZbu014j0=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786689947; c=relaxed/simple;
+	bh=zduZt5Yh8aK/cbqDe9szF+IP3dE7uqQwAz10EKTvkpY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=VTUrimSUQYBw8tSAxhgJIqMWrE+hZooS75hgNOIr63ixyxFpfDvzu9t/rYL6mYC6PB9CmSk1sYpb9xMBUDROGzz1S8PBYsSW/pfmtAXdxsYGQT0lh8PeufFfKHMWHg+wwl2xEPnZnZsz/UFwKwXLz6swjcN42kEym7fHC5uEvMw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de; spf=pass smtp.mailfrom=lst.de; arc=none smtp.client-ip=213.95.11.211
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lst.de
+Received: by verein.lst.de (Postfix, from userid 2407)
+	id 61FB168BFE; Fri, 14 Aug 2026 08:45:37 +0200 (CEST)
+Date: Fri, 14 Aug 2026 08:45:37 +0200
+From: Christoph Hellwig <hch@lst.de>
+To: Yu Kuai <yukuai@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>, Tejun Heo <tj@kernel.org>,
+	Josef Bacik <josef@toxicpanda.com>,
+	Johannes Weiner <hannes@cmpxchg.org>,
+	Michal =?iso-8859-1?Q?Koutn=FD?= <mkoutny@suse.com>,
+	Yu Kuai <yukuai@fygo.io>, Christoph Hellwig <hch@lst.de>,
+	Tao Cui <cui.tao@linux.dev>, Jan Kara <jack@suse.cz>,
+	Ming Lei <ming.lei@redhat.com>, Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>, Coly Li <colyli@fygo.io>,
+	Kent Overstreet <kent.overstreet@linux.dev>,
+	Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@kernel.org>,
+	Mikulas Patocka <mpatocka@redhat.com>,
+	Benjamin Marzinski <bmarzins@redhat.com>,
+	Song Liu <song@kernel.org>, Li Nan <magiclinan@didiglobal.com>,
+	Xiao Ni <xiao@kernel.org>,
+	Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
+	Dan Williams <djbw@kernel.org>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Ira Weiny <iweiny@kernel.org>,
+	Andreas Gruenbacher <agruenba@redhat.com>,
+	Matthew Wilcox <willy@infradead.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>,
+	Kemeng Shi <shikemeng@huaweicloud.com>,
+	Nhat Pham <nphamcs@gmail.com>, Baoquan He <baoquan.he@linux.dev>,
+	Barry Song <baohua@kernel.org>,
+	Youngjun Park <youngjun.park@lge.com>, cgroups@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-block@vger.kernel.org, linux-bcache@vger.kernel.org,
+	dm-devel@lists.linux.dev, linux-raid@vger.kernel.org,
+	nvdimm@lists.linux.dev, virtualization@lists.linux.dev,
+	gfs2@lists.linux.dev, linux-fsdevel@vger.kernel.org,
+	linux-mm@kvack.org
+Subject: Re: [RFC PATCH v2 0/4] blk-cgroup: store blkcg in bio before
+ blkcg_mutex conversion
+Message-ID: <20260814064537.GA9355@lst.de>
+References: <20260811064744.1139446-1-yukuai@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|DS7PR11MB7835:EE_
-X-MS-Office365-Filtering-Correlation-Id: 2aa9fad9-213f-497c-0c76-08def98d7588
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|7416014|376014|23010399003|366016|56012099006|10067099003|18002099003|22082099003|11063799006;
-X-Microsoft-Antispam-Message-Info: hxH+9n5xxBunKj8EACmSv+kxrEHClalRPzTFyMBcL9qqrgCWnAdSzz+g0oufXzPDSd8gA9ZLC8XLpTMnJx95fj0BuorJYzD9EvQZczoFv+MT4bBb7DquiOpT5t6U3O/Eu9RyBuiTBgEaS9uGfV57MNjsN8SUAkVvxbGrQmFlHha9/XV57HdpcAvu6VTdx5zNU3d6Kwx3W6HYQjayWr8pSSaAmxvbJ3FZuj3FzIuk9KkP2EqCiXqtPDEBiBAqB/mrIeomTas8a9ICSzSsQ41gNSWEza+jNM5oR4vD8QWExd2yJyKzV/jTN96Gax4ElInvlT56TNk9QWONss0iywVsUwq7cMT2ItOs56sd4MM/05AXJKmUy7DTAlDK+7FpNju8j5uwCaIMbJcFM5lw2V/60BxIonyMGsmh6PDJ5uR0BSToqVl5aAw2TMOcV+8Ii07uVVKVuQvo83m7n/xT09V07FHeyWqbXqQRF0Z9e5DFV+dF48pOCahjQxLvscQEQOyZTl59ijePEO7kPSQykCvAr/ljvCEeZ2QWW27rGC2LcCtFRp497BCKgGfdgzsRByWtpA4YTu1N0s9zNKZhuAMOSlzgtqgndBDcCG+rlOgF8s2/QTN/42tLT/Xgwau2x7fkLPuTgghIJGy1geN2C/Clbv/fO8joZQ28l7Yw3vFF8TA=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(23010399003)(366016)(56012099006)(10067099003)(18002099003)(22082099003)(11063799006);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?C2JG4g7jeC98P45tnbNaDGcL5uLx/syEv9h3oOK6UYPCNeRS06UvIiQaoilV?=
- =?us-ascii?Q?hbztD92epO8fH4mc+IzuDVVv7l0QkQdborHa0OzYsEc+XDvEAj6fbfNfsEGv?=
- =?us-ascii?Q?kRUZAxfDNmLgjgdEGkLRh6fcYj1evrHjHiAtDyjLGgz78u15EFKbUi2/EaMm?=
- =?us-ascii?Q?R0vZQldoKS9yf4oDMOnUbPNCq0gie/2Hxzg93HFRvyMPkXDsvgpW1HqWJdgu?=
- =?us-ascii?Q?0A+1a25NsaSwyJ+dbBcDKKlDOgw6BbdOh7Em8aAUDz2z+Vk0NbpPk2SJaf3X?=
- =?us-ascii?Q?7JwUyJbjErq2Wmm8plFc33OIG2QbLrhYpiFfVCo+BEUn/26Zli/4jrIMVnU3?=
- =?us-ascii?Q?w11Iwo9b/QQ+2Xyal12tGVq5Aq166RUP0aWJkX1149Uvaa3dIYiBG/ljcrUu?=
- =?us-ascii?Q?oZI9fB7dPXgJsS8CouoKcUdTCrc9Y/wEaJELeTu199VZma+pKMHN0r54Il49?=
- =?us-ascii?Q?cpqsPrWy33wx4rJxQAot46E8+bkpyygvFnShYbdT647ZfSn5T4W7ijDQu3VA?=
- =?us-ascii?Q?3LlgmpYAZQrmyS4troVq9qVEZWFSXfT+cWukhqd2MefG4OvBeyDOzF1gzcZk?=
- =?us-ascii?Q?cC3oKZ8JwgMuRX2s1Sy0kIiwiU+ZQ3rDO0pYjxC4OSs4NNv3naIfZ3p+5Xuk?=
- =?us-ascii?Q?4mTQPm0neA1jjCXbzMx2DEsr+FX0Mg/VipD8KnBaHkR5tdB91IXfJSzlGlz1?=
- =?us-ascii?Q?DRZSz+6A/7FPkxj3JHsKAaT8BWe08OCNXcejvEjDiT8KJ3PbCOr8YpyAedG3?=
- =?us-ascii?Q?TUcIxgux4oqm540KLXrb5ifUgUq5d2d9ClHAkVF52YNKrnBQxHdzXkzW2r56?=
- =?us-ascii?Q?j9YtrR4FfqWdLWCj1VGTnZddHR8oHY3g8bvx/6oqNxT9/3YUaBNscDTjCQr4?=
- =?us-ascii?Q?WB/2cTsoIUO3CFOgWS4IgD8BaWsvmfA002yB8+JKceCUuhdsvLFgFPCXKXN6?=
- =?us-ascii?Q?50yGXz/u0VENljqS0pBOnMJzS/3cJs6vdVkKbDM3HXDB2fsK9Bce9s7qRtjz?=
- =?us-ascii?Q?63uBKGjzRvAkEdwYPiGQF03tC/V5qL58oPZvfdwEFRpjHi8AicO6nanUkV6i?=
- =?us-ascii?Q?xPhoUjpF0XQZ1VWNXs/tGU1EHoPI2COD1P/+XQvPyE3EQfx+yoYcwZyQMi3L?=
- =?us-ascii?Q?zjVcwqKDkjZSiC3VaC+MjBctDeFCWJq5Y/M9ySlxjR2vidPrnz7VYiq1KVVv?=
- =?us-ascii?Q?xnaUX8ASZU/jCw87j7jZrjZSIwg5AoLGtACxfFAvmZhMNooZ+XWzqGQwYPk2?=
- =?us-ascii?Q?SKUL/ht7Mi0Qg+1UnpwwtunoofTOIu3L+DcWpKDE6lbvw7xbyH5Zn0nW/WbJ?=
- =?us-ascii?Q?xtrMXuTqiRRahEPtpgZgFyVttvu142XBKMiZ8GQBzsx5x8FKQOD9lpHZRLEI?=
- =?us-ascii?Q?VyY1JF7xc5othnwnRsvUxT2RD628Uu+1OpQO2Z+oYhVSQm6TqFPsZAcMWvEw?=
- =?us-ascii?Q?nmJn/eCZyCmtYYM6vER4zjH9gh8vZYFBWQY7H6I5TecRimNQVDiTfB7hA1F4?=
- =?us-ascii?Q?Qd3gTrdCVWARI8CTbGjvonC7xuxmsW35LNeY8UdxcgfgZKDeHwG/VsPmlP0m?=
- =?us-ascii?Q?4YXbeDBrunDsH8McbvzafqoUJWoEU0y/3fdGcTnurdO6M53ePMB8YLB6oVPq?=
- =?us-ascii?Q?cVDD+TxLL7y3U4Tf47sMRAL82d7xaSC8zHTYvAS8K+/xzw7hzmUO7mpK5pKt?=
- =?us-ascii?Q?wXiyb1N9GsNDCpmNJ11teSdD3/ivZe2dimQcq/bHYOJncoWJJcc3BJ7oaVor?=
- =?us-ascii?Q?dcVk6w3It3LszOqq8jzEN04j97V6Ttk=3D?=
-X-Exchange-RoutingPolicyChecked: EfpnR1xjDrYSaTsYEzF8kYuI5IuSbssGD8Rfdm/DEcmWbmzvHFDWqvZbMDfpAk5xKZbCx+vCGr6Ir9uLVaAbDWdY/n1u6zvxywbeO38PXbC9zDGROY/aF1oNyo7+o1KzvXPWhuSyN3SDhbRdD0TK8zO5aLDF/fwok9Q9uCrE6ET+kI7Yc+ufFy9gA0/Mm3s0k2R7JzueNJ0P0IQ2fqLIj0/m9Dol1ZKkqSQ0YPE6PU5i5wK7oW/Uwe1MSAkXkAoWbaJo24r9MC+YIxTTJRxx2z2L0kq4WF0HeGS6/JBGzJKZFCwxFaQwWqwPOcjWFY5gJl38CUETzVkm+BrXVMc0yQ==
-X-MS-Exchange-CrossTenant-Network-Message-Id: 2aa9fad9-213f-497c-0c76-08def98d7588
-X-MS-Exchange-CrossTenant-AuthSource: DS4PPF0BAC23327.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Aug 2026 22:51:49.2859
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: KuBE5n8ywpRaITGFLTZTyIxdHG/EcN4YBVL3on9CKu/pjHPWELiNuoM/e8MT4Jp9jouTwZ8nhCNcdGsd10b218sj1DHlTsXIqEO1VdICtDo=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR11MB7835
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260811064744.1139446-1-yukuai@kernel.org>
+User-Agent: Mutt/1.5.17 (2007-11-01)
 
-On Thu, Aug 13, 2026 at 11:09:48PM +0800, Pengpeng Hou wrote:
-> NFIT parsing has several independent extent contracts: the outer table
-> must contain each advertised subtable, and variable or versioned records
-> must fit inside that subtable.  The original patch mixed those contracts
-> and also derived the SPA structure length from the location-cookie-valid
-> flag.
+What tree does this apply to?  I get failures both for Jens'
+for-7.3/block and for-next trees in bfq-cgroups.c and bio.c
+
+On Tue, Aug 11, 2026 at 02:47:40PM +0800, Yu Kuai wrote:
+> From: Yu Kuai <yukuai@fygo.io>
 > 
-> Split the checks by record type.  Patch 1 validates the generic subtable
-> header and outer extent.  Patch 2 accepts both defined SPA layouts while
-> treating the cookie flag as a validity bit, not a size selector.  Patches
-> 3 and 4 validate the variable arrays and the control-region extent.
-> Patch 5 bounds the 32-bit capability mask without rejecting future
-> firmware that advertises a higher capability index.
+> This RFC remains a preparatory series for the blkcg_mutex conversion
+> proposed in the related blkcg_mutex RFC v2 series [1].  That conversion
+> moves queue-local blkg topology synchronization from q->queue_lock to
+> q->blkcg_mutex, which is awkward while bios directly store queue-local
+> blkg references.
+> 
+> v1 made the stored bio association queue-independent by replacing bi_blkg
+> with bi_blkcg, but a bio-owned blkg reference still had to be recovered by
+> looking up the bio's blkcg and current request_queue.  Tao Cui reported that
+> cgroup removal deletes a dying blkg from the per-blkcg radix tree before a
+> throttled bio drops its reference.  A later lookup for that pinned blkg then
+> fails, triggers the warning in bio_pinned_blkg(), and leaks the reference.
+> 
+> v2 makes request_queue the authoritative lookup owner before converting the
+> bio association.  A queue-owned rhashtable, keyed by the blkcg CSS ID, keeps
+> dying blkgs discoverable until their references drain while q->blkg_list
+> remains available for ordered walks.  The bio conversion then stores and
+> pins the blkcg CSS, lazily creates a blkg only for users which need one, and
+> uses lookup-only access for completion and accounting paths which already
+> own a blkg reference.  Async bio punt state is finally moved from blkg to
+> blkcg so punting alone does not instantiate a queue-local blkg.
 > 
 > Changes since v1:
-> https://lore.kernel.org/all/20260722041701.21078-1-pengpeng@iscas.ac.cn/
-
-NAK
-See: Documentation/process/submitting-patches.rst 
-Section "Respond to review comments"
-
-
-> - split the generic and type-specific contracts into separate patches
-> - handle both 56-byte and 64-byte SPA structures
-> - add the control-region extent check identified during review
-> - clamp the implemented capability mask instead of rejecting future bits
-> - describe the exact fields protected by each check
 > 
-> The series was reviewed statically against the current tree. I did not
-> run an NFIT firmware fault-injection test.
+>   - Add patch 1 to wait for every old blkg to leave q->blkg_list before a
+>     shared request_queue is rebound, instead of treating root_blkg == NULL
+>     as completion of asynchronous blkg teardown.
+>   - Add patch 2 to replace the per-blkcg radix tree and lookup hint with a
+>     request_queue rhashtable keyed by blkcg->css.id, as suggested by
+>     Christoph Hellwig.  Keep dying pinned blkgs in the hash until
+>     blkg_release() so bio-owned references remain discoverable.
+>   - Fold the v1 helper-only patch into patch 3, as suggested by Jan Kara and
+>     Christoph Hellwig, and make bio_blkcg() naturally return NULL for an
+>     unassociated bio.
+>   - Rework patch 3 so blkg_lookup_create() acquires the bio-owned reference,
+>     falls back to a live parent when creation or tryget fails, and updates
+>     bi_blkcg when the returned blkg belongs to an ancestor.
+>   - Make bio_blkg_lookup() lookup-only: it returns NULL unless BIO_BLKG_REF
+>     is already set.  Use bio_blkg() in the BFQ and IOCOST merge paths which
+>     may need to create a blkg, while keeping blk_cgroup_bio_start() and
+>     completion paths lookup-only.
+>   - Move CSS online-reference handling into
+>     bio_associate_blkcg_from_css(), including fallback to the root blkcg, so
+>     bio_associate_blkcg() does not take a redundant reference.
+>   - Keep the v1 async bio punt conversion as patch 4 and document that
+>     async_bio_lock protects async_bios.
 > 
-> Pengpeng Hou (5):
->   ACPI: NFIT: validate subtable extents before dispatch
->   ACPI: NFIT: accept SPA structures with an unused location cookie
->   ACPI: NFIT: validate interleave and flush array extents
->   ACPI: NFIT: validate control region extent
->   ACPI: NFIT: bound the platform capability mask
+> Previous versions:
+>   v1: https://lore.kernel.org/r/20260804065313.2092022-1-yukuai@kernel.org
 > 
->  drivers/acpi/nfit/core.c | 77 ++++++++++++++++++++++++++++++++--------
->  1 file changed, 62 insertions(+), 15 deletions(-)
+> Related series:
+>   [1] RFC v2 blk-cgroup: protect blkgs with blkcg_mutex
+>       https://lore.kernel.org/r/20260724123037.3004560-1-yukuai@kernel.org
 > 
-> base-commit: f5bbbfec59b4e2fb7520a91de3df8a6174325d6a
+> Yu Kuai (4):
+>   blk-cgroup: wait for old blkgs to leave queue before disk rebind
+>   blk-cgroup: use a request_queue rhashtable for blkg lookup
+>   blk-cgroup: store blkcg in bio instead of blkg
+>   blk-cgroup: move async bio punt state to blkcg
 > 
+>  Documentation/admin-guide/cgroup-v2.rst |   2 +-
+>  block/bfq-cgroup.c                      |  16 +-
+>  block/bfq-iosched.c                     |  19 +-
+>  block/bio.c                             |  22 +-
+>  block/blk-cgroup-fc-appid.c             |  10 +-
+>  block/blk-cgroup.c                      | 348 ++++++++++++++----------
+>  block/blk-cgroup.h                      |  82 ++++--
+>  block/blk-core.c                        |   9 +-
+>  block/blk-crypto-fallback.c             |   2 +-
+>  block/blk-iocost.c                      |  12 +-
+>  block/blk-iolatency.c                   |  11 +-
+>  block/blk-ioprio.c                      |   2 +-
+>  block/blk-throttle.c                    |   2 +-
+>  block/blk-throttle.h                    |   2 +-
+>  drivers/md/bcache/request.c             |   2 +-
+>  drivers/md/dm.c                         |   2 +-
+>  drivers/md/md.c                         |   2 +-
+>  drivers/nvdimm/nd_virtio.c              |   2 +-
+>  fs/gfs2/lops.c                          |   3 +-
+>  include/linux/bio.h                     |  26 +-
+>  include/linux/blk_types.h               |   9 +-
+>  include/linux/blkdev.h                  |   2 +
+>  include/linux/writeback.h               |   2 +-
+>  mm/page_io.c                            |  13 +-
+>  24 files changed, 357 insertions(+), 245 deletions(-)
+> 
+> 
+> base-commit: f2690679ecf3a3151688ebef766dd2512ff95854
 > -- 
-> 2.50.1 (Apple Git-155)
-> 
+> 2.51.0
+---end quoted text---
