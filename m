@@ -1,22 +1,22 @@
 Received: from verein.lst.de (verein.lst.de [213.95.11.211])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A7E5345EA8;
-	Fri, 14 Aug 2026 06:50:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D050A2F9DA1;
+	Fri, 14 Aug 2026 07:12:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.11.211
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786690258; cv=none; b=TAU7D+Gi4JR758OivrkuSZ1cU2KcHBXRUeMpnZMQGQzLO58fJ+gwpnh66f9SiRCRCIc4dfxSkY5saaWk7hCKcKXlGHIBn/LmWEZh6TvETxwnJ/FR4G49+CDHEwzipWuzGTl3FYT5NVFZBh+dHNQtI4AIMv813d5qoI0t4qw6x3o=
+	t=1786691560; cv=none; b=NEdkA2egtGl1H763Zy1zI9U4TVFwwA9lvuvOvdmQFK/gbc/bFMXb/Mvpg8ZtBT3NrkNMR30+hattTU9TxhiYVgyr2uMqVmMSL+awv7VWLQKH/5BkLa3Ln3E3FKj130o7mwjFzAckasYg1vFLvmrAA68j8v80T4H4asNryDLhGl0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786690258; c=relaxed/simple;
-	bh=8r2AZqW1AUJrEV1zOvdxHuNQmKb9G6A04RP/k8ww7M4=;
+	s=arc-20240116; t=1786691560; c=relaxed/simple;
+	bh=0R+rICBzr6spcVLpl5QzFLJOOJfP8i+kZaOnS9Vxi2A=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=tZTLFvzm7o6a1YftK5+KjLyYa8uWbimEWo+zCZVKLOe8F4TS1FfbIcHrR+/ucAuJPq6IeKnqV9S24u+2uxOUhuwH9NbyzvKT3k2BenR2+vSJ0sidzTziEUxfmkumLdn6fKrx2GL/bkdtfvDAluEBjagNiKGnNVKASyXPlVlh+4U=
+	 Content-Type:Content-Disposition:In-Reply-To; b=Ue0w6Lvn5Bc+ignD4Kh4+1C3Q9Nbsk9Ph/pF/OZpBfLxS3LIfZMvqv/RuvnqJPrtLmgObU89htbIMvQ8vlgecI9Ii4/RseXzZ4kOdO9ezxa15QjrJIDd0oj73iOXwwBSTVHaEu/3FpwMruRTWxf3DtsL3HVGZ8Ky0tViRGZ2IS8=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de; spf=pass smtp.mailfrom=lst.de; arc=none smtp.client-ip=213.95.11.211
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lst.de
 Received: by verein.lst.de (Postfix, from userid 2407)
-	id 0EC8B68B05; Fri, 14 Aug 2026 08:50:50 +0200 (CEST)
-Date: Fri, 14 Aug 2026 08:50:49 +0200
+	id D93C568B05; Fri, 14 Aug 2026 09:12:32 +0200 (CEST)
+Date: Fri, 14 Aug 2026 09:12:32 +0200
 From: Christoph Hellwig <hch@lst.de>
 To: Yu Kuai <yukuai@kernel.org>
 Cc: Jens Axboe <axboe@kernel.dk>, Tejun Heo <tj@kernel.org>,
@@ -53,10 +53,10 @@ Cc: Jens Axboe <axboe@kernel.dk>, Tejun Heo <tj@kernel.org>,
 	nvdimm@lists.linux.dev, virtualization@lists.linux.dev,
 	gfs2@lists.linux.dev, linux-fsdevel@vger.kernel.org,
 	linux-mm@kvack.org
-Subject: Re: [RFC PATCH v2 1/4] blk-cgroup: wait for old blkgs to leave
- queue before disk rebind
-Message-ID: <20260814065049.GA9495@lst.de>
-References: <20260811064744.1139446-1-yukuai@kernel.org> <20260811064744.1139446-2-yukuai@kernel.org>
+Subject: Re: [RFC PATCH v2 2/4] blk-cgroup: use a request_queue rhashtable
+ for blkg lookup
+Message-ID: <20260814071232.GA9784@lst.de>
+References: <20260811064744.1139446-1-yukuai@kernel.org> <20260811064744.1139446-3-yukuai@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -65,13 +65,40 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260811064744.1139446-2-yukuai@kernel.org>
+In-Reply-To: <20260811064744.1139446-3-yukuai@kernel.org>
 User-Agent: Mutt/1.5.17 (2007-11-01)
 
-Looks good:
+On Tue, Aug 11, 2026 at 02:47:42PM +0800, Yu Kuai wrote:
+> Keep q->blkg_list for ordered policy and scheduler walks. Initialize and
+> destroy the hash with request_queue, and remove the radix-tree preload
+> paths which are no longer needed.
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Are these fast path operations?  Otherwise we can walk all rhashtable
+entries without an extra list, but it might be slower.
 
-You probably want to send this to Jens as a separate bugfix for 7.3
-and -stable.
+> @@ -191,10 +198,15 @@ static void blkg_release(struct percpu_ref *ref)
+>  {
+>  	struct blkcg_gq *blkg = container_of(ref, struct blkcg_gq, refcnt);
+>  	struct blkcg *blkcg = blkg->blkcg;
+>  	int cpu;
+>  
+> +	if (!list_empty(&blkg->q_node))
+> +		WARN_ON_ONCE(rhashtable_remove_fast(&blkg->q->blkg_hash,
+> +						    &blkg->q_hash_node,
+> +						    blkg_hash_params));
+> +
+
+The list_empty case is for initialization failure?  Or can we end up
+with that by other means?
+
+> + * Lookup a blkg for the @blkcg - @q pair, whether it is online or dying.
+> + *
+> + * Must be called in a RCU critical section.
+> + */
+
+Please add must_hold and/or lockdep annotations for this instead of just
+a comment.
+
+Also maybe mention that this does not acquire a reference and the caller
+must already hold one?
 
