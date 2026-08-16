@@ -1,140 +1,124 @@
-Received: from mail-yx1-f49.google.com (mail-yx1-f49.google.com [74.125.224.49])
+Received: from mail-oa1-f50.google.com (mail-oa1-f50.google.com [209.85.160.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65A6146F4A8
-	for <nvdimm@lists.linux.dev>; Fri, 14 Aug 2026 13:27:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.224.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8499A1A268
+	for <nvdimm@lists.linux.dev>; Sun, 16 Aug 2026 00:01:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786714040; cv=none; b=db1E4OHkq5wUac3vv2XFBsxZNhCk9orl/qysceYlTIYGhzwf2O2Vqd24FDPz+laI+gf47S6EBVb/a9ontRzjqSO/kw+3Wxoih/fpXA3CTk8giqHKfI0xfFYHsoFTzqHLdHZG3sEYtWCGzHci0rhgqVH9zU0h6iUUvyKTTc3P6LU=
+	t=1786838499; cv=none; b=nmo//jhblFhg604erinn2RGfWSe2hwkKSBl6WN87VSKD/gAyI5HmizwTnqNmWGSQH4yO1nYNHZWTaMEHFrDvKCc5+47+5P0zhe4/nlSUPDqpQcZTKZ/3XnYcQlrUJ11LLGQLyrHBAQ0CaeYLLLdXIVDYcKUh60Jj7aVrAU3xbRA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786714040; c=relaxed/simple;
-	bh=CChEzwWKHqvAbDe82pqB+EpRVBOCxUp7FVLoHlKhGNU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SSrO4lXU5pDOJt2946uaFyBE6h5FjYLaO6BHDZbQXoQTlq4x1jQzmnN7mI8a7RpmJ2Iw79c5Zdomz1rWTQBhai+Dk6PUqXq5rQqj6FAv7ocFM8/CoCusR1+MS7k1pyc6WZmlMW0agR4xlk3j4sTP6euNR4qZ4zQEkxTXA9qxaYo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=TMgwMIHF; arc=none smtp.client-ip=74.125.224.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
+	s=arc-20240116; t=1786838499; c=relaxed/simple;
+	bh=GLv7MLH1JWc+5XrUg1Z1RvY7w8aG92a4ZA0fo54R1DI=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=KUBJYTuHl5G0fswrJrZFwhR8GAsssWbishK0Ug9VUKLyagtMzX/WqUl2y/SShghLu9q57ibrfNcKXss2SoJYAWvpvDiWQ33+QvF1p2eCU3tpj1xs5zWtgcDQBnbNFfj5eBdA4EPSrsBuE1ONK9MxtCUHZy1SP/n1FbzVbcsKRi4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kernel.dk; spf=pass smtp.mailfrom=kernel.dk; dkim=pass (2048-bit key) header.d=kernel-dk.20251104.gappssmtp.com header.i=@kernel-dk.20251104.gappssmtp.com header.b=0RvEWBz/; arc=none smtp.client-ip=209.85.160.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kernel.dk
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kernel.dk
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="TMgwMIHF"
-Received: by mail-yx1-f49.google.com with SMTP id 956f58d0204a3-66c71239c48so1366223d50.2
-        for <nvdimm@lists.linux.dev>; Fri, 14 Aug 2026 06:27:18 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel-dk.20251104.gappssmtp.com header.i=@kernel-dk.20251104.gappssmtp.com header.b="0RvEWBz/"
+Received: by mail-oa1-f50.google.com with SMTP id 586e51a60fabf-4472500e25fso1356464fac.1
+        for <nvdimm@lists.linux.dev>; Sat, 15 Aug 2026 17:01:37 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1786714037; x=1787318837; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=n4ArN/eG59F6/a+Z1l3n9inh5iDgTQHyg71JvETU2wM=;
-        b=TMgwMIHFZXCEdaJqXJK4jWPfOjZunc2y8gBLbLZBaloKWm3e8EKmgPPd5g/N34z7P8
-         njn2fp89mmxYIcPnoIt+H7hNBCIFzO8B03QEwbP+FZH7F6qBm/hTBkNJGqDFfH6TxiFe
-         n7ZJgHbFQGLITr0lNKyp1t/uddDQPJTN3X5zDexoWBjD3CzKsI6lO9KyRPyyKUyG+OHA
-         DRxdkNti8kws6iandVxfbj0xN2Efug1q8QO8hbySj4kuMLSo6XDJGFmp/PGNuhzbkct5
-         leOoGlovEoLBjhWfXG//rGjeQfNtKOLo7Y0a8GyY8krE01/KD48zMxp5zikOTln9Vbc0
-         Aqtg==
+        d=kernel-dk.20251104.gappssmtp.com; s=20251104; t=1786838496; x=1787443296; darn=lists.linux.dev;
+        h=content-transfer-encoding:content-type:mime-version:date:message-id
+         :subject:references:in-reply-to:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=ZPPcb+6L1tSSLsANqwKI7loeM1EwHu96h0gKbDhNEvI=;
+        b=0RvEWBz/x5KBddLcdXAPltYLJYgtXvYeKZ5wd+eSyHozb2IyEpzAXjN5k/nioan9wH
+         MR7/k/385B5JBVCliYdeW9VSsy4EjVxAIfA6YX5DzbIXEuwCWuO5A7FkQlnORzE2o0Xc
+         O/tp7salVwnLQ6Sf4gT1/lupZz5DJKQn+PrlFMVztVP4jW5vQ30zmNTM8L7yyRnss5Ik
+         om3m29nePAeksM9K2Pokn2lM7TGoLbQjZpGG3za28Amf1n3TBy+8mtYSDHv3vG6XNuEw
+         aZVzmMEY9lKBvc222nzf+bNORgI4kLBlpcb5hN9efqZ7BnWSbZX/ZF8lnhl3G4owPtP8
+         2A8w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786714037; x=1787318837;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
+        d=1e100.net; s=20251104; t=1786838496; x=1787443296;
+        h=content-transfer-encoding:content-type:mime-version:date:message-id
+         :subject:references:in-reply-to:cc:to:from:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=n4ArN/eG59F6/a+Z1l3n9inh5iDgTQHyg71JvETU2wM=;
-        b=cs3cegqDl7e2oLqpqSD7V6FlNmapVJoXLL9IhNR/VZsRm/usDaXQ2LzY348eKrjubF
-         gw5JnzSPzDxJmHNsrje8MFq7jz3oBkacWEoLGkQPXKFGQY5gGocjWt8tPUjI9Q7MQHMe
-         Dfa3Xs/i4oxj9fPG8ISMn1d7yTrL7oUwwXcMS3ehVAKYvndbiJpyQnRN4h250gAmWmsS
-         EWZDMfOY0UiPn0Seqhp71nyxjskP9tw1fLJFguatJyXuey7vYpjMAVWuwhvl6sK5cBGu
-         HJeIsk8cANJ+KQ6u4+IMkyzPBr8VmOBVyGlNmvzUI+VFcvGX6caovZ5htzalvQfTGMdO
-         TJxA==
-X-Forwarded-Encrypted: i=1; AHgh+RoLBxFwQVLG7SPhagsheTDCa5RX+mmVR/JMFnY7ZgownW3Py2z9ouIsOyXbydDBg1YQiDii4fA=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yye3/sVcjEHuIAWCTakZpPE6jRHl8XsTRX1cxvLxXdM8Kin7P8e
-	zHeVPta+xtkZi73+bUMh7lZ/f1fnxr8/FA3xyrQis408f70gv7Aa9YXlv+EckPRgBSw=
-X-Gm-Gg: AR+sD12h5tQTvnh/5eUVluQoF15VEZorgWd+pShpC6CR8jZ3cijI/T6u21L8WUm/n8L
-	XLwdeZ6dbLd+idtIfnIoubSrTdOtinzEy3A8yWtZI2C8I0Xp/XNl+S5G1gZFILgqrIuj0Wru5/L
-	kmF7HU792co4CVLJHdAdl3hjw0glE8b7vLhbfQuFB5XIiVv4pknvzog0oEco8u+kuiIAas6WiEW
-	tm2n0M3U0GGvcKbqEcMugPt6Onb39F0t5wZL15/MV27ipGaDv9bVX3lKJFYrA1fQNERfoG7CF8O
-	VA9xDxTWeTjg5erylzj0rFtPlyVMOjNlAkRucxss1VuEkGa1aFzklANdl61uZehkfryqhMl0lMI
-	fa++0m9WtUUoJtN9u6PUNrHU5NOSQpLCQ8fbKjCcRiTtGEx6UJftXm7USSqzLVZMpAnds5LZPWt
-	szEMhO4+RbgHyXLn4tlyqxk/4VUYSIHkCNYEg=
-X-Received: by 2002:a53:c584:0:b0:66a:3662:409f with SMTP id 956f58d0204a3-66c72ba0d10mr1917799d50.10.1786714036424;
-        Fri, 14 Aug 2026 06:27:16 -0700 (PDT)
-Received: from fedora ([2601:19e:8500:d3c0::28fe])
-        by smtp.gmail.com with ESMTPSA id 956f58d0204a3-66c75c9d90bsm1010793d50.8.2026.08.14.06.27.10
+        bh=ZPPcb+6L1tSSLsANqwKI7loeM1EwHu96h0gKbDhNEvI=;
+        b=oIye669/plJV3cdPV8t8ZYOmUkQGIqxeM4/BgbTsK0KpCpz+jQGBQSDUgTrz1od55D
+         17xTVUxsPmzbzXt2iF1X4uERMsdudeIBsKZuG0+BnfKQUjdzzpLCMuuPLhlzTKHX1V+7
+         pFtAqK8myVD7FZbVpU5a+iWYepqUg6EicpGOjhSaGcaUwJQ00GSklOvg6T26IclkLG3h
+         t+zuaHIwbp/9KaRhrCE0cGtPel/iuZnj7IQl3KMWUrwN/hXBortsYD2ryuTCr9IlhsQp
+         PWKuUbBf6E/Q0exvkLbmVYI2+4zDM04mP/ECJEQtRu8FRFJsCkYV2sfG59OduYtJB/v4
+         27vw==
+X-Forwarded-Encrypted: i=1; AHgh+RqEn+XYmviq9KLd5ZSZk7zXCiNFOmB3/cqQe5DmD+pFAtzIXT1LwwjzSXFZB/1+xYxC066cD4A=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yw/6NkV1NVqDOxGsPMPD9zZVJYMP1o50cIRD1VQfu9y+8bpnVa4
+	NBrS/JA46SR5iZdlb5bIxPdrjBkBh8bAD+WO6Z+UvRmXU07R3YCfKt5JtFYPiVH5btU=
+X-Gm-Gg: AR+sD12UbxHKd2uhyxjC9Ff5jvyThAW3pihD/OZJtAdsCin4YVT4lb2uy1viRw/Px+p
+	vncSteFJ4m9Ji1wfCeQokTcf2D2mwdKaGJl4xajUlj6dRAnT8dUYtmbS/axb9bvGDW1WkxTjOpm
+	l6868K6fwCDDrWiPdzc9WECTuqAXINd5umTVgLojInljrIXNkDJUndBAMfupCaoq4G+m7BiFTEC
+	IMmVOx6+Rl7YDIUk/feWPzgKdo8cIDibbvWpCfdiX7DsXUwh7n3qInDdN1mYF7+/noK6sc7ALeM
+	A5qcGBI/KUR6NnNADwqrlJ7rsJ4uN1r+o92lCcGxm7UnqX4XWa4S8391CG+0b4hI+4ErPeOYR9d
+	snurFO6aLpkpwV892ljyCNWd4tCMgkMNzy6gHLpsO5zfZj/PGiITeMYcKBr+V/a+wWJFW5ku54E
+	ypz3f+Y5xslf6t+mmizvEkY0pECXHCX/5GfDlL2OauZp45a0f0rlt6UJjJs9EdmU7H0SV+Lzd6p
+	SnWlwLMc05J2WA4pnMV3HYKfaCKNZKfruRV0eF33A==
+X-Received: by 2002:a05:6808:23d4:b0:4a4:ddde:5207 with SMTP id 5614622812f47-4b24198f27dmr12801839b6e.8.1786838496365;
+        Sat, 15 Aug 2026 17:01:36 -0700 (PDT)
+Received: from [127.0.0.1] ([198.8.77.157])
+        by smtp.gmail.com with ESMTPSA id 5614622812f47-4b24d92462dsm4347729b6e.5.2026.08.15.17.01.15
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 14 Aug 2026 06:27:15 -0700 (PDT)
-Date: Fri, 14 Aug 2026 09:27:09 -0400
-From: Gregory Price <gourry@gourry.net>
-To: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Cc: linux-mm@kvack.org, Zhigang.Luo@amd.com, arun.george@samsung.com,
-	balbirs@nvidia.com, brendan.jackman@linux.dev, yuzenghui@huawei.com,
-	apopple@nvidia.com, alucerop@amd.com, matthew.brost@intel.com,
-	akpm@linux-foundation.org, david@kernel.org, ljs@kernel.org,
-	liam@infradead.org, vbabka@kernel.org, rppt@kernel.org,
-	surenb@google.com, mhocko@suse.com, corbet@lwn.net,
-	skhan@linuxfoundation.org, gregkh@linuxfoundation.org,
-	rafael@kernel.org, dakr@kernel.org, djbw@kernel.org,
-	"Gupta, Pankaj" <pankaj.gupta@amd.com>, vishal.l.verma@intel.com,
-	dave.jiang@intel.com, alison.schofield@intel.com,
-	osandov@osandov.com, jannh@google.com, pfalcato@suse.de,
-	jackmanb@google.com, hannes@cmpxchg.org, ziy@nvidia.com,
-	pbonzini@redhat.com, osalvador@suse.de, joshua.hahnjy@gmail.com,
-	rakie.kim@sk.com, byungchul@sk.com, ying.huang@linux.alibaba.com,
-	kasong@tencent.com, qi.zheng@linux.dev, shakeel.butt@linux.dev,
-	baohua@kernel.org, axelrasmussen@google.com, yuanchu@google.com,
-	weixugc@google.com, yury.norov@gmail.com, linux@rasmusvillemoes.dk,
-	longman@redhat.com, ridong.chen@linux.dev, tj@kernel.org,
-	mkoutny@suse.com, sj@kernel.org, jgg@ziepe.ca, jhubbard@nvidia.com,
-	peterx@redhat.com, baolin.wang@linux.alibaba.com, npache@redhat.com,
-	ryan.roberts@arm.com, dev.jain@arm.com, lance.yang@linux.dev,
-	usama.arif@linux.dev, xu.xin16@zte.com.cn, chengming.zhou@linux.dev,
-	roman.gushchin@linux.dev, muchun.song@linux.dev,
-	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-	driver-core@lists.linux.dev, nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org, linux-debuggers@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, kvm@vger.kernel.org,
-	cgroups@vger.kernel.org, damon@lists.linux.dev,
-	linux-kselftest@vger.kernel.org, kernel-team@meta.com
-Subject: Re: [PATCH v5 00/36] Private Memory NUMA Nodes
-Message-ID: <an8Xrb5Phmvs0xE4@fedora>
-References: <20260720193431.3841992-1-gourry@gourry.net>
- <CAM9Jb+jpJ-Ui4qDHxsp2WiERiv8gmrQfKQ8Z0BmabefeQ6pg4A@mail.gmail.com>
- <an0cAMh_m8ZhGIm2@fedora>
- <CAM9Jb+jmxPdL-CdWQHYMT5G=qmjB6z2WFg+4K8Fod5n=2N6YCQ@mail.gmail.com>
+        Sat, 15 Aug 2026 17:01:17 -0700 (PDT)
+From: Jens Axboe <axboe@kernel.dk>
+To: Keith Busch <kbusch@kernel.org>, Christoph Hellwig <hch@lst.de>, 
+ Sagi Grimberg <sagi@grimberg.me>, linux-block@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, 
+ linux-fsdevel@vger.kernel.org, io-uring@vger.kernel.org, 
+ linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, 
+ linaro-mm-sig@lists.linaro.org, Pavel Begunkov <asml.silence@gmail.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>, 
+ Christian Brauner <brauner@kernel.org>, 
+ Andrew Morton <akpm@linux-foundation.org>, 
+ Sumit Semwal <sumit.semwal@linaro.org>, 
+ =?utf-8?q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
+ Nitesh Shetty <nj.shetty@samsung.com>, Kanchan Joshi <joshi.k@samsung.com>, 
+ Anuj Gupta <anuj20.g@samsung.com>, Tushar Gohad <tushar.gohad@intel.com>, 
+ William Power <william.power@intel.com>, 
+ Phil Cayton <phil.cayton@intel.com>, Damien Le Moal <dlemoal@kernel.org>, 
+ Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@kernel.org>, 
+ Mikulas Patocka <mpatocka@redhat.com>, 
+ Benjamin Marzinski <bmarzins@redhat.com>, 
+ Vishal Verma <vishal.l.verma@intel.com>, David Sterba <dsterba@suse.com>, 
+ Ilya Dryomov <idryomov@gmail.com>, dm-devel@lists.linux.dev, 
+ nvdimm@lists.linux.dev, linux-btrfs@vger.kernel.org, 
+ ceph-devel@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>
+In-Reply-To: <cover.1785596451.git.asml.silence@gmail.com>
+References: <cover.1785596451.git.asml.silence@gmail.com>
+Subject: Re: (subset) [PATCH v5 00/16] Add dmabuf read/write via io_uring
+Message-Id: <178683847578.1984298.10059277109543676478.b4-ty@b4>
+Date: Sat, 15 Aug 2026 18:01:15 -0600
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAM9Jb+jmxPdL-CdWQHYMT5G=qmjB6z2WFg+4K8Fod5n=2N6YCQ@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15.2
 
-On Thu, Aug 13, 2026 at 10:55:13AM +0200, Pankaj Gupta wrote:
-> >
-> > A device driver could very well just call memory-hotplug directly,
-> > or its memory could be brought up as a private node via a boot
-> > paremeter (which I have sculpted for v7).  The former is preferred,
-> > but there's a bit of a chicken/egg scenario for bootstrapping.
+
+On Sat, 01 Aug 2026 16:46:12 +0100, Pavel Begunkov wrote:
+> The patch set allows to register a dmabuf to an io_uring instance for
+> a specified file and use it with io_uring read / write requests. The
+> infrastructure is not tied to io_uring and there could be more users
+> in the future. A similar idea was attempted some years ago by Keith [1]
+> (from where I borrowed a good number of changes). Later it was brough
+> back up to life by Tushar and Vishal.
 > 
-> I find this interesting as this appears to be evolving towards a vendor
-> agnostic framework for hotplugging memory directly to private nodes.
-> 
+> [...]
 
-Agnostic would depend on a common standard for such devices.  Otherwise,
-there is still a need for per-device drivers - but hopefully the
-interaction itself can be generalized.
+Applied, thanks!
 
-> How you see this working? In particular, How would the kernel know which
-> memory ranges correspond to HBM or other device memory?
-> 
+[05/16] block: move bvec init into __bio_clone
+        commit: e228404b05c8293f6a1286856e49ba3e55da1933
+[06/16] block: introduce bio_iov_iter_set()
+        commit: 8b8755e00847da1027fe6624277e43d289e2300e
 
-Device marks the region reserved at boot, driver hotplugs.
+Best regards,
+-- 
+Jens Axboe
 
-or
 
-Device marks the region normal, but boot param sets the node private.
 
-> Please also CC me when you post v7: pankaj.gupta@amd.com
->
-
-Sure
-
-~Gregory
