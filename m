@@ -1,143 +1,139 @@
-Received: from mail-oa1-f48.google.com (mail-oa1-f48.google.com [209.85.160.48])
+Received: from mail-qk1-f171.google.com (mail-qk1-f171.google.com [209.85.222.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73B8432B110
-	for <nvdimm@lists.linux.dev>; Mon, 17 Aug 2026 04:52:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90AF544C660
+	for <nvdimm@lists.linux.dev>; Mon, 17 Aug 2026 16:19:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786942351; cv=none; b=BZ9LfMPuH1PMOhiZZFlUJEXGOQW1pNXbf33oJ43oNtY18njlKl+l3UvXn5xmJKCoidyD5pryr2Kp1Jb7fmN/WFfkIGF2oHMQK1MDWueJBhLQJd0Lvtd2IrQUfoycIXfPH7b0KXGpraFwOTjQqJ7iPkcztx1mh8XKQOr/Vk9NSRo=
+	t=1786983598; cv=none; b=kzbz8ULiq9qtx9XTWOaguhUobm4+x/rupGpdjddIdOzbuPis0kN7Qa4/0kCak/LHspZiyATcgaSy+6kUATN5aqnEAwl8CGgvRh/vcTRWg4LzK+odAYUQRxh/BA9fvZqORxtUfaQaOcgsblgp4jHWljcsHlMorYa9lyYhTHu7vHY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786942351; c=relaxed/simple;
-	bh=GJRSgVBGJeat3wAEG8z33jEB2lg7XxYymKLeUaKrn1U=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=k2PhFraMuXSI2n1Nkxire+A/ebvfCSWCxEUS4ds/gL3CaIsnidvrvpxwGQaBDAitivSCRi8Fp8+UQpOywZbnjxQNN3YML74rTaJBtWL+uqTl7zDZ6wvwX1CFo9YF7LgVKc9asb9lN1CGsQbrx11cH1E36koWIplw7OAQNc+rIc4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KOv/UINK; arc=none smtp.client-ip=209.85.160.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1786983598; c=relaxed/simple;
+	bh=nz9452HQkCizulHzHgH6sPXgLsUkaADhbih6+tFp8A8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=bPKmWZzOqm/wsTKmxVvKpDjBIc2qMAEGJHz8Mwv99UXpyi3ZsVoNDBwK9PZzGh73NP2fqf4p6Sk1iKHz48FOz1GjiXXNcz15OLW6b1kvqxkitaKiRrhQkanu0vbRxYd+7JsTyQKlKcEFwomXsvc4P7gN0FukPL7Cf3woJh0pLK4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=AEUqJZ+i; arc=none smtp.client-ip=209.85.222.171
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KOv/UINK"
-Received: by mail-oa1-f48.google.com with SMTP id 586e51a60fabf-45eb2e6402aso1053543fac.0
-        for <nvdimm@lists.linux.dev>; Sun, 16 Aug 2026 21:52:29 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="AEUqJZ+i"
+Received: by mail-qk1-f171.google.com with SMTP id af79cd13be357-92e7632b193so224794985a.2
+        for <nvdimm@lists.linux.dev>; Mon, 17 Aug 2026 09:19:54 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786942348; x=1787547148; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=lXCFBr15COi95qp1EsFgIG/0N/CfzI8VoEXN2Vn844Q=;
-        b=KOv/UINKkLFJ1cAx+7YH0CNP8e0XNgX7YKoO/xdfyHcGx45wlOoLw90yaQ2CzPCPnc
-         kaoMJ+eDOO6c7Qfroam1R9ZfL8gIz+BNWFZYpo4Tfcz6L+pKOaTgi2IsOvV+JJ0nyuxl
-         HKLNtj0KQtLamDkFFwcFTAH8SfZU0oU5N86dZKUChZuRzk/EhFthphB6ezyZPiGbVv0W
-         iZI0J+44blsKw057TGVuCeV3c9i3Skk2je++Fm4rWYn25+BIjzAB7Y1OvWJlgiFg6USH
-         AOyd/nTYSW/y7Qo4ylWl5xDKzIgQ2a5s9zqgbuzUut4SlFabkJEn5/EFwQljNLK7kVSU
-         9RXA==
+        d=gourry.net; s=google; t=1786983593; x=1787588393; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=g79rp1EAN8LS02s21Qd/CfSeDeEXT49xOteHy0W5fBY=;
+        b=AEUqJZ+i6D7Izl6EUO4a0alOadQYJi1sfUTEfW5gTDi4jYYtJz4pKIupPd7iodaJEj
+         pFIDR9XqY6821CtdpiJKFfMCBb8/pEtIq3SkDe2LAh4qxC8w8fFVPjvWymA77Ltj7EE3
+         IummCcjl4FFxyfGtAjGun9htdLjJTD7lWTxspO7sieCq5MpShPoPttJQWdK+iZHl9acV
+         WCUvdhBOOga+TJcJwufyHSn4MpGh30+PS41K8KpU8G4o0sXvqIYWtFZ5Ni92qOMGu7sG
+         5GIUYH+HxH8vKwsqk5LZkMqLWJ91jJeCfahji+s1AYuYQp5dUSyDtvBzHQ/Vu8/Rls6f
+         bQUg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786942348; x=1787547148;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=lXCFBr15COi95qp1EsFgIG/0N/CfzI8VoEXN2Vn844Q=;
-        b=o7lHweFaN57KMOG1eDLmfqpU8qwMUKmILrh+opmusq0DahqMRZAXksBmV5zNbh+TjS
-         Qoe6PlkjLhpf3B0Se20n96usNetZ0Cyu1crnPd76KOFPn+tjyG5kmRlJlLRZY7QaUxiM
-         R1TL7RKHuf2U3ae5E2UrXpvWRGYUTyjKfi8J6L4zWZPIbd3E9flnCsxLQPXYwtSnhvvx
-         fR5FaYdBZSbw/niychhy8G44co9es5yfJehzRxjgowqyyvEHVHO3iu5q2kbGa2i2y3Pd
-         XFSBXSaAVhk7+5NX/96DuPumDEpcYXGZSynPy3rJhakkmznYIkAXfWOBj41Dnxq4gfvm
-         lnWQ==
-X-Forwarded-Encrypted: i=1; AHgh+RqrJJiWMUgg6ZpY6VLDO+/GLPNRRVmH3KpHg8lE4DL6w366uaj9yn4ncO/XBWseDwDOwgqx2uQ=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yzuk5I/l+wZBnrU1KjC9DIyApb24fa3kCv7mA8u4O9epryDMlYs
-	NKOWD1+rpARY6S4hIq7T7S3ZzXrRCOevZFWXooM0qhHjkXwcIEeLPLs/
-X-Gm-Gg: AR+sD131er0DFNMcx9g+ii6yQrg6EiLrtqK1Ma/6cDDIieMe2tWGqRwJzpoCtpsB6kF
-	G3C7ESC5eDkQFD6CIm2WMj0hpmGInWhApBLwViGsaU6SRN0enH2oiCQsffBbGnr7qKPpNT2Wwry
-	+EJ7iGZ+FDY0tVWgDoaUIL1aCXd9KormNscRcmAhV43968k1kuYFEVISsjjrhx2jiRXuxAE1dkP
-	HzP9PyDTRk9ep1QWi3is2ESjUcqyCBzzQJBon5QW0sOFS5YF40ZRYPYycVVWI5R/kqX1Mhq/TSq
-	qGWqbKXbZtcZvbNOy7E4tZC50DQFcOhV8/7EP1QI4HRKJjiYGks9au9dCS+KO8ra9PM1pOsHR71
-	10SaL++3C3UgH2JIRV4I/AdXxczCPZ8qwWYR+o4e0KC9F+XPmctlY8B11ubdHnHMrtjhTUPFEQE
-	xgvBu8fuhBYoitshqFVTUw8eiAWhsgh0i7TY5YrxBn0Tg15nLRlvqS1Ha3XO+K0hUKWmLuB8GCv
-	IokxqoQxW0K/pPiX9IKqtHLXoke4NjsOw==
-X-Received: by 2002:a05:6871:680c:b0:448:c6ce:9617 with SMTP id 586e51a60fabf-45e91ce96b6mr18797832fac.5.1786942348251;
-        Sun, 16 Aug 2026 21:52:28 -0700 (PDT)
-Received: from localhost ([2a03:2880:10ff:a::])
-        by smtp.gmail.com with ESMTPSA id 586e51a60fabf-45f22aea368sm300381fac.5.2026.08.16.21.52.27
+        d=1e100.net; s=20251104; t=1786983593; x=1787588393;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=g79rp1EAN8LS02s21Qd/CfSeDeEXT49xOteHy0W5fBY=;
+        b=JQn5ctaxL25Baw4txehcLrZrPYiirA07WOLIxk8YTDuUwB32PRlsYy81w1Di8C0Rdq
+         C78VxG7mqjMc0LP0LS04Lpp6nl9VyNasu7ObPDHSXQFDe09ar5FA8nUPuWkJb6RECBAK
+         LGbF6ile1ljhLUpotK9tcNjAa8eGw2vsbAodDf7QtBpyxuZGs4XY2XbYLFahAgQ/Rv1T
+         jrurOypvClkuIbgRbTLFBfwjyWj8U10j4CQ+AxvBWUe25ngcnUHzudmCodok63kYp1AU
+         pB8ioeFiQfkkLAh9ikyl2wzz0pqNq+5JU1bGV2bPjEvgnPFu3uJ5ZaCNPFPektcZ/Vzy
+         fwmg==
+X-Forwarded-Encrypted: i=1; AHgh+Rpv/8HRrcSRvb6Xid62DNrj+KW9zmOV4C0LUtq1w3UbjeyIVxJ4lkJSaydaqc4Ipw/WMklrmnA=@lists.linux.dev
+X-Gm-Message-State: AOJu0YwWGiJg8aIR+jO1OKjzVBg8izsneHEYi0xd1XKlvJlxTZRV1XzF
+	rB/zbBbcXOiKeKHmiilVUeJKZIibN8YUALby+35SHz70Wos6BiSFAv019TogZu/EQ/Q=
+X-Gm-Gg: AR+sD10+LgsYyHgi5CLX+Ks4lK/TYlI0H2JlWthoAe80OJ2yfVyY5HO0jGQ5wwSn+Oe
+	kS5LIfRQ0guNo/IycuEXPGcPATRbE+AxX6joZNKfVYxVA0PLobm3AbfVdhc8Nsie3Kbkz91UDVC
+	GwVFsvg8AlTutQ2VncrC3TzNnh7NkGofOKvSuLzlKk4k5LdGjj+Q1n5RPGuiy20GUqfWWm4vfYC
+	h39N/Vef8vElorv64w6vYRZwEk4jWpbU0quIp/aG9xSXogvP8PFqeruC9SMt0n7zZdKC/os9XZs
+	5Ex3JxBZd+kK2KF8raLWhGjzyF4x5bnBCqbx2xptT7yayOpWnJYL5YjhrB2co4IJifGrLUv8HNb
+	X3q3tA8axd/Qu+m81xZhzxgcfEqgtnhnx8GdkJIKKtWjUAE8WBtTY5QerTn9Vo6SRXrqkoLWZIo
+	LcwbiPGxvVkpxzMdBtwP3Argv9lwtY1ObQoRYmnKn/GiuvdcvyG2O7uRtAVi1Xx82Nh4Ksw36kw
+	3UDlB2DpphukFaBStka5hbctp30+IBTESWuNmCRY5vG
+X-Received: by 2002:a05:620a:5302:b0:936:ce17:dac3 with SMTP id af79cd13be357-936d238d066mr2289883285a.40.1786983593483;
+        Mon, 17 Aug 2026 09:19:53 -0700 (PDT)
+Received: from gourry-fedora-PF4VCD3F (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-937033ce78csm80835485a.31.2026.08.17.09.19.52
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 16 Aug 2026 21:52:27 -0700 (PDT)
-From: Joshua Hahn <joshua.hahnjy@gmail.com>
-To: Gregory Price <gourry@gourry.net>
-Cc: Rakie Kim <rakie.kim@sk.com>,
-	akpm@linux-foundation.org,
-	linux-mm@kvack.org,
-	linux-kernel@vger.kernel.org,
-	linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev,
-	ziy@nvidia.com,
-	matthew.brost@intel.com,
-	joshua.hahnjy@gmail.com,
-	byungchul@sk.com,
-	ying.huang@linux.alibaba.com,
-	apopple@nvidia.com,
-	david@kernel.org,
-	ljs@kernel.org,
-	liam@infradead.org,
-	vbabka@kernel.org,
-	rppt@kernel.org,
-	surenb@google.com,
-	mhocko@suse.com,
-	dave@stgolabs.net,
-	jic23@kernel.org,
-	dave.jiang@intel.com,
-	alison.schofield@intel.com,
-	vishal.l.verma@intel.com,
-	ira.weiny@intel.com,
-	harry@kernel.org,
-	kernel_team@skhynix.com,
-	honggyu.kim@sk.com,
-	yunjeong.mun@sk.com
-Subject: Re: [PATCH 0/4] mm/mempolicy: introduce package-aware weighted interleave
-Date: Sun, 16 Aug 2026 21:52:24 -0700
-Message-ID: <20260817045225.1807518-1-joshua.hahnjy@gmail.com>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <aoJY53BJztPQYumw@gourry-fedora-PF4VCD3F>
-References: 
+        Mon, 17 Aug 2026 09:19:53 -0700 (PDT)
+Date: Mon, 17 Aug 2026 12:19:51 -0400
+From: Gregory Price <gourry@gourry.net>
+To: Rakie Kim <rakie.kim@sk.com>
+Cc: akpm@linux-foundation.org, linux-mm@kvack.org, 
+	linux-kernel@vger.kernel.org, linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev, 
+	ziy@nvidia.com, matthew.brost@intel.com, joshua.hahnjy@gmail.com, 
+	byungchul@sk.com, ying.huang@linux.alibaba.com, apopple@nvidia.com, 
+	david@kernel.org, ljs@kernel.org, liam@infradead.org, vbabka@kernel.org, 
+	rppt@kernel.org, surenb@google.com, mhocko@suse.com, dave@stgolabs.net, 
+	jic23@kernel.org, dave.jiang@intel.com, alison.schofield@intel.com, 
+	vishal.l.verma@intel.com, ira.weiny@intel.com, harry@kernel.org, kernel_team@skhynix.com, 
+	honggyu.kim@sk.com, yunjeong.mun@sk.com
+Subject: Re: [PATCH 0/4] mm/mempolicy: introduce package-aware weighted
+ interleave
+Message-ID: <aoMv3OhqkBTzSfek@gourry-fedora-PF4VCD3F>
+References: <20260806080936.421-1-rakie.kim@sk.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260806080936.421-1-rakie.kim@sk.com>
 
-On Sun, 16 Aug 2026 20:46:16 -0400 Gregory Price <gourry@gourry.net> wrote:
-
-> On Thu, Aug 13, 2026 at 03:23:48PM +0900, Rakie Kim wrote:
-> > On Wed, 12 Aug 2026 22:37:06 -0400 Gregory Price <gourry@gourry.net> wrote:
-> > 
-> > The cpuset.mems = 0,2 you describe is the node set of package 0, so
-> > the tasks in that cgroup use node0 and node2 wherever they run.
-> > 
+On Thu, Aug 06, 2026 at 05:09:31PM +0900, Rakie Kim wrote:
 > 
-> I think you are over-complicating the explanation and that's making it
-> hard for folks to reason about this.
+> To make this possible the kernel needs a notion of which nodes share a
+> package. The NUMA distance model offers only relative latencies and no
+> structural grouping, which is especially limiting for CXL memory nodes
+> that come online without an explicit package association.
 > 
-> My best understanding here is for multi-socket systems, weighted
-> interleave as-designed is inherently sub-optimal for scaled workloads
-> that utilize multi-socket ("package") memory resources (DRAM, CXL...)
 
-I was thinking about this and I think Gregory is right here.
+The original attempt to handle cross-socket interleave tried to deal
+with this with a matrix for weights, but this was deemed too invasive.
 
-I wonder how much of the framing around this series can be preserved /
-simplified if we just say "prevent tasks from allocating memory
-cross-socket".
+This brings back that matrix, but not for per-node weights - we're
+basically just adding an addition weighting to filter on.
 
-I also wonder if instead of limiting this to weighted interleave,
-this can sit on top of other mpols and just nodemasks against
-cross-socket nodes.
+I have some concerns with the now additional filtering mechanism
+introdced into the allocation stack, but fundamentally I think this is 
+a *better* solution than a straight weight-matrix.
 
-> I think there is also an assumption that total memory utilization is
-> less than the total capacity - otherwise some of the assumptions here
-> break, but that comes with the general weighted interleave story.
+I will need to chew on this for a bit.  It seems there's non-trivial
+sashiko bug reports here to address anyway.
+
+> The series adds a package-aware topology layer that groups CPU and
+> memory-only nodes into a "memory package", built from the physical
+> package ids firmware reports and, for a memory-only node, an initiator
+> CPU node or SLIT distances. A package can contain more than one CPU node
+> or more than one memory-only node, so the layer maps a package to a set
+> of nodes rather than to a single node or a single CXL device.
 > 
-> I'm getting back from vacation, I will take a closer look this week.
 
-I am also out on vacation this week : -)
-I'll take a closer look along with the code next week as well.
+When worded this way, "Package" sounds completely arbitrary and not a
+useful distinction.  This really just sounds like an extention for the
+existing fallback lists to take interconnects into account.
 
-Thanks, Rakie and Gregory!
-Joshua
+I wonder if abstract distance either:
+  1) already gives you what you want (the secondary weight)
+  2) can be twiddled in BIOS to give you what you want.
+
+> The feature is off by default and opt-in through a sysfs toggle. The
+> package topology itself is exposed read-only under
+> /sys/devices/system/package/; there is deliberately no writable
+> override, since a machine whose firmware describes its topology
+> incorrectly should be fixed in firmware. On a topology that does not
+> have the symmetric shape the placement relies on, enabling is refused
+> and any active mode degrades cleanly to the original flat behavior.
+
+The way this is written it sounds to me like this should just be the
+default weighted interleave behavior.  We already know weighted
+interleave does not jive well with multi-socket systems - this just
+fixes that (in a more general sense, Socket => Package).
+
+~Gregory
