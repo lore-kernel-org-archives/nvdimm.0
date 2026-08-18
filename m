@@ -1,280 +1,132 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv1-f49.google.com (mail-qv1-f49.google.com [209.85.219.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 296E326AE5;
-	Tue, 18 Aug 2026 07:08:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D420547886A
+	for <nvdimm@lists.linux.dev>; Tue, 18 Aug 2026 13:30:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787036902; cv=none; b=bo4WSbXK2OKzAXh58hzH0NXoxik6FWLk3SoBbBl30v6m3aBfig4Act8nkr7zSHIw5xj6fCqVooHEk7n/rgfGu2Aj3MYkHVdR3c/9FTvpAIi9B4Aww9hDAJi0BGdu0BZh95AvMBB/hJhPnYKY+HrDkk+G9F66Ol4CsAVYfqm6w/8=
+	t=1787059843; cv=none; b=D7OJBE7S8g8MOS59WsbrQXULDBYv98OsGt+Q/Md42xdLiEdkGFggDDh3BanCjk9ZBwyMPY8VDeSrlwjmjgJI1Dam5AvzEm61wMLua/D+WK9VYvAsVVtJiFwEt93ese653atf631gHUGGHKcjNJls7cNHkmY0viyFvuj8TlxiBqY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787036902; c=relaxed/simple;
-	bh=l/419XZXkAWDjlMDRws2++0fLyD0VDmz2P57GWPFBFo=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=oLiaPI6rl5NT+RD1N+dQsKo9P4ja7C2HpED9wPbBB7Lct6MTTeOQ4VJV45tGRrpRjARTS1J0MtC6Xb59I1/SqDWAlHleKkLIdDgbOlfzNZRvcHNoRW5+OmT+NtLa3dU4ukd0pco+WoXt3AgiD7N56tyUT58amkHtHuOlT2otFuU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gSCMDPJG; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787059843; c=relaxed/simple;
+	bh=9EtrV7OjP64RmR5TwTSWprliKDtLV5/e6pRMrGJB82k=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=YVUA5ldXuT10fCwilVG7WeWoDKFm7TEAWTTGSmGY5HI3m8A6d/Nl9uEmpkMHQmpCYgQh6up0q2HzkkkA20qiaKr1di5xsk1ZwMbW2sPFsSBoz3TCGbVHBC8CL58w9mioS1yxotGmVzEWfWtrUnLNNyG23GtsGtNZ4zOmBvGsr0A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=k68DMtyq; arc=none smtp.client-ip=209.85.219.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gSCMDPJG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 290911F00A3A;
-	Tue, 18 Aug 2026 07:08:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787036900;
-	bh=OJWwT1pxPD5QyI83sGp5gqWWT9hcHXQl/xlvBToC+M4=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=gSCMDPJGbrCHu+5p6+1Yq0H+yk9h9W6iFybV4rFgnQno9h0F2tkL1xxTRCOXsbyhA
-	 fmyoBJQ/wWZDqrPaETcNPFbv1CNmX37EZoacfK5lSakac/i8jTsEQZ15jrp/Xz47l4
-	 +ZlnWVQXnvyZH4Ytw+IJ3fsSHWNHnO0jdKdmuX53p92tR31iYhHk1W4pjOM/k0yqxc
-	 6pmXx2dHtP5SPJHztg1sHsZ2/2n1tSe9hIv+SideG6NRMZZO7pxiuv+tjwnBCqN/a3
-	 hYuRdhESoKBVH/etd/f7NfjXfj5tasjwDwoCy3u6UfraO+20hK+wae63kB59llewbG
-	 MOrvBAW2eCEQg==
-From: Yu Kuai <yukuai@kernel.org>
-To: Jens Axboe <axboe@kernel.dk>,
-	Tejun Heo <tj@kernel.org>,
-	Josef Bacik <josef@toxicpanda.com>,
-	Johannes Weiner <hannes@cmpxchg.org>,
-	=?UTF-8?q?Michal=20Koutn=C3=BD?= <mkoutny@suse.com>
-Cc: Yu Kuai <yukuai@fygo.io>,
-	Christoph Hellwig <hch@lst.de>,
-	Tao Cui <cui.tao@linux.dev>,
-	Jan Kara <jack@suse.cz>,
-	Ming Lei <ming.lei@redhat.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Coly Li <colyli@fygo.io>,
-	Kent Overstreet <kent.overstreet@linux.dev>,
-	Alasdair Kergon <agk@redhat.com>,
-	Mike Snitzer <snitzer@kernel.org>,
-	Mikulas Patocka <mpatocka@redhat.com>,
-	Benjamin Marzinski <bmarzins@redhat.com>,
-	Song Liu <song@kernel.org>,
-	Li Nan <magiclinan@didiglobal.com>,
-	Xiao Ni <xiao@kernel.org>,
-	Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
-	Dan Williams <djbw@kernel.org>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Ira Weiny <iweiny@kernel.org>,
-	Andreas Gruenbacher <agruenba@redhat.com>,
-	Matthew Wilcox <willy@infradead.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Chris Li <chrisl@kernel.org>,
-	Kairui Song <kasong@tencent.com>,
-	Kemeng Shi <shikemeng@huaweicloud.com>,
-	Nhat Pham <nphamcs@gmail.com>,
-	Baoquan He <baoquan.he@linux.dev>,
-	Barry Song <baohua@kernel.org>,
-	Youngjun Park <youngjun.park@lge.com>,
-	cgroups@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-block@vger.kernel.org,
-	linux-bcache@vger.kernel.org,
-	dm-devel@lists.linux.dev,
-	linux-raid@vger.kernel.org,
-	nvdimm@lists.linux.dev,
-	virtualization@lists.linux.dev,
-	gfs2@lists.linux.dev,
-	linux-fsdevel@vger.kernel.org,
-	linux-mm@kvack.org
-Subject: [RFC PATCH v3 3/3] blk-cgroup: move async bio punt state to blkcg
-Date: Tue, 18 Aug 2026 15:06:41 +0800
-Message-ID: <20260818070641.756747-4-yukuai@kernel.org>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20260818070641.756747-1-yukuai@kernel.org>
-References: <20260818070641.756747-1-yukuai@kernel.org>
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="k68DMtyq"
+Received: by mail-qv1-f49.google.com with SMTP id 6a1803df08f44-8f186025973so42435296d6.0
+        for <nvdimm@lists.linux.dev>; Tue, 18 Aug 2026 06:30:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gourry.net; s=google; t=1787059839; x=1787664639; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=ax6pSQ+/xfd4HZ06hVopmXYjHWPwUVuXeBPTbOtm2CI=;
+        b=k68DMtyq32ujZVD7Z3pJZT751NsCKAosIH8aGviK767auPbGfMCCu0TBipoQ5mtTf6
+         b+93BV46WXA+Q6RXbOpUz2NtAKgB2FOD3MLiKNVKspoFJmoDDeXKRCKQXgX1Jmzzq4Zq
+         EsTrz2BOQO7A2ZCzx/b1dkUl/uHNNlfByZVVCSjpoloPO6W6QmDQsWwdF0nstjnep/te
+         gIR6Yz7twql/iLV2nwqbuVTmMQHnTLCsIpR4uEVlCIEobt5kxbAxKWVyV74covP3yopt
+         mv8g7vCGu4i89Kegs4G/UeCjKbAQIOxVbvCh2J1uuvmBVTVi+ZSwuGvES0LK4EZ2V9iw
+         rnrQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1787059839; x=1787664639;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=ax6pSQ+/xfd4HZ06hVopmXYjHWPwUVuXeBPTbOtm2CI=;
+        b=sJ71Eof5a4M8SLi4rRe9ODfkcXdn6KrnKUJQFhOz5IF8HgxlnUon/ho4Li5PYm8Qag
+         PpidAxhLisP1Z1PL/DwnB6hRrQaSRosQ7Grbk5TYCC15mKs6WiY4FuUJFPynMK0hgJqf
+         BfXvV0zS3d3FEzZExackJ585oHUy88fTGvqE3sRfLXSo9xtEh+eXqklhECvaCaHvXU8U
+         2mydquvm5ZkP8MGP5+B/Llv0V3IhusCpuU60s/oY3IXCnokUwDqzwzMFW+J4oVQD+zcG
+         pcOngPirzt8h/+rDvDuz3QUER40FtuCCZZ6Lkbkmh66yXr8Gip07+4d9zfUZncvMh6or
+         1b6Q==
+X-Forwarded-Encrypted: i=1; AHgh+RrMeazgCWdH2UGk328iX9M9GnHipe4Bxzyj9JNu4YRp6V4xcI2UpELZwNKZBkqQyi7EyB/0U0w=@lists.linux.dev
+X-Gm-Message-State: AOJu0YxzE991v/ye/bbAGcZKdjpwMas41FG60/Zh52BNI/3NV22v6UYX
+	btCvPlF8m77ccjpFgju8+tY7M5sO4Y/SSX0NIaPg8Zm9r5iFoecvx0C4m4Ji4J6VmqA=
+X-Gm-Gg: AR+sD12DisjcPNF6wpLUBKqk2CXLaJAOsID7mCPBXLbSyRS9+MavZJABnFHjjOANCsz
+	ZXraxllssd6Xa8XdE1Vgr9DOOYLpXmCPsIGcybnv5uMOilMluEigVHGtiUSX0n+5p0S0jCN4eLX
+	XyBODr77d9zg6wTQpnUnbk15m1Rc1PJZeFlQdZIr+pd3YOt+QODvzhGOxQFX9Bdb3Sy7OqdxV1a
+	Ctrapa+qJDjpVYlKUcNEEk6mj8TyWu+i/JROpRKoXn/pseryNs3wFyLLVHHRmW6faFERjBCCQq3
+	fVyp8hjXLj6lezjLD6J5YxH5KTqxChcrq27sM5rgvNQ221XBRh+LKPN6yeZRBXd/9+M4jfY75K8
+	9xFay/XhQ3tT8kLkvlO8SrulrJtDRWvMaf/NUmZFUcwpsycza7t8jz9tV7zzq9hbgpyVjfX+iKM
+	Ihml+du8bumf+9ffo/nkMlwKp+7XPg1sid2TnjeeMaCf3kShKschXZB6yWD+T+tzZUgwX5v1KaX
+	3V2CwXjPO4L2GGu0MbMY1Qmd0O7sfMcGv2Sos5xIcUd
+X-Received: by 2002:a05:6214:498a:b0:908:a54a:5b29 with SMTP id 6a1803df08f44-90a91deefccmr394858816d6.24.1787059838767;
+        Tue, 18 Aug 2026 06:30:38 -0700 (PDT)
+Received: from gourry-fedora-PF4VCD3F (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-90c4580fcc4sm32688846d6.4.2026.08.18.06.30.37
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 18 Aug 2026 06:30:38 -0700 (PDT)
+Date: Tue, 18 Aug 2026 09:30:36 -0400
+From: Gregory Price <gourry@gourry.net>
+To: Rakie Kim <rakie.kim@sk.com>
+Cc: akpm@linux-foundation.org, linux-mm@kvack.org, 
+	linux-kernel@vger.kernel.org, linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev, 
+	ziy@nvidia.com, matthew.brost@intel.com, joshua.hahnjy@gmail.com, 
+	byungchul@sk.com, ying.huang@linux.alibaba.com, apopple@nvidia.com, 
+	david@kernel.org, ljs@kernel.org, liam@infradead.org, vbabka@kernel.org, 
+	rppt@kernel.org, surenb@google.com, mhocko@suse.com, dave@stgolabs.net, 
+	jic23@kernel.org, dave.jiang@intel.com, alison.schofield@intel.com, 
+	vishal.l.verma@intel.com, ira.weiny@intel.com, harry@kernel.org, kernel_team@skhynix.com, 
+	honggyu.kim@sk.com, yunjeong.mun@sk.com
+Subject: Re: [PATCH 0/4] mm/mempolicy: introduce package-aware weighted
+ interleave
+Message-ID: <aoRbDEn1sQ7b22dy@gourry-fedora-PF4VCD3F>
+References: <aoMv3OhqkBTzSfek@gourry-fedora-PF4VCD3F>
+ <20260818060201.1907-1-rakie.kim@sk.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260818060201.1907-1-rakie.kim@sk.com>
 
-From: Yu Kuai <yukuai@fygo.io>
+On Tue, Aug 18, 2026 at 03:01:58PM +0900, Rakie Kim wrote:
+> On Mon, 17 Aug 2026 12:19:51 -0400 Gregory Price <gourry@gourry.net> wrote:
+> 
+> > I have some concerns with the now additional filtering mechanism
+> > introdced into the allocation stack, but fundamentally I think this is
+> > a *better* solution than a straight weight-matrix.
+> 
+> About the cost of the filter: when the toggle is off, the filter does
+> not run. When it is on, node selection needs a nodemask filtering
+> step, but in my tests the overhead was negligible. I will look at
+> this part further and check whether there is more room to optimize.
+> 
 
-blkcg_punt_bio_submit() currently queues punted bios on blkg->async_bios,
-so it has to call bio_blkg() to find or create a queue-local blkg.  Bios
-now carry and pin the blkcg css, so punted bio lifetime no longer needs to
-be anchored by a blkg.
+Not concerned about the performance, concerned about how complicated the
+mempolicy - cgroup - zonelist - page_alloc interaction already is, and
+then adding another filtering mechanism on top.
 
-Keeping the punt state in blkg can instantiate a blkg even when no blkcg
-policy is enabled, just to bounce submission from a shared kthread.  Move
-async_bio_lock, async_bios and async_bio_work to struct blkcg, and queue
-punted bios on bio_blkcg() for non-root cgroups.  Root or unassociated bios
-are submitted directly.
+Today we have:
 
-This preserves the priority-inversion avoidance while preventing
-blkcg_punt_bio_submit() from creating blkgs that are not needed by any
-policy.
+1) cpuset constrains mempolicy (nodemask remaps)
+2) cpuset constrains zonelist walks
+3) mempolicy nodemask constrains zonelist walks
+4) memory-tiers.c nodemask constrains zonelist walks for demotion
+5) zonelist membership constrains allocation access
+6) a bunch of corner conditions that violate 1-3 for the sake of forward
+   progress
 
-Signed-off-by: Yu Kuai <yukuai@fygo.io>
----
- block/blk-cgroup.c | 44 +++++++++++++++++++++-----------------------
- block/blk-cgroup.h | 14 ++++++--------
- 2 files changed, 27 insertions(+), 31 deletions(-)
+now we're adding:
 
-diff --git a/block/blk-cgroup.c b/block/blk-cgroup.c
-index c3bbcb3e7e58..2c758c26bce6 100644
---- a/block/blk-cgroup.c
-+++ b/block/blk-cgroup.c
-@@ -178,14 +178,10 @@ static void blkg_free(struct blkcg_gq *blkg)
- 
- static void __blkg_release(struct rcu_head *rcu)
- {
- 	struct blkcg_gq *blkg = container_of(rcu, struct blkcg_gq, rcu_head);
- 
--#ifdef CONFIG_BLK_CGROUP_PUNT_BIO
--	WARN_ON(!bio_list_empty(&blkg->async_bios));
--#endif
--
- 	blkg_free(blkg);
- }
- 
- /*
-  * A group is RCU protected, but having an rcu lock does not mean that one
-@@ -224,23 +220,22 @@ static void blkg_release(struct percpu_ref *ref)
- }
- 
- #ifdef CONFIG_BLK_CGROUP_PUNT_BIO
- static struct workqueue_struct *blkcg_punt_bio_wq;
- 
--static void blkg_async_bio_workfn(struct work_struct *work)
-+static void blkcg_async_bio_workfn(struct work_struct *work)
- {
--	struct blkcg_gq *blkg = container_of(work, struct blkcg_gq,
--					     async_bio_work);
-+	struct blkcg *blkcg = container_of(work, struct blkcg, async_bio_work);
- 	struct bio_list bios = BIO_EMPTY_LIST;
- 	struct bio *bio;
- 	struct blk_plug plug;
- 	bool need_plug = false;
- 
--	/* as long as there are pending bios, @blkg can't go away */
--	spin_lock(&blkg->async_bio_lock);
--	bio_list_merge_init(&bios, &blkg->async_bios);
--	spin_unlock(&blkg->async_bio_lock);
-+	/* as long as there are pending bios, @blkcg can't go away */
-+	spin_lock(&blkcg->async_bio_lock);
-+	bio_list_merge_init(&bios, &blkcg->async_bios);
-+	spin_unlock(&blkcg->async_bio_lock);
- 
- 	/* start plug only when bio_list contains at least 2 bios */
- 	if (bios.head && bios.head->bi_next) {
- 		need_plug = true;
- 		blk_start_plug(&plug);
-@@ -257,19 +252,19 @@ static void blkg_async_bio_workfn(struct work_struct *work)
-  * cgroup.  Use this helper instead of submit_bio to punt the actual issuing to
-  * a dedicated per-blkcg work item to avoid such priority inversions.
-  */
- void blkcg_punt_bio_submit(struct bio *bio)
- {
--	struct blkcg_gq *blkg = bio_blkg(bio);
-+	struct blkcg *blkcg = bio_blkcg(bio);
- 
--	if (blkg && blkg->parent) {
--		spin_lock(&blkg->async_bio_lock);
--		bio_list_add(&blkg->async_bios, bio);
--		spin_unlock(&blkg->async_bio_lock);
--		queue_work(blkcg_punt_bio_wq, &blkg->async_bio_work);
-+	if (blkcg && cgroup_parent(blkcg->css.cgroup)) {
-+		spin_lock(&blkcg->async_bio_lock);
-+		bio_list_add(&blkcg->async_bios, bio);
-+		spin_unlock(&blkcg->async_bio_lock);
-+		queue_work(blkcg_punt_bio_wq, &blkcg->async_bio_work);
- 	} else {
--		/* Never bounce if there is no non-root blkg to queue on. */
-+		/* Never bounce if there is no non-root blkcg to queue on. */
- 		submit_bio(bio);
- 	}
- }
- EXPORT_SYMBOL_GPL(blkcg_punt_bio_submit);
- 
-@@ -348,15 +343,10 @@ static struct blkcg_gq *blkg_alloc(struct blkcg *blkcg, struct gendisk *disk,
- 	blkg->q = disk->queue;
- 	INIT_LIST_HEAD(&blkg->q_node);
- 	blkg->blkcg = blkcg;
- 	blkg->blkcg_id = blkcg->css.id;
- 	blkg->iostat.blkg = blkg;
--#ifdef CONFIG_BLK_CGROUP_PUNT_BIO
--	spin_lock_init(&blkg->async_bio_lock);
--	bio_list_init(&blkg->async_bios);
--	INIT_WORK(&blkg->async_bio_work, blkg_async_bio_workfn);
--#endif
- 
- 	u64_stats_init(&blkg->iostat.sync);
- 	for_each_possible_cpu(cpu) {
- 		u64_stats_init(&per_cpu_ptr(blkg->iostat_cpu, cpu)->sync);
- 		per_cpu_ptr(blkg->iostat_cpu, cpu)->blkg = blkg;
-@@ -1388,10 +1378,13 @@ static void blkcg_css_free(struct cgroup_subsys_state *css)
- 		if (blkcg->cpd[i])
- 			blkcg_policy[i]->cpd_free_fn(blkcg->cpd[i]);
- 
- 	mutex_unlock(&blkcg_pol_mutex);
- 
-+#ifdef CONFIG_BLK_CGROUP_PUNT_BIO
-+	WARN_ON(!bio_list_empty(&blkcg->async_bios));
-+#endif
- 	free_percpu(blkcg->lhead);
- 	kfree(blkcg);
- }
- 
- static struct cgroup_subsys_state *
-@@ -1436,10 +1429,15 @@ blkcg_css_alloc(struct cgroup_subsys_state *parent_css)
- 	}
- 
- 	spin_lock_init(&blkcg->lock);
- 	refcount_set(&blkcg->online_pin, 1);
- 	INIT_HLIST_HEAD(&blkcg->blkg_list);
-+#ifdef CONFIG_BLK_CGROUP_PUNT_BIO
-+	spin_lock_init(&blkcg->async_bio_lock);
-+	bio_list_init(&blkcg->async_bios);
-+	INIT_WORK(&blkcg->async_bio_work, blkcg_async_bio_workfn);
-+#endif
- #ifdef CONFIG_CGROUP_WRITEBACK
- 	INIT_LIST_HEAD(&blkcg->cgwb_list);
- #endif
- 	list_add_tail(&blkcg->all_blkcgs_node, &all_blkcgs);
- 
-diff --git a/block/blk-cgroup.h b/block/blk-cgroup.h
-index 936428b6127e..eb76cc38b41b 100644
---- a/block/blk-cgroup.h
-+++ b/block/blk-cgroup.h
-@@ -75,18 +75,11 @@ struct blkcg_gq {
- 
- 	struct blkg_iostat_set __percpu	*iostat_cpu;
- 	struct blkg_iostat_set		iostat;
- 
- 	struct blkg_policy_data		*pd[BLKCG_MAX_POLS];
--#ifdef CONFIG_BLK_CGROUP_PUNT_BIO
--	spinlock_t			async_bio_lock;
--	struct bio_list			async_bios;
--#endif
--	union {
--		struct work_struct	async_bio_work;
--		struct work_struct	free_work;
--	};
-+	struct work_struct		free_work;
- 
- 	atomic_t			use_delay;
- 	atomic64_t			delay_nsec;
- 	atomic64_t			delay_start;
- 	u64				last_delay;
-@@ -111,10 +104,15 @@ struct blkcg {
- 	/*
- 	 * List of updated percpu blkg_iostat_set's since the last flush.
- 	 */
- 	struct llist_head __percpu	*lhead;
- 
-+#ifdef CONFIG_BLK_CGROUP_PUNT_BIO
-+	spinlock_t			async_bio_lock; /* protects async_bios */
-+	struct bio_list			async_bios;
-+	struct work_struct		async_bio_work;
-+#endif
- #ifdef CONFIG_BLK_CGROUP_FC_APPID
- 	char                            fc_app_id[FC_APPID_LEN];
- #endif
- #ifdef CONFIG_CGROUP_WRITEBACK
- 	struct list_head		cgwb_list;
--- 
-2.51.0
+7) memory-tiers.c nodemask constrains mempolicy nodemask
+   except when it doesn't, because fallbacks occurred hard enough
 
+It's already un-intuitive how and when memory lands on certain nodes.
+
+To be clear, I'm not saying this idea is bad - either as-is or in some
+other form - just that adding another nodemask filtering path is making
+it harder and harder to understand what lands where.
+
+Mostly starting to wonder if we're reaching the point where the page
+allocator needs to take something a little more descriptive than a
+nodemask to dictate placement.
+
+~Gregory
