@@ -1,816 +1,231 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv1-f51.google.com (mail-qv1-f51.google.com [209.85.219.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26032390614
-	for <nvdimm@lists.linux.dev>; Fri, 21 Aug 2026 18:55:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 954633DD522
+	for <nvdimm@lists.linux.dev>; Fri, 21 Aug 2026 19:39:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.219.51
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787338544; cv=fail; b=g+dOUQsGcowOO/VbrPX1a+jy18BtJlMSBv6I9OQP2xiC5KPYUV8SlPMjtFirWVUMulapz6bVVL+xHYCdHYBzhjNxEu17vO7F/lhrtrXVPVNIhQU4ftp7/0tQzZVaY2FvXlkwpqtT0/oZf1WacQQfW+6bQTZUAdjSG+1gVdCJRVY=
+	t=1787341182; cv=pass; b=TL4fQsQnTjDGptT5jeW665jr66p0ZPcNzrm0p38Z7IIpNPnkAPyyWDYgXKICkSvMdl33Zmjck0Rsd8oSThqam5t8QTjkP1aRXkzRasnJHQmHZ7fwJy+JFISrQ7ucfsgXqf3ftCsorvUP0wDnbteljdzgTb10rG3MNhOV0wXmFdE=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787338544; c=relaxed/simple;
-	bh=zNOkh7yVdTEp2wT3fChZSsJAV6k47sMEsbpDIItrObE=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=Q66T2rLuLMkl7/GK7uIS5xNdmix2GvcxlhGHcXIrWG9j0ATSQ8LSpKFHzOD99pHvqrH0GAlAAE2p9Crp2hXI99TR1PGpFbkVh8H1hqMykcAOW5fmdd+67QhDbkS3vNV8c7hmR2Z1kulyDTp1NxXlaCuUbkn56d6MfZjomaMPMZU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=BmI2D1rh; arc=fail smtp.client-ip=192.198.163.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1787341182; c=relaxed/simple;
+	bh=2QaAsriM6IS3lTgDPUOF48nwqc8aTC29sa5P2y66CZ8=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=ZcGISLI7zti0A4VRUFkCA+NoEqTnMmJNpz4WmbwGDrg9gVyFcBdr7DYl+D8KhkLh38ERpkm8ilSvccasKlKTIIrtG0pWhb9h+MmZ0qUTxwPeYGF0piE22St1Z172m9MHZhbCDtPGkKC6oj7Z7p4z+Ue7k5uLT8JtJteRh1WvFjk=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=mQeL9GCo; arc=pass smtp.client-ip=209.85.219.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="BmI2D1rh"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1787338540; x=1818874540;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=zNOkh7yVdTEp2wT3fChZSsJAV6k47sMEsbpDIItrObE=;
-  b=BmI2D1rhcl3GG4v/jevcA7LEHWZEVECBGslK/CvgRP/dmGBGHY8pMNt5
-   xlczerQeh5/UuE3g4j3vB8HzIN1kUdK4Ts37GphibfdTH8Ff+nLwTfnYe
-   KfNR+sGqbj13qdrPrAMGpXVrQT+1XuH7XGkMDvYBkROEYaQPB0858R4qG
-   TyPhw3/LRvmAQFiEu3PiOvTrFOApADT8L/1IIRwkiudub3PXZdOoRpQUG
-   U7pDzgSlajD2jZO/0v3A6UDF4thL/hx7QTFwjo7j3lQ1TWgflNiUyqSuT
-   HU45QP8VRKPffNCcrMF9nSJTSq2P0gDxBCMMvcMKtdW23ViXk7KxeKamm
-   g==;
-X-CSE-ConnectionGUID: cTusG3M8QeqEhwfwZ49hGA==
-X-CSE-MsgGUID: XCaS/Jt4SaOtfxKhjV9byg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11882"; a="87912663"
-X-IronPort-AV: E=Sophos;i="6.25,235,1779174000"; 
-   d="scan'208";a="87912663"
-Received: from orviesa005.jf.intel.com ([10.64.159.145])
-  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Aug 2026 11:55:39 -0700
-X-CSE-ConnectionGUID: JdXD6qwZQQmfjqdvRMxzQA==
-X-CSE-MsgGUID: UxinhZNZSjunjPCW8AUhqQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,235,1779174000"; 
-   d="scan'208";a="270645340"
-Received: from orsmsx902.amr.corp.intel.com ([10.22.229.24])
-  by orviesa005.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Aug 2026 11:55:39 -0700
-Received: from ORSMSX902.amr.corp.intel.com (10.22.229.24) by
- ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45; Fri, 21 Aug 2026 11:55:38 -0700
-Received: from ORSEDG903.ED.cps.intel.com (10.7.248.13) by
- ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45 via Frontend Transport; Fri, 21 Aug 2026 11:55:38 -0700
-Received: from BN8PR05CU002.outbound.protection.outlook.com (52.101.57.5) by
- edgegateway.intel.com (134.134.137.113) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45; Fri, 21 Aug 2026 11:55:38 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=yNsNaKvVQ7dTyWNnf0o2hajrDINyqVwY0Co30FOTZx/LSu0gYMP7P6vjt1abjC7wgsb+11RDJho646RcJ/PDSwOdI/IQb5GJWdISgj3kOeX4yRmvRkWI3z2I0URg7iIcwopSQsbycuvvg+ZHPYTAp8YQyHWhYZ17xLEEiQYNUKteYoFozDUD1pbXKn8+/h+cssntsslwmVp2F4XAZc9u4QyPs0BlOR9DYZIfQQc9/C4xg4BNco5MRj2On2OwTR5Txf9niG9nzRnQ7VbXJLwRZw3LWiV/ZBrnVNEhf0FHokIAbLtcWaPzDK71EezXBOpGpPLI2nB01e8MfqvNQT3PNQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=riX8yei1JYRgHZozQuslFPDVDr/iEy1sFb+57hFFEOQ=;
- b=bGWsz//47O56cCvLmlzQi34OMxn+0rzH9TcZaD/xORwwExqUCKVY5OGLwQ8TNhbv8vgNC4C3jJSIAQnhrhmTp7E9TL0ScRXuHPTc6jrnMh1ysMkdt1mEzjNQ+gPAJ+nuU5tb4SA25qsbD6gl3GbkbgUM8Jr9nYli3+yEgHmECdTLTHmEztG1jBjm2i1urqpB3Np6khE6dOjk8Kkxihk795W9KkBIwTeVw3tLrgq2PuoEnq3vAf46HhS4ONAyfjC6l18ZGaETdPilzwCSsJFVgbPVoNw5/lWd48y/ZIDxRybY95aF6/imWRam5M/DKYRk7FEHj+7KYGxPW3VxTNaGHg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com (2603:10b6:f:fc02::9)
- by SJ2PR11MB7598.namprd11.prod.outlook.com (2603:10b6:a03:4c6::17) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.339.11; Fri, 21 Aug
- 2026 18:55:20 +0000
-Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com
- ([fe80::e721:90d7:9214:2d53]) by DS4PPF0BAC23327.namprd11.prod.outlook.com
- ([fe80::e721:90d7:9214:2d53%6]) with mapi id 15.21.0339.010; Fri, 21 Aug 2026
- 18:55:19 +0000
-Date: Fri, 21 Aug 2026 11:55:10 -0700
-From: Alison Schofield <alison.schofield@intel.com>
-To: Anisa Su <anisa.su887@gmail.com>
-CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>, Dave Jiang <dave.jiang@intel.com>, "Jonathan
- Cameron" <jic23@kernel.org>, Fan Ni <nifan.cxl@gmail.com>, Li Ming
-	<ming.li@zohomail.com>, Vishal Verma <vishal.l.verma@intel.com>, "Davidlohr
- Bueso" <dave@stgolabs.net>, Ira Weiny <iweiny@kernel.org>, Benjamin Cheatham
-	<benjamin.cheatham@amd.com>, Wonjae Lee <wj28.lee@samsung.com>, Junhee Park
-	<jh9934.park@samsung.com>, Heesoo Kim <habil.kim@samsung.com>
-Subject: Re: [PATCH v12 2/8] cxl/mem: Read dynamic capacity configuration
- from the device
-Message-ID: <aoifDloGeFpYk-RQ@aschofie-mobl2.lan>
-References: <20260731084901.1512819-1-anisa.su@samsung.com>
- <20260731084901.1512819-3-anisa.su@samsung.com>
- <anENkWO2G5tdPtNb@aschofie-mobl2.lan>
- <anGtDPQ41N-SGQFG@AnisaLaptop.localdomain>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <anGtDPQ41N-SGQFG@AnisaLaptop.localdomain>
-X-ClientProxiedBy: SJ0PR03CA0061.namprd03.prod.outlook.com
- (2603:10b6:a03:331::6) To DS4PPF0BAC23327.namprd11.prod.outlook.com
- (2603:10b6:f:fc02::9)
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="mQeL9GCo"
+Received: by mail-qv1-f51.google.com with SMTP id 6a1803df08f44-8ee43b3e5abso9074606d6.3
+        for <nvdimm@lists.linux.dev>; Fri, 21 Aug 2026 12:39:39 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1787341178; cv=none;
+        d=google.com; s=arc-20260327;
+        b=hgYGlbbiaWC073qdcpnVDjwJI1G4/g79GjypJJWQ3esG/Z5+MqS6XZ2Xyh843OP+Rz
+         +dauaKWRAym43pWp3nwWbORiqxKKd2qpZqwBk9emROSb4FhkBMGkroem0wz3hCM/7TyB
+         hhxs2t7+nB4UqHvTq7AzUSyK0okoD78VZqTwRTUCgF9/zHqbvGIrN03ss7vbrRRU1DAz
+         /xq+zDGvJNEkS10G25bJ2tSc9CF0mh7WpqlXngVIhCH/JZaOPX0i4jfEeQjmkFDj2rTo
+         bqi+FgJPEljrGu2xUeVylNaCeQqP6nk+h336g/UjcfPbRNq5ALJhgv69vwqSKIrFIRcE
+         rLyA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=KUV4QsUdOhj/C4gedxjcRezZM90WK5l233fM+QINPEo=;
+        fh=XMPy9mE5Cx7fgCMhKuTKWZcVd78vSlTSb11N4ClxiFE=;
+        b=domEfAVL6UpfNbcusuLHEKHxoOjlL/eL2PgrCWpf3Z7qgDh5c0VFRrSy9jaS27eXiQ
+         1HS7UrKg9Y9lLug06Dcjgzp9jtBpEHg2kKoIz/eK/cFumxyjbud3M35vOV9R/9FkcFYc
+         3ZItkLQH9Cj7OJ9y2yocjnK6hwr7s5+hSjXqLGA7HGSSTMmrYxgePx/4haxA9Ut29O9t
+         RYKLMVBLmyV/bM+XGz080OPKOSpJfhnvRZ5QJlnHWwMnEgaXKKhgeMnn2VD//7ulddjB
+         2I4REcqYMd4nOavv1Za19eoTE3PePzJZTjuFoe5R77Np8bVw9DhGCt0QAMgh7Zd75mu3
+         sl0g==;
+        darn=lists.linux.dev
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google; t=1787341178; x=1787945978; darn=lists.linux.dev;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=KUV4QsUdOhj/C4gedxjcRezZM90WK5l233fM+QINPEo=;
+        b=mQeL9GCoFxkza2lAYix+dA594MljsVKaN/TPELf1NkbVPKSKL4xGW+UkkXmwhcCdDV
+         +gLQmmtteCQv7nVbiFF9wsAu0FUSqPXftOkV93ugrTeYW+O+aE4GOtJkpFacY+N/T9dK
+         hW+NPr9mnZAGl6qXfrMYYGxVp2qIzIptsM1yg=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1787341178; x=1787945978;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=KUV4QsUdOhj/C4gedxjcRezZM90WK5l233fM+QINPEo=;
+        b=cH6pbtVCnCEPvcSIclmjSn855cskSrDe8KRor9wNoPrChLg3zQh5b2M1Nv+Eo73ujC
+         lDrGySKigKHd/mE8TxMo/L2rRxEp4/vJ7THyHbS7ps22m8lI0NhJ2G3JkgNCT8CFRjAp
+         5awhlbVoSFiWxQg4u2vM33r4MmLOZDAHrZCt2TzQWEJ9rzwpc3wbab0ahn5c9B0jbTDx
+         YaRA35F2B4tOFun8gsmdJ3KcThan7jmjUF+eGZAhLA92ZOK8JsQjIjQjhPrZMV9G1/sv
+         +IS6LQg3GD/XuNdw89Oci6QJVnCsQYnpGxcWcSaOs+dsHrDC78bMz8BCS4MO+eThipC8
+         1oNA==
+X-Forwarded-Encrypted: i=1; AHgh+Rpk06InJaaEGYmYglCKM2SeW09LAyfqwk+AQAArkpo2iL6/Uhe93WBFvml95idkrflXMLwum+U=@lists.linux.dev
+X-Gm-Message-State: AFuF++l9vDhi8Edzu8tuDOK2vR2XrWVLLya26tBUZQhgbwT55KpF6mXz
+	YtF1XZbaO9LmbXnmjnLja/IdR5UGa2eq9uw+9bYa0dwz9ZNviYn2pLIDfIMY/c+J7JWzhJ/tJlG
+	ii83aGjTs+k62VU007R3eAOVfcCzE0ZsBUEA0dr8AXA==
+X-Gm-Gg: AR+sD10rxJHh0SM5j0bmxCWcE18720imsfSuN7jCfcXeoCyib9cUZm+qoRJd6FdDSbg
+	4yGUXrmkjG8SpbsjtqfhAfhoEPPNDggszfalXTBvquvUDeUiGbxrCHRIp9HbRXRcCcaY37vpRJr
+	Cxj+X8V6N+lJUajHgLB5ekZZ8NfH2CIRfYxvNHUWcxLx00/1HrJV7A24GncWSyHw3ZA5prb67Z8
+	uxCQnKrEE7mABk8OKWQMvyk98T/8Y7KCH5byZYeN9u0VAdb1ZQIvzsWVldC8rNGozoIvh93258K
+	83oInX5aGxMXKS0VjGOtMxMrYr1hlskWozbEVrWWnudgEkVccjQGCc2t7jQMR1h44Y4Q50vp/bl
+	VJYtvLT3vQV0dhGeVjdsRNPXvahWGf/fD
+X-Received: by 2002:a05:622a:1f8a:b0:51c:1532:ae93 with SMTP id
+ d75a77b69052e-52df5a32867mr88198341cf.26.1787341177980; Fri, 21 Aug 2026
+ 12:39:37 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|SJ2PR11MB7598:EE_
-X-MS-Office365-Filtering-Correlation-Id: 32f83075-a51d-4b6e-8a45-08deffb5bed6
-X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|1800799024|23010399003|7416014|376014|18002099003|22082099003|4143699003|3023799007|10067099003|6133799003|11063799006|56012099006;
-X-Microsoft-Antispam-Message-Info: lCjZd+yRwHhlRLZ0L0UlX+d8D3e0O8y+4I1cAu4HBvLdKjfJsz9/KL/8EzZd08hckmeQcV2oPyMJoW8qTmRK9FoLH6+rbEi1C8WckflkyA6NW+Ca0l2+n6nC4P1MRvN3Y2y3rjjaMQtCX2p6VeVcyKT0p85SE/i2p43kgq+GDFO5+xDS9LGtHYMZxRkrYyxMM6jxaA6cDBe4L8BkorLlo/WdOLIQrCHAxb3V1LI1tDRm9739TcghEddj6irn8+oJC8rGErgbPMHhNY+ivNC+Fwes8aB6+t6BqpYMtTH6qjgMiROQXq6ALbu+VPUDKpwmcQe9n88V+ZQ06bK942fWn/hBCQaYE4zm8M22d8/If1c8CmtU0qX7hKcNfJ1n+EBUL+QuakwkgnxpenyGkxrcE29tyKfTu4711rXRzWOuJjuCaGyTJHkEL+VKDJxh/t4qRZgOmJKYamJdHpzzF9nIeUkDwM3L0Qbo6SgM5+nt+7U1IFhrtYrmvycBT79uSeZAmZAkI0DXxAvbXQ06JRoDhCkYxHRi/iP3JcpmUn1Oh3e/fXS4zt0sjz2vWXvoxRxVGElBstqigNYTB4rIXJ3udAPwN1pOQdyJpVfo5MEY5iZMzhenYzZjd3Z859d6xpAjU/gY/1Hg85IcFK52GdekToDWgKFmsQK39lfND3c7190=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(23010399003)(7416014)(376014)(18002099003)(22082099003)(4143699003)(3023799007)(10067099003)(6133799003)(11063799006)(56012099006);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?adqlBa6I4NbZ+54t/O2C9MRn0o28xpChUNQbjFxIqzu8SmJoiNvc5a+m5eQz?=
- =?us-ascii?Q?dS9Vvg+m3IyS9Z/V6ClgSsgE793fnSUmtEpXN2RYwk723F7AmO2JO2VlNZMF?=
- =?us-ascii?Q?uU7AfqyJ5y6FYMBy1IcxSZr+3ka9vvmyKKbzpCPdCMD85MImaD5YwAr0vHSU?=
- =?us-ascii?Q?jKcKl/pUqLTE0keCTBXHouQ9R4/M4idX/pE+LWc+C6NwcG57qZ1TP8JHaWPh?=
- =?us-ascii?Q?4bgr8Q5gsObfqGLNGRaFLDRXpfScbXR0xSUszU4XaYpvpqUAVNRImDQqqLhb?=
- =?us-ascii?Q?LUD8x2fQXbS48+ZSAFB1eso8N9joT8PiBVbe7x2NTxNO1DGQanj8ag9g3yF0?=
- =?us-ascii?Q?y+v9UWKHmpk+50l6t9IeSbGCD6QEI19PqX9pv1oMa7mrNW0jtDE2WO0okAmj?=
- =?us-ascii?Q?1oALSpyv+HXHsQjLFG3cE+Yj9NgOX7yXcVlvNSKspHmUhlJKCj4Xmv2N9/lQ?=
- =?us-ascii?Q?UlaPMMVkeNufnWPlvhLOoFBs9jUODl/K9pS1BFNH/kV66dgb2uyz1UTPg+q0?=
- =?us-ascii?Q?02gC/zFCT7ZOEQK/PI35P05Nieli3x5ajdSyVFlFfXShygVoJohHKvhED1rc?=
- =?us-ascii?Q?Xjiht/CEtIVA28jTfgSsKCJpUt1j06n1KV6IYbVTeTe6DuDBTEh5iQRLfZi1?=
- =?us-ascii?Q?5GKi0CLlcenAfVkxKREo4lNLjC8EsR1O5iAqsjvZBYI7Nx6cBblbGESyHUcz?=
- =?us-ascii?Q?/+Re5FY9rxC4V7CmO1zxK1B+FUsgrb5E1YZ3Wb7ZD0kAoVgB8ZUC9ZRCc1Pd?=
- =?us-ascii?Q?HSfjJ+XK3QQssISKS4PRMZEg7WjzVM4BZ8h1fVbIgiPhCuuT4O0MCcb1fMzv?=
- =?us-ascii?Q?QUIyd1UP8NX5Vr73xbwOnOBhAKaIcFaxMYzZmBwl2HaLJBESkqGmrrT13X6x?=
- =?us-ascii?Q?sQ+uFdRPP20eqcJSR7IlFYajjrHr6/NO6LyOuf53TM6Fk957XRTFKhC3xFxM?=
- =?us-ascii?Q?zkoMMYFz5Pl+OlbnoqkftaVdPain8qJihhot5AzDGNJtNQlSzK2oHc4jMMTh?=
- =?us-ascii?Q?mELtYcKWPABKlR53w6N5j94HsL2lFgNNyIWIVsc0ASCi9GU3z1iZBUKk6eC7?=
- =?us-ascii?Q?PD01eHq3ALTgc24LLu99B1LstHflJXw2pVl8CQMbr0Mb0aTQjLH119HaEdcZ?=
- =?us-ascii?Q?uhntPql0Szo1zHGoxCJPeYWWp/90Ibl/Dr6+INBNY2O30hcdT7zL6OcbhUfJ?=
- =?us-ascii?Q?LiwD5LbNXdRVwqNJ1c4KGt7mOvCq15ttIkZJQXZ8d5vQ0YP4Y9ujDj+LhOnQ?=
- =?us-ascii?Q?PZuolOxUZYF6GaU69/NlcBm1BTM0A9HFvStq6ecWfiO0ISFIIuMX/agreijp?=
- =?us-ascii?Q?PIFlNUieOlKzFbgjCaTKDOBHkYNOxUC9mRoWh6VXG57iL1czujK+V9mNNpbk?=
- =?us-ascii?Q?r6FWDCWI0DI9aZ/mjZhC0f5iUPCAGeBh0rbYV3MEz1M6LpFPUvOivpQH4r67?=
- =?us-ascii?Q?KrOH23wnWWRAyB4kGyngtEEylKB5ZvT/0vod+Oga/fsr2BOYyNpGvr8TpcKj?=
- =?us-ascii?Q?bv3JGx+JR8mt1LfJjTgPs6zrRMEWNhAyCGis36pNzC88rruL9dJmA8yfU5ON?=
- =?us-ascii?Q?fGHRjwQzGAaKnITsZ4aFrZCj3VWv0B9RH21V6j31w+Cd9Dex2Ka0UyjPGn48?=
- =?us-ascii?Q?V0v7OJEHJbbwKlkMMlnUKxARmAAGJRHKLnbWPUR5RYmH7ulc30CcrUze/Tup?=
- =?us-ascii?Q?I+GOQPepvudkRka1mJORkHdsniMZ8rvnG4dudWIub32wah3qOCHwxEoCdsV1?=
- =?us-ascii?Q?4htsVK34ZeeM0G9E0n43Dq7NPhDOePA=3D?=
-X-Exchange-RoutingPolicyChecked: hPoFfXN0UmLFoiQXSpjGfN9rrr0XTRxm3faWZgPW/K7Nm1SLk+KYyn4yR32a1Bs679biDgbsSMWQejOacphV76pgkIBJujZZ/7+PShBxmzqSjy/TfJJXX1xX4HW7NvJLHQqoQyXZdVqqGFaJ1SoKlw4h2mm9j0+lGLhyIlYw9wRh/HGShpAQBBpd28PGtUD9aCtNzZOdYs+DeXBZSFgDm2Ednv2uJGeczmZnTToKuB7vhl22s2XiQmOuuRAEaPiHQoYLkJL+zrtjKeAVtId9qNv8xnDaN3DQi2nt6RFJd/4YU9eZUCdoF5dCwNCreq9GJpPAI7Dl3ijfqKKQvHDaPA==
-X-MS-Exchange-CrossTenant-Network-Message-Id: 32f83075-a51d-4b6e-8a45-08deffb5bed6
-X-MS-Exchange-CrossTenant-AuthSource: DS4PPF0BAC23327.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Aug 2026 18:55:19.6981
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: xW573S1GT+PKF0/YzJ9Hl5Ug2nd1RNiBA1uv3/6bWQdAo4V6abRILGnDJcSwyC7D5gcIBN57Pz8vccpKe/GLImmFdd29jCegVeo1gcdX1gY=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR11MB7598
-X-OriginatorOrg: intel.com
+References: <0100019fc572ca94-ec363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com>
+ <20260803022828.75776-1-john@jagalactic.com> <0100019fc5739e5d-bc002300-eede-4c40-9ca8-a277b754496e-000000@email.amazonses.com>
+ <20260806043712.GB3560084@frogsfrogsfrogs> <CAJfpegtW4bFn=oNfTipCxhiExaqSXnhXeBd6Uq15FpepqCJaPQ@mail.gmail.com>
+ <20260811-baugebiet-hofiert-fanden-3354f4a5e820@brauner> <ab642f3a-e377-4292-b2ff-bc970f5384e8@kernel.org>
+In-Reply-To: <ab642f3a-e377-4292-b2ff-bc970f5384e8@kernel.org>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Fri, 21 Aug 2026 21:39:26 +0200
+X-Gm-Features: AcwNN1V5lCcm6_l8LY5VakD6tTocDvE06I1hYgFmfavubxTv285rgBmrPN7M8XY
+Message-ID: <CAJfpegsC-D0AJij3E=dbKzZCH0nijE7+rpPut-EnRd3r0uCMtg@mail.gmail.com>
+Subject: Re: [PATCH V12 02/12] famfs: Module operations, fs_context, and mount
+To: "David Hildenbrand (Arm)" <david@kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>, "Darrick J. Wong" <djwong@kernel.org>, 
+	John Groves <john@jagalactic.com>, John Groves <John@groves.net>, Dan Williams <djbw@kernel.org>, 
+	Bernd Schubert <bschubert@ddn.com>, Alison Schofield <alison.schofield@intel.com>, 
+	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, Jake Edge <jake@lwn.net>, 
+	Shuah Khan <skhan@linuxfoundation.org>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Randy Dunlap <rdunlap@infradead.org>, 
+	Jeff Layton <jlayton@kernel.org>, Amir Goldstein <amir73il@gmail.com>, 
+	Jonathan Cameron <jic23@kernel.org>, Stefan Hajnoczi <shajnocz@redhat.com>, 
+	Joanne Koong <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>, 
+	Bagas Sanjaya <bagasdotme@gmail.com>, Chen Linxuan <chenlinxuan@uniontech.com>, 
+	James Morse <james.morse@arm.com>, Fuad Tabba <tabba@google.com>, 
+	Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
+	Ackerley Tng <ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, 
+	Andrew Morton <akpm@linux-foundation.org>, Namjae Jeon <linkinjeon@kernel.org>, 
+	Lorenzo Stoakes <ljs@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Ira Weiny <iweiny@kernel.org>, Pasha Tatashin <pasha.tatashin@soleen.com>, 
+	Haren Myneni <haren@linux.ibm.com>, Pratyush Yadav <pratyush@kernel.org>, 
+	Giovanni Cabiddu <giovanni.cabiddu@intel.com>, Jiri Slaby <jirislaby@kernel.org>, 
+	Ethan Nelson-Moore <enelsonmoore@gmail.com>, Gabriel Whigham <gabewhigham@gmail.com>, 
+	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, 
+	"venkataravis@micron.com" <venkataravis@micron.com>, 
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, 
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
+	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, 
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, 
+	"fuse-devel@lists.linux.dev" <fuse-devel@lists.linux.dev>
+Content-Type: text/plain; charset="UTF-8"
 
-On Tue, Aug 04, 2026 at 02:12:44AM -0700, Anisa Su wrote:
-> On Mon, Aug 03, 2026 at 02:52:17PM -0700, Alison Schofield wrote:
-> > On Fri, Jul 31, 2026 at 01:48:07AM -0700, Anisa Su wrote:
-> > > From: Ira Weiny <iweiny@kernel.org>
-> > > 
-> > > Devices which optionally support Dynamic Capacity (DC) are configured
-> > > via mailbox commands.  CXL r4.0 section 9.13.3 requires the host to issue
-> > > the Get DC Configuration command in order to properly configure DCDs.
-> > > Without the Get DC Configuration command DCD can't be supported.
-> > > 
-> > > Implement the DC mailbox commands as specified in CXL 4.0 section
-> > > 8.2.10.9.9 (opcodes 48XXh) to read and store the DCD configuration
-> > > information.  Disable DCD if an invalid configuration is found.
-> > > 
-> > > Linux has no support for more than one dynamic capacity partition.  Read
-> > > and validate all the partitions but configure only the first partition
-> > > as 'dynamic ram 1'.  Additional partitions can be added in the future if
-> > > such a device ever materializes.  Additionally it is anticipated that no
-> > > skips will be present from the end of the pmem partition.  Check for and
-> > > disallow this configuration as well.
-> > 
-> > Hi Anisa,
-> > 
-> > "Additionally, it is anticipated that no skips will be present.." sounds
-> > woogedy. The paragraph starts with a Linux limitation of only one partition.
-> > and next mentions skips. Is that a Linux implementation rule, a spec
-> > rule, or something else?
-> > 
-> 
-> Sorry for the lack of clarity. The commit message has been revised to
-> make it clear that DPA gaps between partitions are a Linux rule. The
-> spec permits a gap: the DC region base is device assigned and only has to be
-> 256MB aligned (r4.0 Table 8-347). It now reads:
+On Fri, 21 Aug 2026 at 13:40, David Hildenbrand (Arm) <david@kernel.org> wrote:
 
-Hi Anisa,
+> (a) Whether a fuse-based approach is feasible.
+>
+>     Are there any major blockers remaining?
 
-My review sent you deeper into validating partitions we never use, so,
-let me back up and ask about the validation itself rather than its
-precision -
+No.
 
-> 
->     Linux has no support for more than one dynamic capacity partition. Read
->     and validate all the partitions but configure only the first partition
->     as 'dynamic ram 1'. Additional partitions can be added in the future if
->     such a device ever materializes. Linux additionally requires partitions
->     to be contiguous. Therefore, check for and disallow any gap between the
->     end of the pmem partition and the first DC partition, as well as gaps
->     between the remaining DC partitions.
+> (b) Whether a fuse-based approach is inefficient.
+>
+>     Are there scenarios remaining where performance or metadata overhead would
+>     be bad without an easy way to improve the situation?
 
-wrt above statement:
-Why validate the entire device's DC partitioning when we only intend to
-use partition 0? Is that an artifact of when this set configured all the
-partitions?
+Lookups can be cached, extent mappings can also be cached.   After the
+inode is in cache and the mapping is set up zero requests are needed
+for open/mmap/read/write/close.
 
-Linux enforcing spec compliance for pieces Linux doesn't use may cause
-a perfectly fine DCD device w a valid partition 0 to be rejected.
+> (c) Whether a fuse-based approach is a bad conceptual fit.
+>
+>     Will fuse have to carry a lot of famfs special sauce that cannot
+>     really be used elsewhere / generalized?
 
--- Alison
-> 
-> > See below wrt validation checks.
-> > 
-> > 
-> > > 
-> > > Based on an original patch by Navneet Singh.
-> > > 
-> > > Signed-off-by: Ira Weiny <iweiny@kernel.org>
-> > > Signed-off-by: Anisa Su <anisa.su@samsung.com>
-> > > Tested-by: Wonjae Lee <wj28.lee@samsung.com>
-> > > Tested-by: Junhee Park <jh9934.park@samsung.com>
-> > > Tested-by: Heesoo Kim <habil.kim@samsung.com>
-> > > 
-> > > ---
-> > > Changes:
-> > > 1. mbox.c: bound the Get DC Config request by the negotiated mailbox
-> > >    payload. Requesting all CXL_MAX_DC_PARTITIONS (8) needs a 328-byte
-> > >    response, which exceeds a spec-minimum 256-byte mailbox and fails
-> > >    -E2BIG, disabling DCD. Cap partition_count per call to what the
-> > >    payload holds and read the rest via the existing start_partition
-> > >    loop.
-> > > ---
-> > >  drivers/cxl/core/hdm.c  |   2 +
-> > >  drivers/cxl/core/mbox.c | 220 ++++++++++++++++++++++++++++++++++++++++
-> > >  drivers/cxl/cxlmem.h    |  55 ++++++++++
-> > >  drivers/cxl/pci.c       |   3 +
-> > >  include/cxl/cxl.h       |   3 +-
-> > >  5 files changed, 282 insertions(+), 1 deletion(-)
-> > > 
-> > > diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
-> > > index 0c80b76a5f9b..0ef076c08ed2 100644
-> > > --- a/drivers/cxl/core/hdm.c
-> > > +++ b/drivers/cxl/core/hdm.c
-> > > @@ -446,6 +446,8 @@ static const char *cxl_mode_name(enum cxl_partition_mode mode)
-> > >  		return "ram";
-> > >  	case CXL_PARTMODE_PMEM:
-> > >  		return "pmem";
-> > > +	case CXL_PARTMODE_DYNAMIC_RAM_1:
-> > > +		return "dynamic_ram_1";
-> > >  	default:
-> > >  		return "";
-> > >  	};
-> > > diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
-> > > index 4790524c32a7..d79019fbd790 100644
-> > > --- a/drivers/cxl/core/mbox.c
-> > > +++ b/drivers/cxl/core/mbox.c
-> > > @@ -1352,6 +1352,197 @@ int cxl_mem_sanitize(struct cxl_memdev *cxlmd, u16 cmd)
-> > >  	return -EBUSY;
-> > >  }
-> > >  
-> > > +static int cxl_dc_check(struct device *dev, struct cxl_dc_partition_info *part_array,
-> > > +			u8 index, struct cxl_dc_partition *dev_part)
-> > > +{
-> > > +	u64 blk_size = le64_to_cpu(dev_part->block_size);
-> > > +	u64 len = le64_to_cpu(dev_part->length);
-> > > +
-> > > +	part_array[index].start = le64_to_cpu(dev_part->base);
-> > > +	part_array[index].size = le64_to_cpu(dev_part->decode_length);
-> > > +	part_array[index].size *= CXL_CAPACITY_MULTIPLIER;
-> > > +
-> > > +	/* Check partitions are in increasing DPA order */
-> > > +	if (index > 0) {
-> > > +		struct cxl_dc_partition_info *prev_part = &part_array[index - 1];
-> > > +
-> > > +		if ((prev_part->start + prev_part->size) >
-> > > +		     part_array[index].start) {
-> > > +			dev_err(dev,
-> > > +				"DPA ordering violation for DC partition %d and %d\n",
-> > > +				index - 1, index);
-> > > +			return -EINVAL;
-> > > +		}
-> > > +	}
-> > > +
-> > > +	if (part_array[index].size == 0 || len == 0 ||
-> > > +	    part_array[index].size < len || !IS_ALIGNED(len, blk_size)) {
-> > > +		dev_err(dev, "DC partition %d invalid length; size %llu len %llu blk size %llu\n",
-> > > +			index, part_array[index].size, len, blk_size);
-> > > +		return -EINVAL;
-> > > +	}
-> > > +
-> > > +	if (blk_size == 0 || blk_size % CXL_DCD_BLOCK_LINE_SIZE ||
-> > > +	    !is_power_of_2(blk_size)) {
-> > > +		dev_err(dev, "DC partition %d invalid block size %llu\n",
-> > > +			index, blk_size);
-> > > +		return -EINVAL;
-> > > +	}
-> > > +
-> > > +	if (!IS_ALIGNED(part_array[index].start, SZ_256M) ||
-> > > +	    !IS_ALIGNED(part_array[index].start, blk_size)) {
-> > > +		dev_err(dev, "DC partition %d invalid start %llu blk size %llu\n",
-> > > +			index, part_array[index].start, blk_size);
-> > > +		return -EINVAL;
-> > > +	}
-> > > +
-> > > +	dev_dbg(dev, "DC partition %d start %llu size %llu blk_size: %llu\n",
-> > > +		index, part_array[index].start, part_array[index].size,
-> > > +		blk_size);
-> > > +
-> > > +	return 0;
-> > > +}
-> > 
-> > 
-> > cxl_dc_check() above needs rework.
-> > Please go back through it against CXL r4.0 Tables 8-346 and 8-347 and confirm
-> > that each constraint the code enforces is the constraint the spec actually
-> > states. The check need to run in dependency order, and then each failure
-> > needs to report the specific field or relationship that is invalid.
-> > 
-> Done, double checked both tables. The function now validates in
-> dependency order with one message per field:
-> 
->     /* Block size is a power of 2 and a multiple of 40h */
->     if (blk_size == 0 || !is_power_of_2(blk_size) ||
->         blk_size % CXL_DCD_BLOCK_LINE_SIZE) {
->             dev_err(dev, "DC partition %d invalid block size %#llx\n", ...);
-> 
-> *** note sashiko pointed out is_power_of_2(unsigned long n) truncates
-> on 32-bit builds, so is_power_of_2 is replaced with (blk_size & (blk_size - 1))
-> 
->     if (part_array[index].size == 0)   -> "zero decode length"
->     if (len == 0)                      -> "zero length"
->     if (len > part_array[index].size)  -> "length %#llx exceeds decode length %#llx"
->     if (!IS_ALIGNED(len, blk_size))    -> "length %#llx not a multiple of block size %#llx"
->     if (!IS_ALIGNED(start, SZ_256M))   -> "base %#llx not aligned to 256M"
-> 
->     /* Partitions must be contiguous and in increasing DPA order */
-> 
-> Point by point details below.
-> 
-> > A terse list of what looks wrong from here. (I have not chased each one)
-> > 
-> > - blk_size is used as the alignment in IS_ALIGNED(len, blk_size) and
-> >   IS_ALIGNED(start, blk_size) before it is validated.
-> 
-> Fixed, block size is validated first now.
-> 
-> To clarify the exact fix and reason:
-> 
-> In v12, a block size of 0 would still be rejected, but print "invalid length"
-> instead of "invalid block size:
-> 
-> 	if (part_array[index].size == 0 || len == 0 ||
->           part_array[index].size < len || !IS_ALIGNED(len, blk_size)) {
->               dev_err(dev, "DC partition %d invalid length; size %llu len %llu blk size %
->               return -EINVAL;
->       }
-> 
-> !IS_ALIGNED(len, blk_size) = !(len & ~0ULL)
-> 
-> len & ~0ULL == 0 iff. len == 0. Since len is checked before the
-> alignement check, then !(len &0ULL) evaluates to true and prints
-> "invalid length". By moving the blk_size check above, the correct error
-> message "invalid block size" is printed for blk_size == 0.
-> 
-> > - Four unrelated conditions share one "invalid length" message.
-> 
-> Fixed, four separate checks, each naming its own field.
-> 
->  if (part_array[index].size == 0)   -> "zero decode length"
->  if (len == 0)                      -> "zero length"
->  if (len > part_array[index].size)  -> "length %#llx exceeds decode length %#llx"
->  if (!IS_ALIGNED(len, blk_size))    -> "length %#llx not a multiple of block size %#llx
-> 
-> > - The start check combines the 256 MiB and block-size requirements, so the
-> >   message cannot say which alignment failed.
-> 
-> Fixed: Table 8-347 requires the base to be 256MB aligned, and states the block
-> size alignment for the starting DPAs of extents, **not** for the region
-> base. So the start check now only requires 256 MiB alignment.
-> 
-> > - "DPA ordering violation" is really an overlap check, and gaps appear to be
-> >   allowed.
-> 
-> Fixed to tighten the check. One thing to note: only DC partition 0 is configured,
-> so this check would mean DCD is disabled for a device with a usable
-> partition 0, but which has gaps between later partitions. If
-> multi-partition support is landed later, gaps would be caught by
-> cxl_dpa_check when the partition is configured. Should
-> cxl_dev_dc_identify() only check for spec compliance and defer the
-> Linux rule of no gaps between partitions up to cxl_dpa_check()?
-> 
-> 	/* Partitions must be contiguous and in increasing DPA order */
-> 	for (int prev = index - 1; prev >= 0; prev--) {
-> 		struct cxl_dc_partition_info *prev_part = &part_array[prev];
-> 
-> 		if (prev_part->size == 0)
-> 			continue;
-> 
-> 		if (prev_part->start + prev_part->size != part_array[index].start) {
-> 			dev_err(dev,
-> 				"DC partition %d and %d are not contiguous\n",
-> 				prev, index);
-> 			return -EINVAL;
-> 		}
-> 		break;
-> 	}
-> > - avail_partition_count is never checked against the 1 to 8 range Table 8-346
-> >   requires.
-> 
-> Added in cxl_get_dc_config(), before the count is used as the bound for
-> the read loop:
-> 
->     /* A DCD reports between 1 and 8 partitions */
->     if (dc_resp->avail_partition_count == 0 ||
->         dc_resp->avail_partition_count > CXL_MAX_DC_PARTITIONS) {
->             dev_err(mbox->host,
->                     "Device reported %u available DC partitions, expected 1 to %u\n",
->                     dc_resp->avail_partition_count, CXL_MAX_DC_PARTITIONS);
->             return -EIO;
->     }
-> 
-> This also answers the Sashiko report on this patch, which asked whether
-> a device with 0 partitions is failed incorrectly. Table 8-346 says "A
-> DCD shall report between 1 and 8 regions. All other values are
-> reserved.", so 0 is not a legal value and failing is the correct
-> behavior.
-> 
-> > - cxl_configure_dcd()'s "skip from pmem not supported" also fires on overlap,
-> >   and prints neither address.
-> 
-> Split into two checks that print both addresses:
-> 
->     if (dc_info.start < info->size)
->             dev_err(dev, "DC partition 0 base %#llx overlaps static capacity ending at %#llx\n", ...);
-> 
->     /* A gap between static capacity and the DC partition is not supported */
->     if (dc_info.start > info->size)
->             dev_warn(dev, "DC partition 0 base %#llx leaves a gap from static capacity ending at %#llx\n", ...);
-> 
-> An overlap is the device contradicting itself so it is an error, a gap
-> is legal but unsupported so it stays a warning. Both still disable DCD.
-> 
-> The message also said "pmem capacity", which I think is less accurate
-> than "static capacity", since we could have a volatile only device with
-> no pmem partition.
-> 
-> > - min_out = 8 is a bare constant for the header ahead of the flex array
-> 
-> Fixed. Uses sizeof(*dc_resp), which for a flex array struct is exactly the fixed
-> header.
-> 
-> > - DPA addresses and sizes print in decimal, rest of CXL uses hex 
-> 
-> Converted to hex -- Partition indices stay %d.
-> 
-> > - The Table 8-178, 8-179 and 8-180 citations are not r4.0 numbering
-> > 
-> Sorry, my bad!
-> 
-> Corrected to Table 8-345 (input payload), 8-346 (output payload) and 8-347
-> (region configuration). I also re-checked the Table 8-308 citation in
-> patch 1 and that one is correct.
-> 
-> > And RichardC called out this one in his prior review -
-> > - Zero geometry fields are legal per Table 8-347, as already raised on the
-> >   list. Agreed, and the fallout of skipping rather than rejecting needs
-> >   working through.
-> > 
-> 
-> Fixed: New helper, and cxl_dc_check() returns early leaving the array
-> entry empty:
-> 
->     static bool cxl_dc_partition_unavailable(struct cxl_dc_partition *dev_part)
->     {
->             return !le64_to_cpu(dev_part->decode_length) &&
->                    !le64_to_cpu(dev_part->length) &&
->                    !le64_to_cpu(dev_part->block_size);
->     }
-> 
-> Regarding the fallout of skipping:
-> - Only those three fields are tested. Table 8-347 states the report-0
->   behaviour for decode length, length and block size only, so a stale
->   base or DSMAD handle on an unavailable region is not an error.
-> - If only some of the three are zero, falls through to the individual
->   blk_size, len, and decode_len checks above and rejects the partition.
-> - The contiguity check checks against the last non-empty entry rather
->   than index - 1, so a skipped partition in the middle cannot mask an
->   overlap between the partitions either side of it.
-> - cxl_dev_dc_identify() returns -ENODEV if partition 0 itself is
->   unavailable, since Linux only wires up partition 0. No message there,
->   cxl_dc_check() has already logged the skip.
-> 
-> > -- Alison
-> > 
-> Thanks,
-> Anisa
-> > 
-> > > +
-> > > +/* Returns the number of partitions in dc_resp or -ERRNO */
-> > > +static int cxl_get_dc_config(struct cxl_mailbox *mbox, u8 start_partition,
-> > > +			     u8 partition_count,
-> > > +			     struct cxl_mbox_get_dc_config_out *dc_resp,
-> > > +			     size_t dc_resp_size)
-> > > +{
-> > > +	struct cxl_mbox_get_dc_config_in get_dc = (struct cxl_mbox_get_dc_config_in) {
-> > > +		.partition_count = partition_count,
-> > > +		.start_partition_index = start_partition,
-> > > +	};
-> > > +	struct cxl_mbox_cmd mbox_cmd = (struct cxl_mbox_cmd) {
-> > > +		.opcode = CXL_MBOX_OP_GET_DC_CONFIG,
-> > > +		.payload_in = &get_dc,
-> > > +		.size_in = sizeof(get_dc),
-> > > +		.size_out = dc_resp_size,
-> > > +		.payload_out = dc_resp,
-> > > +		.min_out = 8,
-> > > +	};
-> > > +	size_t expected_sz;
-> > > +	int rc;
-> > > +
-> > > +	rc = cxl_internal_send_cmd(mbox, &mbox_cmd);
-> > > +	if (rc < 0)
-> > > +		return rc;
-> > > +
-> > > +	if (dc_resp->partitions_returned > partition_count) {
-> > > +		dev_err(mbox->host, "Device returned %u partitions, requested %u\n",
-> > > +			dc_resp->partitions_returned, partition_count);
-> > > +		return -EIO;
-> > > +	}
-> > > +
-> > > +	/*
-> > > +	 * The payload carries trailing extent/tag count fields after the
-> > > +	 * partition array (CXL r4.0 Table 8-179) which the driver ignores, so
-> > > +	 * the response is at least, not exactly, expected_sz.
-> > > +	 */
-> > > +	expected_sz = struct_size(dc_resp, partition,
-> > > +				  dc_resp->partitions_returned);
-> > > +
-> > > +	if (mbox_cmd.size_out < expected_sz) {
-> > > +		dev_err(mbox->host,
-> > > +			"Payload size %zu less than expected %zu for %u partitions\n",
-> > > +			mbox_cmd.size_out,
-> > > +			expected_sz,
-> > > +			dc_resp->partitions_returned);
-> > > +		return -EIO;
-> > > +	}
-> > > +
-> > > +	dev_dbg(mbox->host, "Read %d/%d DC partitions\n",
-> > > +		dc_resp->partitions_returned, dc_resp->avail_partition_count);
-> > > +	return dc_resp->partitions_returned;
-> > > +}
-> > > +
-> > > +/**
-> > > + * cxl_dev_dc_identify() - Reads the dynamic capacity information from the
-> > > + *                         device.
-> > > + * @mbox: Mailbox to query
-> > > + * @dc_info: The dynamic partition information to return
-> > > + *
-> > > + * Read Dynamic Capacity information from the device and return the partition
-> > > + * information.
-> > > + *
-> > > + * Return: 0 if identify was executed successfully, -ERRNO on error.
-> > > + *         on error only dc_info is left unchanged.
-> > > + */
-> > > +int cxl_dev_dc_identify(struct cxl_mailbox *mbox,
-> > > +			struct cxl_dc_partition_info *dc_info)
-> > > +{
-> > > +	struct cxl_dc_partition_info partitions[CXL_MAX_DC_PARTITIONS];
-> > > +	struct cxl_mbox_get_dc_config_out *dc_resp __free(kfree) = NULL;
-> > > +	struct device *dev = mbox->host;
-> > > +	u8 start_partition;
-> > > +	u8 num_partitions;
-> > > +	u8 partition_count;
-> > > +	size_t dc_resp_size;
-> > > +
-> > > +	/* Bound requested number of partitions by mailbox payload size */
-> > > +	partition_count = min_t(size_t, CXL_MAX_DC_PARTITIONS,
-> > > +				(mbox->payload_size - sizeof(*dc_resp) -
-> > > +				 sizeof(struct cxl_mbox_get_dc_config_tail)) /
-> > > +				sizeof(struct cxl_dc_partition));
-> > > +	dc_resp_size = struct_size(dc_resp, partition, partition_count) +
-> > > +		       sizeof(struct cxl_mbox_get_dc_config_tail);
-> > > +
-> > > +	dc_resp = kmalloc(dc_resp_size, GFP_KERNEL);
-> > > +	if (!dc_resp)
-> > > +		return -ENOMEM;
-> > > +
-> > > +	/*
-> > > +	 * Read and check all partition information for validity and potential
-> > > +	 * debugging; see debug output in cxl_dc_check()
-> > > +	 */
-> > needless comment
-> > 
-> > 
-> > > +	start_partition = 0;
-> > > +	num_partitions = 0;
-> > > +	do {
-> > > +		int rc, i, j;
-> > > +
-> > > +		rc = cxl_get_dc_config(mbox, start_partition, partition_count,
-> > > +				       dc_resp, dc_resp_size);
-> > > +		if (rc < 0) {
-> > > +			dev_err(dev, "Failed to get DC config: %d\n", rc);
-> > > +			return rc;
-> > > +		}
-> > > +
-> > > +		if (rc == 0) {
-> > > +			dev_err(dev,
-> > > +				"Device reported %u partitions available but returned none at index %u\n",
-> > > +				dc_resp->avail_partition_count, start_partition);
-> > > +			return -EIO;
-> > > +		}
-> > > +
-> > > +		num_partitions += rc;
-> > > +
-> > > +		if (num_partitions < 1 || num_partitions > CXL_MAX_DC_PARTITIONS) {
-> > > +			dev_err(dev, "Invalid num of dynamic capacity partitions %d\n",
-> > > +				num_partitions);
-> > > +			return -EINVAL;
-> > > +		}
-> > > +
-> > > +		for (i = start_partition, j = 0; i < num_partitions; i++, j++) {
-> > > +			rc = cxl_dc_check(dev, partitions, i,
-> > > +					  &dc_resp->partition[j]);
-> > > +			if (rc)
-> > > +				return rc;
-> > > +		}
-> > > +
-> > > +		start_partition = num_partitions;
-> > > +
-> > > +	} while (num_partitions < dc_resp->avail_partition_count);
-> > > +
-> > > +	/* Return 1st partition */
-> > > +	dc_info->start = partitions[0].start;
-> > > +	dc_info->size = partitions[0].size;
-> > > +	dev_dbg(dev, "Returning partition 0 %llu size %llu\n",
-> > > +		dc_info->start, dc_info->size);
-> > > +
-> > > +	return 0;
-> > > +}
-> > > +EXPORT_SYMBOL_NS_GPL(cxl_dev_dc_identify, "CXL");
-> > > +
-> > >  static void add_part(struct cxl_dpa_info *info, u64 start, u64 size, enum cxl_partition_mode mode)
-> > >  {
-> > >  	int i = info->nr_partitions;
-> > > @@ -1422,6 +1613,35 @@ int cxl_get_dirty_count(struct cxl_memdev_state *mds, u32 *count)
-> > >  }
-> > >  EXPORT_SYMBOL_NS_GPL(cxl_get_dirty_count, "CXL");
-> > >  
-> > > +void cxl_configure_dcd(struct cxl_memdev_state *mds, struct cxl_dpa_info *info)
-> > > +{
-> > > +	struct cxl_dc_partition_info dc_info = { 0 };
-> > > +	struct device *dev = mds->cxlds.dev;
-> > > +	int rc;
-> > > +
-> > > +	rc = cxl_dev_dc_identify(&mds->cxlds.cxl_mbox, &dc_info);
-> > > +	if (rc) {
-> > > +		dev_warn(dev,
-> > > +			 "Failed to read Dynamic Capacity config: %d\n", rc);
-> > > +		cxl_disable_dcd(mds);
-> > > +		return;
-> > > +	}
-> > > +
-> > > +	/* Skips between pmem and the dynamic partition are not supported */
-> > > +	if (dc_info.start != info->size) {
-> > > +		dev_warn(dev,
-> > > +			 "Dynamic Capacity skip from pmem not supported\n");
-> > > +		cxl_disable_dcd(mds);
-> > > +		return;
-> > > +	}
-> > > +
-> > > +	info->size += dc_info.size;
-> > > +	dev_dbg(dev, "Adding dynamic ram partition 1; %llu size %llu\n",
-> > > +		dc_info.start, dc_info.size);
-> > > +	add_part(info, dc_info.start, dc_info.size, CXL_PARTMODE_DYNAMIC_RAM_1);
-> > > +}
-> > > +EXPORT_SYMBOL_NS_GPL(cxl_configure_dcd, "CXL");
-> > > +
-> > >  int cxl_arm_dirty_shutdown(struct cxl_memdev_state *mds)
-> > >  {
-> > >  	struct cxl_mailbox *cxl_mbox = &mds->cxlds.cxl_mbox;
-> > > diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-> > > index 616eeaeee5b9..a9782939d82b 100644
-> > > --- a/drivers/cxl/cxlmem.h
-> > > +++ b/drivers/cxl/cxlmem.h
-> > > @@ -407,6 +407,8 @@ struct cxl_security_state {
-> > >  	struct kernfs_node *sanitize_node;
-> > >  };
-> > >  
-> > > +#define CXL_MAX_DC_PARTITIONS 8
-> > > +
-> > >  static inline resource_size_t cxl_pmem_size(struct cxl_dev_state *cxlds)
-> > >  {
-> > >  	/*
-> > > @@ -691,6 +693,39 @@ struct cxl_mbox_set_shutdown_state_in {
-> > >  	u8 state;
-> > >  } __packed;
-> > >  
-> > > +/* See CXL r4.0 Table 8-178 get dynamic capacity config Input Payload */
-> > > +struct cxl_mbox_get_dc_config_in {
-> > > +	u8 partition_count;
-> > > +	u8 start_partition_index;
-> > > +} __packed;
-> > > +
-> > > +/* See CXL r4.0 Table 8-179 get dynamic capacity config Output Payload */
-> > > +struct cxl_mbox_get_dc_config_out {
-> > > +	u8 avail_partition_count;
-> > > +	u8 partitions_returned;
-> > > +	u8 rsvd[6];
-> > > +	/* See CXL r4.0 Table 8-180 */
-> > > +	struct cxl_dc_partition {
-> > > +		__le64 base;
-> > > +		__le64 decode_length;
-> > > +		__le64 length;
-> > > +		__le64 block_size;
-> > > +		__le32 dsmad_handle;
-> > > +		u8 flags;
-> > > +		u8 rsvd[3];
-> > > +	} __packed partition[] __counted_by(partitions_returned);
-> > > +	/* Trailing extent/tag count fields unused */
-> > > +} __packed;
-> > > +
-> > > +/* Trailing counts; cannot be a member after the flex array above */
-> > > +struct cxl_mbox_get_dc_config_tail {
-> > > +	__le32 num_extents_supported;
-> > > +	__le32 num_extents_available;
-> > > +	__le32 num_tags_supported;
-> > > +	__le32 num_tags_available;
-> > > +} __packed;
-> > > +#define CXL_DCD_BLOCK_LINE_SIZE 0x40
-> > > +
-> > >  /* Set Timestamp CXL 3.0 Spec 8.2.9.4.2 */
-> > >  struct cxl_mbox_set_timestamp_in {
-> > >  	__le64 timestamp;
-> > > @@ -814,9 +849,18 @@ enum {
-> > >  int cxl_internal_send_cmd(struct cxl_mailbox *cxl_mbox,
-> > >  			  struct cxl_mbox_cmd *cmd);
-> > >  int cxl_dev_state_identify(struct cxl_memdev_state *mds);
-> > > +
-> > > +struct cxl_dc_partition_info {
-> > > +	u64 start;
-> > > +	u64 size;
-> > > +};
-> > > +
-> > > +int cxl_dev_dc_identify(struct cxl_mailbox *mbox,
-> > > +			struct cxl_dc_partition_info *dc_info);
-> > >  int cxl_await_media_ready(struct cxl_dev_state *cxlds);
-> > >  int cxl_enumerate_cmds(struct cxl_memdev_state *mds);
-> > >  int cxl_mem_dpa_fetch(struct cxl_memdev_state *mds, struct cxl_dpa_info *info);
-> > > +void cxl_configure_dcd(struct cxl_memdev_state *mds, struct cxl_dpa_info *info);
-> > >  struct cxl_memdev_state *cxl_memdev_state_create(struct device *dev, u64 serial,
-> > >  						 u16 dvsec);
-> > >  void set_exclusive_cxl_commands(struct cxl_memdev_state *mds,
-> > > @@ -830,6 +874,17 @@ void cxl_event_trace_record(struct cxl_memdev *cxlmd,
-> > >  			    const uuid_t *uuid, union cxl_event *evt);
-> > >  int cxl_get_dirty_count(struct cxl_memdev_state *mds, u32 *count);
-> > >  int cxl_arm_dirty_shutdown(struct cxl_memdev_state *mds);
-> > > +
-> > > +static inline bool cxl_dcd_supported(struct cxl_memdev_state *mds)
-> > > +{
-> > > +	return mds->dcd_supported;
-> > > +}
-> > > +
-> > > +static inline void cxl_disable_dcd(struct cxl_memdev_state *mds)
-> > > +{
-> > > +	mds->dcd_supported = false;
-> > > +}
-> > > +
-> > >  int cxl_set_timestamp(struct cxl_memdev_state *mds);
-> > >  int cxl_poison_state_init(struct cxl_memdev_state *mds);
-> > >  int cxl_mem_get_poison(struct cxl_memdev *cxlmd, u64 offset, u64 len,
-> > > diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
-> > > index 267c679b0b3c..9b320a2b6fe0 100644
-> > > --- a/drivers/cxl/pci.c
-> > > +++ b/drivers/cxl/pci.c
-> > > @@ -870,6 +870,9 @@ static int cxl_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
-> > >  	if (rc)
-> > >  		return rc;
-> > >  
-> > > +	if (cxl_dcd_supported(mds))
-> > > +		cxl_configure_dcd(mds, &range_info);
-> > > +
-> > >  	rc = cxl_dpa_setup(cxlds, &range_info);
-> > >  	if (rc)
-> > >  		return rc;
-> > > diff --git a/include/cxl/cxl.h b/include/cxl/cxl.h
-> > > index 016c74fb747c..87c2bd73df21 100644
-> > > --- a/include/cxl/cxl.h
-> > > +++ b/include/cxl/cxl.h
-> > > @@ -133,6 +133,7 @@ struct cxl_dpa_perf {
-> > >  enum cxl_partition_mode {
-> > >  	CXL_PARTMODE_RAM,
-> > >  	CXL_PARTMODE_PMEM,
-> > > +	CXL_PARTMODE_DYNAMIC_RAM_1,
-> > >  };
-> > >  
-> > >  /**
-> > > @@ -147,7 +148,7 @@ struct cxl_dpa_partition {
-> > >  	enum cxl_partition_mode mode;
-> > >  };
-> > >  
-> > > -#define CXL_NR_PARTITIONS_MAX 2
-> > > +#define CXL_NR_PARTITIONS_MAX 3
-> > >  
-> > >  /**
-> > >   * struct cxl_dev_state - The driver device state
-> > > -- 
-> > > 2.43.0
-> > > 
+None.
+
+But "can" and "will" are not the same.  The striping code might not be
+very useful outside of famfs.
+
+> (d) Whether a fuse-based approach is too invasive.
+>
+>     Will fuse extensions to support famfs actually make it harder to maintain or
+>     slower on some paths?
+
+No.
+
+> (e) Whether a fuse-based approach will make famfs harder to extend.
+>
+>     Is there known follow-up work that will be hard/impossible to model in fuse?
+
+It would actually make famfs much easier to extend, since the
+directory structure, metadata, etc. is now controllable within the
+userspace server.
+
+> (f) Whether a fuse-based approach will reduce maintenance effor
+>
+>     Will maintaining fuse extensions possibly be harder than maintaining
+>     standalone famfs?
+
+Testing is a key point.  Famfs needs special hardware or emulation, so
+it's not straightforward to test.  This could be solved by adding a
+"dummy" mode to famfs server that exercises the same fuse API, but
+instead of special hardware would just use plain memory.
+
+> (g) Whether a fuse-based approach would make famfs more complex.
+>
+>     Will the shift to user space result in a significantly more complicated
+>     overall solution that must be maintained?
+
+The server would be somewhat more complex, since it's now implementing
+things like pathname lookup, etc.  But the other stuff (managing file
+maps) should be very similar.
+
+> (h) Who would help drive the fuse approach?
+>
+>     Fuse people seem to be willing to help, but I expect that there must be a
+>     close cooperation with John to make this fly. I don't expect that John
+>     himself can easily (or understandably wants to :) ) do the heavy fuse
+>     lifting.
+
+Yes, this is where previous efforts seem to have gone off the rails.
+So I agree to take responsibility for implementing the kernel side and
+help with the server side on the condition that John has trust in
+this.   I'm not promising -7.4, but can at least try.
+
+Without John's trust I'm not taking this on.
+
+> (i) Who would maintain any famfs fuse extensions and own any bugs?
+>
+>     famfs will possibly depend on fuse extensions that might initially only be
+>     used by famfs. Would the fuse maintainers just naturally deal with that?
+
+I can take responsibility for the fuse kernel bits.
+
+> (j) Whether a fuse-based approach has an end in sight.
+>
+>     famfs goes back .... quite a long time. It would be nice to close that
+>     chapter :)
+>
+>     Is there an end in sight, or could we end up in the same situation in 6m/1y/
+>     ...
+>
+>     IOW, is there a way to agree on an MVP that won't require a lot of further
+>     re-planning and changes to a fuse-based design?
+
+I already sent patches to implement the dax dev mapping, and the
+striping.  We've discussed adding support for fixed backing ID, which
+was something that John asked for.  The only missing piece was adding
+a protocol extension to set up  simple extent mappings, which already
+existed in the famfs_fuse patch, just needed to be renamed and unused
+fields changed to "spare".
+
+We (Amir, Joanne, me) explained to John how this is exactly what's
+needed to make famfs work.  We've not seen an acceptance of that yet.
+
+From my PoV this would be extra work, but in the longer term would
+expect to be less overall maintenance work and fuse would gain some
+useful features in the process.
+
+Thanks,
+Miklos
