@@ -1,50 +1,50 @@
-Received: from relay.hostedemail.com (smtprelay0014.hostedemail.com [216.40.44.14])
+Received: from relay.hostedemail.com (smtprelay0011.hostedemail.com [216.40.44.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F8DC25C804;
-	Sat, 22 Aug 2026 19:24:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23B9C35F191;
+	Sat, 22 Aug 2026 21:55:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787426683; cv=none; b=GAWTUPe5dE3/OR6O1+/iqlWusxUNJ/d9vu6EV3Y4TEmHt01/zfUVddnUo4tbXD8xQagrRDTKIc8LC+CJTbwC2PwyDlzYXSmftKf2VW57kp0EaErbWDNkTzwjfU22harRev8/mPUjNngQZc0d5Xt6p1t/6rmfmMWM5UCfDJfOdME=
+	t=1787435760; cv=none; b=kxhQhASh8cVpk0QZA1d9gV07bR6PlQ+e0SZtFvud1AgFjT4w7v7i95Ny7Fr71HaoNuKFeGiEJu7q/RksNA+YR4h/6XQuquxjjLmAfwrEZtCFDw/7P8azc4DQ3dQxHQVA/J47Q2wRk7B+nG2JmjmMuceYCGO2tGrkR+0qFOJetfc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787426683; c=relaxed/simple;
-	bh=EnVTf8gwPDT5HYwqYo0yJy/jFSm9GDsLPStDR83Xyjo=;
+	s=arc-20240116; t=1787435760; c=relaxed/simple;
+	bh=ydPE5wNVkHjkOcVFlSC9awoRXv6Z/AdDZGJpHIyo2cE=;
 	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=rUbMpGlw9YXn3aUvsBPDOHA/ZrOqE7uy2Y3xNvRidTsKeezIlUX3nfKN+wGaQGKvSV3NNhltK5J61oEUJmz1xt+ImKhnqL2YckZOkjKa2Vqyrx22UXs2SWxwS/klH0do/kAd57jma8rnONWfQzdZ2SXS0iU+ue3PlnIbWO/9kqA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.14
+	 Subject:Content-Type; b=kzy3K+fEy6y+cCVEcaM9+ZA2YhoEsRALneOAB7yVC9ibIpazmwL0j+kE2AUJ5MLXLjJIzMAvHsAyZwNpd0cAbgVbRZRP2ySRc851R5dqtVjBy/ITAFdTGTt4HcNdSP0xh9TPcbEg/4IgsGomamLz3aCn37qxXx3iY1wtrHB6AV8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=groves.net; arc=none smtp.client-ip=216.40.44.11
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=groves.net
-Received: from omf18.hostedemail.com (lb01a-stub [10.200.18.249])
-	by unirelay08.hostedemail.com (Postfix) with ESMTP id 36FBF1401BD;
-	Sat, 22 Aug 2026 19:24:30 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf18.hostedemail.com (Postfix) with ESMTPA id B31C130;
-	Sat, 22 Aug 2026 19:24:17 +0000 (UTC)
+Received: from omf05.hostedemail.com (lb01a-stub [10.200.18.249])
+	by unirelay07.hostedemail.com (Postfix) with ESMTP id 678FF160211;
+	Sat, 22 Aug 2026 21:55:46 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: john@groves.net) by omf05.hostedemail.com (Postfix) with ESMTPA id C14902000E;
+	Sat, 22 Aug 2026 21:55:33 +0000 (UTC)
 Received: from phl-compute-09.internal (phl-compute-09.internal [10.202.2.49])
-	by mailfauth.phl.internal (Postfix) with ESMTP id 1F38FF40067;
-	Sat, 22 Aug 2026 15:24:17 -0400 (EDT)
+	by mailfauth.phl.internal (Postfix) with ESMTP id 3962EF40067;
+	Sat, 22 Aug 2026 17:55:33 -0400 (EDT)
 Received: from phl-imap-02 ([10.202.2.81])
-  by phl-compute-09.internal (MEProxy); Sat, 22 Aug 2026 15:24:17 -0400
-X-ME-Sender: <xms:YPeJaoFJivKCzJvl5gWpEVZeW73WFta0SGQC03egZLlhHCJnbJV6cA>
-    <xme:YPeJasIFZv8mDjRMFUO_l8UxwyLxRabpzM0fbS4WqkhAgmYyiCesqOIMjICN9-K__
-    cPpGjomDlFlWTpLeySr26FTiFGEq29rwtuCT3wbiaVn6EkTOggwUNFf>
-X-ME-Proxy-Cause: dmFkZTEDtT+3RFoLC0czJz+2g3qhymGa+DvjqsQ1Yg5iIKlbn+6oNC756HrnwrRxNRxstY
-    nv7xi0PEPCeCr9lPfyVJUDLs6lYlmoR5eSwdfyso6ZNFOY7HaLfVVfYjuN+d3vNQqf5aaC
-    cELBCb2OXk/wmAMcHXqG4iGK/uKiM1c1gZYE+nizmVh7LBg7no7Gufy3+ZZgqL9pXRJCri
-    V4f3AiClTu+DpKbT6jntfN9xlUA3VufvAujJfOpyr2C5fNBpkv8lD3C7gw3DIZaYzqgy1X
-    p/A7BnhcUyToY6xwxs736iIjdsoW9mnuzHxae9/97QdtwXy0z2HszBqELXcKIHtZs5VQVd
-    OIlj/0+uKcIJiBAsJw6VgWnwScrFDgd2Kl/iDbRc9rbMaOGABRwVqiQFmlR4gePNWGuBtb
-    PHNHHHXpX6S8Tn40NN9ft2FyrXYM0YzO5nxeB8PvZHRqa+GSQLNcaQD6jGUGHqgrwrwRKc
-    +c6Z2GqMC0E6aEMVgrf/BXg/VVcU2Xkd+SfHBhlWi2T3Lt57N/4FXvy0FAZDIfa0ZCOX77
-    rvgZ5zgUE5f+GWyzpiaGjqGkQLR6qfblK3tvBiJ22qTY3Wdfomd2wB3Ju06bGeu7/ALnvx
-    ahvY1UbTqIYyOXm4OUAj8iNRJws06lGSld4i5Ov1U/hCSunk0Jv35qMZKSBg
-X-ME-Proxy: <xmx:YfeJanoFaznld9MGItvVhPdnHcNM64QjQSv42sJWBpPi3X1Gh-8B6A>
-    <xmx:YfeJao7604lN9Sj6illq_hvEYq1lI3tvWypHeCzRivwL0kwlF7QXcQ>
-    <xmx:YfeJao7BTBciBo5O4-KEfQCfRvBAYDYitYrlkGVybB7T6KzmBMS7zQ>
-    <xmx:YfeJannd1x0bV7NBAcI4ayDlVmseqMdwuS86kCjzK40Lbn-qEs_Ugg>
-    <xmx:YfeJavjp_i3AjCBzu2K3C7ObDUX6_ut9S-JgprTQHVVmQESDNK_vIig6>
+  by phl-compute-09.internal (MEProxy); Sat, 22 Aug 2026 17:55:33 -0400
+X-ME-Sender: <xms:1RqKatMyIIi2EzLpM0KihAkAyDe0mhF4DMBBme-A0W4SRVKUI2x9lQ>
+    <xme:1RqKaqwJcpM5Cassc4gyXnFazoAV6GJ2-koYFQE6F8uCfm5JG0u_l44T7OGZz-30t
+    tOrb79KY-Dk2LsX00-slds_o8Nvafx_OvcnaBuN1QQqwlRw64VgdE8>
+X-ME-Proxy-Cause: dmFkZTGCA6OH9wcjmhStKEmfjW0Tz7H7Z9zrjNt3d9qTBcfFYFwDDJEkh9OFgr+NuioEQS
+    QZBYX3eWFyiPfkiuMlERyps1M542vWQPbrJJP/A/lNxB1C3dBoEp5Bm2mxgg/Zlik+Equg
+    6hNe2KXSbIO/sauBMu3iC5lKwHhRVgvibk59WiqzunhddE8SC+fKFVmksyUiq/8pdu2fS7
+    vNmEWII6WwS4+wtWW7MSv8corHn50om5j6m5U71PXaqN/7arYQ3cqvonlC7Kvv68zFEDPy
+    xCIHoO7Vkm3N7BW3SQH5D7OFGQNh2I/V/UD3NUR+c70LTFb6BZIOmpTZJnPfEF59To3Sdn
+    FEQkIKJVXTIU6hKqW1RwOi4YgpVgKRQ2Tj3S1kDrAyNvwb+C+5Hp8uXHY//0s7WvNTgjvt
+    8gOVO+LqQIUPmjoC0tcqfflPEsBT0QkWtpPy4opr0zx2dB4cNk50wym/aYsjNiwsdpBCgo
+    C6A7S2HZtyw2YvPjzrPDb4ryMtzk/NaMy6UPMdXJrHR+EadwMYTYyN/nO8Mml2weIVKAEU
+    Ob5MZJ0IIwQhuriBgOv0uu0J3nXt3RUa92PqLRCAsBBd71mfCAonanhWeH/mPZKeb98NZz
+    C7fBXNQsLAza/jv/LAhOTj9guJpsbHMn3Wb1k212ktGCCqmMTZ8kJU/SO8Ag
+X-ME-Proxy: <xmx:1RqKaqBEjbtEl7S2izHBhGtCOi1v7zRdC3scgoyd3gvnyOda2okpNQ>
+    <xmx:1RqKaiPYqXOjyCTfsiKZZYGaY_0A8Z8gaIAbj4s6iru_mlU2Gpovkw>
+    <xmx:1RqKalpgU-DvmnGB4yvrQx6blUoOttKd0OyzVFeXv28NCHANdUlmsA>
+    <xmx:1RqKahLFeYb7sAYRjmOuo84S4f8OumiPWavfhDoGzORY3ZaSeQJuPQ>
+    <xmx:1RqKamdBMiSKRUxwnJcjEIuQXoB6U7v9YGgCiZbS1oi8R8G0ruJGf2PE>
 Feedback-ID: i3a164872:Fastmail
 Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id D23D9700065; Sat, 22 Aug 2026 15:24:16 -0400 (EDT)
+	id E6606700065; Sat, 22 Aug 2026 17:55:32 -0400 (EDT)
 X-Mailer: MessagingEngine.com Webmail Interface
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -52,11 +52,13 @@ List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Date: Sat, 22 Aug 2026 14:23:56 -0500
+Date: Sat, 22 Aug 2026 16:55:12 -0500
 From: "John Groves" <john@groves.net>
-To: "Darrick J . Wong" <djwong@kernel.org>
-Cc: "Richard Cheng" <icheng@nvidia.com>, "John Groves" <john@jagalactic.com>,
- "Miklos Szeredi" <miklos@szeredi.hu>, "Dan Williams" <djbw@kernel.org>,
+To: "Miklos Szeredi" <miklos@szeredi.hu>,
+ "David Hildenbrand" <david@kernel.org>
+Cc: "Christian Brauner" <brauner@kernel.org>,
+ "Darrick J . Wong" <djwong@kernel.org>,
+ "John Groves" <john@jagalactic.com>, "Dan Williams" <djbw@kernel.org>,
  "Bernd Schubert" <bschubert@ddn.com>,
  "Alison Schofield" <alison.schofield@intel.com>,
  "John Groves (jgroves)" <jgroves@micron.com>,
@@ -66,8 +68,6 @@ Cc: "Richard Cheng" <icheng@nvidia.com>, "John Groves" <john@jagalactic.com>,
  "Dave Jiang" <dave.jiang@intel.com>,
  "Matthew Wilcox" <willy@infradead.org>, "Jan Kara" <jack@suse.cz>,
  "Alexander Viro" <viro@zeniv.linux.org.uk>,
- "David Hildenbrand" <david@kernel.org>,
- "Christian Brauner" <brauner@kernel.org>,
  "Randy Dunlap" <rdunlap@infradead.org>,
  "Jeff Layton" <jlayton@kernel.org>,
  "Amir Goldstein" <amir73il@gmail.com>,
@@ -103,373 +103,246 @@ Cc: "Richard Cheng" <icheng@nvidia.com>, "John Groves" <john@jagalactic.com>,
  "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
  "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
  "fuse-devel@lists.linux.dev" <fuse-devel@lists.linux.dev>
-Message-Id: <95c95a40-fd7f-4a4e-b257-818caddcb3f1@app.fastmail.com>
-In-Reply-To: <20260822001723.GC6047@frogsfrogsfrogs>
+Message-Id: <ea56c85b-d564-4451-b704-58448a07bfa6@app.fastmail.com>
+In-Reply-To: 
+ <CAJfpegsC-D0AJij3E=dbKzZCH0nijE7+rpPut-EnRd3r0uCMtg@mail.gmail.com>
 References: 
- <0100019fed5850ec-2bdfb17a-3086-44ea-8fdd-777d3ce12a33-000000@email.amazonses.com>
- <20260810202510.96332-1-john@jagalactic.com>
- <0100019fed59de28-dde6a382-affe-4bc6-a91d-d4054a7c61a5-000000@email.amazonses.com>
- <anrUDcyctLFe8dZL@MWDK4CY14F> <ant9osbVPJyUPdWB@groves.net>
- <20260822001723.GC6047@frogsfrogsfrogs>
-Subject: Re: [PATCH v13 07/12] famfs: MAP_CREATE ioctl and fmap ingest (ABI 44)
+ <0100019fc572ca94-ec363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com>
+ <20260803022828.75776-1-john@jagalactic.com>
+ <0100019fc5739e5d-bc002300-eede-4c40-9ca8-a277b754496e-000000@email.amazonses.com>
+ <20260806043712.GB3560084@frogsfrogsfrogs>
+ <CAJfpegtW4bFn=oNfTipCxhiExaqSXnhXeBd6Uq15FpepqCJaPQ@mail.gmail.com>
+ <20260811-baugebiet-hofiert-fanden-3354f4a5e820@brauner>
+ <ab642f3a-e377-4292-b2ff-bc970f5384e8@kernel.org>
+ <CAJfpegsC-D0AJij3E=dbKzZCH0nijE7+rpPut-EnRd3r0uCMtg@mail.gmail.com>
+Subject: Re: [PATCH V12 02/12] famfs: Module operations, fs_context, and mount
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-X-Stat-Signature: axxoxxnndehzd5k859ecyay6z3kdtnb5
-X-Rspamd-Server: rspamout02
-X-Rspamd-Queue-Id: B31C130
+X-Stat-Signature: npbwmyrsypy9qfqbnarnhd3r6b8fomfa
+X-Rspamd-Server: rspamout04
+X-Rspamd-Queue-Id: C14902000E
 X-Session-Marker: 6A6F686E4067726F7665732E6E6574
-X-Session-ID: U2FsdGVkX1/Jo3e6jeqQj1Tb3gl7M3k6Xmw+2dF4XN4=
-X-HE-Tag: 1787426657-955564
-X-HE-Meta: U2FsdGVkX18DFgrmNQ6xjMwDSWTQJP2Q5og52+melwEKHFAFpS3NXnZGt8PxNkds0MSG6dBn+3E/zedkMuK4NLMy+aIubt1JTlHl4ZMzjmOfC1krWiMM7F2JyRgGR2X1VEqMWdm4YePC60GwhCRVGJBBYyK9t80IFsiX+PvCbJ93rEdsjrvz+QHtTSr+UFadXV3kbdTwOT5RwZoxZ5gFmBEdcuVaCyUrQQZ8N2RBAbUWCSUzTQJo57o+lg9Y6wAhP98u5lhuIXb/x1xVTYP+BnOXrOWX9J6R1mfGUL4aD76Lg/B8Ln+dhRrPBVdAyALP
+X-Session-ID: U2FsdGVkX1/eFa7gBwi+pCaM20Lnpv7AmduIYDxx1/M=
+X-HE-Tag: 1787435733-255652
+X-HE-Meta: U2FsdGVkX1/2IqEDh5jv55LWZkoKZ5XfhZh6L1ZBK7T6L0GsAfxjTCmXASd7cvzKb+2MRPBiINDU5CB5fzgP7Z3C/bi0ZhrH+t8aGGrbv6Wv+LGmLSZJM69TgGElFHslby+h+iUyHsCu7b5YTlWufYEptEBw7Vce+6U19JfRTBojHC0dIJPAEz9vI9MjerkpyNK8RgFoIASOSqmeKH2kpjJzUsCUrowAQbOEt1L/hQe4fPNE1w0+00VF04FQz6FpqkIzSqLWPKXaglYxdD94LWf6MzsajiyUcnoaUyOocxhdNW7YSg2OuWMPjbMo1vNXWCtjqlOKvqPDs8t64EFQsmQ5aaiq+MIS
 
 
 
-On Fri, Aug 21, 2026, at 7:17 PM, Darrick J. Wong wrote:
-> On Tue, Aug 11, 2026 at 05:17:50PM -0500, John Groves wrote:
+On Fri, Aug 21, 2026, at 2:39 PM, Miklos Szeredi wrote:
+> On Fri, 21 Aug 2026 at 13:40, David Hildenbrand (Arm) <david@kernel.org> wrote:
 > 
-> <snip>
+> > (a) Whether a fuse-based approach is feasible.
+> >
+> >     Are there any major blockers remaining?
 > 
-> > > > + switch (fmh.ext_type) {
-> > > > + case FAMFS_IOC_EXT_SIMPLE: {
-> > > > + struct famfs_ioc_simple_ext *se_in = fmap_buf + next_offset;
-> > > > +
-> > > > + next_offset += (size_t)fmh.nextents * sizeof(*se_in);
-> > > > + if (next_offset > fmh.fmap_size) {
-> > > > + rc = -EINVAL;
-> > > > + goto out;
-> > > > + }
-> > > > +
-> > > > + meta->fm_nextents = fmh.nextents;
-> > > > + meta->se = kcalloc(meta->fm_nextents, sizeof(*meta->se),
-> > > > +    GFP_KERNEL);
-> > > > + if (!meta->se) {
-> > > > + rc = -ENOMEM;
-> > > > + goto out;
-> > > > + }
-> > > > +
-> > > > + for (i = 0; i < fmh.nextents; i++) {
-> > > > + meta->se[i].dev_index  = se_in[i].se_devindex;
-> > > > + meta->se[i].ext_offset = se_in[i].se_offset;
-> > > > + meta->se[i].ext_len    = se_in[i].se_len;
-> > > > +
-> > > > + if (meta->se[i].dev_index >= FAMFS_MAX_DAXDEVS) {
-> > > > + rc = -EINVAL;
-> > > > + goto out;
-> > > > + }
-> > > > + meta->dev_bitmap |= BIT_ULL(meta->se[i].dev_index);
-> > > > + errs += famfs_check_ext_alignment(&meta->se[i]);
-> > > > + extent_total += meta->se[i].ext_len;
-> > > 
-> > > offset + length + entent_total can overflow, and file_size can be larger
-> > > than MAX_LFS_FILESIZE. And overflow can wrap the DAX address back to 0
-> > > and map the wrong memory.
-> > > 
-> > > Maybe check_add_overflow() can be utilized ?
-> > 
-> > Good idea, thanks!
-> 
-> Yes, all those arithmetics should catch overflows.
-> 
-> > > 
-> > > 
-> > > > + }
-> > > > + break;
-> > > > + }
-> > > > +
-> > > > + case FAMFS_IOC_EXT_INTERLEAVE: {
-> > > > + s64 size_remainder = meta->file_size;
-> > > > + u32 niext = fmh.nextents;
-> > > > +
-> > > > + meta->fm_niext = niext;
-> > > > + meta->ie = kcalloc(niext, sizeof(*meta->ie), GFP_KERNEL);
-> > > > + if (!meta->ie) {
-> > > > + rc = -ENOMEM;
-> > > > + goto out;
-> > > > + }
-> > > > +
-> > > > + /* Outer loop is over the separate interleaved extents */
-> > > > + for (i = 0; i < niext; i++) {
-> > > > + struct famfs_ioc_iext *ie_in = fmap_buf + next_offset;
-> > > > + struct famfs_ioc_simple_ext *sie_in;
-> > > > + u64 nstrips;
-> > > > +
-> > > > + next_offset += sizeof(*ie_in);
-> > > > + if (next_offset > fmh.fmap_size) {
-> > > > + rc = -EINVAL;
-> > > > + goto out;
-> > > > + }
-> > > > +
-> > > > + /* chunk_size must be exactly one supported alloc unit */
-> > > > + if (ie_in->ie_chunk_size != PAGE_SIZE &&
-> > > > +     ie_in->ie_chunk_size != PMD_SIZE) {
-> > > > + rc = -EINVAL;
-> > > > + goto out;
-> > > > + }
-> > > > + if (ie_in->ie_nbytes == 0) {
-> > > > + rc = -EINVAL;
-> > > > + goto out;
-> > > > + }
-> > > > +
-> > > > + nstrips = ie_in->ie_nstrips;
-> > > > + if (nstrips < 1) {
-> > > > + rc = -EINVAL;
-> > > > + goto out;
-> > > > + }
-> > > > +
-> > > > + meta->ie[i].fie_chunk_size = ie_in->ie_chunk_size;
-> > > > + meta->ie[i].fie_nstrips    = ie_in->ie_nstrips;
-> > > > + meta->ie[i].fie_nbytes     = ie_in->ie_nbytes;
-> > > > +
-> > > > + /* The strip extents follow the interleaved-ext header */
-> > > > + sie_in = fmap_buf + next_offset;
-> > > > + next_offset += nstrips * sizeof(*sie_in);
-> > > > + if (next_offset > fmh.fmap_size) {
-> > > > + rc = -EINVAL;
-> > > > + goto out;
-> > > > + }
-> > > > +
-> > > > + meta->ie[i].ie_strips =
-> > > > + kcalloc(nstrips,
-> > > > + sizeof(meta->ie[i].ie_strips[0]),
-> > > > + GFP_KERNEL);
-> > > > + if (!meta->ie[i].ie_strips) {
-> > > > + rc = -ENOMEM;
-> > > > + goto out;
-> > > > + }
-> > > > +
-> > > > + /* Inner loop is over the strips */
-> > > > + for (j = 0; j < nstrips; j++) {
-> > > > + struct famfs_meta_simple_ext *so =
-> > > > + &meta->ie[i].ie_strips[j];
-> > > > +
-> > > > + so->dev_index  = sie_in[j].se_devindex;
-> > > > + so->ext_offset = sie_in[j].se_offset;
-> > > > + so->ext_len    = sie_in[j].se_len;
-> > > > +
-> > > > + if (so->dev_index >= FAMFS_MAX_DAXDEVS) {
-> > > > + rc = -EINVAL;
-> > > > + goto out;
-> > > > + }
-> > > > + meta->dev_bitmap |= BIT_ULL(so->dev_index);
-> > > > + errs += famfs_check_ext_alignment(so);
-> > > > + extent_total += so->ext_len;
-> > > > + size_remainder -= so->ext_len;
-> > > 
-> > > We use physical allocation size here to check logical file coverage,
-> > > it doesn't make sense to me.
-> > > For example, file_size can be 1MB and ie_nbytes only 4KB, but a 1MB ext_len makes this check pass, and you access the area after the first 4 KB will fail,
-> > > because it has no logical mapping.
-> > > 
-> > > Maybe we should make sure the sum of ie_nbytes covers file_size, and
-> > > separately check that each strip's ext_len is large enough for its assigned
-> > > chunks ?
-> > 
-> > Chapeau to you for actually studying this code. Not many have gone
-> > there. It's arcane, but logically not too complicated.
-> > 
-> > You're right that famfs_file_init_dax() doesn't check for pathological
-> > strip sizes or overflows. It does do some basic checking, but would
-> > not catch a short strip followed by one or more "correct" strips.
-> > That stuff would indicate a buggy or malicious caller, since it
-> > violates the fmap logic.
-> > 
-> > However, the vma fault handler for interleaved files, 
-> > famfs_meta_to_dax_offset_interleaved(), *does* check for strip 
-> > overflows. It resolves a file offset to an offset in a specific
-> > strip (based on strip count and chunk size), and then checks that 
-> > it falls within the strip and not past the end.
-> > 
-> > Here is that code:
-> > 
-> > /*
-> > * MAP_CREATE only checks that the strips' combined
-> > * length covers the file, not that each strip is large
-> > * enough for the chunks striped onto it. Guard against a
-> > * malformed fmap with an undersized strip so we never
-> > * resolve to a dax offset past the strip's extent.
-> > */
-> > if (strip_offset >= strip->ext_len)
-> > goto err_out;
-> > 
-> > daxdev = famfs_daxdev_from_index(fsi, strip->dev_index, &rc);
-> > if (!daxdev) {
-> > meta->error = true;
-> > return rc;
-> > }
-> > 
-> > iomap->addr    = strip->ext_offset + strip_offset;
-> > iomap->offset  = file_offset;
-> > iomap->length  = min_t(loff_t, len, chunk_remainder);
-> > iomap->length  = min_t(loff_t, iomap->length,
-> >        strip->ext_len - strip_offset);
-> > iomap->dax_dev = daxdev;
-> > iomap->type    = IOMAP_MAPPED;
-> > 
-> > return 0;
-> > 
-> > Since this condition is an error or malice on the part of the 
-> > MAP_CREATE caller, I'm comfortable with catching it at fault time.
-> 
-> I think you should reject *any* bad mapping data at MAP_CREATE time
-> because then you can catch application bugs early with an immediate
-> error being sent to the famfs server.  Don't let bad data into the
-> kernel.
+> No.
 
-I can do that. I will note that the only application that does this (file creation
-during creat, cp or logplay in the famfs cli) definitively never has a shorter strip 
-extent followed by a longer one (which would be true for there to be a strip 
-overflow that wasn't caught till fault() time.
+Famfs does work in fuse, but some of the asks are things that I don't see
+how I can agree to. I think Miklos and I should discuss those 1:1, to figure
+out if there is a way forward.
 
-but it's easy enough to check at MAP_CREATE so will do.
+I think the virtual backing-dev thing is a non-starter, and I think that the famfs
+portion of the fuse ABI basically can't live without extents that are
+(daxdev, offset, length). 
+
+And taking out the interleaved fmap structure, which I did in v11 because
+it's my perception that certain fuse people *hated* it, is a bad idea IMO - it 
+explodes famfs fmaps from a few hundred bytes to potentially many 
+megabytes with no benefit to famfs. And famfs still needs compact 
+interleaved maps in the metadata log, because that memory is expensive.
+
+I have little doubt that 1) I don't fully understand Miklos' concerns and
+priorities, and 2) Miklos and others don't fully understand mine. If you 
+think I'm bad at explaining famfs now, you should have seen me trying 
+3.5 years ago! ;)
+
+IMO the on-list discussions have failed, and if people want famfs in fuse,
+Miklos and I should try to work out a plan 1:1. I've thought this since the first 
+time we discussed in f2f at LPC in Vienna, when you had questions about 
+the interleaved layouts.
 
 > 
-> > > > + }
-> > > > + }
-> > > > +
-> > > > + if (size_remainder > 0) {
-> > > > + /* Strips do not cover the whole file */
-> > > > + rc = -EINVAL;
-> > > > + goto out;
-> > > > + }
-> > > > + break;
-> > > > + }
-> > > > +
-> > > > + default:
-> > > > + rc = -EINVAL;
-> > > > + goto out;
-> > > > + }
-> > > > +
-> > > > + if (errs > 0) {
-> > > > + rc = -EINVAL;
-> > > > + goto out;
-> > > > + }
-> > > > + if (extent_total < meta->file_size) {
-> > > > + rc = -EINVAL;
-> > > > + goto out;
-> > > > + }
-> > > > +
-> > > > + /* Publish the famfs metadata on inode->i_private */
-> > > > + inode_lock(inode);
-> > > > + if (inode->i_private) {
-> > > > + rc = -EEXIST; /* file already has famfs metadata */
-> > > > + } else {
-> > > > + inode->i_private = meta;
-> > > > + i_size_write(inode, meta->file_size);
-> > > > + inode->i_flags |= S_DAX;
-> > > > + meta = NULL; /* owned by the inode now */
-> > > > + rc = 0;
-> > > > + }
-> > > > + inode_unlock(inode);
-> > > > +
-> > > > +out:
-> > > > + kvfree(fmap_buf);
-> > > > + if (meta)
-> > > > + famfs_meta_free(meta);
-> > > > + return rc;
-> > > > +}
-> > > > +
-> > > > +/**
-> > > > + * famfs_file_ioctl() - Top-level famfs file ioctl handler
-> > > > + * @file: the file
-> > > > + * @cmd:  ioctl opcode
-> > > > + * @arg:  ioctl opcode argument (if any)
-> > > > + */
-> > > > +static long
-> > > > +famfs_file_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
-> > > > +{
-> > > > + struct inode *inode = file_inode(file);
-> > > > + struct famfs_fs_info *fsi = inode->i_sb->s_fs_info;
-> > > > + long rc;
-> > > > +
-> > > > + if (fsi->deverror && (cmd != FAMFSIOC_NOP))
-> > > > + return -ENODEV;
-> > > > +
-> > > > + switch (cmd) {
-> > > > + case FAMFSIOC_NOP:
-> > > > + rc = 0;
-> > > > + break;
-> > > > +
-> > > > + case FAMFSIOC_MAP_CREATE:
-> > > > + rc = famfs_file_init_dax(file, (void __user *)arg);
-> > > > + break;
-> > > > +
-> > > > + default:
-> > > > + rc = -ENOTTY;
-> > > > + break;
-> > > > + }
-> > > > +
-> > > > + return rc;
-> > > > +}
-> > > > +
-> > > >  /*********************************************************************
-> > > >   * vm_operations
-> > > >   */
-> > > > @@ -94,9 +400,25 @@ const struct vm_operations_struct famfs_file_vm_ops = {
-> > > >  static ssize_t
-> > > >  famfs_file_invalid(struct inode *inode)
-> > > >  {
-> > > > + struct famfs_file_meta *meta = inode->i_private;
-> > > > + size_t i_size = i_size_read(inode);
-> > > > +
-> > > > + if (!meta) {
-> > > > + pr_debug("%s: un-initialized famfs file\n", __func__);
-> > > > + return -EIO;
-> > > > + }
-> > > > + if (meta->error) {
-> > > > + pr_debug("%s: previously detected metadata errors\n", __func__);
-> > > > + return -EIO;
-> > > > + }
-> > > > + if (i_size != meta->file_size) {
-> > > > + pr_warn("%s: i_size overwritten from %ld to %ld\n",
-> > > > +        __func__, meta->file_size, i_size);
-> > > > + meta->error = true;
-> > > > + return -ENXIO;
-> > > > + }
-> > > >  if (!IS_DAX(inode)) {
-> > > > - pr_debug("%s: inode %llx IS_DAX is false\n",
-> > > > - __func__, (u64)inode);
-> > > > + pr_debug("%s: inode %llx IS_DAX is false\n", __func__, (u64)inode);
-> > > >  return -ENXIO;
-> > > >  }
-> > > >  return 0;
-> > > > @@ -233,7 +555,7 @@ const struct file_operations famfs_file_operations = {
-> > > >  /* Custom famfs operations */
-> > > >  .write_iter    = famfs_dax_write_iter,
-> > > >  .read_iter    = famfs_dax_read_iter,
-> > > > - .unlocked_ioctl    = NULL /*famfs_file_ioctl*/,
-> > > > + .unlocked_ioctl    = famfs_file_ioctl,
-> > > >  .mmap    = famfs_file_mmap,
-> > > > 
-> > > 
-> > > We don't have compat_ioctl handler, a 32-bit application on a 64-bit
-> > > kernel will get ENOTTY, if we will have that scenario I think the handler
-> > > should be added.
-> > > 
-> > > Best regards,
-> > > Richard Cheng.
-> > 
-> > This one is simple but arcane. Here are the kconfig deps:
-> > 
-> > FAMFS -> FS_DAX -> ZONE_DEVICE -> MEMORY_HOTPLUG
-> > 
-> > And MEMORY_HOTPLUG is depends on 64BIT. So famfs is definitively 64BIT-only.
-> > 
-> > In this series I added a direct dependency on 64BIT, to make it more 
-> > clear...
+> > (b) Whether a fuse-based approach is inefficient.
+> >
+> >     Are there scenarios remaining where performance or metadata overhead would
+> >     be bad without an easy way to improve the situation?
 > 
-> compat_ioctl is for 32-bit programs calling into a 64-bit kernel.
+> Lookups can be cached, extent mappings can also be cached.   After the
+> inode is in cache and the mapping is set up zero requests are needed
+> for open/mmap/read/write/close.
+
+True as far as it goes. The initial statement I made at LSFMM '24 was that
+famfs would have to cache up complete file maps in-kernel, and that's what
+I implemented.
+
 > 
-> Granted a 32-bit program is probably not a good contender for famfs due
-> to limited address space, and you could simply declare that you don't
-> support 32-bit programs.
+> > (c) Whether a fuse-based approach is a bad conceptual fit.
+> >
+> >     Will fuse have to carry a lot of famfs special sauce that cannot
+> >     really be used elsewhere / generalized?
 > 
-> --D
+> None.
+> 
+> But "can" and "will" are not the same.  The striping code might not be
+> very useful outside of famfs.
+
+Right. Famfs is a file system that uses dax instead of the page cache,
+and that dax is character not block, and there is no backing store. Famfs
+is not even storage, since the memory is volatile. So it's pretty different 
+from mainline file system use cases.
+
+In the thread from hell prior to LSFMM, somebody asked if I'm willing
+to have the famfs code be shared. I don't even understand the question:
+it's open source, of course it can be shared. Whether it will make much 
+sense to do that is an open question IMO.
+
+Also, I'm curious: if you don't know of a use case for the striping code outside
+of famfs, why ask famfs to completely rewrite that?  (and I agree, other
+than the eventual remote possibility of competing 'famfs-ng' fuse servers, 
+I don't see much likelihood that this piece will be shared.)
+
+> 
+> > (d) Whether a fuse-based approach is too invasive.
+> >
+> >     Will fuse extensions to support famfs actually make it harder to maintain or
+> >     slower on some paths?
+> 
+> No.
+
+This does depend on what architectural changes are demanded of
+famfs.
+
+> 
+> > (e) Whether a fuse-based approach will make famfs harder to extend.
+> >
+> >     Is there known follow-up work that will be hard/impossible to model in fuse?
+> 
+> It would actually make famfs much easier to extend, since the
+> directory structure, metadata, etc. is now controllable within the
+> userspace server.
+
+That is also true of the standalone famfs implementation, although the
+fuse approach is nicer for this.
+
+> 
+> > (f) Whether a fuse-based approach will reduce maintenance effor
+> >
+> >     Will maintaining fuse extensions possibly be harder than maintaining
+> >     standalone famfs?
+> 
+> Testing is a key point.  Famfs needs special hardware or emulation, so
+> it's not straightforward to test.  This could be solved by adding a
+> "dummy" mode to famfs server that exercises the same fuse API, but
+> instead of special hardware would just use plain memory.
+
+Famfs has extensive CI that runs against both the standalone and fuse
+implementations, including legacy versions that are still in use.
+
+We copied some of the dax CI; some of the tests build a kernel, boot it
+in qemu with NFIT virtual daxdevs, build the famfs user space in the VM, run
+CI tests on famfs in the vm, etc.
+
+We also run test automation on real shared memory hardware, but those
+are still unicorn setups currently.
+
+My team is quite serious about the testing (regardless of which version
+goes upstream), and will be running automated testing against famfs 
+on every kernel release, with multiple versions of the user space - and 
+we'll be happy to share the recipes with others.
+
+> 
+> > (g) Whether a fuse-based approach would make famfs more complex.
+> >
+> >     Will the shift to user space result in a significantly more complicated
+> >     overall solution that must be maintained?
+> 
+> The server would be somewhat more complex, since it's now implementing
+> things like pathname lookup, etc.  But the other stuff (managing file
+> maps) should be very similar.
+
+The famfs fuse server exists, and it did add quite a bit of statefulness and
+complexity to famfs relative to standalone. But that's sunk work, and it's 
+pretty well tested. 
+
+> 
+> > (h) Who would help drive the fuse approach?
+> >
+> >     Fuse people seem to be willing to help, but I expect that there must be a
+> >     close cooperation with John to make this fly. I don't expect that John
+> >     himself can easily (or understandably wants to :) ) do the heavy fuse
+> >     lifting.
+> 
+> Yes, this is where previous efforts seem to have gone off the rails.
+> So I agree to take responsibility for implementing the kernel side and
+> help with the server side on the condition that John has trust in
+> this.   I'm not promising -7.4, but can at least try.
+> 
+> Without John's trust I'm not taking this on.
+
+I think I already did the heavy fuse lifting. There are a handful of things
+that need to be reconciled / negotiated.
+
+Miklos, I trust that you are a good faith actor, although you seem to be
+spread pretty thin. Can you commit to a series of 1:1 conversations with
+me to try to work through the disconnects? 
+
+> 
+> > (i) Who would maintain any famfs fuse extensions and own any bugs?
+> >
+> >     famfs will possibly depend on fuse extensions that might initially only be
+> >     used by famfs. Would the fuse maintainers just naturally deal with that?
+> 
+> I can take responsibility for the fuse kernel bits.
+
+I can share responsibility for the famfs-specific stuff.
+
+> 
+> > (j) Whether a fuse-based approach has an end in sight.
+> >
+> >     famfs goes back .... quite a long time. It would be nice to close that
+> >     chapter :)
+> >
+> >     Is there an end in sight, or could we end up in the same situation in 6m/1y/
+> >     ...
+> >
+> >     IOW, is there a way to agree on an MVP that won't require a lot of further
+> >     re-planning and changes to a fuse-based design?
+> 
+> I already sent patches to implement the dax dev mapping, and the
+> striping.  We've discussed adding support for fixed backing ID, which
+> was something that John asked for.  The only missing piece was adding
+> a protocol extension to set up  simple extent mappings, which already
+> existed in the famfs_fuse patch, just needed to be renamed and unused
+> fields changed to "spare".
+
+I think the virtual backing dev idea is wrong and bad. Let's discuss that.
+
+> 
+> We (Amir, Joanne, me) explained to John how this is exactly what's
+> needed to make famfs work.  We've not seen an acceptance of that yet.
+
+I am not feeling that my technical concerns have been heard and 
+understood, and I have not thought that the suggested changes to famfs 
+would preserve its fitness for purpose. 
+
+Whether I'm right or wrong can be figured out if we discuss it 1:1. The 
+on-list conversations have been something that my cardiologist asked
+me to stop reading. (only semi-joking)
+
+> 
+> From my PoV this would be extra work, but in the longer term would
+> expect to be less overall maintenance work and fuse would gain some
+> useful features in the process.
+> 
+> Thanks,
+> Miklos
 > 
 
-V13 already depends on 64BIT, so I think this is already done.
+Wherever we are, we've gotten here without any 1:1 collaboration. Let's
+try some.
 
-32 bit address space is not big enough to cover any of the intended use 
-cases for famfs. 
-
-Thanks Darrick!
+Thank you,
 John
+
+
+
