@@ -1,231 +1,373 @@
-Received: from mail-qv1-f51.google.com (mail-qv1-f51.google.com [209.85.219.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 954633DD522
-	for <nvdimm@lists.linux.dev>; Fri, 21 Aug 2026 19:39:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.219.51
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787341182; cv=pass; b=TL4fQsQnTjDGptT5jeW665jr66p0ZPcNzrm0p38Z7IIpNPnkAPyyWDYgXKICkSvMdl33Zmjck0Rsd8oSThqam5t8QTjkP1aRXkzRasnJHQmHZ7fwJy+JFISrQ7ucfsgXqf3ftCsorvUP0wDnbteljdzgTb10rG3MNhOV0wXmFdE=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787341182; c=relaxed/simple;
-	bh=2QaAsriM6IS3lTgDPUOF48nwqc8aTC29sa5P2y66CZ8=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ZcGISLI7zti0A4VRUFkCA+NoEqTnMmJNpz4WmbwGDrg9gVyFcBdr7DYl+D8KhkLh38ERpkm8ilSvccasKlKTIIrtG0pWhb9h+MmZ0qUTxwPeYGF0piE22St1Z172m9MHZhbCDtPGkKC6oj7Z7p4z+Ue7k5uLT8JtJteRh1WvFjk=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=mQeL9GCo; arc=pass smtp.client-ip=209.85.219.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2C8E13FEE;
+	Sat, 22 Aug 2026 00:07:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1787357251; cv=none; b=mYoqHdiiw7JS2AAsF1GpfgHbY9BwdPvnaW1+gAY2pNMWkVrJgLI5wQxGsKYIJ/DA0ga78WNc8AU2Cq+aMPbbYEZh+gPxPF53/R+vqULBi9BBMAdA7NbeJZ31hzU8zOhXe7QO9VxOuLqNIv2Uh6wceRjSK6H1xwA5MVPEEw5RY+g=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1787357251; c=relaxed/simple;
+	bh=tARrK2DyAjg3NpJ5/1Hr+stvyBIcOV2BYYBJgq3ZyU4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=doV/gloD4cTzKwcM44eNq/cnwPVyCDzTEKy9RqDYfN1Lpw9tGeZYgTzVtLJnZYdr+NWYCc8l+O+oU3PJv/i4yzNrMntHcyANHT1xBTOiiSygRVd0WT2DlqLb47BJPKaxoP1YfTuyjbNKV3Rt9Wmm4yjKYDuspkZnZzGlvzqE0Xw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=i1xPJdYN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="mQeL9GCo"
-Received: by mail-qv1-f51.google.com with SMTP id 6a1803df08f44-8ee43b3e5abso9074606d6.3
-        for <nvdimm@lists.linux.dev>; Fri, 21 Aug 2026 12:39:39 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1787341178; cv=none;
-        d=google.com; s=arc-20260327;
-        b=hgYGlbbiaWC073qdcpnVDjwJI1G4/g79GjypJJWQ3esG/Z5+MqS6XZ2Xyh843OP+Rz
-         +dauaKWRAym43pWp3nwWbORiqxKKd2qpZqwBk9emROSb4FhkBMGkroem0wz3hCM/7TyB
-         hhxs2t7+nB4UqHvTq7AzUSyK0okoD78VZqTwRTUCgF9/zHqbvGIrN03ss7vbrRRU1DAz
-         /xq+zDGvJNEkS10G25bJ2tSc9CF0mh7WpqlXngVIhCH/JZaOPX0i4jfEeQjmkFDj2rTo
-         bqi+FgJPEljrGu2xUeVylNaCeQqP6nk+h336g/UjcfPbRNq5ALJhgv69vwqSKIrFIRcE
-         rLyA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature;
-        bh=KUV4QsUdOhj/C4gedxjcRezZM90WK5l233fM+QINPEo=;
-        fh=XMPy9mE5Cx7fgCMhKuTKWZcVd78vSlTSb11N4ClxiFE=;
-        b=domEfAVL6UpfNbcusuLHEKHxoOjlL/eL2PgrCWpf3Z7qgDh5c0VFRrSy9jaS27eXiQ
-         1HS7UrKg9Y9lLug06Dcjgzp9jtBpEHg2kKoIz/eK/cFumxyjbud3M35vOV9R/9FkcFYc
-         3ZItkLQH9Cj7OJ9y2yocjnK6hwr7s5+hSjXqLGA7HGSSTMmrYxgePx/4haxA9Ut29O9t
-         RYKLMVBLmyV/bM+XGz080OPKOSpJfhnvRZ5QJlnHWwMnEgaXKKhgeMnn2VD//7ulddjB
-         2I4REcqYMd4nOavv1Za19eoTE3PePzJZTjuFoe5R77Np8bVw9DhGCt0QAMgh7Zd75mu3
-         sl0g==;
-        darn=lists.linux.dev
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1787341178; x=1787945978; darn=lists.linux.dev;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=KUV4QsUdOhj/C4gedxjcRezZM90WK5l233fM+QINPEo=;
-        b=mQeL9GCoFxkza2lAYix+dA594MljsVKaN/TPELf1NkbVPKSKL4xGW+UkkXmwhcCdDV
-         +gLQmmtteCQv7nVbiFF9wsAu0FUSqPXftOkV93ugrTeYW+O+aE4GOtJkpFacY+N/T9dK
-         hW+NPr9mnZAGl6qXfrMYYGxVp2qIzIptsM1yg=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787341178; x=1787945978;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=KUV4QsUdOhj/C4gedxjcRezZM90WK5l233fM+QINPEo=;
-        b=cH6pbtVCnCEPvcSIclmjSn855cskSrDe8KRor9wNoPrChLg3zQh5b2M1Nv+Eo73ujC
-         lDrGySKigKHd/mE8TxMo/L2rRxEp4/vJ7THyHbS7ps22m8lI0NhJ2G3JkgNCT8CFRjAp
-         5awhlbVoSFiWxQg4u2vM33r4MmLOZDAHrZCt2TzQWEJ9rzwpc3wbab0ahn5c9B0jbTDx
-         YaRA35F2B4tOFun8gsmdJ3KcThan7jmjUF+eGZAhLA92ZOK8JsQjIjQjhPrZMV9G1/sv
-         +IS6LQg3GD/XuNdw89Oci6QJVnCsQYnpGxcWcSaOs+dsHrDC78bMz8BCS4MO+eThipC8
-         1oNA==
-X-Forwarded-Encrypted: i=1; AHgh+Rpk06InJaaEGYmYglCKM2SeW09LAyfqwk+AQAArkpo2iL6/Uhe93WBFvml95idkrflXMLwum+U=@lists.linux.dev
-X-Gm-Message-State: AFuF++l9vDhi8Edzu8tuDOK2vR2XrWVLLya26tBUZQhgbwT55KpF6mXz
-	YtF1XZbaO9LmbXnmjnLja/IdR5UGa2eq9uw+9bYa0dwz9ZNviYn2pLIDfIMY/c+J7JWzhJ/tJlG
-	ii83aGjTs+k62VU007R3eAOVfcCzE0ZsBUEA0dr8AXA==
-X-Gm-Gg: AR+sD10rxJHh0SM5j0bmxCWcE18720imsfSuN7jCfcXeoCyib9cUZm+qoRJd6FdDSbg
-	4yGUXrmkjG8SpbsjtqfhAfhoEPPNDggszfalXTBvquvUDeUiGbxrCHRIp9HbRXRcCcaY37vpRJr
-	Cxj+X8V6N+lJUajHgLB5ekZZ8NfH2CIRfYxvNHUWcxLx00/1HrJV7A24GncWSyHw3ZA5prb67Z8
-	uxCQnKrEE7mABk8OKWQMvyk98T/8Y7KCH5byZYeN9u0VAdb1ZQIvzsWVldC8rNGozoIvh93258K
-	83oInX5aGxMXKS0VjGOtMxMrYr1hlskWozbEVrWWnudgEkVccjQGCc2t7jQMR1h44Y4Q50vp/bl
-	VJYtvLT3vQV0dhGeVjdsRNPXvahWGf/fD
-X-Received: by 2002:a05:622a:1f8a:b0:51c:1532:ae93 with SMTP id
- d75a77b69052e-52df5a32867mr88198341cf.26.1787341177980; Fri, 21 Aug 2026
- 12:39:37 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="i1xPJdYN"
+Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id 3208E1F000E9;
+	Sat, 22 Aug 2026 00:07:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1787357249;
+	bh=3BJuQNK6b1/o0xfdnlOz6xEmEgheAyv0QX/nmO/VtWk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=i1xPJdYNAtBMqUrSS1MT75ReVHUXjvcZKAHptIbd3zNc/2Kv6aOZlm5b/mwirRS7Z
+	 EhxniYEq++3Havju3fM1x9V/RNCh6VwW+WlyXZ3glAWjoZhFjUepvLeRtk1af7yWOY
+	 +61n/+SE6CaTpPXMvZyAkR/UDM+EuARNtBmFBnyC8xSF3ziNbw44PmFHvKsqUnI02E
+	 Awhcq+pnudJ3CY/QIuXNrGLfVaTwF1uxH6m5pNtOFEwid2cjx2dMPhek96Zh6GRN0o
+	 HSuXsAD/tU34adQZeAQ2D/FZf8MHA6fqdEAd0GjC9Mvid6dcL5qYAkHyzMg7acIlmo
+	 EH0Ntse3Fa/RQ==
+Date: Fri, 21 Aug 2026 17:07:28 -0700
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: John Groves <john@jagalactic.com>
+Cc: John Groves <John@groves.net>, Miklos Szeredi <miklos@szeredi.hu>,
+	Dan Williams <djbw@kernel.org>, Bernd Schubert <bschubert@ddn.com>,
+	Alison Schofield <alison.schofield@intel.com>,
+	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>,
+	Jake Edge <jake@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	David Hildenbrand <david@kernel.org>,
+	Christian Brauner <brauner@kernel.org>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Jeff Layton <jlayton@kernel.org>,
+	Amir Goldstein <amir73il@gmail.com>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Stefan Hajnoczi <shajnocz@redhat.com>,
+	Joanne Koong <joannelkoong@gmail.com>,
+	Josef Bacik <josef@toxicpanda.com>,
+	Bagas Sanjaya <bagasdotme@gmail.com>,
+	Chen Linxuan <chenlinxuan@uniontech.com>,
+	James Morse <james.morse@arm.com>, Fuad Tabba <tabba@google.com>,
+	Sean Christopherson <seanjc@google.com>,
+	Shivank Garg <shivankg@amd.com>,
+	Ackerley Tng <ackerleytng@google.com>,
+	Gregory Price <gourry@gourry.net>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Namjae Jeon <linkinjeon@kernel.org>,
+	Lorenzo Stoakes <ljs@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Ira Weiny <iweiny@kernel.org>,
+	Pasha Tatashin <pasha.tatashin@soleen.com>,
+	Haren Myneni <haren@linux.ibm.com>,
+	Pratyush Yadav <pratyush@kernel.org>,
+	Giovanni Cabiddu <giovanni.cabiddu@intel.com>,
+	Jiri Slaby <jirislaby@kernel.org>,
+	Ethan Nelson-Moore <enelsonmoore@gmail.com>,
+	Gabriel Whigham <gabewhigham@gmail.com>,
+	Aravind Ramesh <arramesh@micron.com>,
+	Ajay Joshi <ajayjoshi@micron.com>,
+	"venkataravis@micron.com" <venkataravis@micron.com>,
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
+	"fuse-devel@lists.linux.dev" <fuse-devel@lists.linux.dev>
+Subject: Re: [PATCH v13 10/12] famfs: Add runtime operation-permission (opts)
+ framework
+Message-ID: <20260822000728.GB6047@frogsfrogsfrogs>
+References: <0100019fed5850ec-2bdfb17a-3086-44ea-8fdd-777d3ce12a33-000000@email.amazonses.com>
+ <20260810202539.96378-1-john@jagalactic.com>
+ <0100019fed5a5210-a09f1bdb-c705-44fc-8108-a7e7995a7af0-000000@email.amazonses.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <0100019fc572ca94-ec363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com>
- <20260803022828.75776-1-john@jagalactic.com> <0100019fc5739e5d-bc002300-eede-4c40-9ca8-a277b754496e-000000@email.amazonses.com>
- <20260806043712.GB3560084@frogsfrogsfrogs> <CAJfpegtW4bFn=oNfTipCxhiExaqSXnhXeBd6Uq15FpepqCJaPQ@mail.gmail.com>
- <20260811-baugebiet-hofiert-fanden-3354f4a5e820@brauner> <ab642f3a-e377-4292-b2ff-bc970f5384e8@kernel.org>
-In-Reply-To: <ab642f3a-e377-4292-b2ff-bc970f5384e8@kernel.org>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Fri, 21 Aug 2026 21:39:26 +0200
-X-Gm-Features: AcwNN1V5lCcm6_l8LY5VakD6tTocDvE06I1hYgFmfavubxTv285rgBmrPN7M8XY
-Message-ID: <CAJfpegsC-D0AJij3E=dbKzZCH0nijE7+rpPut-EnRd3r0uCMtg@mail.gmail.com>
-Subject: Re: [PATCH V12 02/12] famfs: Module operations, fs_context, and mount
-To: "David Hildenbrand (Arm)" <david@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>, "Darrick J. Wong" <djwong@kernel.org>, 
-	John Groves <john@jagalactic.com>, John Groves <John@groves.net>, Dan Williams <djbw@kernel.org>, 
-	Bernd Schubert <bschubert@ddn.com>, Alison Schofield <alison.schofield@intel.com>, 
-	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, Jake Edge <jake@lwn.net>, 
-	Shuah Khan <skhan@linuxfoundation.org>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Randy Dunlap <rdunlap@infradead.org>, 
-	Jeff Layton <jlayton@kernel.org>, Amir Goldstein <amir73il@gmail.com>, 
-	Jonathan Cameron <jic23@kernel.org>, Stefan Hajnoczi <shajnocz@redhat.com>, 
-	Joanne Koong <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>, 
-	Bagas Sanjaya <bagasdotme@gmail.com>, Chen Linxuan <chenlinxuan@uniontech.com>, 
-	James Morse <james.morse@arm.com>, Fuad Tabba <tabba@google.com>, 
-	Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
-	Ackerley Tng <ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, 
-	Andrew Morton <akpm@linux-foundation.org>, Namjae Jeon <linkinjeon@kernel.org>, 
-	Lorenzo Stoakes <ljs@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Ira Weiny <iweiny@kernel.org>, Pasha Tatashin <pasha.tatashin@soleen.com>, 
-	Haren Myneni <haren@linux.ibm.com>, Pratyush Yadav <pratyush@kernel.org>, 
-	Giovanni Cabiddu <giovanni.cabiddu@intel.com>, Jiri Slaby <jirislaby@kernel.org>, 
-	Ethan Nelson-Moore <enelsonmoore@gmail.com>, Gabriel Whigham <gabewhigham@gmail.com>, 
-	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, 
-	"venkataravis@micron.com" <venkataravis@micron.com>, 
-	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, 
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
-	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, 
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, 
-	"fuse-devel@lists.linux.dev" <fuse-devel@lists.linux.dev>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <0100019fed5a5210-a09f1bdb-c705-44fc-8108-a7e7995a7af0-000000@email.amazonses.com>
 
-On Fri, 21 Aug 2026 at 13:40, David Hildenbrand (Arm) <david@kernel.org> wrote:
+On Mon, Aug 10, 2026 at 08:25:47PM +0000, John Groves wrote:
+> From: John Groves <john@groves.net>
+> 
+> famfs denies most namespace, attribute and data operations by default
+> because the userspace log, not the kernel, is authoritative for a famfs
+> instance. Earlier commits already guard each such operation with a
+> famfs_opt_enabled(fsi, FAMFS_OPT_x) check backed by a permissive stub. This
+> commit defines the permission bitmap and makes those checks live.
+> 
+> Add:
+>  - FAMFS_OPT_* (uapi): a u64 permission bitmap, one bit per gated operation
+>    (create, mkdir, mknod, symlink, link, unlink, rmdir, rename, the four
+>    setattr components, data write, and MAP_CREATE), plus FAMFS_OPT_ALL. The
+>    FAMFS_OPT_XATTR bit is reserved - famfs has no xattr ops yet.
+>  - fsi->opts: a per-mount atomic64 bitmap initialized to FAMFS_OPT_DEFAULT,
+>    which sets famfs's default policy: create, mkdir, chmod, chown, utimes,
+>    write and MAP_CREATE are permitted; unlink of mapped files, link,
+>    symlink, mknod, rmdir, rename and truncate are denied.
+>  - the real famfs_opt_enabled() (replacing the stub), so every planted gate
+>    now consults fsi->opts.
+>  - FAMFSIOC_{GET,SET,CLEAR}_OPTS: read the bitmap, or enable/disable the
+>    bits set in a caller-supplied mask, returning the resulting bitmap.
+>    SET/CLEAR require CAP_SYS_ADMIN and reject unknown bits with -EINVAL;
+>    the bitmap is updated with atomic RMW so the checks stay lockless.
 
-> (a) Whether a fuse-based approach is feasible.
->
->     Are there any major blockers remaining?
+In a shared cxlmem environment, a program that wants to allocate some
+cxlmem contacts the master node and the master creates a path, maps some
+memory to the path, and writes a transaction to the log, right?
 
-No.
+Then, each node reads the new addition to the log and (maybe) creates a
+corresponding in-core path on the famfs mount, opens the file, and calls
+MAP_CREATE to upload the file-to-memory mappings.  After that,
+unprivileged client programs can use the file abstraction to map the cxl
+memory, right?
 
-> (b) Whether a fuse-based approach is inefficient.
->
->     Are there scenarios remaining where performance or metadata overhead would
->     be bad without an easy way to improve the situation?
+It looks like file creation requires (a) the sysadmin to have set the
+FAMFS_OPS_CREATE flag and (b) to have CAP_SYS_ADMIN.  This prevents
+unprivileged programs from creating new files that point to arbitrary
+(and possibly already in use) chunks of memory, right?
 
-Lookups can be cached, extent mappings can also be cached.   After the
-inode is in cache and the mapping is set up zero requests are needed
-for open/mmap/read/write/close.
+But what prevents a malicious program that is /not/ the famfs client
+software but has CAP_SYS_ADMIN from doing that?
 
-> (c) Whether a fuse-based approach is a bad conceptual fit.
->
->     Will fuse have to carry a lot of famfs special sauce that cannot
->     really be used elsewhere / generalized?
+The one place where I think fuse-famfs has an edge over the kernel
+version is that fuse-famfs both reads the metadata log and presents the
+directory tree to the kernel, so it can reject creat/mknod/mkdir
+requests coming from the kernel.
 
-None.
+--D
 
-But "can" and "will" are not the same.  The striping code might not be
-very useful outside of famfs.
-
-> (d) Whether a fuse-based approach is too invasive.
->
->     Will fuse extensions to support famfs actually make it harder to maintain or
->     slower on some paths?
-
-No.
-
-> (e) Whether a fuse-based approach will make famfs harder to extend.
->
->     Is there known follow-up work that will be hard/impossible to model in fuse?
-
-It would actually make famfs much easier to extend, since the
-directory structure, metadata, etc. is now controllable within the
-userspace server.
-
-> (f) Whether a fuse-based approach will reduce maintenance effor
->
->     Will maintaining fuse extensions possibly be harder than maintaining
->     standalone famfs?
-
-Testing is a key point.  Famfs needs special hardware or emulation, so
-it's not straightforward to test.  This could be solved by adding a
-"dummy" mode to famfs server that exercises the same fuse API, but
-instead of special hardware would just use plain memory.
-
-> (g) Whether a fuse-based approach would make famfs more complex.
->
->     Will the shift to user space result in a significantly more complicated
->     overall solution that must be maintained?
-
-The server would be somewhat more complex, since it's now implementing
-things like pathname lookup, etc.  But the other stuff (managing file
-maps) should be very similar.
-
-> (h) Who would help drive the fuse approach?
->
->     Fuse people seem to be willing to help, but I expect that there must be a
->     close cooperation with John to make this fly. I don't expect that John
->     himself can easily (or understandably wants to :) ) do the heavy fuse
->     lifting.
-
-Yes, this is where previous efforts seem to have gone off the rails.
-So I agree to take responsibility for implementing the kernel side and
-help with the server side on the condition that John has trust in
-this.   I'm not promising -7.4, but can at least try.
-
-Without John's trust I'm not taking this on.
-
-> (i) Who would maintain any famfs fuse extensions and own any bugs?
->
->     famfs will possibly depend on fuse extensions that might initially only be
->     used by famfs. Would the fuse maintainers just naturally deal with that?
-
-I can take responsibility for the fuse kernel bits.
-
-> (j) Whether a fuse-based approach has an end in sight.
->
->     famfs goes back .... quite a long time. It would be nice to close that
->     chapter :)
->
->     Is there an end in sight, or could we end up in the same situation in 6m/1y/
->     ...
->
->     IOW, is there a way to agree on an MVP that won't require a lot of further
->     re-planning and changes to a fuse-based design?
-
-I already sent patches to implement the dax dev mapping, and the
-striping.  We've discussed adding support for fixed backing ID, which
-was something that John asked for.  The only missing piece was adding
-a protocol extension to set up  simple extent mappings, which already
-existed in the famfs_fuse patch, just needed to be renamed and unused
-fields changed to "spare".
-
-We (Amir, Joanne, me) explained to John how this is exactly what's
-needed to make famfs work.  We've not seen an acceptance of that yet.
-
-From my PoV this would be extra work, but in the longer term would
-expect to be less overall maintenance work and fuse would gain some
-useful features in the process.
-
-Thanks,
-Miklos
+> Signed-off-by: John Groves <john@groves.net>
+> ---
+>  fs/famfs/famfs_file.c            | 59 ++++++++++++++++++++++++++++++++
+>  fs/famfs/famfs_inode.c           |  1 +
+>  fs/famfs/famfs_internal.h        | 30 +++++++++++++---
+>  include/uapi/linux/famfs_ioctl.h | 45 ++++++++++++++++++++++++
+>  4 files changed, 131 insertions(+), 4 deletions(-)
+> 
+> diff --git a/fs/famfs/famfs_file.c b/fs/famfs/famfs_file.c
+> index 6f71805a297c..e7fa7324c374 100644
+> --- a/fs/famfs/famfs_file.c
+> +++ b/fs/famfs/famfs_file.c
+> @@ -359,6 +359,53 @@ famfs_daxdev_open(struct file *file, void __user *arg)
+>  	return rc;
+>  }
+>  
+> +/**
+> + * famfs_get_opts() - FAMFSIOC_GET_OPTS: return the permission bitmap
+> + */
+> +static long
+> +famfs_get_opts(struct famfs_fs_info *fsi, void __user *arg)
+> +{
+> +	struct famfs_ioc_opts o = { .opts = atomic64_read(&fsi->opts) };
+> +
+> +	if (copy_to_user(arg, &o, sizeof(o)))
+> +		return -EFAULT;
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> + * famfs_modify_opts() - FAMFSIOC_SET_OPTS / FAMFSIOC_CLEAR_OPTS
+> + * @set: true to enable (OR in) the requested bits, false to disable (mask out)
+> + *
+> + * The caller supplies a mask of FAMFS_OPT_* bits; the resulting bitmap is
+> + * returned. Requires CAP_SYS_ADMIN since it changes mount-wide policy.
+> + */
+> +static long
+> +famfs_modify_opts(
+> +	struct famfs_fs_info *fsi,
+> +	void __user *arg,
+> +	bool set)
+> +{
+> +	struct famfs_ioc_opts o;
+> +
+> +	if (!capable(CAP_SYS_ADMIN))
+> +		return -EPERM;
+> +	if (copy_from_user(&o, arg, sizeof(o)))
+> +		return -EFAULT;
+> +	if (o.opts & ~FAMFS_OPT_ALL)
+> +		return -EINVAL;
+> +
+> +	if (set)
+> +		o.opts = atomic64_fetch_or(o.opts, &fsi->opts) | o.opts;
+> +	else
+> +		o.opts = atomic64_fetch_and(~o.opts, &fsi->opts) & ~o.opts;
+> +
+> +	if (copy_to_user(arg, &o, sizeof(o)))
+> +		return -EFAULT;
+> +
+> +	return 0;
+> +}
+> +
+>  /**
+>   * famfs_file_ioctl() - Top-level famfs file ioctl handler
+>   * @file: the file
+> @@ -380,6 +427,18 @@ famfs_file_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+>  		rc = 0;
+>  		break;
+>  
+> +	case FAMFSIOC_GET_OPTS:
+> +		rc = famfs_get_opts(fsi, (void __user *)arg);
+> +		break;
+> +
+> +	case FAMFSIOC_SET_OPTS:
+> +		rc = famfs_modify_opts(fsi, (void __user *)arg, true);
+> +		break;
+> +
+> +	case FAMFSIOC_CLEAR_OPTS:
+> +		rc = famfs_modify_opts(fsi, (void __user *)arg, false);
+> +		break;
+> +
+>  	case FAMFSIOC_DAXDEV_OPEN:
+>  		rc = famfs_daxdev_open(file, (void __user *)arg);
+>  		break;
+> diff --git a/fs/famfs/famfs_inode.c b/fs/famfs/famfs_inode.c
+> index 98c877a6009e..2f1938adbfbc 100644
+> --- a/fs/famfs/famfs_inode.c
+> +++ b/fs/famfs/famfs_inode.c
+> @@ -769,6 +769,7 @@ famfs_init_fs_context(struct fs_context *fc)
+>  		return -ENOMEM;
+>  
+>  	init_rwsem(&fsi->devlist_sem);
+> +	atomic64_set(&fsi->opts, FAMFS_OPT_DEFAULT);
+>  	fsi->mount_opts.mode = FAMFS_DEFAULT_MODE;
+>  	fc->s_fs_info        = fsi;
+>  	fc->ops              = &famfs_context_ops;
+> diff --git a/fs/famfs/famfs_internal.h b/fs/famfs/famfs_internal.h
+> index f17380d24f6d..5e043b5a0ddd 100644
+> --- a/fs/famfs/famfs_internal.h
+> +++ b/fs/famfs/famfs_internal.h
+> @@ -12,11 +12,24 @@
+>  #define FAMFS_INTERNAL_H
+>  
+>  #include <linux/rwsem.h>
+> +#include <linux/atomic.h>
+>  #include <linux/bits.h>
+>  #include <linux/build_bug.h>
+>  
+>  #include <linux/famfs_ioctl.h>
+>  
+> +/*
+> + * Default operation-permission bitmap (see FAMFS_OPT_* in the uapi header).
+> + * This preserves famfs's historical behavior: file/dir creation, the fmap
+> + * ioctl, data writes, and the non-resize setattr components are permitted;
+> + * unlink of mapped files, link, symlink, mknod, rmdir, rename and truncate
+> + * are denied until enabled via FAMFSIOC_SET_OPTS.
+> + */
+> +#define FAMFS_OPT_DEFAULT	(FAMFS_OPT_CREATE | FAMFS_OPT_MKDIR | \
+> +				 FAMFS_OPT_CHMOD | FAMFS_OPT_CHOWN | \
+> +				 FAMFS_OPT_UTIMES | FAMFS_OPT_WRITE | \
+> +				 FAMFS_OPT_MAP_CREATE)
+> +
+>  extern const struct file_operations famfs_file_operations;
+>  
+>  /*
+> @@ -104,6 +117,8 @@ struct famfs_dax_devlist {
+>   * @famfs_fs_info
+>   *
+>   * @mount_opts:  The mount options
+> + * @opts:        Operation-permission bitmap (FAMFS_OPT_*), adjusted at runtime
+> + *               via the FAMFSIOC_{GET,SET,CLEAR}_OPTS ioctls
+>   * @deverror:    True if the dax device has called our notify_failure entry
+>   *               point, or if other "shutdown" conditions exist
+>   * @dax_devlist: Table of backing daxdevs (slot 0 is the mount primary)
+> @@ -111,16 +126,23 @@ struct famfs_dax_devlist {
+>   */
+>  struct famfs_fs_info {
+>  	struct famfs_mount_opts   mount_opts;
+> +	atomic64_t                opts;
+>  	bool                      deverror;
+>  	struct famfs_dax_devlist *dax_devlist;
+>  	struct rw_semaphore       devlist_sem;
+>  };
+>  
+> -/* This stub will be replaced in a later commit
+> - * Note: the opt parameter is intentionally unused, and will be used by
+> - * the replacement function when that commit lands
+> +/*
+> + * famfs_opt_enabled() - is operation permission @opt enabled for this mount?
+> + *
+> + * @opt is a single FAMFS_OPT_* bit; returns true if that operation is
+> + * permitted. The bitmap is read locklessly (updated via atomic RMW by the
+> + * FAMFSIOC_{SET,CLEAR}_OPTS ioctls).
+>   */
+> -#define famfs_opt_enabled(fsi, opt) (fsi != 0)
+> +static inline bool famfs_opt_enabled(struct famfs_fs_info *fsi, u64 opt)
+> +{
+> +	return !!(atomic64_read(&fsi->opts) & opt);
+> +}
+>  
+>  int famfs_lookup_daxdev(const char *pathname, dev_t *devno);
+>  int famfs_devlist_alloc(struct famfs_fs_info *fsi);
+> diff --git a/include/uapi/linux/famfs_ioctl.h b/include/uapi/linux/famfs_ioctl.h
+> index 751d8b033c2e..efe6ef263975 100644
+> --- a/include/uapi/linux/famfs_ioctl.h
+> +++ b/include/uapi/linux/famfs_ioctl.h
+> @@ -100,6 +100,48 @@ struct famfs_ioc_daxdev {
+>  	__u32 flags;
+>  };
+>  
+> +/*
+> + * Mount-wide operation permissions, queried and modified via the
+> + * FAMFSIOC_{GET,SET,CLEAR}_OPTS ioctls. A set bit means the operation is
+> + * permitted; a clear bit means it is rejected with -EPERM. famfs denies most
+> + * of these by default because the userspace log, not the kernel, is
+> + * authoritative for a famfs instance.
+> + */
+> +#define FAMFS_OPT_CREATE	(1ULL << 0)  /* create a regular file        */
+> +#define FAMFS_OPT_MKDIR		(1ULL << 1)  /* mkdir                        */
+> +#define FAMFS_OPT_MKNOD		(1ULL << 2)  /* mknod a special file         */
+> +#define FAMFS_OPT_SYMLINK	(1ULL << 3)  /* create a symlink             */
+> +#define FAMFS_OPT_LINK		(1ULL << 4)  /* hard link                    */
+> +#define FAMFS_OPT_UNLINK	(1ULL << 5)  /* unlink a mapped file         */
+> +#define FAMFS_OPT_RMDIR		(1ULL << 6)  /* rmdir                        */
+> +#define FAMFS_OPT_RENAME	(1ULL << 7)  /* rename                       */
+> +#define FAMFS_OPT_CHMOD		(1ULL << 8)  /* setattr ATTR_MODE            */
+> +#define FAMFS_OPT_CHOWN		(1ULL << 9)  /* setattr ATTR_UID / ATTR_GID  */
+> +#define FAMFS_OPT_TRUNCATE	(1ULL << 10) /* setattr ATTR_SIZE (resize)   */
+> +#define FAMFS_OPT_UTIMES	(1ULL << 11) /* setattr ATTR_ATIME/ATTR_MTIME*/
+> +#define FAMFS_OPT_WRITE		(1ULL << 12) /* write file data              */
+> +#define FAMFS_OPT_XATTR		(1ULL << 13) /* set/remove xattrs (reserved) */
+> +#define FAMFS_OPT_MAP_CREATE	(1ULL << 14) /* attach an fmap (MAP_CREATE)  */
+> +
+> +#define FAMFS_OPT_ALL		(FAMFS_OPT_CREATE | FAMFS_OPT_MKDIR | \
+> +				 FAMFS_OPT_MKNOD | FAMFS_OPT_SYMLINK | \
+> +				 FAMFS_OPT_LINK | FAMFS_OPT_UNLINK | \
+> +				 FAMFS_OPT_RMDIR | FAMFS_OPT_RENAME | \
+> +				 FAMFS_OPT_CHMOD | FAMFS_OPT_CHOWN | \
+> +				 FAMFS_OPT_TRUNCATE | FAMFS_OPT_UTIMES | \
+> +				 FAMFS_OPT_WRITE | FAMFS_OPT_XATTR | \
+> +				 FAMFS_OPT_MAP_CREATE)
+> +
+> +/**
+> + * struct famfs_ioc_opts - operation-permission bitmap
+> + * @opts: for GET, the current bitmap is returned here. For SET/CLEAR, the
+> + *        caller-supplied mask of bits to enable/disable on input, and the
+> + *        resulting bitmap on return.
+> + */
+> +struct famfs_ioc_opts {
+> +	__u64 opts;
+> +};
+> +
+>  #define FAMFSIOC_MAGIC 'u'
+>  
+>  /* famfs file ioctl opcodes */
+> @@ -111,5 +153,8 @@ struct famfs_ioc_daxdev {
+>   */
+>  #define FAMFSIOC_MAP_CREATE    _IOW(FAMFSIOC_MAGIC,  0x51, struct famfs_ioc_fmap_header)
+>  #define FAMFSIOC_DAXDEV_OPEN   _IOW(FAMFSIOC_MAGIC,  0x52, struct famfs_ioc_daxdev)
+> +#define FAMFSIOC_GET_OPTS      _IOR(FAMFSIOC_MAGIC,  0x53, struct famfs_ioc_opts)
+> +#define FAMFSIOC_SET_OPTS      _IOWR(FAMFSIOC_MAGIC, 0x54, struct famfs_ioc_opts)
+> +#define FAMFSIOC_CLEAR_OPTS    _IOWR(FAMFSIOC_MAGIC, 0x55, struct famfs_ioc_opts)
+>  
+>  #endif /* FAMFS_IOCTL_H */
+> -- 
+> 2.53.0
+> 
+> 
+> 
