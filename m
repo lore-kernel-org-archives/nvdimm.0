@@ -1,147 +1,247 @@
-Received: from mail-ua1-f46.google.com (mail-ua1-f46.google.com [209.85.222.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A87C61531C8
-	for <nvdimm@lists.linux.dev>; Tue, 25 Aug 2026 22:15:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.46
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787696120; cv=none; b=Laz+sf3y3pC6joLu+jeKzovu+7aVHGnI+qFPNDdD3dq7nXCN8wAlSWXHvZHyTmVIjMUY79x9a0sTL1qQIZGRoaaVj3gm1IaZL3J5Qh5owawIkBQrPfr1hZQcaKU7oRP0LhTFmbttMi3siEyL0AWWLEM58JMGNJOu1Z1/9K3877s=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787696120; c=relaxed/simple;
-	bh=ALvTtQS/ZvvUR9gxm8qmzRxg51/e/os61XAFTpQzc/U=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=NJSnHaUwT52B/7viARsUF/jFCPmsMVB9se+NA6j6Bdto3v6n52G73UnV6jPxdng+DJWdUg4cJvZKdtglNOqPpJ4UezRrrtvD8J74WN6rP9Za5s096dtIVRTrOMvDmKycIDSR8DMBZFVB9d+zlRJ0zW2cGSCmDKZdgoaF/WaT+Ec=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gompa.dev; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.222.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gompa.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-ua1-f46.google.com with SMTP id a1e0cc1a2514c-97c79f2db08so122931241.0
-        for <nvdimm@lists.linux.dev>; Tue, 25 Aug 2026 15:15:18 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787696117; x=1788300917;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=ALvTtQS/ZvvUR9gxm8qmzRxg51/e/os61XAFTpQzc/U=;
-        b=br5B2tZffUPeNeTMZ8BCxxVRDaxmoj2uRR4q8s/DJ63BwlEYsiQ+pY1X/Gx7rJDAfp
-         1bCDnvbzu+vZwd2qUpK65boP5AAdhjWQlYOKKC2cTkOnEa6xs37Z/4hEv7GfgJyON2p0
-         zrqgnqnnKrMoPaZimjcHMnVGoCyJKeeW4Y5vnKRsnPxbh++qhG0Vi7aDsTwvMKVmBpqE
-         hBzwpz5MgQgnEZWTNVTO3wP+yXaEKXb19iraUHQBOm9rM/b2uuV6NXakVzY2TWmhTVa7
-         PD3Z3UdIuUK3xQnveBLMU/qc48zhKtWAeJ3IrrChabrqCxusB2sWiJbctyh4iL+08wS+
-         UPxg==
-X-Forwarded-Encrypted: i=1; AHgh+RrNiejJzsmy9E1vXJROBVG/pw/iWUUmL+tMCilLED42MULgn9KJmG3GnPHfOfdUgceu20gntK8=@lists.linux.dev
-X-Gm-Message-State: AFuF++niPqtsD70kanmgec7tXDf4fmxhGh/FIMH02erR3EXRdWPG5TsR
-	CBHOOzwwZb9sHq2gMfoUt5N9hcrM7zSv2Numy79Ma3M4sFg6ZwTTO27UeYPPghNA
-X-Gm-Gg: AR+sD13K1LjJHikd3d5d22FOx1bKYmjrQKSbwmT8d9aiGrZaTOB4YUwGxcAkMIX/Hqj
-	xt5riNg9EbfJzgdvfW88yeGhP5u3V1VA485Gv7kT1t6cNpmPuo+zQtXMtCx/bVO1ruDu8P68XWa
-	wE3Siez7Vi+HPMZup3iZpEFk37/+y2wy7aj5cpOKeVTMBbYrxDy4ZpFtSeoemUxURyHLlAuTdkw
-	5Tv65lXbj0+VtbOZsMGK9H0dCyHDmVWLFlAO2nMKqLqJ4QforCKZgWpTXxS6B3S/ex79/ZaMQe2
-	pokXwFdFKVSFetPX2EtEEM4s3FTMQpzh9CRDSGXVQQfA18RLjv8evSsJG5AmljT8jnH//NROIMq
-	5HiaAGjx8yh6PswXLebtGKvBY9osTPXFUSQ/IBr/jyCVTKVja4nRjF/Gtjiag1ugvTDdJuiedqP
-	0cyHTz+vE2/soL/6Fd5tjVHAA77Ve5sdjz76/WW7KycKZEEIfXimrgqXm/Ie7XeNBj8MtFC5sCi
-	5i5VepYvXPd8I0Dw8XoTcmYUEsTXuCuTcPYVTZy3W8p29YZ/sxhb7EfPnPN3ODMf39ipTf5ZBtm
-	a/KD0fz0qHWN+REbpQr+opwXgC7xAQZVQ5E=
-X-Received: by 2002:a05:6102:441e:b0:780:811c:fd79 with SMTP id ada2fe7eead31-782c26f35e0mr938302137.13.1787696117360;
-        Tue, 25 Aug 2026 15:15:17 -0700 (PDT)
-Received: from mail-ua1-f52.google.com (mail-ua1-f52.google.com. [209.85.222.52])
-        by smtp.gmail.com with ESMTPSA id a1e0cc1a2514c-97cbe108560sm187485241.7.2026.08.25.15.15.17
-        for <nvdimm@lists.linux.dev>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 25 Aug 2026 15:15:17 -0700 (PDT)
-Received: by mail-ua1-f52.google.com with SMTP id a1e0cc1a2514c-97c8e173973so115816241.1
-        for <nvdimm@lists.linux.dev>; Tue, 25 Aug 2026 15:15:17 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+Rrxowj10s+pglS0n/Lrov5PZYIv3Z86tgRARiW4BLrRhOJnmtQyHJVVMCl0p2m/AipoKNb4X+g=@lists.linux.dev
-X-Received: by 2002:a05:6830:7104:b0:7f1:ddf1:c731 with SMTP id
- 46e09a7af769-7f4c5097628mr2648400a34.13.1787695731676; Tue, 25 Aug 2026
- 15:08:51 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63828364E84
+	for <nvdimm@lists.linux.dev>; Thu, 27 Aug 2026 22:51:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.18
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1787871101; cv=fail; b=jGnyfrIZE+HFu3quqHz7V5dL4ILLSjrr4D3UftmkAWwHn3hkMyT+1KvofdpaUWERSIPgLdQLN8lJkeiS6JRhcYZ7MriNOOw2+D22kJ5kLvYj+irwLqLj0Mdg2QtLfJZSgwwSvUJJQLBnC4zIqS3l3asTY3gmZAAHM1rx5l2jKRw=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1787871101; c=relaxed/simple;
+	bh=hPpLOVW9ISWY0RrJDohw7q83eqyqc7YRIbn2CCTlpks=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=A8EDkm5pwEsAdSvbVCSFCEepnGL4ZhtI1Lq+sE5L4LHz0rxzhOMc6mylwClwrk6QVv64m1pBzuc7ebrDtzQGEX18Hi8t7x5Gxceji+QNt2IuZK0IQOwLz/bm25EVNgfdHgqs5bxLff62+IyyAsf6CaTbbgNVz+7v3ZRqd1Wobvc=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=MysbdYVv; arc=fail smtp.client-ip=198.175.65.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="MysbdYVv"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1787871100; x=1819407100;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=hPpLOVW9ISWY0RrJDohw7q83eqyqc7YRIbn2CCTlpks=;
+  b=MysbdYVvcei4QXbAvGkVSK8Yr9xipKKInjGkVbvOnT4G2EfKEKKLfUxU
+   naZcL0CNWThc6aEv0/vZWO69BkK4VvZaYPWelXtC+KGHfXLpkmYba0s+N
+   w8+7qFCtLr9zqF3FZV1KtssVElp6xx7Dcbs1VnOLzG18q7gWb7gVlVkn1
+   vaofi2G9NwClUYh71bHQ/MPO+kLPbxgXNN99zWhZKd6g2Zxil6KHcx71A
+   RE6DDwjS+LjoMaHyuE30nRR12hCLat7zkA6B9tPCeB5oIOGajH10OiO5f
+   fRDP9Y2xBnaYFVbIr5cf9WUkgL2fPmRivuB7Dp6K0JtQkYwltiNpQv/J8
+   A==;
+X-CSE-ConnectionGUID: AmtUwGjLTSeSai35MBQ/Hw==
+X-CSE-MsgGUID: f6kBVzsNRxegGbkTbv9UGA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11888"; a="88434090"
+X-IronPort-AV: E=Sophos;i="6.25,247,1779174000"; 
+   d="scan'208";a="88434090"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Aug 2026 15:51:40 -0700
+X-CSE-ConnectionGUID: ClDuPa/DTRupVEmmSx/X2g==
+X-CSE-MsgGUID: mRUyM7XlTPGwrLYTZNrmpw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,247,1779174000"; 
+   d="scan'208";a="292814161"
+Received: from orsmsx902.amr.corp.intel.com ([10.22.229.24])
+  by fmviesa001.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Aug 2026 15:51:39 -0700
+Received: from ORSMSX901.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.46; Thu, 27 Aug 2026 15:51:39 -0700
+Received: from ORSEDG901.ED.cps.intel.com (10.7.248.11) by
+ ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.46 via Frontend Transport; Thu, 27 Aug 2026 15:51:39 -0700
+Received: from SN4PR2101CU001.outbound.protection.outlook.com (40.93.195.71)
+ by edgegateway.intel.com (134.134.137.111) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.46; Thu, 27 Aug 2026 15:51:39 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=VlJAtGvd5rh6K6LIYg/Xoj2g3P44RjNZ8ksX/JgyJiu3Kp6U395UnnWKDihKDAuJe6ERVTlsJ6MKAVmfgbFO0uMQ/xaRsb0Vg4ZlIazckEUw+1radSiSluiBUQhsULv+vaNQutlaSKNJS0InfiMxDx/TQIgAAvD0VRBtL6/YSMOD7kAMPdRfkLB+SCkHa9CFI2WcnBCSSzRdiHt3XPp4QLxcPvDbrKKb2g/eVYbxG8Z6xI5edKosJstCBX15pi1hrYA8RBBcW+2OOVUJ4H05a5P75Yd7kl6VBBlDOk3b9jzj5fDQ7O61XtYzjg66Ea1B6MtuWQf3utBJw1n407j+Pg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=ZOHiMql4DBwEO3Tdb6ivkAs6BWlvy+Pv+hWJdc/g5pM=;
+ b=vlUqTvf3M+tpSMthE9aei3Oni09kXXYPcYwdei7hfuyfPOVcAgXowdAZWriqop/Q339Wl5tkyNuEG/To9E1JV9w37HDVopAfsIOen5l0HpSQJkzBcISGgIXbMjb0P7AaII282t+ASGSuHYlBuhlPEjFrtKycXuxGBYlQbamQLOrwkeva7HuX3DYbeK/Oh/g/Is+T69wiGfdjiJWY5nHaysO8qrdEuyWJ6KL7iN84UdVTD2oEfUVZksU2Xd3Jhg805xIIl3rtUk6Z17kr89CuzK6r9shYL/SyvsaJ81SZ1676Y1jjIUAYa/MGFzUDLwpnKI3LGL04JVqX3+nii0umEw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com (2603:10b6:f:fc02::9)
+ by SN7PR11MB7603.namprd11.prod.outlook.com (2603:10b6:806:32b::6) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.360.10; Thu, 27 Aug
+ 2026 22:51:36 +0000
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::e721:90d7:9214:2d53]) by DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::e721:90d7:9214:2d53%6]) with mapi id 15.21.0360.008; Thu, 27 Aug 2026
+ 22:51:36 +0000
+Date: Thu, 27 Aug 2026 15:51:29 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: Hemanth Selam <hemanth.selam@gmail.com>
+CC: <djbw@kernel.org>, <vishal.l.verma@intel.com>, <dave.jiang@intel.com>,
+	<iweiny@kernel.org>, <nvdimm@lists.linux.dev>, <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] nvdimm: pmem: fix gendisk leak when badblocks init fails
+Message-ID: <apC_cdRF-Ycj4SbY@aschofie-mobl2.lan>
+References: <20260824060113.2330468-1-hemanth.selam@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20260824060113.2330468-1-hemanth.selam@gmail.com>
+X-ClientProxiedBy: SJ0PR03CA0252.namprd03.prod.outlook.com
+ (2603:10b6:a03:3a0::17) To DS4PPF0BAC23327.namprd11.prod.outlook.com
+ (2603:10b6:f:fc02::9)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <0100019fc572ca94-ec363dd7-3a77-484b-b4b7-f2503a0931a6-000000@email.amazonses.com>
- <20260803022828.75776-1-john@jagalactic.com> <0100019fc5739e5d-bc002300-eede-4c40-9ca8-a277b754496e-000000@email.amazonses.com>
- <20260806043712.GB3560084@frogsfrogsfrogs> <CAJfpegtW4bFn=oNfTipCxhiExaqSXnhXeBd6Uq15FpepqCJaPQ@mail.gmail.com>
- <20260811-baugebiet-hofiert-fanden-3354f4a5e820@brauner> <ab642f3a-e377-4292-b2ff-bc970f5384e8@kernel.org>
- <CAJfpegsC-D0AJij3E=dbKzZCH0nijE7+rpPut-EnRd3r0uCMtg@mail.gmail.com>
- <20260822002111.GA6110@frogsfrogsfrogs> <20260825-hinab-kanarienvogel-mitschnitt-04a662533a24@brauner>
-In-Reply-To: <20260825-hinab-kanarienvogel-mitschnitt-04a662533a24@brauner>
-From: Neal Gompa <neal@gompa.dev>
-Date: Tue, 25 Aug 2026 18:08:14 -0400
-X-Gmail-Original-Message-ID: <CAEg-Je8d0kKH=kPiG7RDK4jGiTvECyOA_uFkZzbuvDpR+owJEA@mail.gmail.com>
-X-Gm-Features: AcwNN1Ug6ZjMUQh0-6_7H39nZVAq6SWCLa31cOPu7pwraCiDoCVhUYh7Q1UxHT4
-Message-ID: <CAEg-Je8d0kKH=kPiG7RDK4jGiTvECyOA_uFkZzbuvDpR+owJEA@mail.gmail.com>
-Subject: Re: [PATCH V12 02/12] famfs: Module operations, fs_context, and mount
-To: Christian Brauner <brauner@kernel.org>
-Cc: "Darrick J. Wong" <djwong@kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, 
-	"David Hildenbrand (Arm)" <david@kernel.org>, John Groves <john@jagalactic.com>, John Groves <John@groves.net>, 
-	Dan Williams <djbw@kernel.org>, Bernd Schubert <bschubert@ddn.com>, 
-	Alison Schofield <alison.schofield@intel.com>, John Groves <jgroves@micron.com>, 
-	Jonathan Corbet <corbet@lwn.net>, Jake Edge <jake@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Randy Dunlap <rdunlap@infradead.org>, 
-	Jeff Layton <jlayton@kernel.org>, Amir Goldstein <amir73il@gmail.com>, 
-	Jonathan Cameron <jic23@kernel.org>, Stefan Hajnoczi <shajnocz@redhat.com>, 
-	Joanne Koong <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>, 
-	Bagas Sanjaya <bagasdotme@gmail.com>, Chen Linxuan <chenlinxuan@uniontech.com>, 
-	James Morse <james.morse@arm.com>, Fuad Tabba <tabba@google.com>, 
-	Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
-	Ackerley Tng <ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, 
-	Andrew Morton <akpm@linux-foundation.org>, Namjae Jeon <linkinjeon@kernel.org>, 
-	Lorenzo Stoakes <ljs@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Ira Weiny <iweiny@kernel.org>, Pasha Tatashin <pasha.tatashin@soleen.com>, 
-	Haren Myneni <haren@linux.ibm.com>, Pratyush Yadav <pratyush@kernel.org>, 
-	Giovanni Cabiddu <giovanni.cabiddu@intel.com>, Jiri Slaby <jirislaby@kernel.org>, 
-	Ethan Nelson-Moore <enelsonmoore@gmail.com>, Gabriel Whigham <gabewhigham@gmail.com>, 
-	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, 
-	"venkataravis@micron.com" <venkataravis@micron.com>, 
-	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, 
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
-	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, 
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, 
-	"fuse-devel@lists.linux.dev" <fuse-devel@lists.linux.dev>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|SN7PR11MB7603:EE_
+X-MS-Office365-Filtering-Correlation-Id: c2496a79-0e60-447a-fa2d-08df048dbf83
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|1800799024|23010399003|366016|6133799003|10067099003|56012099006|11063799006|5023799004|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info: OEQSqC6qC8gi63dVYymKw4H1YVsH/DT/IIt9lL9wsXTZAeCMRw2NuhyZg6CnOT34HfT7yA5oL8paXkK1gRD0jcwrfMOPhsYIBIIfxCzazW6cYS+9ojMLpT9NCbS/UwTVA7YXHl679Q5/teHL7Sgb0z4kwO90bwFhU8L3NFMz/Ln9tTHYM8tXsZLNjOJPEvbt1TCXvDZFJJviBAD+FKeHQtudmH8IyPY6LakuwySJ2PLsveCfWsvvatXVUY4DD/e+3c1DLnOmGss1x5wJBZ3PGj+VjVxw12SSBsiABSYc7pXBktZinHWwnOxa3A36z9rPUY98LhZikSnmeCoZyTc6t0IlNSmYJTPMQQhQeUZTgJpqAa8vTGUQNIUliuK1CdDCaqATFsGPFIzQ46XC6CSdaaClMdBFr5sVm3rjWlsbe3gMVElSjmkbAYh4L6wBXmfKk6NYkFMhaAODEIGOdD0pZ3duqkymgwRGbr6Egn3bmg8PXOUWQeg1ib7eMb8aBECdKHIZmPSO0DMeBeK7gVEKqXsq5GhQi2GqTy5rbdbiOzBIRbGnKrmkleUhHp0+HJl0e77AQUQk7deCyJu5ZssdnbHaiu7TF5PUSZuHGDn4Ri0Lg/c/5EHinfmdCXZHuAlL6+yhbXfQdGVzT3dhd90v34Cso6jOSjQXiLjYRLvUybg=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(1800799024)(23010399003)(366016)(6133799003)(10067099003)(56012099006)(11063799006)(5023799004)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?yf+65VWnFxMqvtNnN4tXgc2zD2bGjjiv23v5U5mRTjBuNLx5iZJ3aIcQKb4L?=
+ =?us-ascii?Q?MuM2rfF2ePIpnnjr9mISQQSFt59fUYx1y2n+zgme1vRNThMibOifwKHC8TKN?=
+ =?us-ascii?Q?np00EEzejxjBrrX0CdPxDPJHKO+AYclif/dB1IyrNRqPx9DyPhBTHRZ3FFTn?=
+ =?us-ascii?Q?Tk4qrqYpwJu23jcEwFJRh/cUXKuWjLHi2nV9n7EJ3ZlwOoWVX5R6M8eRlowx?=
+ =?us-ascii?Q?YEiChGl/9h3KcBNbvRmo8kZmyFhrwHvAt1oBQWgEkLRABsdUFURmJJb5q1mt?=
+ =?us-ascii?Q?Oox6Xm42/6sCB1z9TAOIo8kcs97zZ5sC9nAmDq50lK5+co3lvM5cv/SOvoLF?=
+ =?us-ascii?Q?RVxjTrGTYG4ScuRnCQI9jLhP/nyAq9MpsoOqf6XKzhuoaqHRxLsoEK2ntNPG?=
+ =?us-ascii?Q?PfC4prq58bN4aKWllxDLsgCVgVGniZCoABrKy19XbwgP2+TXKVi3oNQbqXHZ?=
+ =?us-ascii?Q?zfa0ac2ed7rabZpaywuHA/M0RMyWLaNERlZbyldNt3of4CAqVqC3Hyw+B7bw?=
+ =?us-ascii?Q?qXRcpLtCKuwjcKE1TtdiWSWpyC4an6rx2wMd/TincJ9X3W2VVwnXg3KWLucR?=
+ =?us-ascii?Q?ncxpo28QR/ziH3YhlpfJQsYjWDgWZ6+94Dka++4VOoTAMDd6eQ9817iTzBgJ?=
+ =?us-ascii?Q?lspO5FaZ4PIx25Arr2osM9fCUVeCKpZUl+4CB7+6bu4HnQrHWWcVcCfXMMVY?=
+ =?us-ascii?Q?8uXIT8N2opDeWf92qTGRtXCk6T4seFVmguEGx/oUAfRNCmxl2kuLk/5o1K1g?=
+ =?us-ascii?Q?N4FVKfxBT0hnjtW/bsvSue+jnxRliwYChH7P+fF3cZwfDOqlHELHk8995h2t?=
+ =?us-ascii?Q?+vAkx35E6mACMg15OY11rX7uuSq4xQPwH3jHdVrhWLWBuMBQdOXlKtLrD//S?=
+ =?us-ascii?Q?tWWPmJudGkQrtg1SzosVXfM8XYxGdHUDzJLuMGCgjRFTwlIfG16rF09oXc5I?=
+ =?us-ascii?Q?fW+x1JJaIIFQ19sUy2a0qWLd8sXtIX/bb/In3ocsJ3SmsNj7svObIKUvbpSq?=
+ =?us-ascii?Q?zVMBtN1eEO+Z4hk6iuJ1dMqVQtAhmFPNFN+LKGCYZ+CWyof2eEVhbPbc9Vsp?=
+ =?us-ascii?Q?xVS62cDRhTyeBOoHNkrbVd+8N3xyIgaeOejt5KaGtpLNvw+b68tiPL5eUAEZ?=
+ =?us-ascii?Q?/2fF0XbrZOuWhpaJrhRm0dAPP6+Mj+K3AxjEp4A42KYB93j4bR2KVjgJD65g?=
+ =?us-ascii?Q?ExSTb2hEXWjiGGZN1hO7GsBTGcFMjVpF7YNR4+Kjf2T4FUkbrcdOv9/Xkm6L?=
+ =?us-ascii?Q?s7XqfA6QZRWG5PJqDA9QLLjHwoLAWy6ubfmxRs7J2u70ZNAe7t7pHxWzUHVN?=
+ =?us-ascii?Q?xw37CanHD6zKyUQEL5KXYRawX44c4oetafOvFEIgqe/Hvv2pRydMjXEH52ab?=
+ =?us-ascii?Q?zhB2Uy1kc9OqQAbcfuhOLW/HxAezst/H4wpi1Ojf9KlnY1GGuk4s/x8TceKx?=
+ =?us-ascii?Q?OR5IJcL4hZK4Dtj0QTANH2ejai+oTXSeYeeTSjuQiGjrp36L+MMnLbrD4CLL?=
+ =?us-ascii?Q?AO4eZ/TrfwGBEB7+HSffuunzxLy/8UdxVqNvO2Saapdvs3utnuOSCsFbNw8B?=
+ =?us-ascii?Q?ECLlwkQH6M8+76x13SvrXXADPvh95WpiTUg6dkYdhS9PskE+I+U+vytLBgbb?=
+ =?us-ascii?Q?/zPH4GLhnDCDDxR4+oZRiP2rsx8a6UuZpVA4hTlTs4vRxEZixze4ULifpcre?=
+ =?us-ascii?Q?qetHGrxCpnirJcoqW+mBobO00/bxAnFLi9mx3r1jp0knuaKiC9gAlb8VEmTq?=
+ =?us-ascii?Q?5vg6odVYgSBuRFbK/cD3mmFpBAIFgIw=3D?=
+X-Exchange-RoutingPolicyChecked: LIyqx8Ht0ioZp1qyYqb2SaU8QiURUaKg3Dog8V8euvhpIIrQSr5ICQtNGThc76Fr7R32Jz3DgwNr6PY/Xyw0YwpdLmL4DwFQB9njhbbEHx0NLI70sVvNTy0JfWZ7L095LkZNT41WbukOSx97HmhV0aivCx9Kf5ZN81xHvIyiG6p0icoR8HsShno8G+vwNhaBt9uA6N9zxs0H7K9RgXqsEeHwurkoWbW/zYN5nQzNL/CNjJYO40YMH4gACACk842hTIQbk8bFT+Ee3aH9KTW1FrvbhB9lP4zrOedYuNqnMcCPw9IO2Dyd+AQ9tmeP+1RKlfTX4jeKz2tPphFqJI6u0Q==
+X-MS-Exchange-CrossTenant-Network-Message-Id: c2496a79-0e60-447a-fa2d-08df048dbf83
+X-MS-Exchange-CrossTenant-AuthSource: DS4PPF0BAC23327.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 27 Aug 2026 22:51:36.2234
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: IeOgVJXe/zzyfGuIPD9VKPmAeFH/AqBLSd8vsnSleZ/4nG5kt4XAa9aYsblkjbURj7l5KjvaMwQ/KaNetdw2gAXsUKo5SJiLs1o3Z+PHzak=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR11MB7603
+X-OriginatorOrg: intel.com
 
-On Tue, Aug 25, 2026 at 9:44=E2=80=AFAM Christian Brauner <brauner@kernel.o=
-rg> wrote:
->
-> > > Without John's trust I'm not taking this on.
-> >
-> > Whatever path you and John decide on, I would very much like to see the
-> > question of Which famfs driver do we merge? to be resolved for 7.4.
->
-> While it is reasonable to place limits on how long a series is pushed
-> out (I like to move with some speed myself.) we have two competing
-> implementations and that will have to play out. We should not merge an
-> fs just to finally merge _something_. The fact that this was more
-> contentious than usual doesn't imply we need to merge a version, doesn't
-> matter which one it is. That's a bad reason.
->
+On Mon, Aug 24, 2026 at 11:31:13AM +0530, Hemanth Selam wrote:
 
-Well, after 12 iterations in this version alone (working on this for
-three years) and forcing multiple side quests on John, I think it's
-not very fair to him to keep stringing him along like this.
+Hi Hemanth,
 
-At this point, I find it hard to believe there's much more to discuss
-about a not-a-filesystem that is relatively isolated from the rest of
-us. I've been following this discussion and while I don't necessarily
-grok everything, I understand it well enough to know that someone
-should just shepherd it through with John and just work things out in
-post. Honestly, the amount of metaphorical heartburn that must have
-been generated by this is insane. If I had any say worth a damn, I'd
-say let's just have Darrick work with John to close it out and get it
-landed for 7.4.
+Thanks for the patch. The fix itself looks right but the changelog made
+this harder to review than it needed to be for a simple fixup.
 
-Ultimately, the question of which famfs should be merged should be
-decided by John and Darrick (presuming we just all let Darrick
-shepherd this through). This has gone on way too long, I'm getting
-echoes of the sched_ext mess... :/
+I am fine with an AI tool finding a correctness issue, and I like that
+you found a way to exercise and test the change, yet neither needs to
+be dressed up as something else.
 
+Suggestions for a v2:
 
---=20
-=E7=9C=9F=E5=AE=9F=E3=81=AF=E3=81=84=E3=81=A4=E3=82=82=E4=B8=80=E3=81=A4=EF=
-=BC=81/ Always, there's only one truth!
+nvdimm/pmem: Release gendisk on probe failure
+
+> pmem_attach_disk() allocates the gendisk with blk_alloc_disk() and only
+> hands it over to devres at the very end, after device_add_disk() has
+> succeeded:
+> 
+> 	if (devm_add_action_or_reset(dev, pmem_release_disk, pmem))
+> 		return -ENOMEM;
+> 
+> Every error path in between either has nothing to release yet or jumps
+> to the out: label, which drops the last reference with put_disk().  The
+> devm_init_badblocks() failure returns directly instead, so on that path
+> the gendisk, its queue and its bdev inode are never freed.
+
+This mostly walks through the code. Please structure the changelog as
+background, problem, impact, and resolution, without narrating the call
+sequence or error labels.
+
+For example:
+
+pmem namespace probe allocates a gendisk before initializing its
+badblocks state. If that initialization fails, probe returns without
+releasing the gendisk.
+
+<Describe when this failure can realistically occur and what happens
+to the leaked resources. Is the gendisk permanently leaked, or is it
+eventually released when the namespace is unbound or destroyed? Is
+anything user-visible left behind?>
+
+Release the gendisk through the existing cleanup path on this failure.
+
+> The disk has
+> been allocated before this check since the check was introduced, so the
+> leak is as old as the check itself.
+
+I don't think that establishes the origin of the bug. Please look at the
+code immediately before b95f5f4391fa and re-derive the Fixes: tag.
+
+> 
+> Forcing the branch and rebinding a namespace 64 times shows one gendisk
+> leaked per failed probe: disk_release() is never reached and bdev_cache
+> grows by 60 objects.  With the goto, disk_release() runs on every
+> attempt and bdev_cache returns to its original size.
+
+I like that you found a way to test the error path. Please state how
+you did that, what tool? Make it clear that this is a unit test of a
+difficult-to-reach error path, not a user scenario.
+
+Also, 64 failed probes resulting in 60 additional objects caught my eye.
+If that difference is meaningful, explain it. Otherwise, I would leave
+that level of detail out.
+
+Likewise, please say how the bug was found.
+
+-- Alison
+
+> 
+> Fixes: b95f5f4391fa ("libnvdimm: convert to statically allocated badblocks")
+> Signed-off-by: Hemanth Selam <hemanth.selam@gmail.com>
+> ---
+>  drivers/nvdimm/pmem.c | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+> index 30a51c365ce8..648fc7d66063 100644
+> --- a/drivers/nvdimm/pmem.c
+> +++ b/drivers/nvdimm/pmem.c
+> @@ -563,8 +563,10 @@ static int pmem_attach_disk(struct device *dev,
+>  	nvdimm_namespace_disk_name(ndns, disk->disk_name);
+>  	set_capacity(disk, (pmem->size - pmem->pfn_pad - pmem->data_offset)
+>  			/ 512);
+> -	if (devm_init_badblocks(dev, &pmem->bb))
+> -		return -ENOMEM;
+> +	if (devm_init_badblocks(dev, &pmem->bb)) {
+> +		rc = -ENOMEM;
+> +		goto out;
+> +	}
+>  	nvdimm_badblocks_populate(nd_region, &pmem->bb, &bb_range);
+>  	disk->bb = &pmem->bb;
+>  
+> -- 
+> 2.43.7
+> 
+> 
