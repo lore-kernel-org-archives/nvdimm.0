@@ -1,117 +1,146 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E23B2E5B29;
-	Sat, 29 Aug 2026 17:28:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C0AF34F483;
+	Sat, 29 Aug 2026 17:30:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788024492; cv=none; b=mHhEJLO9oZbw7vENjwl9s068wlDsn40C13Au5Vg73TTt+BNlNQpqIXh9EB7gRuxiL3KOmJHwt5dw4MKYww0xEJWKjL8x8x0w1gA4JrHTGVhgoZlwSAHM94T9daMt7E77d/Z6ErJRYv43vE8Z4QNL4c0kkKaHETrhro503dPCnHQ=
+	t=1788024628; cv=none; b=eKxUD/rZlHLspcuii/IKDd1jie1NGDGmqb29kC2fZ4jLJkJEm6i0/Pl+A8nwj62M4/sKBxE2A3NrFhmZT3+eK2ahSseYr3AoaBeo8IRZBK0J1AOlbQ6YGzHQXnCvV1aeoyhVg9BVMraLRWxM2vHAVHYHkkCx2M9ugAcqYuqi5x0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788024492; c=relaxed/simple;
-	bh=STPK7eVxLZVEoFL8sDlNCBgllqo9RTD9Lj2GKI1DpwE=;
+	s=arc-20240116; t=1788024628; c=relaxed/simple;
+	bh=cT/6L4Qtl0PR3iu/tRgysnKhBntVIBBPmklGWYYnIbA=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=nJkCavUEt2RSNZ1xKUVfh86TKi12TJIdtG72kR5z+4v/0VkQANjb6CVurmgBczFO9lpL9v0yQoZDISSaZN/mtW//tNPKv3r2qgoLUrpeqyuOpfIDSSFX3/7WOQyKTucS533Ijgw05x5kXaoPp7Y1yZmNMlmuZtyq/tbkRVd9NS0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MvCTutPL; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=g6H4q5IvxwW2KK5GYTnBDiTvpJQF1SfRduWPF1iI6bOEK8DUquEMAngHTSLv1bWNzU8seOD3qVVhHKlKtFQFR1vcBExaBuQdjMo7G5NeWzICF0QHxsHuOaM/WgY/upm/Qwzc1yQlfS9MhW1qmcvbg492LpLUVmyY7KbMXgKCH6I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QzaDr57i; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MvCTutPL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 022991F000E9;
-	Sat, 29 Aug 2026 17:28:10 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QzaDr57i"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D607D1F000E9;
+	Sat, 29 Aug 2026 17:30:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788024491;
-	bh=MM1a8NwJURR0FNW1BVHAIbwC1CvtMsY020dLnuVeeVQ=;
+	s=k20260515; t=1788024627;
+	bh=wyYuMk45tdQwau58f23bTDTfJ0JP2buc78Qktz0J9FA=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=MvCTutPLU6WEmuCQFaQhNknPIT0JDeNBbncy6L3jwbUzA32e5FEhngfkhKOkY2f/t
-	 U+38Cpsb8XJ4aKZQzTyWCTjMyWLFWjkRS6V5F2Z5ydtsCDEIE91fP0kWPaACTbTpoM
-	 /LFX0m8i6HJetBxh4Pl32WJMb4PDDxsnkubcliakNCPbsO3pVvZb7E2nIup4nEOSzR
-	 oDTYtQQa3TrTOSdaM3FMMPauh8/ypu76TyB+x+hJQ++VaT0hU0hjFIC8QuiU/Ibj+Z
-	 FNqbJUXdIbhkin2OPBBf7a9nXMoPO7j+RGL6uBu67M5Cn5DJ3mM60sHemugCHvB+rk
-	 C8gTGd6h24+uw==
+	b=QzaDr57iyDD48+no8tM9p2YclFdGEvYFPMqorLJNbACSEIDIiczX+4tAa5CVXJQaF
+	 LBhGeDr6GNmmRAtNCl94ZwVWC+cistqco4WEgFJarc1fn39zSqvkTy4rSTeWI5Hkn3
+	 q/wpKIj/nqZANjj5tatJhZ7s8AXQ5xzY96daEWz7Eh/TJ3AdfsLa86YT8fXlpPWY2g
+	 aljc9nYsdDYe60lXMhkWXX/fRkF3mAQLxRmM4ATuDhWwKPEFTD0qldLj3jvhYhpBAY
+	 iicz1mtOlBw8LZC6pSH47HfeW0kPsNinX+UjwcD4Bq3uLRiWxr4ZEjOQV7FbR3laEh
+	 +JXQ0erYWErOw==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH V14 02/12] famfs: Module operations, fs_context, and
- mount
+Subject: Re: [PATCH V14 07/12] famfs: MAP_CREATE ioctl and fmap ingest (ABI
+ 44)
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "John Groves" <john@jagalactic.com>
 Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
-In-Reply-To: <010001a04e80d952-12403958-9576-475d-a375-b0948273892f-000000@email.amazonses.com>
+In-Reply-To: <010001a04e81b68e-8f5128b9-249f-49af-be87-024b15eb0bd9-000000@email.amazonses.com>
 References: <010001a04e801a4e-8eb212cd-b263-4043-ab65-33e480d2d7d4-000000@email.amazonses.com>
- <20260829171055.7379-1-john@jagalactic.com>
- <010001a04e80d952-12403958-9576-475d-a375-b0948273892f-000000@email.amazonses.com>
+ <20260829171148.7467-1-john@jagalactic.com>
+ <010001a04e81b68e-8f5128b9-249f-49af-be87-024b15eb0bd9-000000@email.amazonses.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Sat, 29 Aug 2026 17:28:10 +0000
-Message-Id: <20260829172811.022991F000E9@smtp.kernel.org>
+Date: Sat, 29 Aug 2026 17:30:26 +0000
+Message-Id: <20260829173026.D607D1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+Thank you for your contribution! Sashiko AI review found 2 potential issue(=
 s) to consider:
-- [Medium] The mount path explicitly rejects concurrent mounts of the same =
-backing device, contradicting the commit message claim that multiple mounts=
- should share the superblock.
+- [High] Missing memory barriers when publishing and reading `inode->i_priv=
+ate` allows concurrent readers to see uninitialized metadata.
+- [Medium] Reserved fields in the UAPI structs are not validated to be zero=
+, breaking forward compatibility.
 --
 
-commit c082254e4802428a0767926c0085c3cbeace41cb
-Author: John Groves <john@groves.net>
-famfs: Module operations, fs_context, and mount
+commit 01eb70d8c2de27c662f746e15fb2d3e809666490
+Author: John Groves <John@Groves.net>
 
-This commit introduces the initial module operations for famfs, including
-filesystem registration, mount parameter parsing, superblock initialization,
-and DAX device lookup.
+famfs: MAP_CREATE ioctl and fmap ingest (ABI 44)
+   =20
+Add the famfs file ioctl handler (FAMFSIOC_NOP, FAMFSIOC_MAP_CREATE) and
+the KABI-44 self-describing fmap message: the wire ABI in famfs_ioctl.h
+(famfs_ioc_fmap_header plus the simple and interleaved extent structs), the
+in-core famfs_file_meta, and famfs_file_init_dax(), which copies the
+message in, parses both the simple-extent and interleaved (striped) wire
+forms into inode->i_private, and sets S_DAX.
 
-> diff --git a/fs/famfs/famfs_inode.c b/fs/famfs/famfs_inode.c
-> new file mode 100644
-> index 0000000000000..5a13903da61b7
-> --- /dev/null
-> +++ b/fs/famfs/famfs_inode.c
-
+> diff --git a/fs/famfs/famfs_file.c b/fs/famfs/famfs_file.c
+> index 9c1cd2f674893..f099e0d08673f 100644
+> --- a/fs/famfs/famfs_file.c
+> +++ b/fs/famfs/famfs_file.c
 [ ... ]
-
+> @@ -13,9 +13,377 @@
+[ ... ]
 > +static int
-> +famfs_get_tree(struct fs_context *fc)
+> +famfs_file_init_dax(struct file *file, void __user *arg)
 > +{
-> +	struct famfs_fs_info *fsi =3D fc->s_fs_info;
-> +	struct super_block *sb;
-> +	struct inode *inode;
-> +	dev_t daxdevno;
-> +	int err;
-
+> +	struct famfs_ioc_fmap_header fmh;
 [ ... ]
-
-> +	/* This will set sb->s_dev=3Ddaxdevno */
-> +	sb =3D sget_dev(fc, daxdevno);
-> +	if (IS_ERR(sb)) {
-> +		pr_debug("%s: sget_dev error\n", __func__);
-> +		return PTR_ERR(sb);
-> +	}
+> +	if (copy_from_user(&fmh, arg, sizeof(fmh)))
+> +		return -EFAULT;
 > +
-> +	if (sb->s_root) {
-> +		pr_debug("%s: found a matching superblock for %s\n",
-> +			__func__, fc->source);
-> +
-> +		/* We don't expect to find a match by dev_t; if we do, it must
-> +		 * already be mounted, so we bail
-> +		 */
-> +		err =3D -EBUSY;
-> +		goto deactivate_out;
+> +	if (fmh.fmap_version !=3D FAMFS_FMAP_VERSION)
+> +		return -EINVAL;
+> +	if (fmh.fmap_size < sizeof(fmh))
+> +		return -EINVAL;
 
 [Severity: Medium]
-Does returning -EBUSY here intentionally prevent sharing the superblock
-across multiple mounts?
+Are the reserved and reserved1 fields in famfs_ioc_fmap_header validated
+to be zero here?=20
 
-The commit message states: "so a second mount of the same device shares one
-super, much as a block filesystem keys on its block device." However, this
-check appears to explicitly reject concurrent mounts of the same DAX backing
-device rather than sharing the existing superblock.
+If userspace passes uninitialized or garbage data in these fields, the kern=
+el
+will blindly accept it. This could prevent the kernel from safely assigning
+meaning to these fields in the future without breaking backward compatibili=
+ty,
+since it won't be able to distinguish between older applications passing
+garbage and newer applications intentionally using the flags.=20
 
+The reserved fields in famfs_ioc_simple_ext and famfs_ioc_iext also appear
+to lack zero-validation.
+
+> +	if (fmh.fmap_size > FAMFS_FMAP_MSG_MAX)
+> +		return -EFBIG;
+[ ... ]
+> +	/* Publish the famfs metadata on inode->i_private */
+> +	inode_lock(inode);
+> +	if (inode->i_private) {
+> +		rc =3D -EEXIST; /* file already has famfs metadata */
 > +	} else {
-> +		pr_debug("%s: initializing new superblock for %s\n",
-> +			__func__, fc->source);
-> +		famfs_fill_super(sb, fc);
+> +		inode->i_private =3D meta;
+> +		i_size_write(inode, meta->file_size);
+
+[Severity: High]
+Does this assignment to inode->i_private need a release memory barrier?
+
+This plain store publishes the structure without a release barrier, allowing
+prior initialization stores to be reordered after it. A concurrent reader
+could observe a non-NULL inode->i_private pointer but read uninitialized or
+stale metadata fields.
+
+For instance, a concurrent mmap() on the same file calls famfs_file_mmap()
+which in turn calls famfs_file_invalid(inode). Because famfs_file_mmap()
+does not hold inode_lock, famfs_file_invalid() will execute a plain load
+(struct famfs_file_meta *meta =3D inode->i_private;) without an acquire
+barrier.=20
+
+If it reads uninitialized data like meta->file_size, it could fail the=20
+i_size !=3D meta->file_size check, which permanently sets meta->error =3D t=
+rue,
+thereby permanently bricking the file mapping.
+
+Should smp_store_release() and smp_load_acquire() be used here to enforce
+the required memory ordering?
+
+> +		inode->i_flags |=3D S_DAX;
+> +		meta =3D NULL; /* owned by the inode now */
+> +		rc =3D 0;
 > +	}
+> +	inode_unlock(inode);
+[ ... ]
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/010001a04e801a4e-8e=
-b212cd-b263-4043-ab65-33e480d2d7d4-000000@email.amazonses.com?part=3D2
+b212cd-b263-4043-ab65-33e480d2d7d4-000000@email.amazonses.com?part=3D7
