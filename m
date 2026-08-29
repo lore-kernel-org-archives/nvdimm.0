@@ -1,38 +1,37 @@
-Received: from a11-6.smtp-out.amazonses.com (a11-6.smtp-out.amazonses.com [54.240.11.6])
+Received: from a11-131.smtp-out.amazonses.com (a11-131.smtp-out.amazonses.com [54.240.11.131])
 	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54CDD21A434;
-	Sat, 29 Aug 2026 17:11:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.6
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CD3C41835B;
+	Sat, 29 Aug 2026 17:11:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788023493; cv=none; b=VRDVbfOWJCOGxiJHm6ioDi8a/NJJAvkzn8+kvGObMXgKI8jmgeVbw4U9fViRhQCNrnftklPhJf+yd8iVI1BZYClooEtQlj0JGPcDZCehas9X8MbmApbfiQhGDyGH31kLb0RU5nStCMhmj9K3rQnQQVRixshyPW82NfDt5seFZqA=
+	t=1788023502; cv=none; b=InDhQKCsqvZs+ZvfG6HXKMj2MMThx0mzFec8XfVfS1OcFb2EHEmA1kYnf4DtrLN96pUIYCjRucDtB8O0evJa77GnVp3PXcGvWe4SPGV7FlLdM9VqoDZtg9+r7N/Pr6UyxZ6UZO3txlDpz+mMOZl+1j7LJpdLmN4ooLilSVl3kpo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788023493; c=relaxed/simple;
-	bh=qOHa7W+cQx4P3O5NPB6FOKhbasld/d8G3/e9dZcKbCs=;
+	s=arc-20240116; t=1788023502; c=relaxed/simple;
+	bh=t7hOYY1N5YwMOj8VPblq7xGMHgyoyIb7jJUbKHoIeb8=;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:In-Reply-To:
-	 References:Message-ID; b=Br1BBhBbR0fzj5uvNAo9ryjsXTyGgzWnK4tnQA2SpUsGTXPGfzAOcHsbpL/5+eNEaRxqGVYEqaAEqDf+Q7zMncKuJ/lWLyUG6u4bFpMpO9xKlDrP7CRy0wfLx16xpg8687O2QfNVGtFV7HRAioEp7+StlZH1YBMXwKn+cpb4ICQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=h8lK2xls; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=h6udmjRq; arc=none smtp.client-ip=54.240.11.6
+	 References:Message-ID; b=RDvMbaxiH6OOrC9R6kPRrfGtR3IoCfqfcL6wdDvB1bPZuqkEODG9VvPmebUOPQfQczxwpqsz8KhGUMFbGmuMSgh9htdIZ1XUYJEDzJ3u6x9LVqp7fvv4ulB0DNN8y12IMHgZ0gItXr1y0ohdbn/VZTJTl1k4/JWr7328AwT3YMk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=Pz7h2oLn; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=WjLtU/07; arc=none smtp.client-ip=54.240.11.131
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="h8lK2xls";
-	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="h6udmjRq"
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="Pz7h2oLn";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="WjLtU/07"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=rjayupzefgi7e6fmzxcxe4cv4arrjs35; d=jagalactic.com; t=1788023482;
+	s=rjayupzefgi7e6fmzxcxe4cv4arrjs35; d=jagalactic.com; t=1788023496;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id;
-	bh=qOHa7W+cQx4P3O5NPB6FOKhbasld/d8G3/e9dZcKbCs=;
-	b=h8lK2xlszHjLOnIc/Cvt/5X0sq/GvWOHps2B46TEIDXLhQJUwzSD7yvrQCoMga5X
-	mxgrwXZdy+LZU+mooBSJlwiRFnGuSUFVe8EP4bxpBLHgi+CpUSIQLqaSs4FXd2n25Ub
-	BpQcXNhf8sZSr24MCXM6iUiKIPkcILcf16yzM0fY=
+	bh=t7hOYY1N5YwMOj8VPblq7xGMHgyoyIb7jJUbKHoIeb8=;
+	b=Pz7h2oLnDGevKDC84f3ClgUJnfwJ6iRNaMsK3zwA1Fa5M1lETm54ulyjR3uHAPur
+	79NNLpIb6hf9/syJ9MmSWreFq7+TwLumI3a6X64umY0ThmikJpXMnDqNP79X+pyzpE1
+	Sl69gbASInVo0xGydSiv63aV7MCsEmMv1tizjZjY=
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1788023482;
+	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1788023496;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id:Feedback-ID;
-	bh=qOHa7W+cQx4P3O5NPB6FOKhbasld/d8G3/e9dZcKbCs=;
-	b=h6udmjRqn49yys9eLvH0OeHcThoQShiU/ATTkp8yfsa/svCJJWVhP+yll5O/eN0J
-	XofSWYik72dy3zZqWhPWPjy7IHgAtAPReGjSX5SfQJxtTnWb0qD8gt2/dqjpB7CkIW4
-	1RVXWR4tBcLUVlrAiXSQQ2EHAvnz4aFbJTHx2XQY=
-Subject: [PATCH V14 04/12] famfs: Introduce inode_operations and
- super_operations
+	bh=t7hOYY1N5YwMOj8VPblq7xGMHgyoyIb7jJUbKHoIeb8=;
+	b=WjLtU/07F2Wvef+mu93KHxNQay0GXQWPr+XjFBHqpZWeTF9GE5BuSNfkkTHkwIoY
+	xUzvhI2HPJcYbSSP3c4D2r6qilVVqc2TNFm/pQ1GhcmfzujslarBinyHxkf6wpOYxQD
+	4HD5bsGFHyldaPfCIiikDHfssGRNbfgH6VBXhFx8=
+Subject: [PATCH V14 05/12] famfs: Introduce file_operations read/write
 From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
 To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
 	=?UTF-8?Q?Miklos_Szeredi?= <miklos@szeredi.hu>, 
@@ -88,7 +87,7 @@ Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>,
 	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>, 
 	=?UTF-8?Q?fuse-devel=40lists=2Elinux=2E?= =?UTF-8?Q?dev?= <fuse-devel@lists.linux.dev>, 
 	=?UTF-8?Q?John_Groves?= <john@groves.net>
-Date: Sat, 29 Aug 2026 17:11:22 +0000
+Date: Sat, 29 Aug 2026 17:11:36 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -96,180 +95,228 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 In-Reply-To: 
  <010001a04e801a4e-8eb212cd-b263-4043-ab65-33e480d2d7d4-000000@email.amazonses.com>
 References: 
  <010001a04e801a4e-8eb212cd-b263-4043-ab65-33e480d2d7d4-000000@email.amazonses.com> 
- <20260829171114.7409-1-john@jagalactic.com>
+ <20260829171125.7424-1-john@jagalactic.com>
 X-Mailer: Amazon WorkMail
-Thread-Index: AQHdN9lAfqnLmnnsQyaIwPphM+3eHAAACkhI
-Thread-Topic: [PATCH V14 04/12] famfs: Introduce inode_operations and
- super_operations
-X-Wm-Sent-Timestamp: 1788023481
+Thread-Index: AQHdN9lAfqnLmnnsQyaIwPphM+3eHAAADGpW
+Thread-Topic: [PATCH V14 05/12] famfs: Introduce file_operations read/write
+X-Wm-Sent-Timestamp: 1788023495
 X-Original-Mailer: git-send-email 2.55.0
-Message-ID: <010001a04e81289e-047de24d-e6c8-4a14-8f25-1cc2249072b2-000000@email.amazonses.com>
+Message-ID: <010001a04e815fe0-2d476878-af01-41a0-81bc-7bd5a97c154b-000000@email.amazonses.com>
 Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
-X-SES-Outgoing: 2026.08.29-54.240.11.6
+X-SES-Outgoing: 2026.08.29-54.240.11.131
 
-From: John Groves <john@groves.net>=0D=0A=0D=0AThe famfs inode and super =
-operations are generic other than=0D=0Ashow_options, evict_inode and seta=
-ttr (which prevents truncation..=0D=0A=0D=0AThis commit builds but is sti=
-ll too incomplete to run=0D=0A=0D=0AReviewed-by: "Darrick J. Wong" <djwon=
-g@kernel.org>=0D=0AReviewed-by: Jeff Layton <jlayton@kernel.org>=0D=0ASig=
-ned-off-by: John Groves <john@groves.net>=0D=0A---=0D=0A=0D=0A fs/famfs/f=
-amfs_inode.c    | 289 +++++++++++++++++++++++++++++++++++++-=0D=0A fs/fam=
-fs/famfs_internal.h |   6 +=0D=0A 2 files changed, 292 insertions(+), 3 d=
-eletions(-)=0D=0A=0D=0Adiff --git a/fs/famfs/famfs_inode.c b/fs/famfs/fam=
-fs_inode.c=0D=0Aindex 5735d8d1900b..b7a3d8d6ee8c 100644=0D=0A--- a/fs/fam=
-fs/famfs_inode.c=0D=0A+++ b/fs/famfs/famfs_inode.c=0D=0A@@ -29,6 +29,9 @@=
-=0D=0A=20=0D=0A #define FAMFS_DEFAULT_MODE=090755=0D=0A=20=0D=0A+static c=
-onst struct inode_operations famfs_file_inode_operations;=0D=0A+static co=
-nst struct inode_operations famfs_dir_inode_operations;=0D=0A+=0D=0A stat=
-ic struct inode *=0D=0A famfs_get_inode(=0D=0A =09struct super_block *sb,=
-=0D=0A@@ -55,11 +58,11 @@ famfs_get_inode(=0D=0A =09=09init_special_inode=
-(inode, mode, dev);=0D=0A =09=09break;=0D=0A =09case S_IFREG:=0D=0A-=09=09=
-inode->i_op =3D NULL /* famfs_file_inode_operations */;=0D=0A+=09=09inode=
-->i_op =3D &famfs_file_inode_operations;=0D=0A =09=09inode->i_fop =3D NUL=
-L /* &famfs_file_operations */;=0D=0A =09=09break;=0D=0A =09case S_IFDIR:=
-=0D=0A-=09=09inode->i_op =3D NULL /* famfs_dir_inode_operations */;=0D=0A=
-+=09=09inode->i_op =3D &famfs_dir_inode_operations;=0D=0A =09=09inode->i_=
-fop =3D &simple_dir_operations;=0D=0A=20=0D=0A =09=09/* Directory inodes =
-start off with i_nlink =3D=3D 2 (for ".") */=0D=0A@@ -73,6 +76,286 @@ fam=
-fs_get_inode(=0D=0A =09return inode;=0D=0A }=0D=0A=20=0D=0A+/************=
-***************************************************************=0D=0A+ * =
-famfs inode_operations=0D=0A+ */=0D=0A+=0D=0A+static int=0D=0A+famfs_seta=
-ttr(=0D=0A+=09struct mnt_idmap *idmap,=0D=0A+=09struct dentry *dentry,=0D=
-=0A+=09struct iattr *iattr)=0D=0A+{=0D=0A+=09struct inode *inode =3D d_in=
-ode(dentry);=0D=0A+=09struct famfs_fs_info *fsi =3D inode->i_sb->s_fs_inf=
-o;=0D=0A+=0D=0A+=09/* Resizing a famfs file (its size is pinned to the fm=
-ap) */=0D=0A+=09if ((iattr->ia_valid & ATTR_SIZE) &&=0D=0A+=09    !famfs_=
-opt_enabled(fsi, FAMFS_OPT_TRUNCATE) &&=0D=0A+=09    iattr->ia_size !=3D =
-i_size_read(inode))=0D=0A+=09=09return -EPERM;=0D=0A+=09if ((iattr->ia_va=
-lid & ATTR_MODE) &&=0D=0A+=09    !famfs_opt_enabled(fsi, FAMFS_OPT_CHMOD)=
-)=0D=0A+=09=09return -EPERM;=0D=0A+=09if ((iattr->ia_valid & (ATTR_UID | =
-ATTR_GID)) &&=0D=0A+=09    !famfs_opt_enabled(fsi, FAMFS_OPT_CHOWN))=0D=0A=
-+=09=09return -EPERM;=0D=0A+=09if ((iattr->ia_valid & (ATTR_ATIME | ATTR_=
-MTIME)) &&=0D=0A+=09    !famfs_opt_enabled(fsi, FAMFS_OPT_UTIMES))=0D=0A+=
-=09=09return -EPERM;=0D=0A+=0D=0A+=09return simple_setattr(idmap, dentry,=
- iattr);=0D=0A+}=0D=0A+=0D=0A+static const struct inode_operations famfs_=
-file_inode_operations =3D {=0D=0A+=09/* All generic */=0D=0A+=09.setattr=09=
-   =3D famfs_setattr,=0D=0A+=09.getattr=09   =3D simple_getattr,=0D=0A+};=
-=0D=0A+=0D=0A+/*=0D=0A+ * Internal inode creation helper, shared by ->cre=
-ate, ->mkdir, ->mknod and=0D=0A+ * ->symlink. Each of those callers is re=
-sponsible for its own FAMFS_OPT_*=0D=0A+ * permission check before gettin=
-g here.=0D=0A+ */=0D=0A+static int=0D=0A+famfs_mknod(=0D=0A+=09struct mnt=
-_idmap *idmap,=0D=0A+=09struct inode *dir,=0D=0A+=09struct dentry *dentry=
-,=0D=0A+=09umode_t mode,=0D=0A+=09dev_t dev)=0D=0A+{=0D=0A+=09struct famf=
-s_fs_info *fsi =3D dir->i_sb->s_fs_info;=0D=0A+=09struct inode *inode;=0D=
-=0A+=0D=0A+=09if (fsi->deverror)=0D=0A+=09=09return -ENODEV;=0D=0A+=0D=0A=
-+=09inode =3D famfs_get_inode(dir->i_sb, dir, mode, dev);=0D=0A+=09if (!i=
-node)=0D=0A+=09=09return -ENOSPC;=0D=0A+=0D=0A+=09d_make_persistent(dentr=
-y, inode);=0D=0A+=09/* Adding an entry updates the parent directory's mti=
-me/ctime */=0D=0A+=09inode_set_mtime_to_ts(dir, inode_set_ctime_current(d=
-ir));=0D=0A+=0D=0A+=09return 0;=0D=0A+}=0D=0A+=0D=0A+static struct dentry=
- *=0D=0A+famfs_mkdir(=0D=0A+=09struct mnt_idmap *idmap,=0D=0A+=09struct i=
-node *dir,=0D=0A+=09struct dentry *dentry,=0D=0A+=09umode_t mode)=0D=0A+{=
-=0D=0A+=09struct famfs_fs_info *fsi =3D dir->i_sb->s_fs_info;=0D=0A+=09in=
-t rc;=0D=0A+=0D=0A+=09if (fsi->deverror)=0D=0A+=09=09return ERR_PTR(-ENOD=
-EV);=0D=0A+=09if (!famfs_opt_enabled(fsi, FAMFS_OPT_MKDIR))=0D=0A+=09=09r=
-eturn ERR_PTR(-EPERM);=0D=0A+=0D=0A+=09rc =3D famfs_mknod(&nop_mnt_idmap,=
- dir, dentry, mode | S_IFDIR, 0);=0D=0A+=09if (rc)=0D=0A+=09=09return ERR=
-_PTR(rc);=0D=0A+=0D=0A+=09inc_nlink(dir);=0D=0A+=0D=0A+=09return ERR_PTR(=
-0);=0D=0A+}=0D=0A+=0D=0A+static int=0D=0A+famfs_create(=0D=0A+=09struct m=
-nt_idmap *idmap,=0D=0A+=09struct inode *dir,=0D=0A+=09struct dentry *dent=
-ry,=0D=0A+=09umode_t mode,=0D=0A+=09bool excl)=0D=0A+{=0D=0A+=09struct fa=
-mfs_fs_info *fsi =3D dir->i_sb->s_fs_info;=0D=0A+=0D=0A+=09if (fsi->dever=
-ror)=0D=0A+=09=09return -ENODEV;=0D=0A+=09if (!famfs_opt_enabled(fsi, FAM=
-FS_OPT_CREATE))=0D=0A+=09=09return -EPERM;=0D=0A+=0D=0A+=09return famfs_m=
-knod(&nop_mnt_idmap, dir, dentry, mode | S_IFREG, 0);=0D=0A+}=0D=0A+=0D=0A=
-+static int=0D=0A+famfs_mknod_op(=0D=0A+=09struct mnt_idmap *idmap,=0D=0A=
-+=09struct inode *dir,=0D=0A+=09struct dentry *dentry,=0D=0A+=09umode_t m=
-ode,=0D=0A+=09dev_t dev)=0D=0A+{=0D=0A+=09struct famfs_fs_info *fsi =3D d=
-ir->i_sb->s_fs_info;=0D=0A+=0D=0A+=09if (!famfs_opt_enabled(fsi, FAMFS_OP=
-T_MKNOD))=0D=0A+=09=09return -EPERM;=0D=0A+=0D=0A+=09return famfs_mknod(i=
-dmap, dir, dentry, mode, dev);=0D=0A+}=0D=0A+=0D=0A+static int=0D=0A+famf=
-s_symlink(=0D=0A+=09struct mnt_idmap *idmap,=0D=0A+=09struct inode *dir,=0D=
-=0A+=09struct dentry *dentry,=0D=0A+=09const char *symname)=0D=0A+{=0D=0A=
-+=09struct famfs_fs_info *fsi =3D dir->i_sb->s_fs_info;=0D=0A+=09struct i=
-node *inode;=0D=0A+=09int len, rc;=0D=0A+=0D=0A+=09if (fsi->deverror)=0D=0A=
-+=09=09return -ENODEV;=0D=0A+=09if (!famfs_opt_enabled(fsi, FAMFS_OPT_SYM=
-LINK))=0D=0A+=09=09return -EPERM;=0D=0A+=0D=0A+=09inode =3D famfs_get_ino=
-de(dir->i_sb, dir, S_IFLNK | 0777, 0);=0D=0A+=09if (!inode)=0D=0A+=09=09r=
-eturn -ENOSPC;=0D=0A+=0D=0A+=09len =3D strlen(symname) + 1;=0D=0A+=09rc =3D=
- page_symlink(inode, symname, len);=0D=0A+=09if (rc) {=0D=0A+=09=09iput(i=
-node);=0D=0A+=09=09return rc;=0D=0A+=09}=0D=0A+=0D=0A+=09d_make_persisten=
-t(dentry, inode);=0D=0A+=09inode_set_mtime_to_ts(dir, inode_set_ctime_cur=
-rent(dir));=0D=0A+=0D=0A+=09return 0;=0D=0A+}=0D=0A+=0D=0A+static int=0D=0A=
-+famfs_link(=0D=0A+=09struct dentry *old_dentry,=0D=0A+=09struct inode *d=
-ir,=0D=0A+=09struct dentry *dentry)=0D=0A+{=0D=0A+=09struct famfs_fs_info=
- *fsi =3D dir->i_sb->s_fs_info;=0D=0A+=0D=0A+=09if (!famfs_opt_enabled(fs=
-i, FAMFS_OPT_LINK))=0D=0A+=09=09return -EPERM;=0D=0A+=0D=0A+=09return sim=
-ple_link(old_dentry, dir, dentry);=0D=0A+}=0D=0A+=0D=0A+static int=0D=0A+=
-famfs_unlink(struct inode *dir, struct dentry *dentry)=0D=0A+{=0D=0A+=09s=
-truct inode *inode =3D d_inode(dentry);=0D=0A+=09struct famfs_fs_info *fs=
-i =3D dir->i_sb->s_fs_info;=0D=0A+=0D=0A+=09/* A file with an fmap may on=
-ly be unlinked when explicitly enabled */=0D=0A+=09if (inode->i_private &=
-& !famfs_opt_enabled(fsi, FAMFS_OPT_UNLINK))=0D=0A+=09=09return -EPERM;=0D=
-=0A+=0D=0A+=09return simple_unlink(dir, dentry);=0D=0A+}=0D=0A+=0D=0A+sta=
-tic int famfs_rmdir(struct inode *dir, struct dentry *dentry)=0D=0A+{=0D=0A=
-+=09struct famfs_fs_info *fsi =3D dir->i_sb->s_fs_info;=0D=0A+=0D=0A+=09i=
-f (!famfs_opt_enabled(fsi, FAMFS_OPT_RMDIR))=0D=0A+=09=09return -EPERM;=0D=
-=0A+=0D=0A+=09return simple_rmdir(dir, dentry);=0D=0A+}=0D=0A+=0D=0A+stat=
-ic int=0D=0A+famfs_rename(=0D=0A+=09struct mnt_idmap *idmap,=0D=0A+=09str=
-uct inode *old_dir,=0D=0A+=09struct dentry *old_dentry,=0D=0A+=09struct i=
-node *new_dir,=0D=0A+=09struct dentry *new_dentry,=0D=0A+=09unsigned int =
-flags)=0D=0A+{=0D=0A+=09struct famfs_fs_info *fsi =3D old_dir->i_sb->s_fs=
-_info;=0D=0A+=09struct inode *target =3D d_inode(new_dentry);=0D=0A+=0D=0A=
-+=09if (!famfs_opt_enabled(fsi, FAMFS_OPT_RENAME))=0D=0A+=09=09return -EP=
-ERM;=0D=0A+=0D=0A+=09/*=0D=0A+=09 * Renaming over an existing target remo=
-ves it, so require the same=0D=0A+=09 * policy gate that unlink()/rmdir()=
- would. RENAME_EXCHANGE swaps the=0D=0A+=09 * two entries rather than rem=
-oving the target, so it is exempt.=0D=0A+=09 */=0D=0A+=09if (target && !(=
-flags & RENAME_EXCHANGE)) {=0D=0A+=09=09if (S_ISDIR(target->i_mode)) {=0D=
-=0A+=09=09=09if (!famfs_opt_enabled(fsi, FAMFS_OPT_RMDIR))=0D=0A+=09=09=09=
-=09return -EPERM;=0D=0A+=09=09} else if (target->i_private &&=0D=0A+=09=09=
-=09   !famfs_opt_enabled(fsi, FAMFS_OPT_UNLINK)) {=0D=0A+=09=09=09return =
--EPERM;=0D=0A+=09=09}=0D=0A+=09}=0D=0A+=0D=0A+=09return simple_rename(idm=
-ap, old_dir, old_dentry, new_dir, new_dentry,=0D=0A+=09=09=09     flags);=
-=0D=0A+}=0D=0A+=0D=0A+static const struct inode_operations famfs_dir_inod=
-e_operations =3D {=0D=0A+=09.create=09=09=3D famfs_create,=0D=0A+=09.look=
-up=09=09=3D simple_lookup,=0D=0A+=09.link=09=09=3D famfs_link,=0D=0A+=09.=
-unlink=09=09=3D famfs_unlink,=0D=0A+=09.symlink=09=3D famfs_symlink,=0D=0A=
-+=09.mkdir=09=09=3D famfs_mkdir,=0D=0A+=09.mknod=09=09=3D famfs_mknod_op,=
-=0D=0A+=09.rmdir=09=09=3D famfs_rmdir,=0D=0A+=09.rename=09=09=3D famfs_re=
-name,=0D=0A+};=0D=0A+=0D=0A+/********************************************=
-*********************************=0D=0A+ * famfs super_operations=0D=0A+ =
-*=0D=0A+ * TODO: implement a famfs_statfs() that shows size, free and ava=
-ilable space,=0D=0A+ * etc.=0D=0A+ */=0D=0A+=0D=0A+/*=0D=0A+ * famfs_show=
-_options() - Display the mount options in /proc/mounts.=0D=0A+ */=0D=0A+s=
-tatic int=0D=0A+famfs_show_options(struct seq_file *m, struct dentry *roo=
-t)=0D=0A+{=0D=0A+=09struct famfs_fs_info *fsi =3D root->d_sb->s_fs_info;=0D=
-=0A+=0D=0A+=09if (fsi->mount_opts.mode !=3D FAMFS_DEFAULT_MODE)=0D=0A+=09=
-=09seq_printf(m, ",mode=3D%o", fsi->mount_opts.mode);=0D=0A+=0D=0A+=09ret=
-urn 0;=0D=0A+}=0D=0A+=0D=0A+static void=0D=0A+famfs_evict_inode(struct in=
-ode *inode)=0D=0A+{=0D=0A+=09inode->i_private =3D NULL;=0D=0A+=09dax_brea=
-k_layout_final(inode);=0D=0A+=09truncate_inode_pages_final(&inode->i_data=
-);=0D=0A+=09clear_inode(inode);=0D=0A+}=0D=0A+=0D=0A+static const struct =
-super_operations famfs_super_ops =3D {=0D=0A+=09.statfs=09=09=3D simple_s=
-tatfs,=0D=0A+=09.drop_inode=09=3D inode_just_drop,=0D=0A+=09.show_options=
-=09=3D famfs_show_options,=0D=0A+=09.evict_inode    =3D famfs_evict_inode=
-,=0D=0A+};=0D=0A+=0D=0A+/************************************************=
-*****************************/=0D=0A+=0D=0A /*=0D=0A  * famfs dax_operati=
-ons (for famfs-mode dax)=0D=0A  */=0D=0A@@ -312,7 +595,7 @@ famfs_fill_su=
-per(struct super_block *sb, struct fs_context *fc)=0D=0A =09sb->s_blocksi=
-ze=09=09=3D PAGE_SIZE;=0D=0A =09sb->s_blocksize_bits=09=3D PAGE_SHIFT;=0D=
-=0A =09sb->s_magic=09=09=3D FAMFS_SUPER_MAGIC;=0D=0A-=09sb->s_op=09=09=3D=
- NULL /* famfs_super_ops */;=0D=0A+=09sb->s_op=09=09=3D &famfs_super_ops;=
-=0D=0A =09sb->s_time_gran=09=09=3D 1;=0D=0A }=0D=0A=20=0D=0Adiff --git a/=
-fs/famfs/famfs_internal.h b/fs/famfs/famfs_internal.h=0D=0Aindex 37f667b2=
-b79a..30f0b01010d5 100644=0D=0A--- a/fs/famfs/famfs_internal.h=0D=0A+++ b=
-/fs/famfs/famfs_internal.h=0D=0A@@ -70,6 +70,12 @@ struct famfs_fs_info {=
-=0D=0A =09struct rw_semaphore       devlist_sem;=0D=0A };=0D=0A=20=0D=0A+=
-/* This stub will be replaced in a later commit=0D=0A+ * Note: the opt pa=
-rameter is intentionally unused, and will be used by=0D=0A+ * the replace=
-ment function when that commit lands=0D=0A+ */=0D=0A+#define famfs_opt_en=
-abled(fsi, opt) (fsi !=3D 0)=0D=0A+=0D=0A int famfs_lookup_daxdev(const c=
-har *pathname, dev_t *devno);=0D=0A int famfs_devlist_alloc(struct famfs_=
-fs_info *fsi);=0D=0A int famfs_install_daxdev(struct famfs_fs_info *fsi, =
-struct super_block *sb,=0D=0A--=20=0D=0A2.53.0=0D=0A=0D=0A
+From: John Groves <john@groves.net>
+
+This commit introduces fs/famfs/famfs_file.c and the famfs
+file_operations for read/write.
+
+This is not usable yet because:
+
+* It calls dax_iomap_rw() with NULL iomap_ops (which will be
+  introduced in a subsequent commit).
+* famfs_ioctl() is coming in a later commit, and it is necessary
+  to map a file to a memory allocation.
+
+Reviewed-by: "Darrick J. Wong" <djwong@kernel.org>
+Reviewed-by: Jeff Layton <jlayton@kernel.org>
+Signed-off-by: John Groves <john@groves.net>
+---
+
+ fs/famfs/Makefile         |   2 +-
+ fs/famfs/famfs_file.c     | 141 ++++++++++++++++++++++++++++++++++++++
+ fs/famfs/famfs_inode.c    |   2 +-
+ fs/famfs/famfs_internal.h |   2 +
+ 4 files changed, 145 insertions(+), 2 deletions(-)
+ create mode 100644 fs/famfs/famfs_file.c
+
+diff --git a/fs/famfs/Makefile b/fs/famfs/Makefile
+index 62230bcd6793..8cac90c090a4 100644
+--- a/fs/famfs/Makefile
++++ b/fs/famfs/Makefile
+@@ -2,4 +2,4 @@
+ 
+ obj-$(CONFIG_FAMFS) += famfs.o
+ 
+-famfs-y := famfs_inode.o
++famfs-y := famfs_inode.o famfs_file.o
+diff --git a/fs/famfs/famfs_file.c b/fs/famfs/famfs_file.c
+new file mode 100644
+index 000000000000..1369fe1824bc
+--- /dev/null
++++ b/fs/famfs/famfs_file.c
+@@ -0,0 +1,141 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * famfs - dax file system for shared fabric-attached memory
++ *
++ * Copyright 2023-2024 Micron Technology, Inc.
++ *
++ * This file system, originally based on ramfs the dax support from xfs,
++ * is intended to allow multiple host systems to mount a common file system
++ * view of dax files that map to shared memory.
++ */
++
++#include <linux/fs.h>
++#include <linux/mm.h>
++#include <linux/dax.h>
++#include <linux/iomap.h>
++
++#include "famfs_internal.h"
++
++/*********************************************************************
++ * file_operations
++ */
++
++/* Reject I/O to files that aren't in a valid state */
++static ssize_t
++famfs_file_invalid(struct inode *inode)
++{
++	if (!IS_DAX(inode)) {
++		pr_debug("%s: inode %llx IS_DAX is false\n",
++			 __func__, (u64)inode);
++		return -ENXIO;
++	}
++	return 0;
++}
++
++static ssize_t
++famfs_rw_prep(struct kiocb *iocb, struct iov_iter *ubuf)
++{
++	struct inode *inode = iocb->ki_filp->f_mapping->host;
++	struct super_block *sb = inode->i_sb;
++	struct famfs_fs_info *fsi = sb->s_fs_info;
++	size_t i_size = i_size_read(inode);
++	size_t count = iov_iter_count(ubuf);
++	size_t max_count;
++	ssize_t rc;
++
++	if (fsi->deverror)
++		return -ENODEV;
++
++	rc = famfs_file_invalid(inode);
++	if (rc)
++		return rc;
++
++	/* Avoid unsigned underflow if position is past EOF */
++	if (iocb->ki_pos >= i_size)
++		max_count = 0;
++	else
++		max_count = i_size - iocb->ki_pos;
++
++	if (count > max_count)
++		iov_iter_truncate(ubuf, max_count);
++
++	if (!iov_iter_count(ubuf))
++		return 0;
++
++	return rc;
++}
++
++static ssize_t
++famfs_dax_read_iter(struct kiocb *iocb, struct iov_iter	*to)
++{
++	struct inode *inode = iocb->ki_filp->f_mapping->host;
++	ssize_t rc;
++
++	/* dax_iomap_rw() requires i_rwsem held (shared for read) */
++	inode_lock_shared(inode);
++	rc = famfs_rw_prep(iocb, to);
++	if (rc || !iov_iter_count(to)) {
++		inode_unlock_shared(inode);
++		return rc;
++	}
++
++	rc = dax_iomap_rw(iocb, to, NULL /*&famfs_iomap_ops */);
++	inode_unlock_shared(inode);
++
++	if (rc > 0)
++		file_accessed(iocb->ki_filp);
++	return rc;
++}
++
++/**
++ * famfs_dax_write_iter()
++ *
++ * We need our own write-iter in order to prevent append
++ *
++ * @iocb:
++ * @from: iterator describing the user memory source for the write
++ */
++static ssize_t
++famfs_dax_write_iter(struct kiocb *iocb, struct iov_iter *from)
++{
++	struct inode *inode = iocb->ki_filp->f_mapping->host;
++	struct famfs_fs_info *fsi = inode->i_sb->s_fs_info;
++	ssize_t rc;
++
++	if (!famfs_opt_enabled(fsi, FAMFS_OPT_WRITE))
++		return -EPERM;
++
++	/* dax_iomap_rw() requires i_rwsem held (exclusive for write) */
++	inode_lock(inode);
++	rc = famfs_rw_prep(iocb, from);
++	if (rc || !iov_iter_count(from)) {
++		inode_unlock(inode);
++		return rc;
++	}
++
++	kiocb_modified(iocb); /* mtime/ctime + strip set[e]uid */
++
++	rc = dax_iomap_rw(iocb, from, NULL /*&famfs_iomap_ops*/);
++	inode_unlock(inode);
++	return rc;
++}
++
++const struct file_operations famfs_file_operations = {
++	.owner             = THIS_MODULE,
++
++	/* Custom famfs operations */
++	.write_iter	   = famfs_dax_write_iter,
++	.read_iter	   = famfs_dax_read_iter,
++	.unlocked_ioctl    = NULL /*famfs_file_ioctl*/,
++	.mmap		   = NULL /* famfs_file_mmap */,
++
++	/* Force PMD alignment for mmap */
++	.get_unmapped_area = thp_get_unmapped_area,
++
++	/* Generic Operations */
++	.fsync		   = noop_fsync,
++	.splice_read	   = copy_splice_read,
++	.splice_write	   = iter_file_splice_write,
++	.llseek		   = generic_file_llseek,
++};
++
+diff --git a/fs/famfs/famfs_inode.c b/fs/famfs/famfs_inode.c
+index b7a3d8d6ee8c..9e8662c4ac98 100644
+--- a/fs/famfs/famfs_inode.c
++++ b/fs/famfs/famfs_inode.c
+@@ -59,7 +59,7 @@ famfs_get_inode(
+ 		break;
+ 	case S_IFREG:
+ 		inode->i_op = &famfs_file_inode_operations;
+-		inode->i_fop = NULL /* &famfs_file_operations */;
++		inode->i_fop = &famfs_file_operations;
+ 		break;
+ 	case S_IFDIR:
+ 		inode->i_op = &famfs_dir_inode_operations;
+diff --git a/fs/famfs/famfs_internal.h b/fs/famfs/famfs_internal.h
+index 30f0b01010d5..ff9f1d3f686e 100644
+--- a/fs/famfs/famfs_internal.h
++++ b/fs/famfs/famfs_internal.h
+@@ -15,6 +15,8 @@
+ #include <linux/bits.h>
+ #include <linux/build_bug.h>
+ 
++extern const struct file_operations famfs_file_operations;
++
+ struct famfs_mount_opts {
+ 	umode_t mode;
+ };
+-- 
+2.53.0
+
