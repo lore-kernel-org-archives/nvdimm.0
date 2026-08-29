@@ -1,38 +1,38 @@
-Received: from a11-174.smtp-out.amazonses.com (a11-174.smtp-out.amazonses.com [54.240.11.174])
+Received: from a11-77.smtp-out.amazonses.com (a11-77.smtp-out.amazonses.com [54.240.11.77])
 	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96D2F235358;
-	Sat, 29 Aug 2026 17:13:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0575E3BB116;
+	Sat, 29 Aug 2026 17:13:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.77
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788023588; cv=none; b=j5h56vVa2YyezLByU7McYH8QASfZTpe1uZ6DA0ZQTcVN59PZhpXcd6R+3utCs7Ua6Si9n9vV8sYx0dQkS5TqpGuWU7yEtXsBtCCiVDsGzS3fPMnpClmbWIwZ9HJGbP+z6NpNKPyvilYowx09UfVkhq1dER9rSoU03MvC/Qp4oJQ=
+	t=1788023597; cv=none; b=HjDkDhvRQPyWm6+k0/hZfk5ER9qh+wlaR8KFGnmHseVF6Vmo8WadBLiMKLgcdbHG8I0fk94cG290TyW9l7BytK85UyAjuIGZnuru7ly1Mj1WQzGNEzG/mt/E+Gcb/E+mTeOHj0DVhGELzhD1j+MehAEYvepGcTUJ/XHSYTMb0cw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788023588; c=relaxed/simple;
-	bh=kd7q6IVkxzSVl28doGbI99YHB4ZDXBcnV08PUG2hj5E=;
+	s=arc-20240116; t=1788023597; c=relaxed/simple;
+	bh=CcJeL7yxa75NnpqBcRT/gP/0ZgH0KpqVOLzrxHccWJs=;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:In-Reply-To:
-	 References:Message-ID; b=R2Rb7lLq8S4SPi+omDQhE924QlWcedproNN8yGcTIv26c5GrGYYLQCjF5MBMx5DvzZtAQEodxZtHGrHdaxHjQmDE6aYAVzm3/jW0eP88JSxp3rIPcyjsjJhvbjSOv36v/BtSxN02ClBwpYj4okybTC1asROcCOoGz9wCh/0twMg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=oKr3zjb8; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=fsqG1JDC; arc=none smtp.client-ip=54.240.11.174
+	 References:Message-ID; b=khLdQiqK2mwzosjp6cF9mwIqjSQyY4HIvZptgD74AdC/XcM4RfUlqmNpgC7jwPPNmelImzT0ig9n3sMs4Hft2fh7XYSVHQOpLZ697YZAAVzaAKEbGQ1u/uO05ghzbTksnYHC/OT50VWdhmZhHQ3fISCSJ3YWppQTXlqu3mLDw80=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=SPY2EDvz; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=Pgems5gr; arc=none smtp.client-ip=54.240.11.77
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="oKr3zjb8";
-	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="fsqG1JDC"
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="SPY2EDvz";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="Pgems5gr"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=rjayupzefgi7e6fmzxcxe4cv4arrjs35; d=jagalactic.com; t=1788023585;
+	s=rjayupzefgi7e6fmzxcxe4cv4arrjs35; d=jagalactic.com; t=1788023594;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id;
-	bh=kd7q6IVkxzSVl28doGbI99YHB4ZDXBcnV08PUG2hj5E=;
-	b=oKr3zjb8BHgkR7+20/LCVykNmmjlAQhOMJTabWQFDQRjZFJKAFfAR9gF7O6EYNna
-	G4hGfmBM+1xr91qOisIrTVASEQmyTt9ntX7oVoYpBOUAysrDowk4ncUy19JHZUb34Yk
-	7uoSvy/4Kakt6gLYPlqWx2gsTTLLJMbl82aPGDrM=
+	bh=CcJeL7yxa75NnpqBcRT/gP/0ZgH0KpqVOLzrxHccWJs=;
+	b=SPY2EDvzUQZgxzqztHDYqmHxiklYS8ZwfnZeJh8OY9f0gefzSZ1vWnqfc6ENv0Tq
+	P0pXILAtLJKpKNjYPWxMVVNk9xBeA3NI4gdtd4s9KbcTggLmAlOipZpLe44pVau2rPr
+	12imdgzsL30QYE/KLPcIVlR1+gc1xUXfiLo5NtmA=
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1788023585;
+	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1788023594;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id:Feedback-ID;
-	bh=kd7q6IVkxzSVl28doGbI99YHB4ZDXBcnV08PUG2hj5E=;
-	b=fsqG1JDCW4AUnSZfg4EWe74A6BJTRbbJaVRfBupdBTU3JvlBMXmX0WUbGGHiFSFm
-	3RDesHvk/iMA0mgQSGGqNCo4lLgYvfFhgc3MozT+kiPPnEPVME+/bXbyScahiXkUnd7
-	xmP0A0ns/jE9rg1CvNPdXvAJMR0O7BVJe8CA8xGs=
-Subject: [PATCH V14 10/12] famfs: Add runtime operation-permission (opts)
- framework
+	bh=CcJeL7yxa75NnpqBcRT/gP/0ZgH0KpqVOLzrxHccWJs=;
+	b=Pgems5grXYm5R5WSlPc07K388SaHvBN9F2Fz+4elSiK/lIKd/2gfLyf3ZlpY2FGd
+	pMiPblIfHI8W7YE/kNA50KongzYzWIQKa7m5bySHjm8ZkhzAsv5T+mCvAaH3+bijDO8
+	31aAeF7mWq9QudT7fMYGr9y0t2w44bVEjtrcE4F4=
+Subject: [PATCH V14 11/12] famfs: Report device capacity via statfs so df
+ works
 From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
 To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
 	=?UTF-8?Q?Miklos_Szeredi?= <miklos@szeredi.hu>, 
@@ -88,7 +88,7 @@ Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>,
 	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>, 
 	=?UTF-8?Q?fuse-devel=40lists=2Elinux=2E?= =?UTF-8?Q?dev?= <fuse-devel@lists.linux.dev>, 
 	=?UTF-8?Q?John_Groves?= <john@groves.net>
-Date: Sat, 29 Aug 2026 17:13:05 +0000
+Date: Sat, 29 Aug 2026 17:13:14 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -101,167 +101,140 @@ In-Reply-To:
  <010001a04e801a4e-8eb212cd-b263-4043-ab65-33e480d2d7d4-000000@email.amazonses.com>
 References: 
  <010001a04e801a4e-8eb212cd-b263-4043-ab65-33e480d2d7d4-000000@email.amazonses.com> 
- <20260829171256.7513-1-john@jagalactic.com>
+ <20260829171307.7532-1-john@jagalactic.com>
 X-Mailer: Amazon WorkMail
-Thread-Index: AQHdN9lAfqnLmnnsQyaIwPphM+3eHAAAGagv
-Thread-Topic: [PATCH V14 10/12] famfs: Add runtime operation-permission
- (opts) framework
-X-Wm-Sent-Timestamp: 1788023583
+Thread-Index: AQHdN9lAfqnLmnnsQyaIwPphM+3eHAAAGxUa
+Thread-Topic: [PATCH V14 11/12] famfs: Report device capacity via statfs so
+ df works
+X-Wm-Sent-Timestamp: 1788023593
 X-Original-Mailer: git-send-email 2.55.0
-Message-ID: <010001a04e82b95e-7243abba-f884-451e-b397-efacec3a87ef-000000@email.amazonses.com>
+Message-ID: <010001a04e82df10-e266ce13-d8e7-42f0-ae64-0b2df6e94be5-000000@email.amazonses.com>
 Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
-X-SES-Outgoing: 2026.08.29-54.240.11.174
+X-SES-Outgoing: 2026.08.29-54.240.11.77
 
-From: John Groves <John@Groves.net>=0D=0A=0D=0Afamfs denies most namespac=
-e, attribute and data operations by default=0D=0Abecause the userspace lo=
-g, not the kernel, is authoritative for a famfs=0D=0Ainstance. Earlier co=
-mmits already guard each such operation with a=0D=0Afamfs_opt_enabled(fsi=
-, FAMFS_OPT_x) check backed by a permissive stub. This=0D=0Acommit define=
-s the permission bitmap and makes those checks live.=0D=0A=0D=0AAdd:=0D=0A=
- - FAMFS_OPT_* (uapi): a u64 permission bitmap, one bit per gated operati=
-on=0D=0A   (create, mkdir, mknod, symlink, link, unlink, rmdir, rename, t=
-he four=0D=0A   setattr components, data write, and MAP_CREATE), plus FAM=
-FS_OPT_ALL. The=0D=0A   FAMFS_OPT_XATTR bit is reserved - famfs has no xa=
-ttr ops yet.=0D=0A - fsi->opts: a per-mount atomic64 bitmap initialized t=
-o FAMFS_OPT_DEFAULT,=0D=0A   which sets famfs's default policy: create, m=
-kdir, chmod, chown, utimes,=0D=0A   write and MAP_CREATE are permitted; u=
-nlink of mapped files, link,=0D=0A   symlink, mknod, rmdir, rename and tr=
-uncate are denied.=0D=0A - the real famfs_opt_enabled() (replacing the st=
-ub), so every planted gate=0D=0A   now consults fsi->opts.=0D=0A - FAMFSI=
-OC_{GET,SET,CLEAR}_OPTS: read the bitmap, or enable/disable the=0D=0A   b=
-its set in a caller-supplied mask, returning the resulting bitmap.=0D=0A =
-  SET/CLEAR require CAP_SYS_ADMIN and reject unknown bits with -EINVAL;=0D=
-=0A   the bitmap is updated with atomic RMW so the checks stay lockless.=0D=
-=0A=0D=0AReviewed-by: Jeff Layton <jlayton@kernel.org>=0D=0ASigned-off-by=
-: John Groves <john@groves.net>=0D=0A---=0D=0A fs/famfs/famfs_file.c     =
-       | 59 ++++++++++++++++++++++++++++++++=0D=0A fs/famfs/famfs_inode.c=
-           |  1 +=0D=0A fs/famfs/famfs_internal.h        | 30 +++++++++++=
-++---=0D=0A include/uapi/linux/famfs_ioctl.h | 45 +++++++++++++++++++++++=
-+=0D=0A 4 files changed, 131 insertions(+), 4 deletions(-)=0D=0A=0D=0Adif=
-f --git a/fs/famfs/famfs_file.c b/fs/famfs/famfs_file.c=0D=0Aindex eba80d=
-ab0562..0a6d0392794c 100644=0D=0A--- a/fs/famfs/famfs_file.c=0D=0A+++ b/f=
-s/famfs/famfs_file.c=0D=0A@@ -421,6 +421,53 @@ famfs_daxdev_open(struct f=
-ile *file, void __user *arg)=0D=0A =09return rc;=0D=0A }=0D=0A=20=0D=0A+/=
-**=0D=0A+ * famfs_get_opts() - FAMFSIOC_GET_OPTS: return the permission b=
-itmap=0D=0A+ */=0D=0A+static long=0D=0A+famfs_get_opts(struct famfs_fs_in=
-fo *fsi, void __user *arg)=0D=0A+{=0D=0A+=09struct famfs_ioc_opts o =3D {=
- .opts =3D atomic64_read(&fsi->opts) };=0D=0A+=0D=0A+=09if (copy_to_user(=
-arg, &o, sizeof(o)))=0D=0A+=09=09return -EFAULT;=0D=0A+=0D=0A+=09return 0=
-;=0D=0A+}=0D=0A+=0D=0A+/*=0D=0A+ * famfs_modify_opts() - FAMFSIOC_SET_OPT=
-S / FAMFSIOC_CLEAR_OPTS=0D=0A+ * @set: true to enable (OR in) the request=
-ed bits, false to disable (mask out)=0D=0A+ *=0D=0A+ * The caller supplie=
-s a mask of FAMFS_OPT_* bits; the resulting bitmap is=0D=0A+ * returned. =
-Requires CAP_SYS_ADMIN since it changes mount-wide policy.=0D=0A+ */=0D=0A=
-+static long=0D=0A+famfs_modify_opts(=0D=0A+=09struct famfs_fs_info *fsi,=
-=0D=0A+=09void __user *arg,=0D=0A+=09bool set)=0D=0A+{=0D=0A+=09struct fa=
-mfs_ioc_opts o;=0D=0A+=0D=0A+=09if (!capable(CAP_SYS_ADMIN))=0D=0A+=09=09=
-return -EPERM;=0D=0A+=09if (copy_from_user(&o, arg, sizeof(o)))=0D=0A+=09=
-=09return -EFAULT;=0D=0A+=09if (o.opts & ~FAMFS_OPT_ALL)=0D=0A+=09=09retu=
-rn -EINVAL;=0D=0A+=0D=0A+=09if (set)=0D=0A+=09=09o.opts =3D atomic64_fetc=
-h_or(o.opts, &fsi->opts) | o.opts;=0D=0A+=09else=0D=0A+=09=09o.opts =3D a=
-tomic64_fetch_and(~o.opts, &fsi->opts) & ~o.opts;=0D=0A+=0D=0A+=09if (cop=
-y_to_user(arg, &o, sizeof(o)))=0D=0A+=09=09return -EFAULT;=0D=0A+=0D=0A+=09=
-return 0;=0D=0A+}=0D=0A+=0D=0A /**=0D=0A  * famfs_file_ioctl() - Top-leve=
-l famfs file ioctl handler=0D=0A  * @file: the file=0D=0A@@ -442,6 +489,1=
-8 @@ famfs_file_ioctl(struct file *file, unsigned int cmd, unsigned long =
-arg)=0D=0A =09=09rc =3D 0;=0D=0A =09=09break;=0D=0A=20=0D=0A+=09case FAMF=
-SIOC_GET_OPTS:=0D=0A+=09=09rc =3D famfs_get_opts(fsi, (void __user *)arg)=
-;=0D=0A+=09=09break;=0D=0A+=0D=0A+=09case FAMFSIOC_SET_OPTS:=0D=0A+=09=09=
-rc =3D famfs_modify_opts(fsi, (void __user *)arg, true);=0D=0A+=09=09brea=
-k;=0D=0A+=0D=0A+=09case FAMFSIOC_CLEAR_OPTS:=0D=0A+=09=09rc =3D famfs_mod=
-ify_opts(fsi, (void __user *)arg, false);=0D=0A+=09=09break;=0D=0A+=0D=0A=
- =09case FAMFSIOC_DAXDEV_OPEN:=0D=0A =09=09rc =3D famfs_daxdev_open(file,=
- (void __user *)arg);=0D=0A =09=09break;=0D=0Adiff --git a/fs/famfs/famfs=
-_inode.c b/fs/famfs/famfs_inode.c=0D=0Aindex 98c877a6009e..2f1938adbfbc 1=
-00644=0D=0A--- a/fs/famfs/famfs_inode.c=0D=0A+++ b/fs/famfs/famfs_inode.c=
-=0D=0A@@ -769,6 +769,7 @@ famfs_init_fs_context(struct fs_context *fc)=0D=
-=0A =09=09return -ENOMEM;=0D=0A=20=0D=0A =09init_rwsem(&fsi->devlist_sem)=
-;=0D=0A+=09atomic64_set(&fsi->opts, FAMFS_OPT_DEFAULT);=0D=0A =09fsi->mou=
-nt_opts.mode =3D FAMFS_DEFAULT_MODE;=0D=0A =09fc->s_fs_info        =3D fs=
-i;=0D=0A =09fc->ops              =3D &famfs_context_ops;=0D=0Adiff --git =
-a/fs/famfs/famfs_internal.h b/fs/famfs/famfs_internal.h=0D=0Aindex f17380=
-d24f6d..5e043b5a0ddd 100644=0D=0A--- a/fs/famfs/famfs_internal.h=0D=0A+++=
- b/fs/famfs/famfs_internal.h=0D=0A@@ -12,11 +12,24 @@=0D=0A #define FAMFS=
-_INTERNAL_H=0D=0A=20=0D=0A #include <linux/rwsem.h>=0D=0A+#include <linux=
-/atomic.h>=0D=0A #include <linux/bits.h>=0D=0A #include <linux/build_bug.=
-h>=0D=0A=20=0D=0A #include <linux/famfs_ioctl.h>=0D=0A=20=0D=0A+/*=0D=0A+=
- * Default operation-permission bitmap (see FAMFS_OPT_* in the uapi heade=
-r).=0D=0A+ * This preserves famfs's historical behavior: file/dir creatio=
-n, the fmap=0D=0A+ * ioctl, data writes, and the non-resize setattr compo=
-nents are permitted;=0D=0A+ * unlink of mapped files, link, symlink, mkno=
-d, rmdir, rename and truncate=0D=0A+ * are denied until enabled via FAMFS=
-IOC_SET_OPTS.=0D=0A+ */=0D=0A+#define FAMFS_OPT_DEFAULT=09(FAMFS_OPT_CREA=
-TE | FAMFS_OPT_MKDIR | \=0D=0A+=09=09=09=09 FAMFS_OPT_CHMOD | FAMFS_OPT_C=
-HOWN | \=0D=0A+=09=09=09=09 FAMFS_OPT_UTIMES | FAMFS_OPT_WRITE | \=0D=0A+=
-=09=09=09=09 FAMFS_OPT_MAP_CREATE)=0D=0A+=0D=0A extern const struct file_=
-operations famfs_file_operations;=0D=0A=20=0D=0A /*=0D=0A@@ -104,6 +117,8=
- @@ struct famfs_dax_devlist {=0D=0A  * @famfs_fs_info=0D=0A  *=0D=0A  * =
-@mount_opts:  The mount options=0D=0A+ * @opts:        Operation-permissi=
-on bitmap (FAMFS_OPT_*), adjusted at runtime=0D=0A+ *               via t=
-he FAMFSIOC_{GET,SET,CLEAR}_OPTS ioctls=0D=0A  * @deverror:    True if th=
-e dax device has called our notify_failure entry=0D=0A  *               p=
-oint, or if other "shutdown" conditions exist=0D=0A  * @dax_devlist: Tabl=
-e of backing daxdevs (slot 0 is the mount primary)=0D=0A@@ -111,16 +126,2=
-3 @@ struct famfs_dax_devlist {=0D=0A  */=0D=0A struct famfs_fs_info {=0D=
-=0A =09struct famfs_mount_opts   mount_opts;=0D=0A+=09atomic64_t         =
-       opts;=0D=0A =09bool                      deverror;=0D=0A =09struct=
- famfs_dax_devlist *dax_devlist;=0D=0A =09struct rw_semaphore       devli=
-st_sem;=0D=0A };=0D=0A=20=0D=0A-/* This stub will be replaced in a later =
-commit=0D=0A- * Note: the opt parameter is intentionally unused, and will=
- be used by=0D=0A- * the replacement function when that commit lands=0D=0A=
-+/*=0D=0A+ * famfs_opt_enabled() - is operation permission @opt enabled f=
-or this mount=3F=0D=0A+ *=0D=0A+ * @opt is a single FAMFS_OPT_* bit; retu=
-rns true if that operation is=0D=0A+ * permitted. The bitmap is read lock=
-lessly (updated via atomic RMW by the=0D=0A+ * FAMFSIOC_{SET,CLEAR}_OPTS =
-ioctls).=0D=0A  */=0D=0A-#define famfs_opt_enabled(fsi, opt) (fsi !=3D 0)=
-=0D=0A+static inline bool famfs_opt_enabled(struct famfs_fs_info *fsi, u6=
-4 opt)=0D=0A+{=0D=0A+=09return !!(atomic64_read(&fsi->opts) & opt);=0D=0A=
-+}=0D=0A=20=0D=0A int famfs_lookup_daxdev(const char *pathname, dev_t *de=
-vno);=0D=0A int famfs_devlist_alloc(struct famfs_fs_info *fsi);=0D=0Adiff=
- --git a/include/uapi/linux/famfs_ioctl.h b/include/uapi/linux/famfs_ioct=
-l.h=0D=0Aindex 751d8b033c2e..efe6ef263975 100644=0D=0A--- a/include/uapi/=
-linux/famfs_ioctl.h=0D=0A+++ b/include/uapi/linux/famfs_ioctl.h=0D=0A@@ -=
-100,6 +100,48 @@ struct famfs_ioc_daxdev {=0D=0A =09__u32 flags;=0D=0A };=
-=0D=0A=20=0D=0A+/*=0D=0A+ * Mount-wide operation permissions, queried and=
- modified via the=0D=0A+ * FAMFSIOC_{GET,SET,CLEAR}_OPTS ioctls. A set bi=
-t means the operation is=0D=0A+ * permitted; a clear bit means it is reje=
-cted with -EPERM. famfs denies most=0D=0A+ * of these by default because =
-the userspace log, not the kernel, is=0D=0A+ * authoritative for a famfs =
-instance.=0D=0A+ */=0D=0A+#define FAMFS_OPT_CREATE=09(1ULL << 0)  /* crea=
-te a regular file        */=0D=0A+#define FAMFS_OPT_MKDIR=09=09(1ULL << 1=
-)  /* mkdir                        */=0D=0A+#define FAMFS_OPT_MKNOD=09=09=
-(1ULL << 2)  /* mknod a special file         */=0D=0A+#define FAMFS_OPT_S=
-YMLINK=09(1ULL << 3)  /* create a symlink             */=0D=0A+#define FA=
-MFS_OPT_LINK=09=09(1ULL << 4)  /* hard link                    */=0D=0A+#=
-define FAMFS_OPT_UNLINK=09(1ULL << 5)  /* unlink a mapped file         */=
-=0D=0A+#define FAMFS_OPT_RMDIR=09=09(1ULL << 6)  /* rmdir                =
-        */=0D=0A+#define FAMFS_OPT_RENAME=09(1ULL << 7)  /* rename       =
-                */=0D=0A+#define FAMFS_OPT_CHMOD=09=09(1ULL << 8)  /* set=
-attr ATTR_MODE            */=0D=0A+#define FAMFS_OPT_CHOWN=09=09(1ULL << =
-9)  /* setattr ATTR_UID / ATTR_GID  */=0D=0A+#define FAMFS_OPT_TRUNCATE=09=
-(1ULL << 10) /* setattr ATTR_SIZE (resize)   */=0D=0A+#define FAMFS_OPT_U=
-TIMES=09(1ULL << 11) /* setattr ATTR_ATIME/ATTR_MTIME*/=0D=0A+#define FAM=
-FS_OPT_WRITE=09=09(1ULL << 12) /* write file data              */=0D=0A+#=
-define FAMFS_OPT_XATTR=09=09(1ULL << 13) /* set/remove xattrs (reserved) =
-*/=0D=0A+#define FAMFS_OPT_MAP_CREATE=09(1ULL << 14) /* attach an fmap (M=
-AP_CREATE)  */=0D=0A+=0D=0A+#define FAMFS_OPT_ALL=09=09(FAMFS_OPT_CREATE =
-| FAMFS_OPT_MKDIR | \=0D=0A+=09=09=09=09 FAMFS_OPT_MKNOD | FAMFS_OPT_SYML=
-INK | \=0D=0A+=09=09=09=09 FAMFS_OPT_LINK | FAMFS_OPT_UNLINK | \=0D=0A+=09=
-=09=09=09 FAMFS_OPT_RMDIR | FAMFS_OPT_RENAME | \=0D=0A+=09=09=09=09 FAMFS=
-_OPT_CHMOD | FAMFS_OPT_CHOWN | \=0D=0A+=09=09=09=09 FAMFS_OPT_TRUNCATE | =
-FAMFS_OPT_UTIMES | \=0D=0A+=09=09=09=09 FAMFS_OPT_WRITE | FAMFS_OPT_XATTR=
- | \=0D=0A+=09=09=09=09 FAMFS_OPT_MAP_CREATE)=0D=0A+=0D=0A+/**=0D=0A+ * s=
-truct famfs_ioc_opts - operation-permission bitmap=0D=0A+ * @opts: for GE=
-T, the current bitmap is returned here. For SET/CLEAR, the=0D=0A+ *      =
-  caller-supplied mask of bits to enable/disable on input, and the=0D=0A+=
- *        resulting bitmap on return.=0D=0A+ */=0D=0A+struct famfs_ioc_op=
-ts {=0D=0A+=09__u64 opts;=0D=0A+};=0D=0A+=0D=0A #define FAMFSIOC_MAGIC 'u=
-'=0D=0A=20=0D=0A /* famfs file ioctl opcodes */=0D=0A@@ -111,5 +153,8 @@ =
-struct famfs_ioc_daxdev {=0D=0A  */=0D=0A #define FAMFSIOC_MAP_CREATE    =
-_IOW(FAMFSIOC_MAGIC,  0x51, struct famfs_ioc_fmap_header)=0D=0A #define F=
-AMFSIOC_DAXDEV_OPEN   _IOW(FAMFSIOC_MAGIC,  0x52, struct famfs_ioc_daxdev=
-)=0D=0A+#define FAMFSIOC_GET_OPTS      _IOR(FAMFSIOC_MAGIC,  0x53, struct=
- famfs_ioc_opts)=0D=0A+#define FAMFSIOC_SET_OPTS      _IOWR(FAMFSIOC_MAGI=
-C, 0x54, struct famfs_ioc_opts)=0D=0A+#define FAMFSIOC_CLEAR_OPTS    _IOW=
-R(FAMFSIOC_MAGIC, 0x55, struct famfs_ioc_opts)=0D=0A=20=0D=0A #endif /* F=
-AMFS_IOCTL_H */=0D=0A--=20=0D=0A2.53.0=0D=0A=0D=0A
+From: John Groves <John@Groves.net>=0D=0A=0D=0AReplace simple_statfs(), w=
+hich reports zero blocks (so df omits the mount),=0D=0Awith famfs_statfs(=
+) reporting real capacity and usage.=0D=0A=0D=0AAdd dax_fsdev_size() in d=
+rivers/dax/fsdev.c, returning the size fsdev=0D=0Acaches at probe (dev_da=
+x->cached_size - the sum of the device's ranges,=0D=0Astable while bound)=
+, exported. It lives in fsdev.c because cached_size is=0D=0Aset only by t=
+he fsdev driver, and famfs only ever holds fsdev-mode daxdevs=0D=0A(fs_da=
+x_get() enforces DAXDRV_FSDEV_TYPE); famfs.ko therefore depends on=0D=0Af=
+sdev_dax.ko.=0D=0A=0D=0Afamfs tracks two byte counters under a new stats_=
+sem:=0D=0A - total_capacity: summed in famfs_install_daxdev() from dax_fs=
+dev_size(),=0D=0A   covering the mount primary and every DAXDEV_OPEN seco=
+ndary, counted once=0D=0A   per daxdev (on the valid 0->1 transition).=0D=
+=0A - used_capacity: summed in famfs_file_init_dax() from the fmap's mapp=
+ed=0D=0A   device bytes (superblock + log + data files).=0D=0A=0D=0Afamfs=
+_statfs() reports total and free (total - used). Free is an=0D=0Aapproxim=
+ation of the userspace allocator's free space (it ignores allocator=0D=0A=
+gaps and reserved regions), which is adequate for df.=0D=0A=0D=0A(Side no=
+te: I am the maintainer of drivers/dax/fsdev.c)=0D=0A=0D=0AReviewed-by: "=
+Darrick J. Wong" <djwong@kernel.org>=0D=0AReviewed-by: Jeff Layton <jlayt=
+on@kernel.org>=0D=0ASigned-off-by: John Groves <john@groves.net>=0D=0A---=
+=0D=0A drivers/dax/fsdev.c       | 19 +++++++++++++++=0D=0A fs/famfs/famf=
+s_file.c     |  5 ++++=0D=0A fs/famfs/famfs_inode.c    | 49 +++++++++++++=
++++++++++++++++++++++-----=0D=0A fs/famfs/famfs_internal.h |  8 +++++++=0D=
+=0A include/linux/dax.h       |  1 +=0D=0A 5 files changed, 76 insertions=
+(+), 6 deletions(-)=0D=0A=0D=0Adiff --git a/drivers/dax/fsdev.c b/drivers=
+/dax/fsdev.c=0D=0Aindex 188b2526bee4..a5b4b2d79428 100644=0D=0A--- a/driv=
+ers/dax/fsdev.c=0D=0A+++ b/drivers/dax/fsdev.c=0D=0A@@ -104,6 +104,25 @@ =
+static size_t fsdev_dax_recovery_write(struct dax_device *dax_dev, pgoff_=
+t pgoff=0D=0A =09return _copy_from_iter_flushcache(addr, bytes, i);=0D=0A=
+ }=0D=0A=20=0D=0A+/**=0D=0A+ * dax_fsdev_size() - total size in bytes of =
+an fsdev dax device=0D=0A+ * @dax_dev: the dax device (must be bound to t=
+his driver)=0D=0A+ *=0D=0A+ * Returns the size cached at probe time (sum =
+of all ranges); it cannot change=0D=0A+ * while the driver is bound. Only=
+ valid for fsdev dax devices - callers=0D=0A+ * ensure that (e.g. fs_dax_=
+get() enforces DAXDRV_FSDEV_TYPE). Returns 0 if the=0D=0A+ * device is no=
+t alive.=0D=0A+ */=0D=0A+u64 dax_fsdev_size(struct dax_device *dax_dev)=0D=
+=0A+{=0D=0A+=09struct dev_dax *dev_dax =3D dax_get_private(dax_dev);=0D=0A=
++=0D=0A+=09if (!dev_dax)=0D=0A+=09=09return 0;=0D=0A+=09return dev_dax->c=
+ached_size;=0D=0A+}=0D=0A+EXPORT_SYMBOL_GPL(dax_fsdev_size);=0D=0A+=0D=0A=
+ static const struct dax_operations dev_dax_ops =3D {=0D=0A =09.direct_ac=
+cess =3D fsdev_dax_direct_access,=0D=0A =09.zero_page_range =3D fsdev_dax=
+_zero_page_range,=0D=0Adiff --git a/fs/famfs/famfs_file.c b/fs/famfs/famf=
+s_file.c=0D=0Aindex 0a6d0392794c..965b6732f52c 100644=0D=0A--- a/fs/famfs=
+/famfs_file.c=0D=0A+++ b/fs/famfs/famfs_file.c=0D=0A@@ -344,6 +344,11 @@ =
+famfs_file_init_dax(struct file *file, void __user *arg)=0D=0A =09}=0D=0A=
+ =09inode_unlock(inode);=0D=0A=20=0D=0A+=09/* Account the mapped device b=
+ytes for statfs (only on success) */=0D=0A+=09if (!rc) {=0D=0A+=09=09scop=
+ed_guard(rwsem_write, &fsi->stats_sem)=0D=0A+=09=09=09fsi->used_capacity =
++=3D extent_total;=0D=0A+=09}=0D=0A out:=0D=0A =09kvfree(fmap_buf);=0D=0A=
+ =09if (meta)=0D=0Adiff --git a/fs/famfs/famfs_inode.c b/fs/famfs/famfs_i=
+node.c=0D=0Aindex 2f1938adbfbc..61b668b299ef 100644=0D=0A--- a/fs/famfs/f=
+amfs_inode.c=0D=0A+++ b/fs/famfs/famfs_inode.c=0D=0A@@ -24,6 +24,7 @@=0D=0A=
+ #include <linux/iomap.h>=0D=0A #include <linux/path.h>=0D=0A #include <l=
+inux/namei.h>=0D=0A+#include <linux/statfs.h>=0D=0A=20=0D=0A #include "fa=
+mfs_internal.h"=0D=0A=20=0D=0A@@ -348,8 +349,38 @@ famfs_evict_inode(stru=
+ct inode *inode)=0D=0A =09clear_inode(inode);=0D=0A }=0D=0A=20=0D=0A+/*=0D=
+=0A+ * famfs_statfs() - report device capacity and consumption so 'df' wo=
+rks.=0D=0A+ * @total_capacity is the sum of installed daxdev sizes; @used=
+_capacity is the=0D=0A+ * sum of device bytes mapped by fmaps (superblock=
+ + log + data files). Free is=0D=0A+ * the difference - an approximation =
+of the userspace allocator's free space=0D=0A+ * (it ignores allocator ga=
+ps / reserved regions), which is fine for df.=0D=0A+ */=0D=0A+static int=0D=
+=0A+famfs_statfs(struct dentry *dentry, struct kstatfs *buf)=0D=0A+{=0D=0A=
++=09struct famfs_fs_info *fsi =3D dentry->d_sb->s_fs_info;=0D=0A+=09u64 t=
+otal, used, free;=0D=0A+=0D=0A+=09scoped_guard(rwsem_read, &fsi->stats_se=
+m) {=0D=0A+=09=09total =3D fsi->total_capacity;=0D=0A+=09=09used  =3D fsi=
+->used_capacity;=0D=0A+=09}=0D=0A+=09free =3D total > used =3F total - us=
+ed : 0;=0D=0A+=0D=0A+=09buf->f_type    =3D FAMFS_SUPER_MAGIC;=0D=0A+=09bu=
+f->f_bsize   =3D PAGE_SIZE;=0D=0A+=09buf->f_frsize  =3D PAGE_SIZE;=0D=0A+=
+=09buf->f_blocks  =3D total >> PAGE_SHIFT;=0D=0A+=09buf->f_bfree   =3D fr=
+ee  >> PAGE_SHIFT;=0D=0A+=09buf->f_bavail  =3D free  >> PAGE_SHIFT;=09/* =
+no root reservation */=0D=0A+=09buf->f_namelen =3D NAME_MAX;=0D=0A+=09buf=
+->f_fsid    =3D u64_to_fsid(huge_encode_dev(dentry->d_sb->s_dev));=0D=0A+=
+=09return 0;=0D=0A+}=0D=0A+=0D=0A static const struct super_operations fa=
+mfs_super_ops =3D {=0D=0A-=09.statfs=09=09=3D simple_statfs,=0D=0A+=09.st=
+atfs=09=09=3D famfs_statfs,=0D=0A =09.drop_inode=09=3D inode_just_drop,=0D=
+=0A =09.show_options=09=3D famfs_show_options,=0D=0A =09.evict_inode    =3D=
+ famfs_evict_inode,=0D=0A@@ -444,6 +475,7 @@ famfs_install_daxdev(=0D=0A =
+=09const char *name)=0D=0A {=0D=0A =09struct famfs_daxdev *daxdev;=0D=0A+=
+=09struct dax_device *devp =3D NULL;=0D=0A =09int rc =3D 0;=0D=0A=20=0D=0A=
+ =09if (index >=3D fsi->dax_devlist->nslots) {=0D=0A@@ -507,6 +539,15 @@ =
+famfs_install_daxdev(=0D=0A=20=0D=0A =09=09wmb(); /* All other fields mus=
+t be visible before valid */=0D=0A =09=09daxdev->valid =3D 1;=0D=0A+=09=09=
+devp =3D daxdev->devp;=0D=0A+=09}=0D=0A+=0D=0A+=09/* Freshly installed: a=
+dd its capacity to the statfs accounting */=0D=0A+=09if (devp) {=0D=0A+=09=
+=09u64 sz =3D dax_fsdev_size(devp);=0D=0A+=0D=0A+=09=09scoped_guard(rwsem=
+_write, &fsi->stats_sem)=0D=0A+=09=09=09fsi->total_capacity +=3D sz;=0D=0A=
+ =09}=0D=0A=20=0D=0A =09return 0;=0D=0A@@ -769,6 +810,7 @@ famfs_init_fs_=
+context(struct fs_context *fc)=0D=0A =09=09return -ENOMEM;=0D=0A=20=0D=0A=
+ =09init_rwsem(&fsi->devlist_sem);=0D=0A+=09init_rwsem(&fsi->stats_sem);=0D=
+=0A =09atomic64_set(&fsi->opts, FAMFS_OPT_DEFAULT);=0D=0A =09fsi->mount_o=
+pts.mode =3D FAMFS_DEFAULT_MODE;=0D=0A =09fc->s_fs_info        =3D fsi;=0D=
+=0A@@ -802,16 +844,11 @@ static struct file_system_type famfs_fs_type =3D=
+ {=0D=0A /***************************************************************=
+***************=0D=0A  * Module stuff=0D=0A  */=0D=0A-#define FAMFS_MODUL=
+E_INCOMPLETE 1=0D=0A-=0D=0A static int __init=0D=0A init_famfs_fs(void)=0D=
+=0A {=0D=0A =09int rc;=0D=0A=20=0D=0A-=09if (FAMFS_MODULE_INCOMPLETE)=0D=0A=
+-=09=09return -ENODEV;=0D=0A-=0D=0A =09rc =3D register_filesystem(&famfs_=
+fs_type);=0D=0A=20=0D=0A =09return rc;=0D=0Adiff --git a/fs/famfs/famfs_i=
+nternal.h b/fs/famfs/famfs_internal.h=0D=0Aindex 5e043b5a0ddd..8765be41e4=
+a7 100644=0D=0A--- a/fs/famfs/famfs_internal.h=0D=0A+++ b/fs/famfs/famfs_=
+internal.h=0D=0A@@ -123,6 +123,11 @@ struct famfs_dax_devlist {=0D=0A  * =
+              point, or if other "shutdown" conditions exist=0D=0A  * @da=
+x_devlist: Table of backing daxdevs (slot 0 is the mount primary)=0D=0A  =
+* @devlist_sem: Serializes installs into, and teardown of, @dax_devlist=0D=
+=0A+ * @stats_sem:   Protects the statfs accounting counters below=0D=0A+=
+ * @total_capacity: Sum of installed daxdev sizes, in bytes (grows as dax=
+devs=0D=0A+ *               are added)=0D=0A+ * @used_capacity:  Sum of i=
+nstalled fmap sizes, in bytes (grows as MAP_CREATE=0D=0A+ *              =
+ attaches fmaps; this is device bytes consumed, not file size)=0D=0A  */=0D=
+=0A struct famfs_fs_info {=0D=0A =09struct famfs_mount_opts   mount_opts;=
+=0D=0A@@ -130,6 +135,9 @@ struct famfs_fs_info {=0D=0A =09bool           =
+           deverror;=0D=0A =09struct famfs_dax_devlist *dax_devlist;=0D=0A=
+ =09struct rw_semaphore       devlist_sem;=0D=0A+=09struct rw_semaphore  =
+     stats_sem;=0D=0A+=09u64                       total_capacity;=0D=0A+=
+=09u64                       used_capacity;=0D=0A };=0D=0A=20=0D=0A /*=0D=
+=0Adiff --git a/include/linux/dax.h b/include/linux/dax.h=0D=0Aindex 2911=
+3eb95e72..c25ef499d04f 100644=0D=0A--- a/include/linux/dax.h=0D=0A+++ b/i=
+nclude/linux/dax.h=0D=0A@@ -256,6 +256,7 @@ static inline void dax_break_=
+layout_final(struct inode *inode)=0D=0A=20=0D=0A bool dax_alive(struct da=
+x_device *dax_dev);=0D=0A void *dax_get_private(struct dax_device *dax_de=
+v);=0D=0A+u64 dax_fsdev_size(struct dax_device *dax_dev);=0D=0A int dax_s=
+et_ops(struct dax_device *dax_dev, const struct dax_operations *ops);=0D=0A=
+ long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long n=
+r_pages,=0D=0A =09=09enum dax_access_mode mode, void **kaddr, unsigned lo=
+ng *pfn);=0D=0A--=20=0D=0A2.53.0=0D=0A=0D=0A
