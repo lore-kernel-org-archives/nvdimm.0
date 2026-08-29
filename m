@@ -1,38 +1,38 @@
-Received: from a11-131.smtp-out.amazonses.com (a11-131.smtp-out.amazonses.com [54.240.11.131])
+Received: from a11-70.smtp-out.amazonses.com (a11-70.smtp-out.amazonses.com [54.240.11.70])
 	(using TLSv1.2 with cipher AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56615410D36;
-	Sat, 29 Aug 2026 17:12:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 656DB3B4EB0;
+	Sat, 29 Aug 2026 17:12:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.240.11.70
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788023538; cv=none; b=I4eYJrHS+Y5gFK8RQZw2gbGZUbo4p6fUx7U+TuNj0AkrlZXbCbKCzQiUAz5nafuJMFZyNy/w5N0VN9kAVYVfSpie7N+K6s8ApV06zPD3QoKMKUqXxs4QzGvO7fchSwzyxhTuI7x08mY0wgJV39sT3a2jCuYrnIY8xshl6TTrzfo=
+	t=1788023576; cv=none; b=WCh44DGbbS7HYl2vTznDDaKLo+qiLxqhEQYOh+kVfq3rYMMawVv8PFE9dhWmZbACPExWPq/4wV/LSqnpiEwJzBm6bj0ZsPLSkG9k2yWwAMBKlx56+LX2Z0HzZ7oKxTCJNigAk/8LSJbc+ayx2w1HLtk3e5Kf0w6sPq3ns8ipEzI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788023538; c=relaxed/simple;
-	bh=ZlBnZEUY2fesv8fgapJNVNIwCGKpwMieZhiwbQ1MtNI=;
+	s=arc-20240116; t=1788023576; c=relaxed/simple;
+	bh=V/hzylRC5ovFfm+vXi/moRkBe2kBlhpzT72QQUeGQvY=;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:In-Reply-To:
-	 References:Message-ID; b=SpmkmXNY8sydgrVr06taahUuBbyX8hJ7FPvoK6Vs1BpZkoDzn+K3A5tTPAcVoIvntUhND0IWpBb13R0xGFslOA5yg6a7AaOoo+PGtPhExo22D38NWZU8pUvYV4VLcky8nHOd5rkzUdMrVzRujsrs2lyrMmVBcnJSRXz4c7Mxh5k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=jGdNI993; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=XrzOqtwx; arc=none smtp.client-ip=54.240.11.131
+	 References:Message-ID; b=TN/Kw3heo0c+wAhtdp5x7Li5J1ke1HebCy2TWkmmOmNSow6thbBVJ5ON7JLWbJ0n9o+QQUuqolX1plg2tfOXf1bfKXcDoEJS65uo+33wJbBFmnLpmurnjv6tGhFrj1qlmqlcMPMkMV1CY21hhkt6qlfkYL7FHkFT70My42YEXxI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com; spf=pass smtp.mailfrom=amazonses.com; dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b=klIrfwOX; dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b=eTd4pj2E; arc=none smtp.client-ip=54.240.11.70
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jagalactic.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazonses.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="jGdNI993";
-	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="XrzOqtwx"
+	dkim=pass (1024-bit key) header.d=jagalactic.com header.i=@jagalactic.com header.b="klIrfwOX";
+	dkim=pass (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="eTd4pj2E"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=rjayupzefgi7e6fmzxcxe4cv4arrjs35; d=jagalactic.com; t=1788023532;
+	s=rjayupzefgi7e6fmzxcxe4cv4arrjs35; d=jagalactic.com; t=1788023574;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id;
-	bh=ZlBnZEUY2fesv8fgapJNVNIwCGKpwMieZhiwbQ1MtNI=;
-	b=jGdNI993iKsNKlSL4/of3erUuHeAjHia8JhAu2GOOH1CVwnPkDc/I9JbDE2RqnkZ
-	rdDWsDSHbMXhP9lmouybatZEwCT6zIWe0C1laUCY+ZfpEIc55Ib+S89z8AIUiFs+kyU
-	ArYto7CPuSH5VZS+fDlLfuY4V4tGt8XxKJnDR+v4=
+	bh=V/hzylRC5ovFfm+vXi/moRkBe2kBlhpzT72QQUeGQvY=;
+	b=klIrfwOXSHlCPkL6oZlZzhO0vpdZ4T2aDYe1l/GIMpRxqFcPQK3M8HSxDXN1QbLw
+	EW0ZNplXvvtVh1PxCeIMcE/Szj0J/WH23jc/smceUMweMy5N8tRzBjQ7qm8EICA9jo+
+	qzkZ852hzzgfe4jgxAPqUUBky8tgJSgYHYpeI+zo=
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1788023532;
+	s=224i4yxa5dv7c2xz3womw6peuasteono; d=amazonses.com; t=1788023574;
 	h=Subject:From:To:Cc:Date:Mime-Version:Content-Type:Content-Transfer-Encoding:In-Reply-To:References:Message-Id:Feedback-ID;
-	bh=ZlBnZEUY2fesv8fgapJNVNIwCGKpwMieZhiwbQ1MtNI=;
-	b=XrzOqtwx+3U4mrW+gCE9YhbG6C4P3ZPNKSEJkd6L+5f/W2j37EKpASS8RbyS8J5d
-	v3jg5Vl5+AECJ1oGOgA4Ha1rb4EkBkW6lZlhIFmqf/VqX3QomRlUSf/UFXW8T5o+89G
-	UTNvaCBIwuZFECdmLR8Y9GnkrPpfZ4d51aF6iahg=
-Subject: [PATCH V14 08/12] famfs: iomap_begin and file-to-dax offset
- resolution
+	bh=V/hzylRC5ovFfm+vXi/moRkBe2kBlhpzT72QQUeGQvY=;
+	b=eTd4pj2EEzdxwwaYz5IlRubfey+Oi9m+6mIZvUSQyzwtV3sn68LS11EvSVFQkIVp
+	QosyHL353B6Yv3oI2zAl6Fqbdz3F2kjwXis5FZkCzq2WD/AcY0EHfe5fbLFBLxTzFLO
+	tzExFe/Dd3KfG3Ll3uyN0N7Ug22GgDtWjbQXsqYw=
+Subject: [PATCH V14 09/12] famfs: Register secondary daxdevs by path
+ (FAMFSIOC_DAXDEV_OPEN)
 From: =?UTF-8?Q?John_Groves?= <john@jagalactic.com>
 To: =?UTF-8?Q?John_Groves?= <John@Groves.net>, 
 	=?UTF-8?Q?Miklos_Szeredi?= <miklos@szeredi.hu>, 
@@ -88,7 +88,7 @@ Cc: =?UTF-8?Q?John_Groves?= <jgroves@micron.com>,
 	=?UTF-8?Q?linux-fsdevel=40vger=2Ekernel=2Eorg?= <linux-fsdevel@vger.kernel.org>, 
 	=?UTF-8?Q?fuse-devel=40lists=2Elinux=2E?= =?UTF-8?Q?dev?= <fuse-devel@lists.linux.dev>, 
 	=?UTF-8?Q?John_Groves?= <john@groves.net>
-Date: Sat, 29 Aug 2026 17:12:12 +0000
+Date: Sat, 29 Aug 2026 17:12:54 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -101,207 +101,99 @@ In-Reply-To:
  <010001a04e801a4e-8eb212cd-b263-4043-ab65-33e480d2d7d4-000000@email.amazonses.com>
 References: 
  <010001a04e801a4e-8eb212cd-b263-4043-ab65-33e480d2d7d4-000000@email.amazonses.com> 
- <20260829171201.7482-1-john@jagalactic.com>
+ <20260829171247.7497-1-john@jagalactic.com>
 X-Mailer: Amazon WorkMail
-Thread-Index: AQHdN9lAfqnLmnnsQyaIwPphM+3eHAAAEdJt
-Thread-Topic: [PATCH V14 08/12] famfs: iomap_begin and file-to-dax offset
- resolution
-X-Wm-Sent-Timestamp: 1788023531
+Thread-Index: AQHdN9lAfqnLmnnsQyaIwPphM+3eHAAAGAWb
+Thread-Topic: [PATCH V14 09/12] famfs: Register secondary daxdevs by path
+ (FAMFSIOC_DAXDEV_OPEN)
+X-Wm-Sent-Timestamp: 1788023572
 X-Original-Mailer: git-send-email 2.55.0
-Message-ID: <010001a04e81ec26-3050ee4c-5ec4-4605-b16b-cdc208c1bd05-000000@email.amazonses.com>
+Message-ID: <010001a04e828e72-7dd35d21-e02a-4233-b208-bb38a68e0356-000000@email.amazonses.com>
 Feedback-ID: ::1.us-east-1.LF00NED762KFuBsfzrtoqw+Brn/qlF9OYdxWukAhsl8=:AmazonSES
-X-SES-Outgoing: 2026.08.29-54.240.11.131
+X-SES-Outgoing: 2026.08.29-54.240.11.70
 
-From: John Groves <John@Groves.net>=0D=0A=0D=0AAdd the iomap resolver tha=
-t maps a file offset to a (daxdev, offset) pair:=0D=0Afamfs_meta_to_dax_o=
-ffset() for simple extent lists and=0D=0Afamfs_meta_to_dax_offset_interle=
-aved() for striped files, backed by the=0D=0Aper-daxdev health check (fam=
-fs_dax_err) and table lookup=0D=0A(famfs_daxdev_for_index), plus famfs_io=
-map_begin() and famfs_iomap_ops.=0D=0A=0D=0AWire it into the read, write =
-and fault paths by replacing their=0D=0ANULL /*&famfs_iomap_ops*/ stub wi=
-th &famfs_iomap_ops, so dax_iomap_rw() and=0D=0Adax_iomap_fault() now res=
-olve through famfs.=0D=0A=0D=0AReviewed-by: "Darrick J. Wong" <djwong@ker=
-nel.org>=0D=0AReviewed-by: Jeff Layton <jlayton@kernel.org>=0D=0ASigned-o=
-ff-by: John Groves <john@groves.net>=0D=0A---=0D=0A=0D=0A fs/famfs/famfs_=
-file.c | 305 +++++++++++++++++++++++++++++++++++++++++-=0D=0A 1 file chan=
-ged, 302 insertions(+), 3 deletions(-)=0D=0A=0D=0Adiff --git a/fs/famfs/f=
-amfs_file.c b/fs/famfs/famfs_file.c=0D=0Aindex f099e0d08673..2200f168aa79=
- 100644=0D=0A--- a/fs/famfs/famfs_file.c=0D=0A+++ b/fs/famfs/famfs_file.c=
-=0D=0A@@ -384,6 +384,305 @@ famfs_file_ioctl(struct file *file, unsigned =
-int cmd, unsigned long arg)=0D=0A =09return rc;=0D=0A }=0D=0A=20=0D=0A+/*=
-********************************************************************=0D=0A=
-+ * iomap_operations=0D=0A+ *=0D=0A+ * This stuff uses the iomap (dax-rel=
-ated) helpers to resolve file offsets to=0D=0A+ * offsets within a dax de=
-vice.=0D=0A+ */=0D=0A+=0D=0A+static ssize_t famfs_file_invalid(struct ino=
-de *inode);=0D=0A+=0D=0A+/* Check the health of a daxdev table slot */=0D=
-=0A+static int=0D=0A+famfs_dax_err(struct famfs_daxdev *dd)=0D=0A+{=0D=0A=
-+=09if (!dd->valid) {=0D=0A+=09=09pr_debug("%s: daxdev=3D%s invalid\n", _=
-_func__, dd->name);=0D=0A+=09=09return -EIO;=0D=0A+=09}=0D=0A+=09if (dd->=
-dax_err) {=0D=0A+=09=09pr_debug("%s: daxdev=3D%s dax_err\n", __func__, dd=
-->name);=0D=0A+=09=09return -EIO;=0D=0A+=09}=0D=0A+=09if (dd->error) {=0D=
-=0A+=09=09pr_debug("%s: daxdev=3D%s memory error\n", __func__, dd->name);=
-=0D=0A+=09=09return -EHWPOISON;=0D=0A+=09}=0D=0A+=09return 0;=0D=0A+}=0D=0A=
-+=0D=0A+/*=0D=0A+ * famfs_daxdev_from_index() - resolve an extent's dev_i=
-ndex to a health-checked=0D=0A+ * dax_device from the table. On success r=
-eturns the dax_device and sets=0D=0A+ * *errp =3D 0; on failure returns N=
-ULL and sets *errp (< 0).=0D=0A+ */=0D=0A+static struct dax_device *=0D=0A=
-+famfs_daxdev_from_index(struct famfs_fs_info *fsi, u64 dev_index, int *e=
-rrp)=0D=0A+{=0D=0A+=09struct famfs_dax_devlist *devlist =3D fsi->dax_devl=
-ist;=0D=0A+=09struct famfs_daxdev *dd;=0D=0A+=09int rc;=0D=0A+=0D=0A+=09i=
-f (!devlist || dev_index >=3D devlist->nslots) {=0D=0A+=09=09pr_debug("%s=
-: dev_index %llu out of range\n",=0D=0A+=09=09=09__func__, dev_index);=0D=
-=0A+=09=09*errp =3D -EIO;=0D=0A+=09=09return NULL;=0D=0A+=09}=0D=0A+=09dd=
- =3D &devlist->devlist[dev_index];=0D=0A+=09rc =3D famfs_dax_err(dd);=0D=0A=
-+=09if (rc) {=0D=0A+=09=09*errp =3D rc;=0D=0A+=09=09return NULL;=0D=0A+=09=
-}=0D=0A+=09*errp =3D 0;=0D=0A+=09return dd->devp;=0D=0A+}=0D=0A+=0D=0A+st=
-atic int=0D=0A+famfs_meta_to_dax_offset_interleaved(=0D=0A+=09struct inod=
-e *inode,=0D=0A+=09struct iomap *iomap,=0D=0A+=09loff_t file_offset,=0D=0A=
-+=09loff_t len)=0D=0A+{=0D=0A+=09struct famfs_fs_info  *fsi =3D inode->i_=
-sb->s_fs_info;=0D=0A+=09struct famfs_file_meta *meta =3D inode->i_private=
-;=0D=0A+=09loff_t local_offset =3D file_offset;=0D=0A+=09int rc;=0D=0A+=09=
-int i;=0D=0A+=0D=0A+=09if (fsi->deverror || famfs_file_invalid(inode))=0D=
-=0A+=09=09goto err_out;=0D=0A+=0D=0A+=09/* This function is only for exte=
-nt_type FAMFS_IOC_EXT_INTERLEAVE */=0D=0A+=09if (meta->fm_extent_type !=3D=
- FAMFS_IOC_EXT_INTERLEAVE) {=0D=0A+=09=09pr_debug("%s: bad extent type\n"=
-, __func__);=0D=0A+=09=09goto err_out;=0D=0A+=09}=0D=0A+=0D=0A+=09iomap->=
-offset =3D file_offset;=0D=0A+=0D=0A+=09for (i =3D 0; i < meta->fm_niext;=
- i++) {=0D=0A+=09=09struct famfs_meta_interleaved_ext *fei =3D &meta->ie[=
-i];=0D=0A+=09=09u64 chunk_size =3D fei->fie_chunk_size;=0D=0A+=09=09u64 n=
-strips =3D fei->fie_nstrips;=0D=0A+=09=09u64 ext_size =3D fei->fie_nbytes=
-;=0D=0A+=0D=0A+=09=09ext_size =3D min_t(u64, ext_size, meta->file_size);=0D=
-=0A+=0D=0A+=09=09if (ext_size =3D=3D 0)=0D=0A+=09=09=09goto err_out;=0D=0A=
-+=0D=0A+=09=09/* Is the data is in this striped extent=3F */=0D=0A+=09=09=
-if (local_offset < ext_size) {=0D=0A+=09=09=09u64 chunk_num       =3D loc=
-al_offset / chunk_size;=0D=0A+=09=09=09u64 chunk_offset    =3D local_offs=
-et % chunk_size;=0D=0A+=09=09=09u64 stripe_num      =3D chunk_num / nstri=
-ps;=0D=0A+=09=09=09u64 strip_num       =3D chunk_num % nstrips;=0D=0A+=09=
-=09=09u64 chunk_remainder =3D chunk_size - chunk_offset;=0D=0A+=09=09=09u=
-64 strip_offset    =3D chunk_offset + (stripe_num * chunk_size);=0D=0A+=09=
-=09=09struct famfs_meta_simple_ext *strip =3D &fei->ie_strips[strip_num];=
-=0D=0A+=09=09=09struct dax_device *daxdev;=0D=0A+=0D=0A+=09=09=09/*=0D=0A=
-+=09=09=09 * MAP_CREATE only checks that the strips' combined=0D=0A+=09=09=
-=09 * length covers the file, not that each strip is large=0D=0A+=09=09=09=
- * enough for the chunks striped onto it. Guard against a=0D=0A+=09=09=09=
- * malformed fmap with an undersized strip so we never=0D=0A+=09=09=09 * =
-resolve to a dax offset past the strip's extent.=0D=0A+=09=09=09 */=0D=0A=
-+=09=09=09if (strip_offset >=3D strip->ext_len)=0D=0A+=09=09=09=09goto er=
-r_out;=0D=0A+=0D=0A+=09=09=09daxdev =3D famfs_daxdev_from_index(fsi, stri=
-p->dev_index, &rc);=0D=0A+=09=09=09if (!daxdev) {=0D=0A+=09=09=09=09meta-=
->error =3D true;=0D=0A+=09=09=09=09return rc;=0D=0A+=09=09=09}=0D=0A+=0D=0A=
-+=09=09=09iomap->addr    =3D strip->ext_offset + strip_offset;=0D=0A+=09=09=
-=09iomap->offset  =3D file_offset;=0D=0A+=09=09=09iomap->length  =3D min_=
-t(loff_t, len, chunk_remainder);=0D=0A+=09=09=09iomap->length  =3D min_t(=
-loff_t, iomap->length,=0D=0A+=09=09=09=09=09       strip->ext_len - strip=
-_offset);=0D=0A+=09=09=09iomap->dax_dev =3D daxdev;=0D=0A+=09=09=09iomap-=
->type    =3D IOMAP_MAPPED;=0D=0A+=0D=0A+=09=09=09return 0;=0D=0A+=09=09}=0D=
-=0A+=09=09local_offset -=3D ext_size; /* offset is beyond this striped ex=
-tent */=0D=0A+=09}=0D=0A+=0D=0A+ err_out:=0D=0A+=09/*=0D=0A+=09 * We fell=
- out the end of the extent list (access past EOF) or the file=0D=0A+=09 *=
- is invalid. Return -EIO: iomap requires a non-zero-length mapping on=0D=0A=
-+=09 * success (iomap_iter_done() warns on length =3D=3D 0), so signal th=
-e error=0D=0A+=09 * rather than returning a zero-length IOMAP_MAPPED.=0D=0A=
-+=09 */=0D=0A+=09pr_debug("%s: could not resolve file_offset %lld (past E=
-OF=3F)\n",=0D=0A+=09=09 __func__, (long long)file_offset);=0D=0A+=0D=0A+=09=
-iomap->addr    =3D 0; /* there is no valid dax device offset */=0D=0A+=09=
-iomap->offset  =3D file_offset; /* file offset */=0D=0A+=09iomap->length =
- =3D 0;=0D=0A+=09iomap->dax_dev =3D famfs_daxdev_from_index(fsi, 0, &rc);=
-=0D=0A+=09iomap->type    =3D IOMAP_MAPPED;=0D=0A+=0D=0A+=09return -EIO;=0D=
-=0A+}=0D=0A+=0D=0A+/**=0D=0A+ * famfs_meta_to_dax_offset() - Resolve (fil=
-e, offset, len) to (daxdev, offset, len)=0D=0A+ *=0D=0A+ * This function =
-is called by famfs_iomap_begin() to resolve an offset in a=0D=0A+ * file =
-to an offset in a dax device. This is upcalled from dax from calls to=0D=0A=
-+ * both  * dax_iomap_fault() and dax_iomap_rw(). Dax finishes the job re=
-solving=0D=0A+ * a fault to a specific physical page (the fault case) or =
-doing a memcpy=0D=0A+ * variant (the rw case)=0D=0A+ *=0D=0A+ * Pages can=
- be PTE (4k), PMD (2MiB) or (theoretically) PuD (1GiB)=0D=0A+ * (these si=
-zes are for X86; may vary on other cpu architectures=0D=0A+ *=0D=0A+ * @i=
-node:  The file where the fault occurred=0D=0A+ * @iomap:       To be fil=
-led in to indicate where to find the right memory,=0D=0A+ *              =
- relative  to a dax device.=0D=0A+ * @file_offset: Within the file where =
-the fault occurred (will be page boundary)=0D=0A+ * @len:         The len=
-gth of the faulted mapping (will be a page multiple)=0D=0A+ *            =
-   (will be trimmed in *iomap if it's disjoint in the extent list)=0D=0A+=
- *=0D=0A+ * Return values: 0. (info is returned in a modified @iomap stru=
-ct)=0D=0A+ */=0D=0A+static int=0D=0A+famfs_meta_to_dax_offset(=0D=0A+=09s=
-truct inode *inode,=0D=0A+=09struct iomap *iomap,=0D=0A+=09loff_t file_of=
-fset,=0D=0A+=09loff_t len)=0D=0A+{=0D=0A+=09struct famfs_fs_info  *fsi =3D=
- inode->i_sb->s_fs_info;=0D=0A+=09struct famfs_file_meta *meta =3D inode-=
->i_private;=0D=0A+=09loff_t local_offset =3D file_offset;=0D=0A+=09int rc=
-;=0D=0A+=09int i;=0D=0A+=0D=0A+=09if (fsi->deverror || famfs_file_invalid=
-(inode))=0D=0A+=09=09goto err_out;=0D=0A+=0D=0A+=09if (meta->fm_extent_ty=
-pe =3D=3D FAMFS_IOC_EXT_INTERLEAVE)=0D=0A+=09=09return famfs_meta_to_dax_=
-offset_interleaved(inode,=0D=0A+=09=09=09=09=09iomap, file_offset, len);=0D=
-=0A+=0D=0A+=09if (meta->fm_extent_type !=3D FAMFS_IOC_EXT_SIMPLE)=0D=0A+=09=
-=09goto err_out;=0D=0A+=0D=0A+=09iomap->offset =3D file_offset;=0D=0A+=0D=
-=0A+=09for (i =3D 0; i < meta->fm_nextents; i++) {=0D=0A+=09=09loff_t dax=
-_ext_offset =3D meta->se[i].ext_offset;=0D=0A+=09=09loff_t dax_ext_len   =
- =3D meta->se[i].ext_len;=0D=0A+=0D=0A+=09=09if ((dax_ext_offset =3D=3D 0=
-) &&=0D=0A+=09=09    (meta->file_type !=3D FAMFS_SUPERBLOCK))=0D=0A+=09=09=
-=09pr_warn("%s: zero offset on non-superblock file!!\n",=0D=0A+=09=09=09=09=
-__func__);=0D=0A+=0D=0A+=09=09/* local_offset is the offset minus the siz=
-e of extents skipped=0D=0A+=09=09 * so far; If local_offset < dax_ext_len=
-, the data of interest=0D=0A+=09=09 * starts in this extent=0D=0A+=09=09 =
-*/=0D=0A+=09=09if (local_offset < dax_ext_len) {=0D=0A+=09=09=09loff_t ex=
-t_len_remainder =3D dax_ext_len - local_offset;=0D=0A+=09=09=09struct dax=
-_device *daxdev;=0D=0A+=0D=0A+=09=09=09daxdev =3D famfs_daxdev_from_index=
-(fsi,=0D=0A+=09=09=09=09=09=09meta->se[i].dev_index, &rc);=0D=0A+=09=09=09=
-if (!daxdev) {=0D=0A+=09=09=09=09meta->error =3D true;=0D=0A+=09=09=09=09=
-return rc;=0D=0A+=09=09=09}=0D=0A+=0D=0A+=09=09=09/*=0D=0A+=09=09=09 * OK=
-, we found the file metadata extent where this=0D=0A+=09=09=09 * data beg=
-ins=0D=0A+=09=09=09 * @local_offset      - The offset within the current=0D=
-=0A+=09=09=09 *                      extent=0D=0A+=09=09=09 * @ext_len_re=
-mainder - Remaining length of ext after=0D=0A+=09=09=09 *                =
-      skipping local_offset=0D=0A+=09=09=09 * Outputs:=0D=0A+=09=09=09 * =
-iomap->addr:   the offset within the dax device where=0D=0A+=09=09=09 *  =
-              the  data starts=0D=0A+=09=09=09 * iomap->offset: the file =
-offset=0D=0A+=09=09=09 * iomap->length: the valid length resolved here=0D=
-=0A+=09=09=09 */=0D=0A+=09=09=09iomap->addr    =3D dax_ext_offset + local=
-_offset;=0D=0A+=09=09=09iomap->offset  =3D file_offset;=0D=0A+=09=09=09io=
-map->length  =3D min_t(loff_t, len, ext_len_remainder);=0D=0A+=09=09=09io=
-map->dax_dev =3D daxdev;=0D=0A+=09=09=09iomap->type    =3D IOMAP_MAPPED;=0D=
-=0A+=0D=0A+=09=09=09return 0;=0D=0A+=09=09}=0D=0A+=09=09local_offset -=3D=
- dax_ext_len; /* Get ready for the next extent */=0D=0A+=09}=0D=0A+=0D=0A=
-+ err_out:=0D=0A+=09/*=0D=0A+=09 * We fell out the end of the extent list=
- (access past EOF) or the file=0D=0A+=09 * is in an invalid state. Return=
- -EIO: iomap requires a non-zero-length=0D=0A+=09 * mapping on success (i=
-omap_iter_done() warns on length =3D=3D 0), so signal=0D=0A+=09 * the err=
-or rather than returning a zero-length IOMAP_MAPPED. dax turns=0D=0A+=09 =
-* this into a short read/write or a SIGBUS.=0D=0A+=09 */=0D=0A+=09pr_debu=
-g("%s: could not resolve file_offset %lld (past EOF=3F)\n",=0D=0A+=09=09 =
-__func__, (long long)file_offset);=0D=0A+=0D=0A+=09iomap->addr    =3D 0; =
-/* there is no valid dax device offset */=0D=0A+=09iomap->offset  =3D fil=
-e_offset; /* file offset */=0D=0A+=09iomap->length  =3D 0;=0D=0A+=09iomap=
-->dax_dev =3D famfs_daxdev_from_index(fsi, 0, &rc);=0D=0A+=09iomap->type =
-   =3D IOMAP_MAPPED;=0D=0A+=0D=0A+=09return -EIO;=0D=0A+}=0D=0A+=0D=0A+/*=
-*=0D=0A+ * famfs_iomap_begin() - Handler for iomap_begin upcall from dax=0D=
-=0A+ *=0D=0A+ * This function is pretty simple because files are=0D=0A+ *=
- * never partially allocated=0D=0A+ * * never have holes (never sparse)=0D=
-=0A+ * * never "allocate on write"=0D=0A+ *=0D=0A+ * @inode:  inode for t=
-he file being accessed=0D=0A+ * @offset: offset within the file=0D=0A+ * =
-@length: Length being accessed at offset=0D=0A+ * @flags:=0D=0A+ * @iomap=
-:  iomap struct to be filled in, resolving (offset, length) to=0D=0A+ *  =
-        (daxdev, offset, len)=0D=0A+ * @srcmap:=0D=0A+ */=0D=0A+static in=
-t=0D=0A+famfs_iomap_begin(=0D=0A+=09struct inode *inode,=0D=0A+=09loff_t =
-offset,=0D=0A+=09loff_t length,=0D=0A+=09unsigned int flags,=0D=0A+=09str=
-uct iomap *iomap,=0D=0A+=09struct iomap *srcmap)=0D=0A+{=0D=0A+=09return =
-famfs_meta_to_dax_offset(inode, iomap, offset, length);=0D=0A+}=0D=0A+=0D=
-=0A+/* Note: We never need a special set of write_iomap_ops because famfs=
- never=0D=0A+ * performs allocation on write.=0D=0A+ */=0D=0A+const struc=
-t iomap_ops famfs_iomap_ops =3D {=0D=0A+=09.iomap_begin=09=09=3D famfs_io=
-map_begin,=0D=0A+};=0D=0A+=0D=0A /***************************************=
-******************************=0D=0A  * vm_operations=0D=0A  */=0D=0A@@ -=
-412,7 +711,7 @@ __famfs_filemap_fault(=0D=0A =09=09file_update_time(vmf->=
-vma->vm_file);=0D=0A =09}=0D=0A=20=0D=0A-=09ret =3D dax_iomap_fault(vmf, =
-order, &pfn, NULL, NULL /*&famfs_iomap_ops */);=0D=0A+=09ret =3D dax_ioma=
-p_fault(vmf, order, &pfn, NULL, &famfs_iomap_ops);=0D=0A =09if (ret & VM_=
-FAULT_NEEDDSYNC)=0D=0A =09=09ret =3D dax_finish_sync_fault(vmf, order, pf=
-n);=0D=0A=20=0D=0A@@ -534,7 +833,7 @@ famfs_dax_read_iter(struct kiocb *i=
-ocb, struct iov_iter=09*to)=0D=0A =09=09return rc;=0D=0A =09}=0D=0A=20=0D=
-=0A-=09rc =3D dax_iomap_rw(iocb, to, NULL /*&famfs_iomap_ops */);=0D=0A+=09=
-rc =3D dax_iomap_rw(iocb, to, &famfs_iomap_ops);=0D=0A =09inode_unlock_sh=
-ared(inode);=0D=0A=20=0D=0A =09if (rc > 0)=0D=0A@@ -570,7 +869,7 @@ famfs=
-_dax_write_iter(struct kiocb *iocb, struct iov_iter *from)=0D=0A=20=0D=0A=
- =09kiocb_modified(iocb); /* mtime/ctime + strip set[e]uid */=0D=0A=20=0D=
-=0A-=09rc =3D dax_iomap_rw(iocb, from, NULL /*&famfs_iomap_ops*/);=0D=0A+=
-=09rc =3D dax_iomap_rw(iocb, from, &famfs_iomap_ops);=0D=0A =09inode_unlo=
-ck(inode);=0D=0A =09return rc;=0D=0A }=0D=0A--=20=0D=0A2.53.0=0D=0A=0D=0A=
+From: John Groves <John@Groves.net>=0D=0A=0D=0AFamfs file maps (fmaps) ma=
+y reference multiple daxdevs. Before passing=0D=0Aan fmap that references=
+ a new daxdev, the daxdev is pushed into the=0D=0Akernel via FAMFSIOC_DAX=
+DEV_OPEN). This adds daxdevs to daxdev_table for=0D=0Aindex-based resolut=
+ion from famfs extents to daxdevs.=0D=0A=0D=0AReviewed-by: "Darrick J. Wo=
+ng" <djwong@kernel.org>=0D=0AReviewed-by: Jeff Layton <jlayton@kernel.org=
+>=0D=0ASigned-off-by: John Groves <john@groves.net>=0D=0A---=0D=0A=0D=0A =
+fs/famfs/famfs_file.c            | 74 ++++++++++++++++++++++++++++++++=0D=
+=0A include/uapi/linux/famfs_ioctl.h | 24 +++++++++++=0D=0A 2 files chang=
+ed, 98 insertions(+)=0D=0A=0D=0Adiff --git a/fs/famfs/famfs_file.c b/fs/f=
+amfs/famfs_file.c=0D=0Aindex 2200f168aa79..eba80dab0562 100644=0D=0A--- a=
+/fs/famfs/famfs_file.c=0D=0A+++ b/fs/famfs/famfs_file.c=0D=0A@@ -351,6 +3=
+51,76 @@ famfs_file_init_dax(struct file *file, void __user *arg)=0D=0A =09=
+return rc;=0D=0A }=0D=0A=20=0D=0A+/**=0D=0A+ * famfs_daxdev_open() - FAMF=
+SIOC_DAXDEV_OPEN ioctl handler=0D=0A+ * @file: any file in the famfs moun=
+t (the table is per-superblock)=0D=0A+ * @arg:  ptr to struct famfs_ioc_d=
+axdev in user space=0D=0A+ *=0D=0A+ * Register a devdax device (identifie=
+d by path) into the mount's daxdev table=0D=0A+ * at the caller-specified=
+ index, so files whose extents reference that index=0D=0A+ * can be mappe=
+d. The path is resolved by famfs_lookup_daxdev() - the same=0D=0A+ * help=
+er the mount uses for the primary daxdev - so every slot is resolved=0D=0A=
++ * identically. Registering exposes raw device memory, so it requires=0D=
+=0A+ * CAP_SYS_RAWIO.=0D=0A+ */=0D=0A+static int=0D=0A+famfs_daxdev_open(=
+struct file *file, void __user *arg)=0D=0A+{=0D=0A+=09struct super_block =
+*sb =3D file_inode(file)->i_sb;=0D=0A+=09struct famfs_fs_info *fsi =3D sb=
+->s_fs_info;=0D=0A+=09struct famfs_ioc_daxdev dd;=0D=0A+=09dev_t devno;=0D=
+=0A+=09int rc;=0D=0A+=0D=0A+=09char *path __free(kfree) =3D NULL;=0D=0A+=0D=
+=0A+=09if (!capable(CAP_SYS_RAWIO))=0D=0A+=09=09return -EPERM;=0D=0A+=0D=0A=
++=09if (copy_from_user(&dd, arg, sizeof(dd)))=0D=0A+=09=09return -EFAULT;=
+=0D=0A+=0D=0A+=09/* @flags is reserved; reject non-zero so it stays avail=
+able */=0D=0A+=09if (dd.flags)=0D=0A+=09=09return -EINVAL;=0D=0A+=0D=0A+=09=
+/*=0D=0A+=09 * If this daxdev index is already populated there is nothing=
+ to do.=0D=0A+=09 * The index is cluster-invariant, so a valid slot alrea=
+dy names this=0D=0A+=09 * device; skip the path resolution entirely. inst=
+all_daxdev() rechecks=0D=0A+=09 * ->valid under the write lock, so this i=
+s purely an optimization.=0D=0A+=09 */=0D=0A+=09scoped_guard(rwsem_read, =
+&fsi->devlist_sem) {=0D=0A+=09=09if (dd.daxdev_index >=3D fsi->dax_devlis=
+t->nslots)=0D=0A+=09=09=09return -EINVAL;=0D=0A+=09=09if (fsi->dax_devlis=
+t->devlist[dd.daxdev_index].valid)=0D=0A+=09=09=09return 0;=0D=0A+=09}=0D=
+=0A+=0D=0A+=09if (dd.daxdev_path_len =3D=3D 0 || dd.daxdev_path_len >=3D =
+PATH_MAX)=0D=0A+=09=09return -EINVAL;=0D=0A+=0D=0A+=09/* +1 so the termin=
+ating NUL is included within the bound */=0D=0A+=09path =3D strndup_user(=
+(const char __user *)(uintptr_t)dd.daxdev_path,=0D=0A+=09=09=09    dd.dax=
+dev_path_len + 1);=0D=0A+=09if (IS_ERR(path))=0D=0A+=09=09return PTR_ERR(=
+no_free_ptr(path));=0D=0A+=0D=0A+=09rc =3D famfs_lookup_daxdev(path, &dev=
+no);=0D=0A+=09if (rc)=0D=0A+=09=09return rc;=0D=0A+=0D=0A+=09/*=0D=0A+=09=
+ * The daxdev table is allocated at mount time (for the slot-0 primary),=0D=
+=0A+=09 * so it is always present here; no need to allocate it.=0D=0A+=09=
+ */=0D=0A+=09rc =3D famfs_install_daxdev(fsi, sb, dd.daxdev_index, devno,=
+ path);=0D=0A+=09if (rc)=0D=0A+=09=09pr_debug("%s: failed to install daxd=
+ev index %llu (%s)\n",=0D=0A+=09=09       __func__, dd.daxdev_index, path=
+);=0D=0A+=09return rc;=0D=0A+}=0D=0A+=0D=0A /**=0D=0A  * famfs_file_ioctl=
+() - Top-level famfs file ioctl handler=0D=0A  * @file: the file=0D=0A@@ =
+-372,6 +442,10 @@ famfs_file_ioctl(struct file *file, unsigned int cmd, u=
+nsigned long arg)=0D=0A =09=09rc =3D 0;=0D=0A =09=09break;=0D=0A=20=0D=0A=
++=09case FAMFSIOC_DAXDEV_OPEN:=0D=0A+=09=09rc =3D famfs_daxdev_open(file,=
+ (void __user *)arg);=0D=0A+=09=09break;=0D=0A+=0D=0A =09case FAMFSIOC_MA=
+P_CREATE:=0D=0A =09=09rc =3D famfs_file_init_dax(file, (void __user *)arg=
+);=0D=0A =09=09break;=0D=0Adiff --git a/include/uapi/linux/famfs_ioctl.h =
+b/include/uapi/linux/famfs_ioctl.h=0D=0Aindex b4eb373c1ade..751d8b033c2e =
+100644=0D=0A--- a/include/uapi/linux/famfs_ioctl.h=0D=0A+++ b/include/uap=
+i/linux/famfs_ioctl.h=0D=0A@@ -77,6 +77,29 @@ struct famfs_ioc_fmap_heade=
+r {=0D=0A =09__u64 reserved1;=0D=0A };=0D=0A=20=0D=0A+/**=0D=0A+ * struct=
+ famfs_ioc_daxdev - register an additional backing daxdev by path=0D=0A+ =
+* @daxdev_index:    the (cluster-invariant) index this daxdev occupies in=
+=0D=0A+ *                   extent dev_index fields. Index 0 is the mount=
+-time primary.=0D=0A+ * @daxdev_path:     userspace pointer to the devdax=
+ device path (e.g.=0D=0A+ *                   "/dev/dax0.0"); resolved in=
+ the kernel the same way the=0D=0A+ *                   mount primary is.=
+=0D=0A+ * @daxdev_path_len: length of the path string, not counting the N=
+UL.=0D=0A+ * @flags:           reserved; must be zero.=0D=0A+ *=0D=0A+ * =
+Standalone famfs registers every daxdev by path: the mount primary comes =
+in=0D=0A+ * as the mount device name, and slots 1..n come in here. (This =
+deliberately=0D=0A+ * differs from fuse's fd-based FUSE_DEV_IOC_DAXDEV_OP=
+EN; each side is uniform=0D=0A+ * within itself.) Passing the path by poi=
+nter keeps the struct fixed-size, so=0D=0A+ * longer paths never require =
+an ABI change.=0D=0A+ */=0D=0A+struct famfs_ioc_daxdev {=0D=0A+=09__u64 d=
+axdev_index;=0D=0A+=09__u64 daxdev_path;=0D=0A+=09__u32 daxdev_path_len;=0D=
+=0A+=09__u32 flags;=0D=0A+};=0D=0A+=0D=0A #define FAMFSIOC_MAGIC 'u'=0D=0A=
+=20=0D=0A /* famfs file ioctl opcodes */=0D=0A@@ -87,5 +110,6 @@ struct f=
+amfs_ioc_fmap_header {=0D=0A  * famfs_ioc_fmap_header followed by the ext=
+ent list (see above).=0D=0A  */=0D=0A #define FAMFSIOC_MAP_CREATE    _IOW=
+(FAMFSIOC_MAGIC,  0x51, struct famfs_ioc_fmap_header)=0D=0A+#define FAMFS=
+IOC_DAXDEV_OPEN   _IOW(FAMFSIOC_MAGIC,  0x52, struct famfs_ioc_daxdev)=0D=
+=0A=20=0D=0A #endif /* FAMFS_IOCTL_H */=0D=0A--=20=0D=0A2.53.0=0D=0A=0D=0A=
