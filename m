@@ -1,128 +1,221 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BC7C2F30;
-	Sat, 29 Aug 2026 17:25:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE29F175A74;
+	Sat, 29 Aug 2026 17:25:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788024304; cv=none; b=YRQWeGU9JSEKIMX9WwQ7KFlgxTcPC1BBZzxwnNLtfUzwcg1vc2kjzqMQfYwzTZ50jp51wH0RtK0UR57faVq20lhQV1sWiVaTvRW8LTkUD3SdyjwNy9+Zy8hrHyHPXvEe54v65guZHi+fSu1ZFszh4oRTrnlxNZhdzQDHc8f+i+U=
+	t=1788024325; cv=none; b=swW6QqOScU7374b8X0wDGArTdYOKb4VvtTWggz7k7nZavNsB9PKGj018kIkTzX3kkOVf1y4MbsNm6q1YWPvlqC2eNTrkHCZKr7xnsFo3E+BNa8qHSPAlQ+/GGyloy6zfvPS/BE1pqIann3sUzv9oNZooviP0VnDE2YG4IuZjbAg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788024304; c=relaxed/simple;
-	bh=u0jRTuLTk6twGIPYcYuinCTWU8+Xpg0GC8kBSax1XlA=;
+	s=arc-20240116; t=1788024325; c=relaxed/simple;
+	bh=FSBbSvoH6ye9U4N7RZ/jfxl//U3gfzeGEgG1+rcsOhU=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=lNF6O3bADCz8XWlE5mWldAHqkxUy8LmpzDoBU0Vh1fHsqd3WbhMuJERX35cFcyJmcgIlvPDg3oLB8WCB/9wMHSZNBZ6aSg552qDbEp+thUzxmB8vyyroygjhpyVVE3FV2Kf/W0bG8zFT4UGGEdPdoDgWyHkyqjLuNm8yq8xpCJw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VLbOj8Y6; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=C25T7p5oyWJoavZhvVfCdfG8+Q7Yo+VLKh8/fe9c+ufPEO4UnyiirUWeb7ZE1ja5tKYmJvkReIZQ3D4/GA+0WCSfkEvtS8M7gdgcIZgaVNyX6ISqmlxHwyrvUHrerZpjRxpIrsM70knVTOB/hEGL9FUyqv/p38gOCXA1eyHwRR4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oJTCUkwj; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VLbOj8Y6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE7001F000E9;
-	Sat, 29 Aug 2026 17:25:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oJTCUkwj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E0751F000E9;
+	Sat, 29 Aug 2026 17:25:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788024303;
-	bh=bqvsoEiW5Xi2s/+apvOqlQSfjbHPuuW2+udssC+a+0I=;
+	s=k20260515; t=1788024323;
+	bh=H6i3QZEbLkcbYiJZ3nwKYGKx5jqjuWo376cjhhLURSQ=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=VLbOj8Y60M+kHQ6cDLzZCcyErFJHtzrrhGkorDWZty2WrfiBnngmW7hWch40KhLHu
-	 RdA5HwqLGC/AUxHln4L3DoOsfzdCVPC4s6LZXFZ/qm6hRhCz3ICOsrlSXVONVJGCA+
-	 eKcAzCPiRlY5Bf/6/s2GLrXufEociJpsQmOfzCYaJjmnKM2ojhunPfKxvytOsS+O/E
-	 2XG5Y6Ve3sVAqjJozWvXSeiY/UPnRq6SBgGVR9g31JCYGJsRfvQwIgznlNafhJjx+I
-	 bpKP7UIYevGXfwmgmQMoian5MhAi1RhbAIT0InVkIx08ay+l7uRJZdlYKxXGWJYh4e
-	 GYOcfJ8kFiEEA==
+	b=oJTCUkwj/eveR8BTSjuipa2VgZs2YgYilNPekLrq+L91sHTZoE3JfBcBJ/gYkn5tZ
+	 XquosP927fSzM65rZkvvA9DmLuhkMg2gBXKrY+wuQYRO7W6ZgmMHCIpb3M1vtJ0v3/
+	 vH6mLsHL7CTZt16O+7W0YiA+WxjfVZUWAxmL29v4APr2B1K1S4zG82JtL27x+2NWwb
+	 oSI7UZTRHrxL2CtXQ76qmYyZ7ivfVHrC6Gbj6HKkTNAyzweY6Lb/hEW077081Xl/Fu
+	 Kfp93TVhIY8R1qE5TvmIufVglVeOrlEh2ut0s7OFYYf7wSedG44pvxBr5ZKIy2C8ED
+	 yIb+o3GHe6jag==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH V14 09/12] famfs: Register secondary daxdevs by path
- (FAMFSIOC_DAXDEV_OPEN)
+Subject: Re: [PATCH V14 05/12] famfs: Introduce file_operations read/write
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "John Groves" <john@jagalactic.com>
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
-In-Reply-To: <010001a04e828e72-7dd35d21-e02a-4233-b208-bb38a68e0356-000000@email.amazonses.com>
+Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
+In-Reply-To: <010001a04e815fe0-2d476878-af01-41a0-81bc-7bd5a97c154b-000000@email.amazonses.com>
 References: <010001a04e801a4e-8eb212cd-b263-4043-ab65-33e480d2d7d4-000000@email.amazonses.com>
- <20260829171247.7497-1-john@jagalactic.com>
- <010001a04e828e72-7dd35d21-e02a-4233-b208-bb38a68e0356-000000@email.amazonses.com>
+ <20260829171125.7424-1-john@jagalactic.com>
+ <010001a04e815fe0-2d476878-af01-41a0-81bc-7bd5a97c154b-000000@email.amazonses.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Sat, 29 Aug 2026 17:25:02 +0000
-Message-Id: <20260829172502.EE7001F000E9@smtp.kernel.org>
+Date: Sat, 29 Aug 2026 17:25:23 +0000
+Message-Id: <20260829172523.9E0751F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+Thank you for your contribution! Sashiko AI review found 5 potential issue(=
 s) to consider:
-- [High] Lockless read of daxdev->valid lacks a read memory barrier, leadin=
-g to a TOCTOU race that can yield a NULL pointer and a zero error code.
+- [High] Ignored return value of kiocb_modified() in famfs_dax_write_iter b=
+ypasses security state updates.
+- [High] Bypass of generic_write_checks() breaks O_APPEND semantics and inc=
+orrectly returns 0 on EOF, causing infinite write loops.
+- [High] 64-bit file size is truncated to 32-bit size_t, breaking I/O opera=
+tions on files larger than 4GB on 32-bit platforms.
+- [Medium] famfs_dax_read_iter() and famfs_dax_write_iter() ignore IOCB_NOW=
+AIT and use blocking lock acquisitions.
+- [Medium] Kernel pointer leak via pr_debug by intentionally bypassing poin=
+ter hashing.
 --
 
-commit 592a1b20aa272f01a78424966dd5d63af6c63cf8
-Author: John Groves <John@Groves.net>
+commit 31958b8d418a1061bd63bd9bed3ba0558707e229
+Author: John Groves <john@groves.net>
 
-famfs: Register secondary daxdevs by path (FAMFSIOC_DAXDEV_OPEN)
+    famfs: Introduce file_operations read/write
 
-Famfs file maps (fmaps) may reference multiple daxdevs. Before passing
-an fmap that references a new daxdev, the daxdev is pushed into the
-kernel via FAMFSIOC_DAXDEV_OPEN). This adds daxdevs to daxdev_table for
-index-based resolution from famfs extents to daxdevs.
-
-> kernel via FAMFSIOC_DAXDEV_OPEN). This adds daxdevs to daxdev_table for
-
-This isn't a bug, but there is an unmatched closing parenthesis after
-FAMFSIOC_DAXDEV_OPEN.
+This commit introduces fs/famfs/famfs_file.c and the famfs
+file_operations for read/write.
 
 > diff --git a/fs/famfs/famfs_file.c b/fs/famfs/famfs_file.c
-> index 2200f168aa79d..eba80dab0562d 100644
-> --- a/fs/famfs/famfs_file.c
+> new file mode 100644
+> index 0000000000000..1369fe1824bc8
+> --- /dev/null
 > +++ b/fs/famfs/famfs_file.c
+> @@ -0,0 +1,141 @@
+
 [ ... ]
-> +static int
-> +famfs_daxdev_open(struct file *file, void __user *arg)
+
+> +/* Reject I/O to files that aren't in a valid state */
+> +static ssize_t
+> +famfs_file_invalid(struct inode *inode)
 > +{
-[ ... ]
-> +	/*
-> +	 * The daxdev table is allocated at mount time (for the slot-0 primary),
-> +	 * so it is always present here; no need to allocate it.
-> +	 */
-> +	rc =3D famfs_install_daxdev(fsi, sb, dd.daxdev_index, devno, path);
+> +	if (!IS_DAX(inode)) {
+> +		pr_debug("%s: inode %llx IS_DAX is false\n",
+> +			 __func__, (u64)inode);
+
+[Severity: Medium]
+Does this cast to u64 and %llx format specifier bypass the kernel's pointer
+hashing mechanism, potentially leaking raw kernel memory addresses?
+
+> +		return -ENXIO;
+> +	}
+> +	return 0;
+> +}
+> +
+> +static ssize_t
+> +famfs_rw_prep(struct kiocb *iocb, struct iov_iter *ubuf)
+> +{
+> +	struct inode *inode =3D iocb->ki_filp->f_mapping->host;
+> +	struct super_block *sb =3D inode->i_sb;
+> +	struct famfs_fs_info *fsi =3D sb->s_fs_info;
+> +	size_t i_size =3D i_size_read(inode);
 
 [Severity: High]
-Does exposing famfs_install_daxdev() to concurrent execution via this ioctl
-trigger a race condition in the lockless readers?
+Does truncating the 64-bit loff_t returned by i_size_read() into a 32-bit
+size_t variable break I/O operations for files larger than 4GB on 32-bit
+platforms?
 
-famfs_install_daxdev() uses wmb() to ensure daxdev->devp is visible before
-setting daxdev->valid =3D 1:
+> +	size_t count =3D iov_iter_count(ubuf);
+> +	size_t max_count;
+> +	ssize_t rc;
+> +
+> +	if (fsi->deverror)
+> +		return -ENODEV;
+> +
+> +	rc =3D famfs_file_invalid(inode);
+> +	if (rc)
+> +		return rc;
+> +
+> +	/* Avoid unsigned underflow if position is past EOF */
+> +	if (iocb->ki_pos >=3D i_size)
+> +		max_count =3D 0;
+> +	else
+> +		max_count =3D i_size - iocb->ki_pos;
+> +
+> +	if (count > max_count)
+> +		iov_iter_truncate(ubuf, max_count);
+> +
+> +	if (!iov_iter_count(ubuf))
+> +		return 0;
 
-fs/famfs/famfs_inode.c:famfs_install_daxdev() {
-    ...
-    wmb(); /* All other fields must be visible before valid */
-    daxdev->valid =3D 1;
-    ...
-}
+[Severity: High]
+When a write hits the end of the file, this logic returns 0 instead of a
+proper error code like -ENOSPC or -EFBIG.  Can this cause infinite write
+loops in standard userspace tools?
 
-However, the readers famfs_dax_err() and famfs_daxdev_from_index() lack a
-pairing smp_rmb():
+> +
+> +	return rc;
+> +}
+> +
+> +static ssize_t
+> +famfs_dax_read_iter(struct kiocb *iocb, struct iov_iter	*to)
+> +{
+> +	struct inode *inode =3D iocb->ki_filp->f_mapping->host;
+> +	ssize_t rc;
+> +
+> +	/* dax_iomap_rw() requires i_rwsem held (shared for read) */
+> +	inode_lock_shared(inode);
 
-fs/famfs/famfs_file.c:famfs_dax_err() {
-    if (!dd->valid) {
-        pr_debug("%s: daxdev=3D%s invalid\n", __func__, dd->name);
-        return -EIO;
-    }
-    ...
-}
+[Severity: Medium]
+Does this unconditional blocking lock acquisition ignore the IOCB_NOWAIT
+flag, potentially stalling asynchronous I/O frameworks like io_uring?
 
-fs/famfs/famfs_file.c:famfs_daxdev_from_index() {
-    ...
-    rc =3D famfs_dax_err(dd);
-    if (rc) {
-        *errp =3D rc;
-        return NULL;
-    }
-    *errp =3D 0;
-    return dd->devp;
-}
+> +	rc =3D famfs_rw_prep(iocb, to);
+> +	if (rc || !iov_iter_count(to)) {
+> +		inode_unlock_shared(inode);
+> +		return rc;
+> +	}
+> +
+> +	rc =3D dax_iomap_rw(iocb, to, NULL /*&famfs_iomap_ops */);
+> +	inode_unlock_shared(inode);
+> +
+> +	if (rc > 0)
+> +		file_accessed(iocb->ki_filp);
+> +	return rc;
+> +}
+> +
+> +/**
+> + * famfs_dax_write_iter()
+> + *
+> + * We need our own write-iter in order to prevent append
+> + *
+> + * @iocb:
+> + * @from: iterator describing the user memory source for the write
+> + */
+> +static ssize_t
+> +famfs_dax_write_iter(struct kiocb *iocb, struct iov_iter *from)
+> +{
+> +	struct inode *inode =3D iocb->ki_filp->f_mapping->host;
+> +	struct famfs_fs_info *fsi =3D inode->i_sb->s_fs_info;
+> +	ssize_t rc;
+> +
+> +	if (!famfs_opt_enabled(fsi, FAMFS_OPT_WRITE))
+> +		return -EPERM;
+> +
+> +	/* dax_iomap_rw() requires i_rwsem held (exclusive for write) */
+> +	inode_lock(inode);
 
-Could the CPU or compiler reorder the loads, reading a stale NULL for devp
-before reading valid =3D=3D 1, resulting in famfs_daxdev_from_index() retur=
-ning
-NULL with a success error code (0)?
+[Severity: Medium]
+Similar to famfs_dax_read_iter(), does this unconditional blocking lock
+acquisition ignore the IOCB_NOWAIT flag, potentially stalling asynchronous
+I/O frameworks?
+
+> +	rc =3D famfs_rw_prep(iocb, from);
+
+[Severity: High]
+Does the bypass of generic_write_checks() here break O_APPEND semantics?
+It appears iocb->ki_pos is not updated to EOF, causing the write to
+overwrite existing data instead of appending.
+
+> +	if (rc || !iov_iter_count(from)) {
+> +		inode_unlock(inode);
+> +		return rc;
+> +	}
+> +
+> +	kiocb_modified(iocb); /* mtime/ctime + strip set[e]uid */
+
+[Severity: High]
+Does ignoring the return value of kiocb_modified() bypass error checking?
+If stripping the setuid/setgid bit fails, could this allow a malicious
+user to retain privileges on a file while modifying its contents?
+
+> +
+> +	rc =3D dax_iomap_rw(iocb, from, NULL /*&famfs_iomap_ops*/);
+> +	inode_unlock(inode);
+> +	return rc;
+> +}
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/010001a04e801a4e-8e=
-b212cd-b263-4043-ab65-33e480d2d7d4-000000@email.amazonses.com?part=3D9
+b212cd-b263-4043-ab65-33e480d2d7d4-000000@email.amazonses.com?part=3D5
