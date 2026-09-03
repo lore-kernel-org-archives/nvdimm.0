@@ -1,73 +1,85 @@
-Received: from verein.lst.de (verein.lst.de [213.95.11.211])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mta0.migadu.com (out-81.mta0.migadu.com [91.218.175.81])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E55B64A012F;
-	Wed,  2 Sep 2026 13:49:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.11.211
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E5F43876DE
+	for <nvdimm@lists.linux.dev>; Thu,  3 Sep 2026 05:02:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.81
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788356996; cv=none; b=SzjJT37mMyOeFLO4OiTt68zvkBnN1Ok97+rR00uypA14NPsY2rEVsMzDhw8/Iy2scrEcUc7u2yrwYMPX+5LGZf+0tDrckxkOQqhpFb4WfUU+RdBeJxktwd/Yg7ZloJjvqAzrC9AHeiHOUixML4mvRr4dOVseT1sAczNhZ1PXWYY=
+	t=1788411755; cv=none; b=EDicqrcCQPCOmyJQ97KAdQaoOcsAIQMRtHihBbj51X4FcmVxsyNF1M57q9ojU1buhTqcMz5M+6ImpaQnmpWZG0YmflwAoxga69AiKdNj6hefPaCst2k7rl4lYPO2Mg95ynaGzwGEgcRQ6gBUtTj7M8tFxUhKy9HEz3knPEIIlAY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788356996; c=relaxed/simple;
-	bh=M7NmYC/Iylm9myghHwqILim55SAUt9QrM+UZYk0eJlw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=V8PcdLCcOW5UyTUSM/YK3cXIfDbUL0ivLXVpSz45YKebN8iD2MH1DakOT6QiAHD5JtKl6Qp2BlZuRjDp75BmgR03fSsLA0DD9MRM7lLM+uEQCoUgth0VgHcF/KIXzXnRZclsCeZsYtavblI9gkqEpu+ElrLnxSo1UMOOhVfhI6A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de; spf=pass smtp.mailfrom=lst.de; arc=none smtp.client-ip=213.95.11.211
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lst.de
-Received: by verein.lst.de (Postfix, from userid 2407)
-	id 2A61668BEB; Wed,  2 Sep 2026 15:49:51 +0200 (CEST)
-Date: Wed, 2 Sep 2026 15:49:50 +0200
-From: Christoph Hellwig <hch@lst.de>
-To: Yu Kuai <yukuai@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>, Tejun Heo <tj@kernel.org>,
-	Josef Bacik <josef@toxicpanda.com>,
-	Johannes Weiner <hannes@cmpxchg.org>,
-	Michal =?iso-8859-1?Q?Koutn=FD?= <mkoutny@suse.com>,
-	Yu Kuai <yukuai@fygo.io>, Christoph Hellwig <hch@lst.de>,
-	Tao Cui <cui.tao@linux.dev>, Jan Kara <jack@suse.cz>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>, Coly Li <colyli@fygo.io>,
-	Kent Overstreet <kent.overstreet@linux.dev>,
-	Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@kernel.org>,
-	Mikulas Patocka <mpatocka@redhat.com>,
-	Benjamin Marzinski <bmarzins@redhat.com>,
-	Song Liu <song@kernel.org>, Li Nan <magiclinan@didiglobal.com>,
-	Xiao Ni <xiao@kernel.org>,
-	Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
-	Dan Williams <djbw@kernel.org>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Ira Weiny <iweiny@kernel.org>,
-	Andreas Gruenbacher <agruenba@redhat.com>,
+	s=arc-20240116; t=1788411755; c=relaxed/simple;
+	bh=DrMHlZMozqyndKpLSTkuk0p4rmxGy43whNlgBg2HojY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=VZtPPgissXcBw47Yc01FiahK0lyyoAWMUHHnoCSoOYlbidDCQ1x1B+dBOytOLJp58LK6/YENVJbIOuzAj2sf5NYM8nSvgs6Gqwwv8nLIl0F3RJP//NmhwlJZ8Ftf2njyxkYYv75gHrW81Ieh8Ic8bTqsZ9D8uNIgKnVMrWAoE6w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=UBhr9U4l; arc=none smtp.client-ip=91.218.175.81
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="UBhr9U4l"
+X-Envelope-To: nvdimm@lists.linux.dev
+DKIM-Signature: a=rsa-sha256; bh=DrMHlZMozqyndKpLSTkuk0p4rmxGy43whNlgBg2HojY=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1788411750; v=1; x=1789016550;
+ b=UBhr9U4l70Ia6v4yKYX+BTYZmM64gYTfy7XFSE7748EO9XzWxGOCtqaJwuZYRERfHVTI+Jge
+ A0yMgk8y6gLOzBW69bl0zPVh0ejg+RYCMjAtnV2oH4XFQEN1/EjIkI3HDK/FffzYbXfH/4GQ+dl
+ WV8QljyKHNsMkIVXFs5Wt5ZY=
+X-Envelope-To: nvdimm@lists.linux.dev
+Received: by smtp.migadu.com with ESMTPS id df70ff5a37511f08;
+	Thu, 03 Sep 2026 05:02:20 +0000
+X-Mizu-Trace-ID: df70ff5a37511f08
+X-Migadu-Flow: FLOW_OUT
+From: Kaitao Cheng <kaitao.cheng@linux.dev>
+To: Dan Williams <djbw@kernel.org>,
 	Matthew Wilcox <willy@infradead.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>,
-	Kemeng Shi <shikemeng@huaweicloud.com>,
-	Nhat Pham <nphamcs@gmail.com>, Baoquan He <baoquan.he@linux.dev>,
-	Barry Song <baohua@kernel.org>,
-	Youngjun Park <youngjun.park@lge.com>, cgroups@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-block@vger.kernel.org, linux-bcache@vger.kernel.org,
-	dm-devel@lists.linux.dev, linux-raid@vger.kernel.org,
-	nvdimm@lists.linux.dev, virtualization@lists.linux.dev,
-	gfs2@lists.linux.dev, linux-fsdevel@vger.kernel.org,
-	linux-mm@kvack.org
-Subject: Re: [PATCH 3/3] blk-cgroup: move async bio punt state to blkcg
-Message-ID: <20260902134950.GB22560@lst.de>
-References: <20260823133045.970199-1-yukuai@kernel.org> <20260823133045.970199-4-yukuai@kernel.org>
+	Jan Kara <jack@suse.cz>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>,
+	linux-fsdevel@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	Kaitao Cheng <chengkaitao@kylinos.cn>
+Subject: [PATCH] fs/dax: Remove redundant deferred list initialization
+Date: Thu,  3 Sep 2026 13:02:07 +0800
+Message-ID: <20260903050207.7015-1-kaitao.cheng@linux.dev>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260823133045.970199-4-yukuai@kernel.org>
-User-Agent: Mutt/1.5.17 (2007-11-01)
+Content-Transfer-Encoding: 8bit
 
-Looks good:
+From: Kaitao Cheng <chengkaitao@kylinos.cn>
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+prep_compound_page() calls prep_compound_head(), which initializes
+folio->_deferred_list for compound folios with an order greater than one.
+Therefore, dax_folio_init() initializes the list twice for large DAX
+folios.
+
+Remove the redundant initialization from dax_folio_init(). This leaves
+the behavior unchanged and keeps compound folio initialization
+centralized in prep_compound_head().
+
+Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
+---
+ fs/dax.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/fs/dax.c b/fs/dax.c
+index 6ba50142eeb2..dad4efea7964 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -469,8 +469,6 @@ static void dax_folio_init(void *entry)
+ 
+ 	if (order > 0) {
+ 		prep_compound_page(&folio->page, order);
+-		if (order > 1)
+-			INIT_LIST_HEAD(&folio->_deferred_list);
+ 		WARN_ON_ONCE(folio_ref_count(folio));
+ 	}
+ }
+-- 
+2.50.1 (Apple Git-155)
 
