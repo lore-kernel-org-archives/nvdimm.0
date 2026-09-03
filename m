@@ -1,136 +1,118 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A1D847042C;
-	Thu,  3 Sep 2026 12:53:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEEF74B2CCE
+	for <nvdimm@lists.linux.dev>; Thu,  3 Sep 2026 21:34:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788439993; cv=none; b=eRQPO0iMg98geYUJonZhYVvJw0DzEDf6HJzEHbawK1Ng5S/p8uGmzD2Jj4OFkvMXVd+Pid6t2Xg8uxbtSHj/vIklTlC2gFjNPabhbEmUPfMODy9uI/G2Y0E2ywXbluJissrgY87ZCcamDpyARo5QojnolmHgAD7f0ZxaTfVFXuY=
+	t=1788471277; cv=none; b=sc3/ajj7hfId/8JrwiTxq+KuZfdQ1MPcEYt8mJG2ljrYsQEd5H5gEHaVb4o4FIuMMaH4oJYZHojfmYHnmdD5uEpciHY8FxZNVBrwV1CyeeWZ1ufqZZ3Igbu0jzJo3hYrC44GSY/w0VujvjjGHBHERCNZ6JRXeZf4aDOV8wc7Ybo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788439993; c=relaxed/simple;
-	bh=InjBWaZkjQmklu0Y26E14ZxF1FdIipsMm+k3KNFSKLU=;
-	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=Q732zBLG0BqxVOhEGxio9Mss9obhS4pxYbNKzQxOkaPCtNkqFnkSJvQqN4wjFGVHjzeVE2bruBpReGWKEi6AMgyTu5EH6o9a8BeFtCBECiaR/QN3fQKWpYcfsv7qeswHG/adSNTuCtPKxhEarEBCToqTog5LlseuV5EoYYWvpG0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Cy7GCVmX; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788471277; c=relaxed/simple;
+	bh=HzZSseehhvTcxKcIIXhrWBF1VYJIZphOiOExHWKaPpw=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=IcDaD61CTgzliANRclkP2GUR2k0jWR/pOwjif1SFfBESFUnQ88Whvcy1l/KFYiq5BV76f7M6g7bdwJL9hyEqENYJzPIfbvhxwuTKjIwXZ1sQmPDsHnsI7j0WftqSgA+DDD9yk7ahleNpCcL0i4XgZkOgscXloY6DGnDUCvemQ6c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Fa+I83db; arc=none smtp.client-ip=192.198.163.16
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Cy7GCVmX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16B761F000E9;
-	Thu,  3 Sep 2026 12:53:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788439992;
-	bh=SNMGf5RHIOI/PD/7XCQtuNDgjgsKMP340kZEP0I53GQ=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=Cy7GCVmXvdRha+BvtjSu0crtMmy/wOAwerPFT4tYphIdmJn455esAdgZktdaDFtfc
-	 HLPQBWqTvcx7Gs9fJbdfl4wXr8qwgLoZXwMp7HaZlfBGSs3AEVoou7LiQQXIFR/g9V
-	 J3CpwHiHUapJboNFq6420jhcweNpepv/oGcpNfys9EJVEofqxDfss1tm9OFeN1VgYa
-	 JCcEtsTMASKP+jliCV+9d1XJUb0+AadKLUnHjqosbjSnMN2paZU0t0kYWuaEyhNtql
-	 e76jj3fBNlLCxeAujTTZ8dy1Cje/qyOSIXnmI/VmmGgMi1PCzkvxU/lAHc2UZK2dS4
-	 XAE+2F5R7adxw==
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH 4/4] fsdax: materialize pmem vmemmap metadata on faults
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Muchun Song" <songmuchun@bytedance.com>
-Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
-In-Reply-To: <20260903122128.12264-5-songmuchun@bytedance.com>
-References: <20260903122128.12264-1-songmuchun@bytedance.com>
- <20260903122128.12264-5-songmuchun@bytedance.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Thu, 03 Sep 2026 12:53:11 +0000
-Message-Id: <20260903125312.16B761F000E9@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Fa+I83db"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1788471276; x=1820007276;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=HzZSseehhvTcxKcIIXhrWBF1VYJIZphOiOExHWKaPpw=;
+  b=Fa+I83dbiYs/cfASQ8X/ItVI4w4zOGo7+LHazhXUjHn5BpCEBr8tQMl9
+   qc14TCRCSPt9AmYmvet01kI3kcP2lY8CjLsZZXpKQW9223W13HWHapuWs
+   1Z54Xuxo1UVbagjK7zBqYnxblJMz6D89Pz3R6zV8yrtI3Aq+YiDHxUlW3
+   cfhQJLjt1n38lhmvuRDJKHyHuLiQpIryZ/TSybmwGY87F1gnxy4Atq1oQ
+   V4ED18FtUgRgAXscpQESw8vH2eBXtnx3bgnqvYtL25EudBppzzw9fA86Z
+   qtREh5VY919R7SwTsoQ1nZnHkxOv9/m4nsW8nWqxgVSG3vqQd/CCwM7Y5
+   w==;
+X-CSE-ConnectionGUID: 7RgtqM1cTLemti7boalTRQ==
+X-CSE-MsgGUID: HKQQq2F4T1WbFdzN+aGUCg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11895"; a="76523235"
+X-IronPort-AV: E=Sophos;i="6.25,260,1779174000"; 
+   d="scan'208";a="76523235"
+Received: from fmviesa009.fm.intel.com ([10.60.135.149])
+  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Sep 2026 14:34:35 -0700
+X-CSE-ConnectionGUID: TcJpliWrR4WBW2vFIqBYZA==
+X-CSE-MsgGUID: 1JwpkV7nQkysprpG3Y8a+g==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,260,1779174000"; 
+   d="scan'208";a="263657946"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.124.221.10])
+  by fmviesa009-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Sep 2026 14:34:34 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org
+Cc: Alison Schofield <alison.schofield@intel.com>
+Subject: [ndctl PATCH v2 1/3] cxl/region: round default region size within root decoder extent
+Date: Thu,  3 Sep 2026 14:34:16 -0700
+Message-ID: <ac53ec453608b6cc2c42648c9441c50ac94cd4b8.1788469004.git.alison.schofield@intel.com>
+X-Mailer: git-send-email 2.47.0
+In-Reply-To: <cover.1788469004.git.alison.schofield@intel.com>
+References: <cover.1788469004.git.alison.schofield@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Thank you for your contribution! Sashiko AI review found 3 potential issue(=
-s) to consider:
-- [High] Global TLB flush broadcast inside global page table lock causing s=
-evere lock contention.
-- [High] PMD fault materialization failure incorrectly returns VM_FAULT_OOM=
- instead of falling back to PTE.
-- [High] __vmemmap_materialize_page dereferences a potentially NULL PTE poi=
-nter if the DAX device is concurrently hot-unplugged.
---
+The kernel requires a region size to be a multiple of SZ_256M * ways. The
+cxl-cli command, cxl create-region, accepts an explicit size with -s, or
+derives the size using ALIGN_DOWN(). The derived size is not always valid.
 
-commit 9e2a623911317e382af87ef795b2fc34f1686554
-Author: Muchun Song <muchun.song@linux.dev>
+The calculation can fail in two ways:
 
-fsdax: materialize pmem vmemmap metadata on faults
+1) When the region interleave ways has a factor of three, SZ_256M * ways is
+not a power of two, so ALIGN_DOWN() is not valid for the calculation. The
+result depends on the root decoder extent and can appear correct by chance.
+For example, a 6-way region with a 3G extent produces the expected 3G size,
+while a 12-way region with the same extent is trimmed to 1G.
 
-This patch opts pmem FS-DAX into the shared read-only vmemmap mode and=20
-materializes private metadata before inserting a PFN into a userspace=20
-mapping. It shifts private vmemmap allocation from device registration=20
-to the first DAX fault for each metadata page.
+2) At 16 ways, SZ_256M * ways overflows the int used for the multiplication
+and evaluates to zero, so the trim returns zero.
 
-[ ... ]
+Compute the product in u64 to avoid the overflow and round down by division
+so that the derived size is a multiple of SZ_256M * ways. Return -ENOSPC
+when the root decoder window is smaller than SZ_256M * ways.
 
-> diff --git a/fs/dax.c b/fs/dax.c
-> index 1fbba0d21c13d..89377301d51b0 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
+This was found while adding 12-way region test coverage.
 
-[ ... ]
+Fixes: 2904504721a6 ("cxl/region: Trim region size by max available extent")
+Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+---
+ cxl/region.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-> @@ -1877,6 +1878,10 @@ static vm_fault_t dax_fault_iter(struct vm_fault *=
-vmf,
->  	if (err)
->  		return pmd ? VM_FAULT_FALLBACK : dax_fault_return(err);
-> =20
-> +	err =3D vmemmap_materialize_page(pfn_to_page(pfn), pmd ? PMD_ORDER : 0);
+diff --git a/cxl/region.c b/cxl/region.c
+index 85d4d9bb54f2..9d727216b9b8 100644
+--- a/cxl/region.c
++++ b/cxl/region.c
+@@ -682,8 +682,18 @@ static int create_region(struct cxl_ctx *ctx, int *count,
+ 		return -ENOSPC;
+ 	}
+ 
+-	if (size > max_extent)
+-		size = ALIGN_DOWN(max_extent, SZ_256M * p->ways);
++	if (size > max_extent) {
++		u64 min_size = (u64)SZ_256M * p->ways;
++
++		size = (max_extent / min_size) * min_size;
++		if (!size) {
++			log_err(&rl,
++				"%s: max available space (%#lx) is less than the minimum %d-way region size (%#lx)\n",
++				cxl_decoder_get_devname(p->root_decoder),
++				max_extent, p->ways, min_size);
++			return -ENOSPC;
++		}
++	}
+ 
+ 	if (p->mode == CXL_DECODER_MODE_PMEM) {
+ 		region = cxl_decoder_create_pmem_region(p->root_decoder);
+-- 
+2.37.3
 
-[Severity: High]
-Is there a risk of severe lock contention and RCU stalls here?
-
-When a PMD fault triggers vmemmap_materialize_page(), it loops 512 times.
-Inside that loop, __vmemmap_materialize_page() acquires the global
-init_mm.page_table_lock and performs a synchronous TLB flush:
-
-mm/sparse-vmemmap.c:__vmemmap_materialize_page() {
-    ...
-    set_pte_at(&init_mm, addr, pte, mk_pte(candidate, PAGE_KERNEL));
-    flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
-    put_page(template);
-out:
-    spin_unlock(&init_mm.page_table_lock);
-}
-
-Could this cause the system to become unusable under load due to sequential
-global IPI broadcasts while holding the global kernel page table lock?
-
-
-[Severity: High]
-Is there a race condition with DAX device hot-unplug here?
-
-The prior call to dax_iomap_direct_access() acquires and then releases the
-DAX SRCU read lock. By the time we call vmemmap_materialize_page(), there
-is no lock preventing the DAX device from being hot-unplugged, which tears
-down the vmemmap page tables.
-
-If that happens concurrently, __vmemmap_materialize_page() will find
-pmd_none(*pmd) is true in virt_to_kpte(), resulting in a NULL pte pointer.
-Will the subsequent ptep_get(pte) dereference this NULL pointer and panic
-the kernel?
-
-> +	if (err)
-> +		return dax_fault_return(err);
-
-[Severity: High]
-Does returning dax_fault_return(err) on a -ENOMEM error incorrectly trigger
-an OOM kill for PMD faults?
-
-dax_fault_return(err) translates -ENOMEM to VM_FAULT_OOM. If this
-allocation fails during a PMD fault, shouldn't it return VM_FAULT_FALLBACK
-instead, allowing the kernel to gracefully split the huge page and retry at
-the PTE level (similar to how dax_iomap_direct_access() handles PMD fallback
-just above this)?
-
-> +
->  	*entry =3D dax_insert_entry(xas, vmf, iter, *entry, pfn, entry_flags);
-
-[ ... ]
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260903122128.1226=
-4-1-songmuchun@bytedance.com?part=3D4
