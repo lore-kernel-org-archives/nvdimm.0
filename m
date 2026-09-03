@@ -1,55 +1,58 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6627F393DF3
-	for <nvdimm@lists.linux.dev>; Thu,  3 Sep 2026 21:34:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D81F14EE876
+	for <nvdimm@lists.linux.dev>; Thu,  3 Sep 2026 21:34:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788471278; cv=none; b=K58JtQgyVKMAbRrlFfCEPZ8DvqCMuKzfGpzntbdaB7YTAAavIbO79ILZCReWcbe83KlO2kQ2pQP5Ui08S2wtO/hrZ4uYLmY30J1besRpELB0uN5osTbZjHGg+fkOYW6pkfsFU/gMxoChzP05xTKXBDM1rcqI0G5u8IaqVy0jwxY=
+	t=1788471279; cv=none; b=AygBJnPz/KcxvGr80DDu5f7rMNAz7LnNJw0dL+xQFecAl71Dvd32Lu29tzy2qh8kNt20zch55l8at9U3U2yr3fXKEPnB1JWmlhO3POZw/kJaiVcm2Sq9ZDZKjGVWSYCnNjsMCjGdWP1eGBnCuQygTG/K6IcRZNqe01YkNtMaclM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788471278; c=relaxed/simple;
-	bh=pXg6tDzs/yIYtlmSo7jSZci613flJoW63eNAIK4mf4k=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=JnEaAxjXOBzlFn2BEdPKKR01M7+jKQ85eJYf5mEzwUTPHczpD0m+7ciRjOeaDVu42gAh6P2gzxqhqsaFSg7jbc3yEJztjSuhcX1oZFbAi8m4s13vOaNvxBgViHpfoFAabc6vOpk2Ba8v9kBl9/q8wv6GWkhRKYN2gz7BB569lcg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=CqeodVrO; arc=none smtp.client-ip=192.198.163.16
+	s=arc-20240116; t=1788471279; c=relaxed/simple;
+	bh=qiCU60q1B8EF57ePBnwWQHsE/ozLtebvNq0cRDdn0S4=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=DYc9FMgVZFfR2HjC/YJplcVOKNu4pEoDlhe20/rvDTiXp3nht/KmPoMwUyLL4TuLOwf2YA+vbBfoASkmhaS9qKri/g2aww80EkejKx1xw48GmDlt+tm5p+Y2zq0vayUypjNi6kzKow0qlG4N3E4mJ252Y79aRq78EloQpem3I3I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Xl/r9B54; arc=none smtp.client-ip=192.198.163.16
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="CqeodVrO"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Xl/r9B54"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1788471274; x=1820007274;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=pXg6tDzs/yIYtlmSo7jSZci613flJoW63eNAIK4mf4k=;
-  b=CqeodVrOZdC7+/p5TlLiB0uFPMSK63FUITHHLnj8Oo98qGyUIIGmiyeH
-   nlMB9v4TkvONaENwoMDX5fkLjHGd9jhXnWG0lsvgnfKTG+1KKwUuz1yMu
-   3sMAVpfrm3IB9M7mIVx4yMdrMFmrPeqqs/fkiU9YKR7GwsQWThL4PiVTB
-   iz8ekneybTWGoBWFjwBeESCPuLnelbb2ecIg52UgyK/y0hw6PWiWjhmGv
-   SvOtgCZaCZ/GH5L1pDnBX3MqfvRozRKQrTNO+ZkhNS7HM4tfmj7Zk/5sd
-   DdFeYWlTWr6r+0LAlzFQI73S9O9i7wNWEiurgMIM+lLORNLdIEEpX82nP
-   A==;
-X-CSE-ConnectionGUID: 5oAOwaioRXScs9wrGi3r8Q==
-X-CSE-MsgGUID: d/upg8euQEGsMRAGuLB6+A==
-X-IronPort-AV: E=McAfee;i="6800,10657,11895"; a="76523232"
+  t=1788471278; x=1820007278;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=qiCU60q1B8EF57ePBnwWQHsE/ozLtebvNq0cRDdn0S4=;
+  b=Xl/r9B54AWyq16eVFQt2bXMP3xbzUQjevULga7tk6127zwu7XbgQT8hu
+   JtCyPPdkh9zRR+84hN1XRH1qpfis++KBfQLz21wajSvzVkNL/qWkWxLmO
+   QRsOgsDa8H61hM6INPscMjAoy2GPOO1uJDNElA4iKK3ESqCaSE9yZLrwr
+   PEXwUFJE+Y7/Bycxyn9L1+8hyxCiIQwSNZM8CiK2puCRJhcu4Xt1qs40q
+   9kE8GFQuMq54XX3xy9ZvqrCuS0v3aQvqbl9MS1/BqsgsZ+0aiEY20zFEP
+   GPzt2kRa7RNQURAYlg+FYQsRlZpWzba0v4W4g4jqeIYnPAGmIoCE4DWgz
+   g==;
+X-CSE-ConnectionGUID: qEkXc2SoQPaxW21NxCEOUw==
+X-CSE-MsgGUID: MQLZIDxpTWuxTW/GGalwSQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11895"; a="76523237"
 X-IronPort-AV: E=Sophos;i="6.25,260,1779174000"; 
-   d="scan'208";a="76523232"
+   d="scan'208";a="76523237"
 Received: from fmviesa009.fm.intel.com ([10.60.135.149])
-  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Sep 2026 14:34:34 -0700
-X-CSE-ConnectionGUID: LtHF4WYyTU+92vJDBETfmg==
-X-CSE-MsgGUID: 3Y4JIcD4RnGCi1z8apTFhA==
+  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Sep 2026 14:34:35 -0700
+X-CSE-ConnectionGUID: fuLM918WRDmAaWbxbpgc0A==
+X-CSE-MsgGUID: IJSld3dzQo+M+hqFkJw59g==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.25,260,1779174000"; 
-   d="scan'208";a="263657940"
+   d="scan'208";a="263657952"
 Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.124.221.10])
-  by fmviesa009-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Sep 2026 14:34:33 -0700
+  by fmviesa009-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Sep 2026 14:34:35 -0700
 From: Alison Schofield <alison.schofield@intel.com>
 To: nvdimm@lists.linux.dev,
 	linux-cxl@vger.kernel.org
 Cc: Alison Schofield <alison.schofield@intel.com>
-Subject: [ndctl PATCH v2 0/3] cxl: support mixed-granularity regions
-Date: Thu,  3 Sep 2026 14:34:15 -0700
-Message-ID: <cover.1788469004.git.alison.schofield@intel.com>
+Subject: [ndctl PATCH v2 2/3] cxl/region: allow mixed-granularity regions
+Date: Thu,  3 Sep 2026 14:34:17 -0700
+Message-ID: <12e71769a310979451734654e1aad6c4d5d4a2c9.1788469004.git.alison.schofield@intel.com>
 X-Mailer: git-send-email 2.47.0
+In-Reply-To: <cover.1788469004.git.alison.schofield@intel.com>
+References: <cover.1788469004.git.alison.schofield@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -58,44 +61,105 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This is an update to a series[1] that was previously sent out without a
-cover letter. In v2 a fixup prerequisite patch is added and the tests
-are expanded based on the kernel series review feedback [2].
+cxl_region_determine_granularity() rejects any user-supplied granularity
+that does not exactly match the root decoder's granularity, making it
+impossible to create mixed-granularity regions from userspace even when the
+kernel driver accepts them.
 
-[1] https://lore.kernel.org/all/fa5c109f08824180f58341ebd9055545a2ff3142.1780099216.git.alison.schofield@intel.com/
-[2] https://lore.kernel.org/all/cover.1787255388.git.alison.schofield@intel.com/
+Relax the check to allow region_gran <= root_gran. This function only needs
+to reject what it can determine on its own is always wrong - a region
+granularity greater than the root decoder's. The kernel does the rest of
+the validation.
 
-Changes in v2:
-Patch 1: cxl/region: round default region size within root decoder extent
-- New patch to fixup the ALIGN_DOWN usage that doesn't always work
-Patch 2: cxl/region: allow mixed-granularity regions
-- Reject a granularity that is not power of 2
-- Update man page -g section
-Patch 3: test/cxl-region-mixed.sh: test mixed-granularity region creation
-- Cover the third pmem window, a 3-way at 1KB across 3 HBs
-- Add two test cases, a 6-way and 12-way, for more spec defined coverage
-- Select endpoints by walking hierarchy instead of handbuilding lists per case
-- Assert 2 switches below each HB and 2 EP below each switch
-- Require negative test cases to fail at first target write
-- Skip rather than fail when kernel has no registry
-- Drop selector walk language to align with kernel language
+Reject a granularity that is not a power of two, or is below 256, since the
+previous exact-match test that screened those out implicitly is now gone.
 
-The base commit is the current ndctl pending branch.
+Update the cxl-create-region man page to document the new behavior.
 
-Alison Schofield (3):
-  cxl/region: round default region size within root decoder extent
-  cxl/region: allow mixed-granularity regions
-  test/cxl-region-mixed.sh: test mixed-granularity region creation
+Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+---
+ Documentation/cxl/cxl-create-region.txt | 21 ++++++++++++++++-----
+ cxl/region.c                            | 25 +++++++++++++++++++------
+ 2 files changed, 35 insertions(+), 11 deletions(-)
 
- Documentation/cxl/cxl-create-region.txt |  21 +-
- cxl/region.c                            |  39 ++-
- test/cxl-region-mixed.sh                | 413 ++++++++++++++++++++++++
- test/meson.build                        |   2 +
- 4 files changed, 462 insertions(+), 13 deletions(-)
- create mode 100644 test/cxl-region-mixed.sh
-
-
-base-commit: ca9a1d69dc8894836999042ae6793fd7698b78fd
+diff --git a/Documentation/cxl/cxl-create-region.txt b/Documentation/cxl/cxl-create-region.txt
+index b244af60b8a6..d5998ad725ee 100644
+--- a/Documentation/cxl/cxl-create-region.txt
++++ b/Documentation/cxl/cxl-create-region.txt
+@@ -93,11 +93,22 @@ include::bus-option.txt[]
+ 
+ -g::
+ --granularity=::
+-	The interleave granularity for the new region. Must match the selected
+-	root decoder's (if provided) granularity. If the root decoder is
+-	interleaved across more than one host-bridge then this value must match
+-	that granularity. Otherwise, for non-interleaved decode windows, any
+-	granularity can be specified as long as all devices support that setting.
++	The interleave granularity for the new region. A granularity coarser
++	than the root decoder's is never legal. If the root decoder is
++	interleaved across more than one host bridge, then for a given number
++	of ways at most two granularities are legal:
++
++	  * "root_ways * root_granularity / ways", which creates a
++	    mixed-granularity region. The root interleaves at its own coarser
++	    granularity and the levels below it, host bridges and switches,
++	    interleave at the finer region granularity.
++	  * The root decoder granularity itself, which repeats the root
++	    interleave pattern across a wider region. This is available only
++	    when the root decoder ways are a power of two.
++
++	The two coincide when the region ways equal the root decoder ways. For
++	non-interleaved root decoders, any granularity can be specified as
++	long as all devices support that setting.
+ 
+ -d::
+ --decoder=::
+diff --git a/cxl/region.c b/cxl/region.c
+index 9d727216b9b8..de9f487ddff9 100644
+--- a/cxl/region.c
++++ b/cxl/region.c
+@@ -620,6 +620,18 @@ static int cxl_region_determine_granularity(struct cxl_region *region,
+ 	if (!p->granularity)
+ 		return granularity;
+ 
++	/*
++	 * The CXL specification defines interleave granularities of 256 through
++	 * 16K in powers of two. Reject anything else here, rather than leave the
++	 * user with a bare EINVAL from the kernel.
++	 */
++	if (p->granularity < 256 || !is_power_of_2(p->granularity)) {
++		log_err(&rl,
++			"%s: granularity (%d) must be a power of 2, 256 or greater\n",
++			devname, p->granularity);
++		return -EINVAL;
++	}
++
+ 	ways = cxl_decoder_get_interleave_ways(p->root_decoder);
+ 	if (ways == 0 || ways == -1) {
+ 		log_err(&rl, "%s: unable to determine root decoder ways\n",
+@@ -632,15 +644,16 @@ static int cxl_region_determine_granularity(struct cxl_region *region,
+ 		return p->granularity;
+ 
+ 	/*
+-	 * For ways > 1, only allow the same granularity as the selected
+-	 * root decoder
++	 * For ways > 1, allow any region granularity up to and including the
++	 * root decoder granularity. A finer region granularity produces a
++	 * mixed-granularity configuration and a coarser one is always invalid.
+ 	 */
+-	if (p->granularity == granularity)
+-		return granularity;
++	if (p->granularity <= granularity)
++		return p->granularity;
+ 
+ 	log_err(&rl,
+-		"%s: For an x%d root, only root decoder granularity (%d) permitted\n",
+-		devname, ways, granularity);
++		"%s: region granularity (%d) cannot exceed root decoder granularity (%d)\n",
++		devname, p->granularity, granularity);
+ 	return -EINVAL;
+ }
+ 
 -- 
 2.37.3
 
