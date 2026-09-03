@@ -1,111 +1,82 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mta0.migadu.com (out-8.mta0.migadu.com [91.218.175.8])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF87B388876
-	for <nvdimm@lists.linux.dev>; Thu,  3 Sep 2026 05:12:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF81B311977
+	for <nvdimm@lists.linux.dev>; Thu,  3 Sep 2026 05:35:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.8
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788412371; cv=none; b=fK2zYsW5lN6Gq50FVZnxKla/S66KbzYqvzTV5u928DtWucBR1N83GdTV/9py5G/cA6AN6CPu0o++9l3mooVHDEWuCX3eozw/eut5Ay0B/r9+cx5F5yofOfXlPwDMpmrTR4uUJ6u5FNPGUhHw2dv0iriDifQ3pdx5qFQrqvECjlE=
+	t=1788413755; cv=none; b=uzyo4dz2DNVL1bPCRS0lVixFf5f4nsY/rvNtvEmuXoI0218pC/cS5xSIMIbXAV/D7ga2Hg9f8UVMTsRDX70y8STE1Spenl3xzDr7xvRHRko3jH2Qtx0ASRXhTpTh2+jPzDkaxWRkiqW4MsMZHCJ0bOEsPzu2OsBWgjrNruJMUN4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788412371; c=relaxed/simple;
-	bh=5dn3lRIZ2EgRWza5uyaU0WwNj0pCGMS6noiMVC1Ogjs=;
-	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=hidTamPsEr3x+o4cyafu9eRukJTd1Hh8AFa+AOr1XbJuYPOdFX3xwDr4zM3QOAZgthktJSG46nFL5262nhFX0Emfw4hvIHpPTGAy22ZGcwmRif8zo1EHIyBvolW6IaQSex9mWGeg3ZOg9YcVft1dnmJ0WzUg0g1x6JhArvS1rH0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ag7x9vTc; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788413755; c=relaxed/simple;
+	bh=93pTWbsU7VFpR8xoXZI9mqztNPbLz1pkgKR/z1zYXGU=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=j+o9+XIxo396Jgs5E/SQkpjX8bZ7OhxRnLRSRMcXDddi4ryYEkClzaDD/AMsziM4K822K82e9Xo3h3wxItEVvKbWlKgywss2AXtTDA8ejCC8e6iX+txe3ZmfQwiLXjeabkXZYDTPktE/Dyplf3og7qLtCDVNzzJiBx+LfQMCFoc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=Iq22ldOx; arc=none smtp.client-ip=91.218.175.8
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ag7x9vTc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F1661F000E9;
-	Thu,  3 Sep 2026 05:12:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788412369;
-	bh=8/t7iTOmcmnMpb67iroE7vFH0D4LD4LrnVpIFXulvy4=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=ag7x9vTcs+p+mIP/3ZYNgSWedFgRmnVj0O1WygxAVk5wa/4VWeP07YdkzIU4hZvK3
-	 i3NWuaz2wla3fa/+0Wnd0hSZojer+A96zli91pXfKMtYX9cCMsRo57O9cHOpf6J9HS
-	 mBBeI9uUit70NjSYsF6RU4GHh7ABGMKpyqnFzOUBh89NLIdAF6ikgUquX1+tmUUs8x
-	 LmYxZgcYtNofja0Ze0TqtApfeMorvpOM5mwj0OTcXDhz/4Pbx0OFfB2ssbhGOj9UNZ
-	 5lx2IqusZd9ynhSUJguHa38pkLjsaUQkU51T+r3XVoidZLq0TDXKOdjLPANWILNAFT
-	 9/25zI0raqwrw==
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH] fs/dax: Remove redundant deferred list initialization
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Kaitao Cheng" <kaitao.cheng@linux.dev>
-Cc: nvdimm@lists.linux.dev
-In-Reply-To: <20260903050207.7015-1-kaitao.cheng@linux.dev>
-References: <20260903050207.7015-1-kaitao.cheng@linux.dev>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Thu, 03 Sep 2026 05:12:48 +0000
-Message-Id: <20260903051249.6F1661F000E9@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="Iq22ldOx"
+X-Envelope-To: nvdimm@lists.linux.dev
+DKIM-Signature: a=rsa-sha256; bh=93pTWbsU7VFpR8xoXZI9mqztNPbLz1pkgKR/z1zYXGU=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1788413750; v=1; x=1789018550;
+ b=Iq22ldOx79bbN3+w/Bi7g2CADtPV4/8lvNjyZnuBGj2FNDY66bzF60r9MYAcvEjlBbdC10ZP
+ NImDJ9mGXXKNQ09A4dFafi7Blrbzr2sVGzkSQ0g8lPRnalEMjfSFx2Nox/Fr8O0++ROIgLUswfv
+ w7SQRHlfE5TqcPF716O96EaU=
+X-Envelope-To: nvdimm@lists.linux.dev
+Received: by smtp.migadu.com with ESMTPS id 971ac4ed40a996d8;
+	Thu, 03 Sep 2026 05:35:50 +0000
+X-Mizu-Trace-ID: 971ac4ed40a996d8
+X-Migadu-Flow: FLOW_OUT
+From: Kaitao Cheng <kaitao.cheng@linux.dev>
+To: Andrew Morton <akpm@linux-foundation.org>,
+	David Hildenbrand <david@kernel.org>,
+	Lorenzo Stoakes <ljs@kernel.org>,
+	"Liam R . Howlett" <liam@infradead.org>,
+	Vlastimil Babka <vbabka@kernel.org>,
+	Mike Rapoport <rppt@kernel.org>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Michal Hocko <mhocko@suse.com>,
+	Dan Williams <djbw@kernel.org>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Ira Weiny <iweiny@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>,
+	linux-mm@kvack.org,
+	nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	Kaitao Cheng <kaitao.cheng@linux.dev>
+Subject: [PATCH 0/2] Make HWPoison helpers config-independent
+Date: Thu,  3 Sep 2026 13:35:33 +0800
+Message-ID: <20260903053535.17611-1-kaitao.cheng@linux.dev>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
-s) to consider:
+Make the HWPoison page flag's test-and-set and test-and-clear accessors
+available regardless of CONFIG_MEMORY_FAILURE. When memory failure handling
+is disabled, the accessors return false, matching the absence of HWPoison
+state and providing a consistent interface across configurations.
 
-Pre-existing issues:
-- [Critical] dax_delete_mapping_range() splits PMD entries and causes dupli=
-cate processing leading to nrpages underflow
---
+Use the config-independent interface in the pmem driver to remove its
+private test_and_clear_pmem_poison() wrapper and the associated header
+dependency. No functional change is intended.
 
-commit ab9d688e10fd86aba4bb8d5161b095d144b422c0
-Author: Kaitao Cheng <chengkaitao@kylinos.cn>
+Kaitao Cheng (2):
+  mm/page-flags: Define HWPoison test-and-change helpers unconditionally
+  nvdimm/pmem: Remove test_and_clear_pmem_poison()
 
-fs/dax: Remove redundant deferred list initialization
+ drivers/nvdimm/pmem.c      |  2 +-
+ drivers/nvdimm/pmem.h      | 12 ------------
+ include/linux/page-flags.h |  1 +
+ 3 files changed, 2 insertions(+), 13 deletions(-)
 
-This commit removes the redundant initialization of folio->_deferred_list
-for large DAX folios in dax_folio_init(). This is because prep_compound_hea=
-d()
-already handles it, leaving compound folio initialization centralized.
+-- 
+2.50.1 (Apple Git-155)
 
-> diff --git a/fs/dax.c b/fs/dax.c
-> index 1fbba0d21c13d..4ea0f13d53a65 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
-[ ... ]
-
-[Severity: Critical]
-This isn't a bug introduced by this patch, but I noticed a potential
-pre-existing issue in dax_delete_mapping_range() when it processes
-multi-order DAX entries:
-
-fs/dax.c:dax_delete_mapping_range() {
-    ...
-    XA_STATE(xas, &mapping->i_pages, start_idx);
-    ...
-    xas_for_each(&xas, entry, end_idx) {
-        if (!xa_is_value(entry))
-            continue;
-        entry =3D wait_entry_unlocked_exclusive(&xas, entry);
-        if (!entry)
-            continue;
-        dax_disassociate_entry(entry, mapping, true);
-        xas_store(&xas, NULL);
-        mapping->nrpages -=3D 1UL << dax_entry_order(entry);
-        put_unlocked_entry(&xas, entry, WAKE_ALL);
-    }
-    ...
-}
-
-When deleting a mapping range on a DAX filesystem containing PMD-sized
-entries, this loop uses an order-0 XA_STATE. If xas_store() encounters an
-order-9 PMD entry, doesn't it split the entry into 512 order-0 entries
-(one NULL and 511 copies of the PMD value)?
-
-Because xas_advance() is not called after the store, will the iterator
-continue to visit the remaining 511 split sibling slots and process the same
-PMD entry again?
-
-Since mapping->nrpages is decremented by 1UL << dax_entry_order(entry) (whi=
-ch
-is 512 for a PMD entry) on each iteration, could this underflow the counter=
- by
-262,144 per PMD entry and result in catastrophic memory accounting corrupti=
-on?
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260903050207.7015=
--1-kaitao.cheng@linux.dev?part=3D1
