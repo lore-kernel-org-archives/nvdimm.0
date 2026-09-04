@@ -1,128 +1,79 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A432742A7B0;
-	Fri,  4 Sep 2026 09:24:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77E6549B20C;
+	Fri,  4 Sep 2026 10:56:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788513887; cv=none; b=fzYa/DEPB3Nj9wRgs3Tx4V2lLM0Ghne/fTq9cI8ObejvBYTmy/00GIERCXdYFyNxRaRxw23gKZQn0YtbPQhQ6r6P2dffq0bszDqzpI6aAVdfgFRS5yISbp1T5qilji2fovFwfAzQ0oCbyqUBi3Zgf/IYuwakVddU+zHiNvRen1Q=
+	t=1788519419; cv=none; b=cF45kvjkBGCBK1oyrSxHqkfOyZs0gMvNRXIhmrXmGhviXECW+E3BhTG5ubgqXj2msV7FTDumv1pny5inRZVdbts6afPVWYZW0azGH9uS0a3AzR9s5Fkjr8P3PrfBvBw96iXOeyqsby5nUpIvqI/KM/RCi4hYu36HLC73QVv3D5o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788513887; c=relaxed/simple;
-	bh=QyjjX9vepjKY0+1P6pQcURbciyBv+KznBhcCK+iDyNI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=auJVf0flKKup+qd8V5kBNhil3eMDhHQpbRkGZG71IhOL62N4UgqbxbtBsmXBovfdqlA8JpWHJR2SoiQTc72TFuZGXlgbtB1Ha2W5uTjvnGqE9GFFbq30HlewCQWYxOBG1CKFsBUm673QM4gYNxNsR7mXOAr3F/jgHGJxJOzfTqI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hnLj8z7Q; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788519419; c=relaxed/simple;
+	bh=CRAyTRPorJp2MyL1wvnONUON/dshR3MBUaAS7DxKxO0=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=aEiFAc9BW+41jqLoR4Bgh+qlNYsZfUo51z2pxNXTF5NmeLp0Z27IfG7iDiHnYYB4glIR3oMYOc7VPNmB1fUz3/fnk1dgYP2dqI2g3mDTsg1iIiqV7otMgj4rfUWHjUSGt+WXsFxlkagVn6LAwHfB3z4Dvz/zJ1uUT55NW99Q9J4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LKuLiJmB; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hnLj8z7Q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F8A91F00A3E;
-	Fri,  4 Sep 2026 09:24:35 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LKuLiJmB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9A021F01560;
+	Fri,  4 Sep 2026 10:56:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788513886;
-	bh=0Q2gQdnMXkmuqEEwuGsBz1mnUTcRs/5sddlALsXUx7o=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=hnLj8z7QBXMz0EneereeNaPUYnOYkZgECZFNwdofMxsmtHPFjpw3czhT5tSuV94ME
-	 jwkcPLsjE8du1CQHXa8o09LipebTxC8M/yGRHoWzpIzHnJcE4aaRrwcFzXS7LYrOn6
-	 PpOrd8YDvQxPitGhPmNmxsqj+hnQUkOhwmjISQhux0zaPiTBEfkEoI5taAxjQfj+HE
-	 34UIKgUemB09CE8nHiMS4TCPM9Eop5AcdpRu8IpP7TAFcxDO3GZBPHZqj1OiUADLhv
-	 5vmLv0AKViWZMXjsCHFWk2SODOipR08rqkauWM6ZZi3CIzbrf2yHdX8ctVzshpY0mk
-	 NRhJtlej7V70w==
-Date: Fri, 4 Sep 2026 11:24:33 +0200
+	s=k20260515; t=1788519415;
+	bh=alt32ncZUYAMs1hUtHuw1oAyZ9AhPDNwWLyZ/PqTu3s=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=LKuLiJmBa1kmwZXDBaQ/RuU4QDwo6uDQPKo3byITybUwASshHnlpB/Nba5PfyZ4qn
+	 Zg2PzQ71vB/2NwtqUxBWsH1lzqy3oRuQYw/A5IWjniXdNfhiad2jc0pQuseArTsRNg
+	 p/CiR5Zc2a/KaG9teOGc35h+hQPMifZpWDc2utJO9pLa0JS0o1Sb9eIkPohmklSxOt
+	 SSbzQ9d2Ko5YmrhGOiJTWDNR+AjB7mjjLDOgs+gSsl5IXL6+irOBkf/S7kG57HdpX5
+	 bPEVwCW3pDpEzOXwH81J6SEeG7Ck7cSteC/cK6AycQKHfeTboelmks3wWnQp6LnGgf
+	 g1n/yU4847wNA==
 From: Christian Brauner <brauner@kernel.org>
-To: John Groves <john@groves.net>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, 
-	David Hildenbrand <david@kernel.org>, "Darrick J . Wong" <djwong@kernel.org>, 
-	John Groves <john@jagalactic.com>, Dan Williams <djbw@kernel.org>, 
-	Bernd Schubert <bschubert@ddn.com>, Alison Schofield <alison.schofield@intel.com>, 
-	"John Groves (jgroves)" <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, Jake Edge <jake@lwn.net>, 
-	Shuah Khan <skhan@linuxfoundation.org>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Randy Dunlap <rdunlap@infradead.org>, 
-	Jeff Layton <jlayton@kernel.org>, Amir Goldstein <amir73il@gmail.com>, 
-	Jonathan Cameron <jic23@kernel.org>, Stefan Hajnoczi <shajnocz@redhat.com>, 
-	Joanne Koong <joannelkoong@gmail.com>, Josef Bacik <josef@toxicpanda.com>, 
-	Bagas Sanjaya <bagasdotme@gmail.com>, Chen Linxuan <chenlinxuan@uniontech.com>, 
-	James Morse <james.morse@arm.com>, Fuad Tabba <tabba@google.com>, 
-	Sean Christopherson <seanjc@google.com>, Shivank Garg <shivankg@amd.com>, 
-	Ackerley Tng <ackerleytng@google.com>, Gregory Price <gourry@gourry.net>, 
-	Andrew Morton <akpm@linux-foundation.org>, Namjae Jeon <linkinjeon@kernel.org>, 
-	Lorenzo Stoakes <ljs@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Ira Weiny <iweiny@kernel.org>, Pasha Tatashin <pasha.tatashin@soleen.com>, 
-	Haren Myneni <haren@linux.ibm.com>, Pratyush Yadav <pratyush@kernel.org>, 
-	Giovanni Cabiddu <giovanni.cabiddu@intel.com>, Jiri Slaby <jirislaby@kernel.org>, 
-	Ethan Nelson-Moore <enelsonmoore@gmail.com>, Gabriel Whigham <gabewhigham@gmail.com>, 
-	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, 
-	"venkataravis@micron.com" <venkataravis@micron.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, 
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
-	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, 
-	"fuse-devel@lists.linux.dev" <fuse-devel@lists.linux.dev>
-Subject: Re: [PATCH V12 02/12] famfs: Module operations, fs_context, and mount
-Message-ID: <20260904-faken-wogen-hausieren-5dc9b094bd26@brauner>
-References: <20260803022828.75776-1-john@jagalactic.com>
- <0100019fc5739e5d-bc002300-eede-4c40-9ca8-a277b754496e-000000@email.amazonses.com>
- <20260806043712.GB3560084@frogsfrogsfrogs>
- <CAJfpegtW4bFn=oNfTipCxhiExaqSXnhXeBd6Uq15FpepqCJaPQ@mail.gmail.com>
- <20260811-baugebiet-hofiert-fanden-3354f4a5e820@brauner>
- <ab642f3a-e377-4292-b2ff-bc970f5384e8@kernel.org>
- <CAJfpegsC-D0AJij3E=dbKzZCH0nijE7+rpPut-EnRd3r0uCMtg@mail.gmail.com>
- <ea56c85b-d564-4451-b704-58448a07bfa6@app.fastmail.com>
- <CAJfpeguuL8He4dKC0+CQU3c=Ss9nDEH=9VckB5mqxOr01X2q4Q@mail.gmail.com>
- <apHCzGheqgqjgILT@groves.net>
+To: Dan Williams <djbw@kernel.org>, Matthew Wilcox <willy@infradead.org>, 
+ Jan Kara <jack@suse.cz>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+ Kaitao Cheng <kaitao.cheng@linux.dev>
+Cc: Muchun Song <muchun.song@linux.dev>, linux-fsdevel@vger.kernel.org, 
+ nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org, 
+ Kaitao Cheng <chengkaitao@kylinos.cn>
+In-Reply-To: <20260903050207.7015-1-kaitao.cheng@linux.dev>
+References: <20260903050207.7015-1-kaitao.cheng@linux.dev>
+Subject: Re: [PATCH] fs/dax: Remove redundant deferred list initialization
+Message-Id: <20260904-erbauen-wannen-junggeblieben-3347b4280185@brauner>
+Date: Fri, 04 Sep 2026 12:56:50 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <apHCzGheqgqjgILT@groves.net>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.17-dev-db0b7
+X-Developer-Signature: v=1; a=openpgp-sha256; l=891; i=brauner@kernel.org;
+ h=from:subject:message-id; bh=CRAyTRPorJp2MyL1wvnONUON/dshR3MBUaAS7DxKxO0=;
+ b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWTNWvz5SE3G1t6tkbr+fKn6fSflDrQ8KORyeeRzU+uua
+ SKniJBcRykLgxgXg6yYIotDu0m43HKeis1GmRowc1iZQIYwcHEKwES86hn+e4bM5/Y9my9rMPXU
+ 07LS6l+brRbHmzaqv3zIOW8+o77ybIb/CfucnF7yvl4u+zDm/Jwjl3uu3M+ZfOTxpMy/r67sqF1
+ ymREA
+X-Developer-Key: i=brauner@kernel.org; a=openpgp;
+ fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 
-On Fri, Aug 28, 2026 at 12:39:56PM -0500, John Groves wrote:
-> On 26/08/24 09:41AM, Miklos Szeredi wrote:
-> > On Sat, 22 Aug 2026 at 23:55, John Groves <john@groves.net> wrote:
-> > 
-> > > Famfs does work in fuse, but some of the asks are things that I don't see
-> > > how I can agree to. I think Miklos and I should discuss those 1:1, to figure
-> > > out if there is a way forward.
-> > >
-> > > I think the virtual backing-dev thing is a non-starter,
-> > 
-> > The virtual backing-dev is an abstraction.
-> > 
-> > Is it sufficient for you if I promise that this is going to do the
-> > same thing as the standalone famfs at the same performance level?
-> > 
-> > >  and I think that the famfs
-> > > portion of the fuse ABI basically can't live without extents that are
-> > > (daxdev, offset, length).
-> > 
-> > Sigh.  My proposal was (backing-id, offset, length).  Again this is an
-> > abstraction.  A backing ID can be a daxdev, a striped logical device
-> > or it can be a block dev or even a plain file.
-> > 
-> > > Also, I'm curious: if you don't know of a use case for the striping code outside
-> > > of famfs, why ask famfs to completely rewrite that?  (and I agree, other
-> > > than the eventual remote possibility of competing 'famfs-ng' fuse servers,
-> > > I don't see much likelihood that this piece will be shared.)
-> > 
-> > Because the striping feature fits much better into a virtual device
-> > API than the extent mapping API.  This is how striping has worked in
-> > linux for the last 30 years.
-> > 
-> > > Miklos, I trust that you are a good faith actor, although you seem to be
-> > > spread pretty thin. Can you commit to a series of 1:1 conversations with
-> > > me to try to work through the disconnects?
-> > 
-> > Fine, let's find a time.
-> > 
-> > Thanks,
-> > Miklos
-> 
-> Miklos and I met yesterday and I think we found workable path forward.
-> We will be collaborating on some changes to the famfs metadata transport,
-> likely mostly via me trying to make it easy for Miklos to bring up a
-> famfs testbed VM, and Miklos doing some re-work on famfs to make it
-> more consonant with fuse (fuse-onic? ;).
+On Thu, 03 Sep 2026 13:02:07 +0800, Kaitao Cheng wrote:
+> fs/dax: Remove redundant deferred list initialization
 
-Excellent news and thanks for your patience and working with Miklos on
-this.
+Applied to the vfs-7.4.misc branch of the vfs/vfs.git tree.
+Patches in the vfs-7.4.misc branch should appear in linux-next soon.
+
+Please report any outstanding bugs that were missed during review in a
+new review to the original patch series allowing us to drop it.
+
+It's encouraged to provide Acked-bys and Reviewed-bys even though the
+patch has now been applied. If possible patch trailers will be updated.
+
+Note that commit hashes shown below are subject to change due to rebase,
+trailer updates or similar. If in doubt, please check the listed branch.
+
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
+branch: vfs-7.4.misc
+
+[1/1] fs/dax: Remove redundant deferred list initialization
+      https://git.kernel.org/vfs/vfs/c/4dda2f40edd8
+
