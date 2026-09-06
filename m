@@ -1,489 +1,186 @@
-Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72531368950
-	for <nvdimm@lists.linux.dev>; Sun,  6 Sep 2026 04:19:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 332272798F8;
+	Sun,  6 Sep 2026 10:57:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788668356; cv=none; b=RugYTsP9js0mZZOlN8ecFANOnBuGhS4vN7p4WeCVUT34jDRyawpSOPiv1sOuiE4f/ziMl6h/5AwPqI/rIWO3Pe3PSrH6ncKnluRo8E3mqfRgT4+LIpCLifYNAVNURBNmlCAh3xPczxQzkfOwcW1gYb+jYKs2/Yvb18ykUs8Xiac=
+	t=1788692279; cv=none; b=Yl5NwzUqbGKp9XOeXbrI+Eh5ELhsN/qGeORBMs6zEHZiIRnCOGRRQk1TSZQ0sCjnFfKymc5B7pRFMQPdjo4/gx8YqRScq/JCjm9M494K0UiWHhygnm0P2yIENWYXT5mvQvcBl8+BuTVm5BURs+a2dgdDAFCvsjaoVGrIyndHb3c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788668356; c=relaxed/simple;
-	bh=9N2mo09Vp8BW3fsbU5dohiA6yRdHhU4qnizpFrngp2I=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=CPhFC4LtSrkD4vbKdGiW2GyK9rosUUC4pmplM0AgJ9udnDnar5XL055twfXxzYg8i9JuWqeN/044IP8C5ooh7pO/hOODTOQg0UXn4FLjepLF2iZF803LqjDoU4G2PUXPrfzcOkT4420xG1Vl0oldjtLfP+HqhLyOvcKT7zBfhZw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NMLhlV95; arc=none smtp.client-ip=209.85.216.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1788692279; c=relaxed/simple;
+	bh=0sPJ2ft3SlDeiaCh+SHknVtFAqPO3k/VezhFQIhCmRw=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=E9ZfFZcaFZ7yGG79Dreb8hi/NDANOdNsZ3Ked/67A4syb0CD97GWA9MFCD2dyEpaoEAkybcmDIRIfIyCCnqkUzUF7vPWitpqhZU/LkHu/xq6KaZqmK6usDMHsxTmitZSLqqpXWkq9uECwXTOCdzpLyIGiyZvQGJe8GjK9Ia8pUk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=S7rYxxY6; arc=none smtp.client-ip=148.163.156.1
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NMLhlV95"
-Received: by mail-pj1-f51.google.com with SMTP id 98e67ed59e1d1-381b831d535so3945869a91.0
-        for <nvdimm@lists.linux.dev>; Sat, 05 Sep 2026 21:19:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1788668354; x=1789273154; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=S1IwfqSoKMqJddgM1DU8UEFPzM2uc8rz9CyVb+9qKQU=;
-        b=NMLhlV95+cuT8kFf04YDvfIX+2H7GK5B8qDniXKjrDmj0yoLLW8knUBnHSGmShVSu7
-         IIiEt1GR/y9XmrkgSMR9QqfwppALNqzYgYxfxJk+n3pQIQsfAs2Jkfv3xW9mw/6ZtCI+
-         oEwLliNLDJfFLWbyfSXU8mHwT3vVh/58KWAw+19MzAJGAHouOEJfw6wCM681LpJ3hY+l
-         bL+zzmuvl0ecMzqoDRL7pouH9xUWZ2dfZld2ffk429nVpWSqvwtmc2v1+keSyW7yBrhj
-         I1Q7YVDEe2JDzZJ2NfoglYUj4gxyQvr0i/AK9zLZQfUD8y47DwXGcysUR525WZN4sDjE
-         NmDA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788668354; x=1789273154;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=S1IwfqSoKMqJddgM1DU8UEFPzM2uc8rz9CyVb+9qKQU=;
-        b=K7mxldMJpjf6snkI8+hOuXa9819rCgsXsIx3Q1+Bg1O9Q0QW/XmLCpSDmhGhiNHB5y
-         J79oEApDP8sFiFnZf6SRsO210Kg59hxsosqbo1EYKDvFA5MNatYhwvtEsY3N5pX+rFae
-         sAcuX0YzR7We1x97zjAnuYNWZFdCnbRvLUx8qsUBPUGu8LTw+q8wwrnGc3JiMa5wDbk7
-         mdOEJ+YjeaoM2xdF3VBJcRFuRAjerq9FQ5nzvM0s1zEbXe8PYVC+hnipRAZ3NM9rcCid
-         5wI7VeSf1LKuS8YNQa7CQnZ/rwzCbK+Y4jFwhi1d5pF9YWhMu5Z4p8OucNfVCZwpTdGS
-         oWrg==
-X-Forwarded-Encrypted: i=1; AKwUvBxE8gyHi58rQPjhD3I/FrO2rs4fx9XyKgWv8HbGpKk8cMJ9xtEgkJ9/UysJOStMs+AyREMbS00=@lists.linux.dev
-X-Gm-Message-State: AFuF++m77NUTjH1X5s7qFUCalAVsvdEYEwHDeXVsx1VT4BcN1DcXZ6Ta
-	SgbjxjAQOACMde7n3QGrnIC2VWig9e/7ic/chG2QJ1Xgv3dfu+xvKHsw
-X-Gm-Gg: AYBFou0MX2T+urAP8rdP7577NFGzUYpEbmHFgW9GnpcFTJg8xaspCkiexkctoyY933u
-	lxvqdj/tQWZ7SKkKKr7lILpbJIfJtvgCAcGhi05vhXBF6l66Uyn48YqymjvY6K7IDPqgbUwvdal
-	6bEWi6d6QQhRRcrTCCzlOdKBQc0wcSNweaQWH5aGWz+GXKNUep8SJU7v7E4S9vO31nBNUn/RJfh
-	rVDirAe3g0zdSrq1fjOMm2JunoaK5eJg3J2+zC6OzxYRbCMfYkevmCQ99rTJplszITsepsWShae
-	RqA576m7u51IQVPgzC5Lq+fwQRu/ZSR6ito3pKjnZfarMADNE8YiFtksMKXQqMvY2aRN0LX4PED
-	C6Dd2I14m+0DQQ+cWNJk8E3fsKm0w49Z0AAIRR+eMWTYXOxtT+LfGQ8V3GDSYt3qeE0BuoBSvGu
-	dh5zkbJ1QYwuqhTIpzC7PiKKob9K73kwLbUOMeQvk9gKro8vHxsFOqVQxdsRvv6+SNNLk5HOkKB
-	coKr1fuwbvs5XmsanWaMmdW4/jM
-X-Received: by 2002:a17:90b:55c6:b0:398:9be5:b41d with SMTP id 98e67ed59e1d1-39b26299670mr24438009a91.24.1788668353591;
-        Sat, 05 Sep 2026 21:19:13 -0700 (PDT)
-Received: from acer-nitro-anv15-41.entro.com ([118.34.230.2])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-39b260f64ecsm13202675a91.8.2026.09.05.21.19.10
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 05 Sep 2026 21:19:12 -0700 (PDT)
-From: Shaikh Kamaluddin <shaikhkamal2012@gmail.com>
-To: linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev
-Cc: dave.jiang@intel.com,
-	dave@stgolabs.net,
-	jonathan.cameron@huawei.com,
-	alison.schofield@intel.com,
-	vishal.l.verma@intel.com,
-	ira.weiny@intel.com,
-	dan.j.williams@intel.com,
-	benjamin.cheatham@amd.com,
-	Shaikh Kamaluddin <shaikhkamal2012@gmail.com>
-Subject: [ndctl PATCH] cxl/test: Add ELC MCE alias retirement tests
-Date: Sun,  6 Sep 2026 09:48:44 +0530
-Message-ID: <20260906041844.13891-1-shaikhkamal2012@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="S7rYxxY6"
+Received: from pps.filterd (m0356517.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 686020Vg1726960;
+	Sun, 6 Sep 2026 10:57:16 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=pp1; bh=CJO3x7
+	/ku4GwOfAHK1yvS6a4nMjaD6JvRAuX0wDLQ8c=; b=S7rYxxY6zcM8nbVMOWgdTF
+	L8STcgd3CrahGJAaNzeN85LFgAx4i+cFmGpuaY7VPvKvSk+8oLkN8xQrsStdoDxW
+	3ttpzWz2tsVceDcm7JmiDxrKl5LpUwfU0glVgegZgPxS2sMeXR4lPsFpLClYYmIf
+	Yltjiq+LJlsxp2vEMwMIjrZQ85C3b3kuvQf+aIhc42I9OxlEdecc7/hQJpUCDBCh
+	D0mpYXHMjP0JbIUSS2AwbH1NqiMOjjgzGn4pj2TBNFKp3Erh+AcsCk/PSCjyeyPL
+	VYqtG34u7zhxUJL36MRb+OU7UeYYdJNm+wkQ5sFqOUXY+fsFwWmlVmcFbLQ++INA
+	==
+Received: from ppma23.wdc07v.mail.ibm.com (5d.69.3da9.ip4.static.sl-reverse.com [169.61.105.93])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4ggbhkc16y-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Sun, 06 Sep 2026 10:57:15 +0000 (GMT)
+Received: from pps.filterd (ppma23.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma23.wdc07v.mail.ibm.com (8.18.1.7/8.18.1.7) with ESMTP id 686AubWd003155;
+	Sun, 6 Sep 2026 10:57:14 GMT
+Received: from smtprelay01.wdc07v.mail.ibm.com ([172.16.1.68])
+	by ppma23.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4ggxwgs4m4-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Sun, 06 Sep 2026 10:57:14 +0000 (GMT)
+Received: from smtpav05.dal12v.mail.ibm.com (smtpav05.dal12v.mail.ibm.com [10.241.53.104])
+	by smtprelay01.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 686AvDaR63242526
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Sun, 6 Sep 2026 10:57:14 GMT
+Received: from smtpav05.dal12v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id AA76C58052;
+	Sun,  6 Sep 2026 10:57:13 +0000 (GMT)
+Received: from smtpav05.dal12v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id CC6575805D;
+	Sun,  6 Sep 2026 10:56:51 +0000 (GMT)
+Received: from [9.61.37.159] (unknown [9.61.37.159])
+	by smtpav05.dal12v.mail.ibm.com (Postfix) with ESMTP;
+	Sun,  6 Sep 2026 10:56:51 +0000 (GMT)
+Message-ID: <49d724b8-57c6-48fc-8099-69cd1b072351@linux.ibm.com>
+Date: Sun, 6 Sep 2026 16:26:49 +0530
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 2/3] blk-cgroup: store blkcg in bio instead of blkg
+To: Yu Kuai <yukuai@kernel.org>, Jens Axboe <axboe@kernel.dk>,
+        Tejun Heo <tj@kernel.org>, Josef Bacik <josef@toxicpanda.com>,
+        Johannes Weiner <hannes@cmpxchg.org>,
+        =?UTF-8?Q?Michal_Koutn=C3=BD?=
+ <mkoutny@suse.com>
+Cc: Yu Kuai <yukuai@fygo.io>, Christoph Hellwig <hch@lst.de>,
+        Tao Cui <cui.tao@linux.dev>, Jan Kara <jack@suse.cz>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Shuah Khan <skhan@linuxfoundation.org>, Coly Li <colyli@fygo.io>,
+        Kent Overstreet <kent.overstreet@linux.dev>,
+        Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@kernel.org>,
+        Mikulas Patocka <mpatocka@redhat.com>,
+        Benjamin Marzinski <bmarzins@redhat.com>, Song Liu <song@kernel.org>,
+        Li Nan <magiclinan@didiglobal.com>, Xiao Ni <xiao@kernel.org>,
+        Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
+        Dan Williams <djbw@kernel.org>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>,
+        Alison Schofield <alison.schofield@intel.com>,
+        Ira Weiny
+ <iweiny@kernel.org>,
+        Andreas Gruenbacher <agruenba@redhat.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>,
+        Kemeng Shi <shikemeng@huaweicloud.com>, Nhat Pham <nphamcs@gmail.com>,
+        Baoquan He <baoquan.he@linux.dev>, Barry Song <baohua@kernel.org>,
+        Youngjun Park <youngjun.park@lge.com>, cgroups@vger.kernel.org,
+        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-block@vger.kernel.org, linux-bcache@vger.kernel.org,
+        dm-devel@lists.linux.dev, linux-raid@vger.kernel.org,
+        nvdimm@lists.linux.dev, virtualization@lists.linux.dev,
+        gfs2@lists.linux.dev, linux-fsdevel@vger.kernel.org,
+        linux-mm@kvack.org
+References: <20260823133045.970199-1-yukuai@kernel.org>
+ <20260823133045.970199-3-yukuai@kernel.org>
+Content-Language: en-US
+From: Nilay Shroff <nilay@linux.ibm.com>
+In-Reply-To: <20260823133045.970199-3-yukuai@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-Reinject: loops=2 maxloops=12
+X-Proofpoint-Spam-Info: AW1haW4tMjYwOTA2MDExNSBTYWx0ZWRfX8nPzv8kos0rY
+ gaRnUKKcGNALxzB3/vHAzbEqdW0xDiZOYAx4ILGILucwdKgIFk887ytDoFJHjdLNIIoU0U28wkg
+ 99kGWRVx/84hhz99DvHnFHlPkgq8t4g=
+X-Proofpoint-ORIG-GUID: QO9cXpi63Ac-WgxFKSeRW1G3065a91Z0
+X-Authority-Analysis: v=2.4 cv=NMDlPU6g c=1 sm=1 tr=0 ts=6a9d470c cx=c_pps
+ a=3Bg1Hr4SwmMryq2xdFQyZA==:117 a=3Bg1Hr4SwmMryq2xdFQyZA==:17
+ a=IkcTkHD0fZMA:10 a=VdqzKS8jKosA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=RnoormkPH1_aCDwRdu11:22 a=U7nrCbtTmkRpXpFmAIza:22 a=VFI7-riRab948bACfH8A:9
+ a=QEXdDO2ut3YA:10
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTA2MDExNSBTYWx0ZWRfX5kApbW8gd3Qz
+ DMpvom0X+zhm7irsaQJ6mAVaI4c7fFZb6OCUL4FN1VsE8gIKoml2VgwWSS3Ht89m4Kx903rFHzm
+ +w8Ln4HvNUOX8KbjCmz7cWCUEoP5shl5WP1KULzpnJ6bhD+uNxh5FpCYTK63tI8/lnkZlAV1XYR
+ dOdi2asLwGkdvxgVpbTW1/4TlQJy3DAkd7C77yuCK+gyFTK8uV6i7LGBTHBM/f/to9s60Mrpf3T
+ 5g1JIEWFPtKNi+fT7YYNNyR0xx0UffonzsL4DAJLRuH2FVubnlofbGit1v+6LN0JH69tf9rZtiC
+ 4GaqdYZlLu0dcpN2b4oXW0lr2G0Sl6qaCz1W8ovkl7z9izgXVNPEoOKIijRQ4AKbnW2OsSXnfLY
+ EVf0FPSp1XJfKu+lkUJhQ29RGLuLbqT0l6tYVJvTIABWcBejSLG1RWLoxLvxHhHdEZrbvp2nA67
+ eT0+svYbY1yfB0y+dTA==
+X-Proofpoint-GUID: 4Azach-Fc91njV1xry32_utpY9oMYi9C
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-09-05_08,2026-09-03_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ phishscore=0 spamscore=0 lowpriorityscore=0 clxscore=1011 adultscore=0
+ impostorscore=0 bulkscore=0 malwarescore=0 priorityscore=1501 suspectscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2609060115
 
-ELC alias retirement depends on the error severity and on whether
-vendor-specific MCE rules consider the reported address usable. Add
-regression coverage for these decisions to cxl-elc.sh.
+On 8/23/26 7:00 PM, Yu Kuai wrote:
+> @@ -257,20 +262,21 @@ static inline bool bio_issue_as_root_blkg(struct bio *bio)
+>    * @blkcg: blkcg of interest
+>    * @q: request_queue of interest
+>    *
+>    * Lookup a blkg for the @blkcg - @q pair, whether it is online or dying.
+>    *
+> - * Must be called in a RCU critical section.
+> + * Must be called with either RCU read lock or queue_lock held.
+>    *
+>    * This does not acquire a reference.  The caller must already hold one, or
+>    * have the blkg pinned by I/O.
+>    */
+>   static inline struct blkcg_gq *blkg_lookup_any(struct blkcg *blkcg,
+>   					       struct request_queue *q)
+>   {
+> -	RCU_LOCKDEP_WARN(!rcu_read_lock_held(),
+> -			 "blkg_lookup_any() requires an RCU read lock");
+> +	RCU_LOCKDEP_WARN(!rcu_read_lock_held() &&
+> +			 !lockdep_is_held(&q->queue_lock),
+> +			 "blkg_lookup_any() requires an RCU read lock or queue_lock");
+>   
+>   	return rhashtable_lookup(&q->blkg_hash, &blkcg->css.id,
+>   				 blkg_hash_params);
+>   }
 
-Inject MCE records through the mce-inject debugfs interface and verify
-the resulting bank status and alias-offlining messages in dmesg. Test
-corrected and uncorrected errors on Intel, and exercise the poison,
-deferred, and legacy bank-4 cases required by AMD address validation.
+The changes look good to me. However, rhashtable_lookup() is annotated
+with __must_hold_shared(RCU). Since we now officially support Clang
+context annotations in the block layer, compiling with the latest
+Clang/LLVM generates a number of context warnings, for example:
 
-Derive the ELC SPA and its alias from cxl-list output, select offline
-test addresses from lsmem, and discover available MCA banks dynamically.
-Use a distinct SPA for each case and clean up modules loaded by the test.
+block/blk-cgroup.h:277:9: warning: calling function 'rhashtable_lookup'
+requires holding __ctx_lock_RCU 'RCU' [-Wthread-safety-analysis]
+   277 |         return rhashtable_lookup(&q->blkg_hash, &blkcg->css.id,
+       |                ^
 
-Suggested-by: Ben Cheatham <benjamin.cheatham@amd.com>
-Suggested-by: Alison Schofield <alison.schofield@intel.com>
-Signed-off-by: Shaikh Kamaluddin <shaikhkamal2012@gmail.com>
----
-Testing:
-The test was run under virtme-ng with cxl_test configured for Extended
-Linear Cache operation:
+The same warning is reported from several other block layer source
+files that include blk-cgroup.h.
 
-Intel, GenuineIntel:
---------------------
+This indicates that rhashtable_lookup() requires the RCU read lock
+from Clang's context-analysis perspective. Looking at the call paths of
+blkg_lookup_any(), it appears that not all callers hold
+rcu_read_lock() when invoking it.
 
-1. vng -v -r ./arch/x86/boot/bzImage --disable-kvm --qemu-opts='-cpu Skylake-Server-v4,+mce,+mca -m 4G -machine q35,cxl=on -object memory-backend-ram,id=cxl-mem0,size=512M -device pxb-cxl,bus_nr=12,bus=pcie.0,id=cxl.0 -device cxl-rp,port=0,bus=cxl.0,id=root_port0,chassis=0,slot=0 -device cxl-type3,bus=root_port0,volatile-memdev=cxl-mem0,id=cxl-mem-device0 -M cxl-fmw.0.targets.0=cxl.0,cxl-fmw.0.size=512M'
+I think we should fix those call paths to acquire rcu reader lock
+before calling blkg_lookup_any(), rather than weakening or bypassing
+the context annotation in blkg_lookup_any().
 
-2 . Go to ndctl-main directoy with this patches 
-
-env NDCTL="$PWD/build/ndctl/ndctl" 
-DAXCTL="$PWD/build/daxctl/daxctl" 
-CXL="$PWD/build/cxl/cxl" 
-./test/cxl-elc.sh
-
-RESULT:
---------
-
-PASS Intel corrected: alias no
-PASS Intel uncorrected: alias yes
-CXL ELC MCE validation passed for GenuineIntel: 2 cases
------------------------------------------------------------------
-
-AMD, AuthenticAMD legacy MCA: 
------------------------------
-
-1. vng -v -r ./arch/x86/boot/bzImage --disable-kvm --qemu-opts='-cpu EPYC-Milan -m 4G -machine q35,cxl=on -object memory-backend-ram,id=cxl-mem0,size=512M -device pxb-cxl,bus_nr=12,bus=pcie.0,id=cxl.0 -device cxl-rp,port=0,bus=cxl.0,id=root_port0,chassis=0,slot=0 -device cxl-type3,bus=root_port0,volatile-memdev=cxl-mem0,id=cxl-mem-device0 -M cxl-fmw.0.targets.0=cxl.0,cxl-fmw.0.size=512M'
-
-2. Go to ndctl-main directoy with this patches  
-env NDCTL="$PWD/build/ndctl/ndctl" 
-DAXCTL="$PWD/build/daxctl/daxctl" 
-CXL="$PWD/build/cxl/cxl" 
-./test/cxl-elc.sh
-
-RESULT:
----------
-PASS AMD plain corrected: alias no
-PASS AMD plain uncorrected: alias no
-PASS AMD poison-only (invalid encoding): alias no
-PASS AMD deferred without poison: alias no
-PASS AMD deferred with poison: alias yes
-PASS AMD uncorrected with poison: alias yes
-PASS AMD bank-4 non-memory poison (invalid encoding): alias no
-PASS AMD legacy bank-4 corrected DRAM ECC: alias no
-CXL ELC MCE validation passed for AuthenticAMD: 8 cases
-
- test/cxl-elc.sh | 313 +++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 312 insertions(+), 1 deletion(-)
-
-diff --git a/test/cxl-elc.sh b/test/cxl-elc.sh
-index cfa09cb..bd600b4 100755
---- a/test/cxl-elc.sh
-+++ b/test/cxl-elc.sh
-@@ -8,6 +8,30 @@ rc=77
- 
- set -ex
- 
-+mce_inject_loaded=0
-+
-+cleanup()
-+{
-+	local status=$?
-+	local cleanup_status=0
-+
-+	trap - EXIT ERR
-+	set +e
-+
-+	if ((mce_inject_loaded)); then
-+		modprobe -r mce-inject || cleanup_status=1
-+	fi
-+
-+	modprobe -r cxl_test || cleanup_status=1
-+
-+	if ((status == 0 && cleanup_status != 0)); then
-+		status=1
-+	fi
-+
-+	exit "$status"
-+}
-+
-+trap cleanup EXIT
- trap 'err $LINENO' ERR
- 
- check_prereq "jq"
-@@ -85,10 +109,297 @@ compare_bases()
- 	((cxlrd_hpa == ep1_hpa - ep1_size)) || err "$LINENO"
- }
- 
-+mce_skip()
-+{
-+	echo "SKIP CXL ELC MCE subtest: $*"
-+	return 0
-+}
-+
-+dmesg_count()
-+{
-+	dmesg | grep -F -c -- "$1" || true
-+}
-+
-+wait_for_dmesg()
-+{
-+	local pattern="$1"
-+	local previous="$2"
-+	local count
-+
-+	for _ in {1..50}; do
-+		count="$(dmesg_count "$pattern")"
-+		((count > previous)) && return 0
-+		sleep 0.1
-+	done
-+
-+	return 1
-+}
-+
-+address_is_offline()
-+{
-+	local address="$1"
-+	local range start end
-+
-+	while read -r range; do
-+		[[ "$range" == *-* ]] || continue
-+		start=$(( ${range%%-*} ))
-+		end=$(( ${range##*-} ))
-+		((address >= start && address <= end)) && return 0
-+	done < <(echo "$lsmem_json" | jq -r \
-+		'.memory[] | select((.state | ascii_downcase) == "offline") |
-+		 .range')
-+
-+	return 1
-+}
-+
-+find_offline_spas()
-+{
-+	local nr_spas="$1"
-+	local range start end low high candidate alias spa_string alias_string
-+	local page_size region_end cache_end i
-+	local stride=0x10000
-+
-+	lsmem_json="$(lsmem --json --bytes --output RANGE,STATE)"
-+	page_size="$(getconf PAGESIZE)"
-+	region_end=$((region_hpa + region_size))
-+	cache_end=$((region_hpa + elc_size))
-+	inject_spas=()
-+	alias_spas=()
-+
-+	while read -r range; do
-+		[[ "$range" == *-* ]] || continue
-+		start=$(( ${range%%-*} ))
-+		end=$(( ${range##*-} ))
-+
-+		low=$start
-+		((low < region_hpa)) && low=$region_hpa
-+		high=$((end + 1))
-+		((high > cache_end)) && high=$cache_end
-+		((low < high)) || continue
-+
-+		# Stay away from the first pages of the hotplugged range.
-+		candidate=$((low + stride))
-+		candidate=$((
-+			(candidate + page_size - 1) / page_size * page_size
-+		))
-+		inject_spas=()
-+		alias_spas=()
-+		for ((i = 0; i < nr_spas; i++)); do
-+			candidate=$((candidate + (i > 0 ? stride : 0)))
-+			alias=$((candidate + elc_size))
-+			((candidate < high && alias < region_end)) || break
-+			address_is_offline "$alias" || break
-+			printf -v spa_string '0x%x' "$candidate"
-+			printf -v alias_string '0x%x' "$alias"
-+			inject_spas+=("$spa_string")
-+			alias_spas+=("$alias_string")
-+		done
-+		((${#inject_spas[@]} == nr_spas)) || continue
-+		return 0
-+	done < <(echo "$lsmem_json" | jq -r \
-+		'.memory[] | select((.state | ascii_downcase) == "offline") |
-+		 .range')
-+
-+	return 1
-+}
-+
-+discover_mca_banks()
-+{
-+	local path name
-+
-+	for path in \
-+		/sys/devices/system/machinecheck/machinecheck0/bank[0-9]*; do
-+		[[ -e "$path" ]] || continue
-+		name="${path##*/}"
-+		printf '%s\n' "${name#bank}"
-+	done | sort -n -u
-+}
-+
-+has_bank()
-+{
-+	local wanted="$1"
-+	local bank
-+
-+	for bank in "${mca_banks[@]}"; do
-+		[[ "$bank" == "$wanted" ]] && return 0
-+	done
-+
-+	return 1
-+}
-+
-+select_mce_parameters()
-+{
-+	local bank
-+
-+	vendor="$(awk '/^vendor_id/{ print $3; exit }' /proc/cpuinfo)"
-+	readarray -t mca_banks < <(discover_mca_banks)
-+	((${#mca_banks[@]})) || return 1
-+
-+	case "$vendor" in
-+	GenuineIntel)
-+		test_bank="${mca_banks[-1]}"
-+		test_case_count=2
-+		;;
-+	AuthenticAMD)
-+		# The usable-address corrected-error case is the legacy bank-4 DRAM
-+		# ECC encoding (XEC 8). It is not valid for an SMCA bank.
-+		grep -qw smca /proc/cpuinfo && return 1
-+		has_bank 4 || return 1
-+		non_b4_bank=
-+		for bank in "${mca_banks[@]}"; do
-+			[[ "$bank" == 4 ]] || non_b4_bank="$bank"
-+		done
-+		[[ -n "$non_b4_bank" ]] || return 1
-+		test_case_count=8
-+		;;
-+	*)
-+		return 1
-+		;;
-+	esac
-+}
-+
-+inject_mce()
-+{
-+	local status="$1"
-+	local bank="$2"
-+	local mce_inject=/sys/kernel/debug/mce-inject
-+
-+	echo sw > "$mce_inject/flags"
-+	echo "$status" > "$mce_inject/status"
-+	echo 0x80 > "$mce_inject/misc"
-+	echo "$inject_spa" > "$mce_inject/addr"
-+	echo "$bank" > "$mce_inject/bank"
-+}
-+
-+run_mce_case()
-+{
-+	local name="$1"
-+	local status="$2"
-+	local bank="$3"
-+	local expect_alias="$4"
-+	local index="$5"
-+	local alias_msg bank_msg status_tag
-+	local alias_before bank_before
-+
-+	inject_spa="${inject_spas[$index]}"
-+	alias_spa="${alias_spas[$index]}"
-+	alias_msg="Offlining aliased SPA address0: $alias_spa"
-+	status_tag="${status#0x}"
-+	bank_msg="Bank $bank: $status_tag"
-+	alias_before="$(dmesg_count "$alias_msg")"
-+	bank_before="$(dmesg_count "$bank_msg")"
-+
-+	inject_mce "$status" "$bank"
-+	wait_for_dmesg "$bank_msg" "$bank_before" || err "$LINENO"
-+
-+	if [[ "$expect_alias" == "yes" ]]; then
-+		wait_for_dmesg "$alias_msg" "$alias_before" || err "$LINENO"
-+	else
-+		(($(dmesg_count "$alias_msg") == alias_before)) || \
-+			err "$LINENO"
-+	fi
-+
-+	echo "PASS $name: SPA $inject_spa, alias $alias_spa, bank $bank, alias $expect_alias"
-+}
-+
-+run_intel_mce_cases()
-+{
-+	run_mce_case "Intel corrected" 0x9c00000000000080 \
-+		"$test_bank" no 0
-+	run_mce_case "Intel uncorrected" 0xbc00000000000080 \
-+		"$test_bank" yes 1
-+}
-+
-+run_amd_mce_cases()
-+{
-+	# Mirror the full AMD matrix documented with the kernel fix. The two
-+	# poison-only records have UC=0 and Deferred=0, so they are not valid
-+	# architectural records. Keep them as software-injection robustness
-+	# coverage and expect the corrected-error filter to reject them.
-+	run_mce_case "AMD plain corrected" 0x9c00000000000080 \
-+		"$non_b4_bank" no 0
-+	run_mce_case "AMD plain uncorrected" 0xbc00000000000080 \
-+		"$non_b4_bank" no 1
-+	run_mce_case "AMD poison-only (invalid encoding)" \
-+		0x9c00080000000080 "$non_b4_bank" no 2
-+	run_mce_case "AMD deferred without poison" 0x9c00100000000080 \
-+		"$non_b4_bank" no 3
-+	run_mce_case "AMD deferred with poison" 0x9c00180000000080 \
-+		"$non_b4_bank" yes 4
-+	run_mce_case "AMD uncorrected with poison" 0xbc00080000000080 \
-+		"$non_b4_bank" yes 5
-+	run_mce_case "AMD bank-4 non-memory poison (invalid encoding)" \
-+		0x9c00080000000080 4 no 6
-+	run_mce_case "AMD legacy bank-4 corrected DRAM ECC" \
-+		0x9c00000000080000 4 no 7
-+}
-+
-+test_mce_alias()
-+{
-+	local region_json
-+
-+	[[ "$(uname -m)" == "x86_64" ]] || {
-+		mce_skip "x86_64 is required"
-+		return 0
-+	}
-+	command -v lsmem >/dev/null 2>&1 || {
-+		mce_skip "lsmem is unavailable"
-+		return 0
-+	}
-+
-+	region_json="$(echo "$json" | jq -c --arg region "$region" \
-+		'.[] | select(.region == $region)')"
-+	region_hpa="$(echo "$region_json" | jq -r '.resource // empty')"
-+	region_size="$(echo "$region_json" | jq -r '.size // empty')"
-+	elc_size="$(echo "$region_json" | jq -r \
-+		'.extended_linear_cache_size // empty')"
-+
-+	[[ "$region_hpa" =~ ^[0-9]+$ ]] || err "$LINENO"
-+	[[ "$region_size" =~ ^[0-9]+$ ]] || err "$LINENO"
-+	[[ "$elc_size" =~ ^[0-9]+$ ]] || err "$LINENO"
-+	((elc_size > 0x10000 && region_size >= elc_size * 2)) || \
-+		err "$LINENO"
-+
-+	select_mce_parameters || {
-+		mce_skip "no supported MCA bank configuration for $vendor"
-+		return 0
-+	}
-+
-+	if [[ ! -d /sys/module/mce_inject ]]; then
-+		modprobe mce-inject || {
-+			mce_skip "mce-inject module is unavailable"
-+			return 0
-+		}
-+		mce_inject_loaded=1
-+	fi
-+	[[ -d /sys/kernel/debug/mce-inject ]] || {
-+		mce_skip "mce-inject debugfs interface is unavailable"
-+		return 0
-+	}
-+
-+	find_offline_spas "$test_case_count" || {
-+		mce_skip "offline lsmem range lacks enough ELC test addresses"
-+		return 0
-+	}
-+
-+	case "$vendor" in
-+	GenuineIntel)
-+		run_intel_mce_cases
-+		;;
-+	AuthenticAMD)
-+		run_amd_mce_cases
-+		;;
-+	esac
-+
-+	echo "CXL ELC MCE validation passed for $vendor: $test_case_count cases"
-+}
-+
- find_region
- retrieve_info
- compare_sizes
- compare_bases
- 
-+# Check before injecting the expected machine-check messages.
-+check_dmesg "$LINENO"
-+test_mce_alias
- check_dmesg "$LINENO"
--modprobe -r cxl_test
-
-base-commit: 15e932c4e1318a9608ad9b799ad83a32a8b5970d
--- 
-2.43.0
+Thanks,
+--Nilay
 
