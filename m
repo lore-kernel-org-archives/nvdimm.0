@@ -1,226 +1,143 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A9E040EB80
-	for <nvdimm@lists.linux.dev>; Mon,  7 Sep 2026 08:22:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AF6B50AC29;
+	Mon,  7 Sep 2026 15:42:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788769367; cv=none; b=kan0nAmQa7ibSd0kmgXaExRkauj9Opr73Yo8g9P0alg+n5/GYLdAsSVZDJHS0vSxb57/u6xj/cJx3sX9Fq9l/AwIAhFV7BDupxlAW5+Zy5LgfGUDM8oQ5B4nW/SSoxlhoFDFpS5orAqx+9o5ABGPhXUK3W7fU6HgwOzG+JSmkVA=
+	t=1788795744; cv=none; b=M1KMZp4DgoKUc+yom0DLdEDVS61QywXl/Dw13UmIkIFBdbIssrAdlDp1nMHSTEgWMtpokoJG9bKJcnSZsFX/VfiX7uC6w+E0LgihGWhop7bLLO8TZXqybyAYmLqp0nQjg7wVZmAefgos/y6vmlTeg5zI2ikbExQQg9awI4LSARk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788769367; c=relaxed/simple;
-	bh=rEWz+2MgbRmVtT7OLloOvjm8wTJkVrbeff4P6FpteDI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=c1iyZxQR5C4065g71AU35epG8wCU6uKorLFRTns+kd2zibaszxGlWXDJhaI0+AxVjXSuB62nLo4joE1pYszeZvZUcdnhhlq6zA2hHju3QrqGACne4eEWTVWGDIq3cN18j1SG4h2EW4JHn1WrG+AclM8Gk+G54gQb8Da3aUihL8E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=Dg2B/oo5; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=JZYipjlK; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=wVTUjHO0; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=0hqHcM2X; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
+	s=arc-20240116; t=1788795744; c=relaxed/simple;
+	bh=EAoP2yIeWj1hYQxcqz8Y/CQISICWDBxBMKOQNVZiFMI=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=hp291496FURG2GBiJRvhjjzIHXEJeBSdWUf1vg6vSnHBHdHWqFF0vSWPiQof0lcTMtPtjmRnO5pG1dOCbXF8uwd2fz9dPC6EyWwufokcu31GE6cEp3AALhfWmW9o4/Dxv7gjbdm1+8yBSUIgLqZ87HWsCymhkNP8vZ2lRoV5CuI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=P72Lc+Gp; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="Dg2B/oo5";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="JZYipjlK";
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="wVTUjHO0";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="0hqHcM2X"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 538CA2196E;
-	Mon,  7 Sep 2026 08:22:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1788769360; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=jTpSjLnIj763xnbF7Xh8jDRqOjqOQscn5h2AEOJ5PVM=;
-	b=Dg2B/oo5SIPGgJnvN9NFZ2cBxheLZ3iVDWhCfoe9VJWzpJYbAWMTS0djiCQbPRPYybLCg5
-	h9C6UExqnz719tcDlFpnztqpzQcxHuXQz+Na1L9edo2DPZ6rvm/5Q9IkulKtXR+OQemkKD
-	CFRp9pW+7JqEJzDar6DKq7pOvLwmZkA=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1788769360;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=jTpSjLnIj763xnbF7Xh8jDRqOjqOQscn5h2AEOJ5PVM=;
-	b=JZYipjlK1hmcvbh8RTQDYU7Yn3fyWvsglWI5/pAxQvM16vQQCgtKdwhxHqAKFunblf/bkb
-	+nvdi2afymaWGVDg==
-Authentication-Results: smtp-out1.suse.de;
-	dkim=pass header.d=suse.cz header.s=susede2_rsa header.b=wVTUjHO0;
-	dkim=pass header.d=suse.cz header.s=susede2_ed25519 header.b=0hqHcM2X
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1788769356; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=jTpSjLnIj763xnbF7Xh8jDRqOjqOQscn5h2AEOJ5PVM=;
-	b=wVTUjHO03jp5z9PIcRk/vAUdyUPio6eOracv6Oqm9/Bfop8rzjbE5Z3ayCR80Hy4WfaM39
-	sITL27hWzRCk+2zLl86pEDGLAgKD4EHkGLjqFkrZfeV0AQ/nPOTkrivXTtCApTQv9cpEMQ
-	6nZERWSpQrJlnNjZLqNHLIb5kWZYN94=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1788769356;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=jTpSjLnIj763xnbF7Xh8jDRqOjqOQscn5h2AEOJ5PVM=;
-	b=0hqHcM2XcnDYrTcQG9MUpDS5uRbOQP5numu9ImRqK7HFJNzIqZcA9F8mg4AEV1+QxTasjT
-	QFA2junHvWnu9sCQ==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 309FB1368D;
-	Mon,  7 Sep 2026 08:22:36 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id D5bfC0x0nmr6OgAAD6G6ig
-	(envelope-from <jack@suse.cz>); Mon, 07 Sep 2026 08:22:36 +0000
-Received: by quack3.suse.cz (Postfix, from userid 1000)
-	id D35ACA13B2; Mon, 07 Sep 2026 10:22:31 +0200 (CEST)
-Date: Mon, 7 Sep 2026 10:22:31 +0200
-From: Jan Kara <jack@suse.cz>
-To: Kaitao Cheng <kaitao.cheng@linux.dev>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>, 
-	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, Dan Williams <djbw@kernel.org>, 
-	Matthew Wilcox <willy@infradead.org>, Muchun Song <muchun.song@linux.dev>, 
-	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org, 
-	Kaitao Cheng <chengkaitao@kylinos.cn>
-Subject: Re: [PATCH 2/2] fs/dax: Make dax_layout_busy_page_range() static
-Message-ID: <htsp4zvc7sidacjm3v733ycvjuzezghggpsnxqszttsycj2hpp@zdq7rutu256r>
-References: <20260904152749.84493-1-kaitao.cheng@linux.dev>
- <20260904152749.84493-3-kaitao.cheng@linux.dev>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="P72Lc+Gp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E985F1F00A3A;
+	Mon,  7 Sep 2026 15:42:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1788795739;
+	bh=khvVj+XX/OG3UCUrUcO0F7VGVKQi2Jwd0FC7frDCC5E=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=P72Lc+Gpx5Rz3Z2oNW2bQ3V3jV6ta/7tW63kF3TL280HTWddbHCdtqTAhT4nGK9U4
+	 pYJEjiP+K6gN1Rn9q2AIRnN04ktCIHB3gqMPoynLVzrNKv9yGTiIq0Nw4kltkHMasn
+	 W/u9GyL2kmxNTRwy3ISlFgCj/CPvUyX98sr7qi3wdrBv0BTYiORsQjBU0UwMuYrlrP
+	 K083Yw5U52cuuhyIePKNHX4yhFjtGe3rV13LyN0mToHfL9tI6nYuIpPsL/975bDTyq
+	 0DrbZhYHSe+9mmZn0Pv/jPfkcBuYE2tYfRD2V1pHlZsQnducYmncL1eFjt8GObOEgX
+	 uKMdRwpBat5MQ==
+Message-ID: <6eb272c0-0cfa-4354-a92b-4fc270e3b1fc@kernel.org>
+Date: Mon, 7 Sep 2026 17:42:11 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260904152749.84493-3-kaitao.cheng@linux.dev>
-X-Spam-Score: -4.01
-X-Rspamd-Queue-Id: 538CA2196E
-X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
-X-Spam-Level: 
-X-Rspamd-Action: no action
-X-Spamd-Result: default: False [-4.01 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	MID_RHS_NOT_FQDN(0.50)[];
-	R_DKIM_ALLOW(-0.20)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[kylinos.cn:email,suse.cz:dkim,suse.cz:email,imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,suse.com:email];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	ARC_NA(0.00)[];
-	MISSING_XM_UA(0.00)[];
-	TO_DN_SOME(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	RCPT_COUNT_SEVEN(0.00)[11];
-	DNSWL_BLOCKED(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RCVD_COUNT_THREE(0.00)[3];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	RCVD_TLS_LAST(0.00)[];
-	DKIM_TRACE(0.00)[suse.cz:+]
-X-Spam-Flag: NO
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 1/2] mm/page-flags: Define HWPoison test-and-change
+ helpers unconditionally
+To: Kaitao Cheng <kaitao.cheng@linux.dev>,
+ Andrew Morton <akpm@linux-foundation.org>, Lorenzo Stoakes <ljs@kernel.org>,
+ "Liam R . Howlett" <liam@infradead.org>, Vlastimil Babka
+ <vbabka@kernel.org>, Mike Rapoport <rppt@kernel.org>,
+ Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
+ Dan Williams <djbw@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>,
+ Dave Jiang <dave.jiang@intel.com>,
+ Alison Schofield <alison.schofield@intel.com>, Ira Weiny <iweiny@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>, linux-mm@kvack.org,
+ nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
+ Kaitao Cheng <chengkaitao@kylinos.cn>
+References: <20260903053535.17611-1-kaitao.cheng@linux.dev>
+ <20260903053535.17611-2-kaitao.cheng@linux.dev>
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Content-Language: en-US
+Autocrypt: addr=david@kernel.org; keydata=
+ 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
+ qIws/H2t
+In-Reply-To: <20260903053535.17611-2-kaitao.cheng@linux.dev>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Fri 04-09-26 23:27:49, Kaitao Cheng wrote:
+On 9/3/26 07:35, Kaitao Cheng wrote:
 > From: Kaitao Cheng <chengkaitao@kylinos.cn>
 > 
-> dax_layout_busy_page_range() no longer has callers outside fs/dax.c.
-> Keeping the range helper exported unnecessarily exposes a low-level
-> implementation detail.
+> Page flag helpers for configuration-dependent flags provide false or no-op
+> variants so that their users can be independent of the configuration.
 > 
-> Make the helper static and remove its export and header definitions.
+> The HWPoison helpers do not fully follow this pattern. When
+> CONFIG_MEMORY_FAILURE is enabled, PAGEFLAG() and TESTSCFLAG() provide the
+> regular, test-and-set, and test-and-clear operations. When it is disabled,
+> only PAGEFLAG_FALSE() is instantiated, leaving TestSetPageHWPoison() and
+> TestClearPageHWPoison() undefined.
 > 
-> Also fix the stale dax_layout_busy_page_range() comment to match the
-> implementation.
+> Use TESTSCFLAG_FALSE() to provide the missing accessors when memory failure
+> handling is disabled. Both accessors return false, which is consistent with
+> HWPoison state being unavailable, and makes the accessor interface
+> consistent across configurations.
 > 
 > Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
-
-Looks good. Feel free to add:
-
-Reviewed-by: Jan Kara <jack@suse.cz>
-
-								Honza
-
 > ---
->  fs/dax.c            | 18 ++++++++----------
->  include/linux/dax.h |  6 ------
->  2 files changed, 8 insertions(+), 16 deletions(-)
+>  include/linux/page-flags.h | 1 +
+>  1 file changed, 1 insertion(+)
 > 
-> diff --git a/fs/dax.c b/fs/dax.c
-> index 1e19e4a354ce..c6ad9533aa54 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
-> @@ -770,24 +770,23 @@ static void *grab_mapping_entry(struct xa_state *xas,
+> diff --git a/include/linux/page-flags.h b/include/linux/page-flags.h
+> index 7a863572adce..a2315ab1dd3a 100644
+> --- a/include/linux/page-flags.h
+> +++ b/include/linux/page-flags.h
+> @@ -656,6 +656,7 @@ TESTSCFLAG(HWPoison, hwpoison, PF_ANY)
+>  #define __PG_HWPOISON (1UL << PG_hwpoison)
+>  #else
+>  PAGEFLAG_FALSE(HWPoison, hwpoison)
+> +TESTSCFLAG_FALSE(HWPoison, hwpoison)
+>  #define __PG_HWPOISON 0
+>  #endif
 >  
->  /**
->   * dax_layout_busy_page_range - find first pinned page in @mapping
-> - * @mapping: address space to scan for a page with ref count > 1
-> + * @mapping: address space to scan for a pinned page
->   * @start: Starting offset. Page containing 'start' is included.
->   * @end: End offset. Page containing 'end' is included. If 'end' is LLONG_MAX,
->   *       pages from 'start' till the end of file are included.
->   *
-> - * DAX requires ZONE_DEVICE mapped pages. These pages are never
-> - * 'onlined' to the page allocator so they are considered idle when
-> - * page->count == 1. A filesystem uses this interface to determine if
-> - * any page in the mapping is busy, i.e. for DMA, or other
-> - * get_user_pages() usages.
-> + * DAX requires ZONE_DEVICE mapped pages. A page is considered busy when
-> + * folio_ref_count(folio) exceeds folio_mapcount(folio). This helper is
-> + * used to determine if any page in the mapping is busy, i.e. for DMA,
-> + * or other get_user_pages() usages.
->   *
->   * It is expected that the filesystem is holding locks to block the
->   * establishment of new mappings in this address_space. I.e. it expects
-> - * to be able to run unmap_mapping_range() and subsequently not race
-> + * to be able to run unmap_mapping_pages() and subsequently not race
->   * mapping_mapped() becoming true.
->   */
-> -struct page *dax_layout_busy_page_range(struct address_space *mapping,
-> -					loff_t start, loff_t end)
-> +static struct page *dax_layout_busy_page_range(struct address_space *mapping,
-> +					       loff_t start, loff_t end)
->  {
->  	void *entry;
->  	unsigned int scanned = 0;
-> @@ -839,7 +838,6 @@ struct page *dax_layout_busy_page_range(struct address_space *mapping,
->  	xas_unlock_irq(&xas);
->  	return page;
->  }
-> -EXPORT_SYMBOL_GPL(dax_layout_busy_page_range);
->  
->  static int __dax_invalidate_entry(struct address_space *mapping,
->  				  pgoff_t index, bool trunc)
-> diff --git a/include/linux/dax.h b/include/linux/dax.h
-> index 05e59e45a1c2..f2d47975d905 100644
-> --- a/include/linux/dax.h
-> +++ b/include/linux/dax.h
-> @@ -155,7 +155,6 @@ int dax_writeback_mapping_range(struct address_space *mapping,
->  		struct dax_device *dax_dev, struct writeback_control *wbc);
->  int dax_folio_reset_order(struct folio *folio);
->  
-> -struct page *dax_layout_busy_page_range(struct address_space *mapping, loff_t start, loff_t end);
->  dax_entry_t dax_lock_folio(struct folio *folio);
->  void dax_unlock_folio(struct folio *folio, dax_entry_t cookie);
->  dax_entry_t dax_lock_mapping_entry(struct address_space *mapping,
-> @@ -172,11 +171,6 @@ static inline int fs_dax_get(struct dax_device *dax_dev, void *holder,
->  {
->  	return -EOPNOTSUPP;
->  }
-> -static inline struct page *dax_layout_busy_page_range(struct address_space *mapping, pgoff_t start, pgoff_t nr_pages)
-> -{
-> -	return NULL;
-> -}
-> -
->  static inline int dax_writeback_mapping_range(struct address_space *mapping,
->  		struct dax_device *dax_dev, struct writeback_control *wbc)
->  {
-> -- 
-> 2.50.1 (Apple Git-155)
-> 
+
+Can we just squash this patch into #2 please?
+
 -- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+Cheers,
+
+David
