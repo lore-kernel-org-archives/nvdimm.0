@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AF6B50AC29;
-	Mon,  7 Sep 2026 15:42:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 675ED37BE72;
+	Mon,  7 Sep 2026 15:43:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788795744; cv=none; b=M1KMZp4DgoKUc+yom0DLdEDVS61QywXl/Dw13UmIkIFBdbIssrAdlDp1nMHSTEgWMtpokoJG9bKJcnSZsFX/VfiX7uC6w+E0LgihGWhop7bLLO8TZXqybyAYmLqp0nQjg7wVZmAefgos/y6vmlTeg5zI2ikbExQQg9awI4LSARk=
+	t=1788795787; cv=none; b=fKapFGRluqvTQL/WTZJY3FJgxhGFfqWcEYYewKidotx+A8b3LBSBWNAajpnVVt55JsYK3Uh6exTsvWDPPFwowfJbUBJrK0XS/2HCrtnLK5HP90cTG6D2BSpwg1y4A1Bp2QzSQki96ReO6Y4C/ZVZPQ7T1tA+JH/9VJTE/VTxIrw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788795744; c=relaxed/simple;
-	bh=EAoP2yIeWj1hYQxcqz8Y/CQISICWDBxBMKOQNVZiFMI=;
+	s=arc-20240116; t=1788795787; c=relaxed/simple;
+	bh=K6qPSlToR5uu/qcbqTpx7P+ULOjLAlFpeSd7M+VE3D8=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=hp291496FURG2GBiJRvhjjzIHXEJeBSdWUf1vg6vSnHBHdHWqFF0vSWPiQof0lcTMtPtjmRnO5pG1dOCbXF8uwd2fz9dPC6EyWwufokcu31GE6cEp3AALhfWmW9o4/Dxv7gjbdm1+8yBSUIgLqZ87HWsCymhkNP8vZ2lRoV5CuI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=P72Lc+Gp; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=aKtImlubIzU/mU8eNwBfFrT+75qf6EgRk8G2L25M8Uf2RkukTF6DN2zJuEvAG55e5xKHnlejAIqKviOBr6HkHnB1Nx5E+hQw/IHS8+kJC6601t9a5CagtCelbSr3JC7t/CZ9BCWHxAboq9HKoq5zemkcEUqjlbnQKDW9KMI59lQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JNLCa38H; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="P72Lc+Gp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E985F1F00A3A;
-	Mon,  7 Sep 2026 15:42:13 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JNLCa38H"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 568C91F00A3A;
+	Mon,  7 Sep 2026 15:43:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788795739;
-	bh=khvVj+XX/OG3UCUrUcO0F7VGVKQi2Jwd0FC7frDCC5E=;
+	s=k20260515; t=1788795785;
+	bh=TNjNLeGp14CZ7H0hPBAL/K95RBhlJSMOUysdZ+y0VyU=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=P72Lc+Gpx5Rz3Z2oNW2bQ3V3jV6ta/7tW63kF3TL280HTWddbHCdtqTAhT4nGK9U4
-	 pYJEjiP+K6gN1Rn9q2AIRnN04ktCIHB3gqMPoynLVzrNKv9yGTiIq0Nw4kltkHMasn
-	 W/u9GyL2kmxNTRwy3ISlFgCj/CPvUyX98sr7qi3wdrBv0BTYiORsQjBU0UwMuYrlrP
-	 K083Yw5U52cuuhyIePKNHX4yhFjtGe3rV13LyN0mToHfL9tI6nYuIpPsL/975bDTyq
-	 0DrbZhYHSe+9mmZn0Pv/jPfkcBuYE2tYfRD2V1pHlZsQnducYmncL1eFjt8GObOEgX
-	 uKMdRwpBat5MQ==
-Message-ID: <6eb272c0-0cfa-4354-a92b-4fc270e3b1fc@kernel.org>
-Date: Mon, 7 Sep 2026 17:42:11 +0200
+	b=JNLCa38H/fWC6bxScgrTh1MFyJfj/qnvLfUXDf6lPj1RdiwyeB0sgAikXVYG740Zd
+	 z3O6FtVNKPfeRwn8ShcsxfOs4hXpbGYrw1/XZLNHlV2q7URu2JCZ/LbeqluU7elGn7
+	 Pw6f3AJvYiNxgaUpFu1Hrg34W1QUBdEGiLGo+vHhkSNe9MZRmX7xA1Yta5wadN9ab1
+	 a86x33SLemC+3TUqgQ4OPNQ3iybjnTmTZargy4k+1LjX0wOip3ya28v/Hukzz5n8t2
+	 KejDM9bFfdBQZt8YNOeYK7ajIc2RUTAX+O9mo0/mHjCm2Bh/7wfbjTEMs3XDvZ2OkF
+	 vKr3Qd6AucawA==
+Message-ID: <2cbf7f64-b2a1-4a7f-9887-8539525a3b6a@kernel.org>
+Date: Mon, 7 Sep 2026 17:42:58 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,8 +35,7 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 1/2] mm/page-flags: Define HWPoison test-and-change
- helpers unconditionally
+Subject: Re: [PATCH 2/2] nvdimm/pmem: Remove test_and_clear_pmem_poison()
 To: Kaitao Cheng <kaitao.cheng@linux.dev>,
  Andrew Morton <akpm@linux-foundation.org>, Lorenzo Stoakes <ljs@kernel.org>,
  "Liam R . Howlett" <liam@infradead.org>, Vlastimil Babka
@@ -49,7 +48,7 @@ Cc: Muchun Song <muchun.song@linux.dev>, linux-mm@kvack.org,
  nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
  Kaitao Cheng <chengkaitao@kylinos.cn>
 References: <20260903053535.17611-1-kaitao.cheng@linux.dev>
- <20260903053535.17611-2-kaitao.cheng@linux.dev>
+ <20260903053535.17611-3-kaitao.cheng@linux.dev>
 From: "David Hildenbrand (Arm)" <david@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
@@ -96,46 +95,77 @@ Autocrypt: addr=david@kernel.org; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <20260903053535.17611-2-kaitao.cheng@linux.dev>
+In-Reply-To: <20260903053535.17611-3-kaitao.cheng@linux.dev>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 9/3/26 07:35, Kaitao Cheng wrote:
 > From: Kaitao Cheng <chengkaitao@kylinos.cn>
 > 
-> Page flag helpers for configuration-dependent flags provide false or no-op
-> variants so that their users can be independent of the configuration.
+> TestClearPageHWPoison() is now defined regardless of whether
+> CONFIG_MEMORY_FAILURE is enabled, returning false when memory failure
+> handling is unavailable.
 > 
-> The HWPoison helpers do not fully follow this pattern. When
-> CONFIG_MEMORY_FAILURE is enabled, PAGEFLAG() and TESTSCFLAG() provide the
-> regular, test-and-set, and test-and-clear operations. When it is disabled,
-> only PAGEFLAG_FALSE() is instantiated, leaving TestSetPageHWPoison() and
-> TestClearPageHWPoison() undefined.
+> The test_and_clear_pmem_poison() wrapper duplicates this configuration
+> handling and has no other pmem-specific behavior.
 > 
-> Use TESTSCFLAG_FALSE() to provide the missing accessors when memory failure
-> handling is disabled. Both accessors return false, which is consistent with
-> HWPoison state being unavailable, and makes the accessor interface
-> consistent across configurations.
+> Call TestClearPageHWPoison() directly and remove the redundant wrapper.
+> This also removes the need to include page-flags.h from pmem.h.
+> 
+> No functional change is intended.
 > 
 > Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
 > ---
->  include/linux/page-flags.h | 1 +
->  1 file changed, 1 insertion(+)
+>  drivers/nvdimm/pmem.c |  2 +-
+>  drivers/nvdimm/pmem.h | 12 ------------
+>  2 files changed, 1 insertion(+), 13 deletions(-)
 > 
-> diff --git a/include/linux/page-flags.h b/include/linux/page-flags.h
-> index 7a863572adce..a2315ab1dd3a 100644
-> --- a/include/linux/page-flags.h
-> +++ b/include/linux/page-flags.h
-> @@ -656,6 +656,7 @@ TESTSCFLAG(HWPoison, hwpoison, PF_ANY)
->  #define __PG_HWPOISON (1UL << PG_hwpoison)
->  #else
->  PAGEFLAG_FALSE(HWPoison, hwpoison)
-> +TESTSCFLAG_FALSE(HWPoison, hwpoison)
->  #define __PG_HWPOISON 0
->  #endif
+> diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+> index 30a51c365ce8..5fb86595e8bd 100644
+> --- a/drivers/nvdimm/pmem.c
+> +++ b/drivers/nvdimm/pmem.c
+> @@ -80,7 +80,7 @@ static void pmem_mkpage_present(struct pmem_device *pmem, phys_addr_t offset,
+>  		 * here since we're in the driver I/O path and
+>  		 * outstanding I/O requests pin the dev_pagemap.
+>  		 */
+> -		if (test_and_clear_pmem_poison(page))
+> +		if (TestClearPageHWPoison(page))
+>  			clear_mce_nospec(pfn);
+>  	}
+>  }
+> diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
+> index a48509f90196..76870505dd79 100644
+> --- a/drivers/nvdimm/pmem.h
+> +++ b/drivers/nvdimm/pmem.h
+> @@ -1,7 +1,6 @@
+>  /* SPDX-License-Identifier: GPL-2.0 */
+>  #ifndef __NVDIMM_PMEM_H__
+>  #define __NVDIMM_PMEM_H__
+> -#include <linux/page-flags.h>
+>  #include <linux/badblocks.h>
+>  #include <linux/memremap.h>
+>  #include <linux/types.h>
+> @@ -31,15 +30,4 @@ long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
+>  		long nr_pages, enum dax_access_mode mode, void **kaddr,
+>  		unsigned long *pfn);
 >  
+> -#ifdef CONFIG_MEMORY_FAILURE
+> -static inline bool test_and_clear_pmem_poison(struct page *page)
+> -{
+> -	return TestClearPageHWPoison(page);
+> -}
+> -#else
+> -static inline bool test_and_clear_pmem_poison(struct page *page)
+> -{
+> -	return false;
+> -}
+> -#endif
+>  #endif /* __NVDIMM_PMEM_H__ */
 
-Can we just squash this patch into #2 please?
+
+With #1 squashed and the patch description updated accordingly:
+
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 
 -- 
 Cheers,
