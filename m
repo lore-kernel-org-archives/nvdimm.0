@@ -1,165 +1,152 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-f49.google.com (mail-ot1-f49.google.com [209.85.210.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24D584A3F3F;
-	Thu, 10 Sep 2026 14:06:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D346F3C196B
+	for <nvdimm@lists.linux.dev>; Thu, 10 Sep 2026 20:55:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789049216; cv=none; b=GeNi60+PvnLbyUO0kD+E8MzyA3DwyuBfFbv+mjzolpTCQSh31CwvvcPibnlP4K35OFr9NCzGtcyuplDUN64MPLtjpBZMFSGXhwl5RX7uMJb0Q4adRROmqOAp3DiOaRchKLzNBgmIF8rx0Gy5k/r54myswBXo6dhzVlqfx0AkN64=
+	t=1789073729; cv=none; b=V3SNQZ+42sEHG4nSuDzBjo2/356vse6xb8d0gEqVCNdnoZRYqAt4fUqy7txWXhAk4dG0AAzoJSgOyzzKkWzRt3w33D/ACSmZMxQWke2e/YM9Alkraqgu2FeJwonNtougQfreoat9SE+Rhna9CTHyH0557zOUeTlsuI4KCApmqZc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789049216; c=relaxed/simple;
-	bh=usjgwNwq8e5FVuDuIy//fKbw8DVuTnjixnyIZu/Ku78=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=lY8ZpZDY6Afi7C7XMldN7G1hHFMN2dwWquzdALp2oW/LHbpV1l+ZZg1IHGX4rmXTquRgAOhgrC/sx62gnXfDfIF0iYLQVgkerTcvXLaWIzy7aDx4J6MXg5ABwc/t5rHS3dhcztL9QTpIi0mmM6AnphvEX7HDYGOxmxsBnfjW5dQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=khYqYYox; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789073729; c=relaxed/simple;
+	bh=hFrf47wiCRa+Xp/RSbKkY05XcZwBmlybD2veRYYsg0I=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=lw+fb476xC+PywaWwvX3vZvvNToxzwEXql1D43bjN3TbjRMkvwng1mMwc7rhWXObGpPvGFBbE04F0pNfAUyz7dOI+ycpSGa2EX9L1D+s+hJgjXNfRw5/I8TMHJyTHzOWrRSbkgktOZHfs2RFdaoPF9js6QAWXAvP3hy/EIqx7o8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kernel.dk; spf=pass smtp.mailfrom=kernel.dk; dkim=pass (2048-bit key) header.d=kernel-dk.20251104.gappssmtp.com header.i=@kernel-dk.20251104.gappssmtp.com header.b=NC8MC8Yr; arc=none smtp.client-ip=209.85.210.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kernel.dk
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kernel.dk
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="khYqYYox"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 970881F0089A;
-	Thu, 10 Sep 2026 14:06:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789049215;
-	bh=70DL84P6JTZYmHCwquU+RidyFpbSEn3EbhgRLehum0s=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=khYqYYoxLCC3IHUZhWSZ/5k6MaUU7a5qG9Uq/H2as3L0W6BL+uxN7k2+pKlEBL0yR
-	 dghTPtHKwmo6niWKCE/e7CEN8xnGbaRJ7ryTnxA4eepLVos7utuH62ktBK1Q3ynEdA
-	 mdUmxTQ9yw+NMXWXyeBG0zO325JsctZUk79B/RHN+V+0ZYQ+50sPC8n8eD8y3pPFBB
-	 05j6cHp94XsGsHj1GusZhoju5knkCNRv/37JUqphBcqKTnaYIRFBjwzHiKXiGecGar
-	 zIt2dcm1Q/eBn9ED6HySRxntqymbCFq4JhBd0JZYXKsLDP+6QtIP8duViFjxKlMAKT
-	 IJS3xyspz9d7Q==
-From: SJ Park <sj@kernel.org>
-To: "David Hildenbrand (Arm)" <david@kernel.org>
-Cc: SJ Park <sj@kernel.org>,
-	Gregory Price <gourry@gourry.net>,
-	balbirs@nvidia.com,
-	brendan.jackman@linux.dev,
-	yuzenghui@huawei.com,
-	apopple@nvidia.com,
-	alucerop@amd.com,
-	matthew.brost@intel.com,
-	akpm@linux-foundation.org,
-	ljs@kernel.org,
-	liam@infradead.org,
-	vbabka@kernel.org,
-	rppt@kernel.org,
-	surenb@google.com,
-	mhocko@suse.com,
-	corbet@lwn.net,
-	skhan@linuxfoundation.org,
-	gregkh@linuxfoundation.org,
-	rafael@kernel.org,
-	dakr@kernel.org,
-	djbw@kernel.org,
-	vishal.l.verma@intel.com,
-	dave.jiang@intel.com,
-	alison.schofield@intel.com,
-	osandov@osandov.com,
-	jannh@google.com,
-	pfalcato@suse.de,
-	jackmanb@google.com,
-	hannes@cmpxchg.org,
-	ziy@nvidia.com,
-	pbonzini@redhat.com,
-	osalvador@suse.de,
-	joshua.hahnjy@gmail.com,
-	rakie.kim@sk.com,
-	byungchul@sk.com,
-	ying.huang@linux.alibaba.com,
-	kasong@tencent.com,
-	qi.zheng@linux.dev,
-	shakeel.butt@linux.dev,
-	baohua@kernel.org,
-	axelrasmussen@google.com,
-	yuanchu@google.com,
-	weixugc@google.com,
-	yury.norov@gmail.com,
-	linux@rasmusvillemoes.dk,
-	longman@redhat.com,
-	ridong.chen@linux.dev,
-	tj@kernel.org,
-	mkoutny@suse.com,
-	jgg@ziepe.ca,
-	jhubbard@nvidia.com,
-	peterx@redhat.com,
-	baolin.wang@linux.alibaba.com,
-	npache@redhat.com,
-	ryan.roberts@arm.com,
-	dev.jain@arm.com,
-	lance.yang@linux.dev,
-	usama.arif@linux.dev,
-	xu.xin16@zte.com.cn,
-	chengming.zhou@linux.dev,
-	roman.gushchin@linux.dev,
-	muchun.song@linux.dev,
-	linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	driver-core@lists.linux.dev,
-	nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org,
-	linux-debuggers@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	kvm@vger.kernel.org,
-	cgroups@vger.kernel.org,
-	damon@lists.linux.dev,
-	linux-kselftest@vger.kernel.org,
-	kernel-team@meta.com
-Subject: Re: [PATCH v5 14/36] mm/damon: skip private node memory in DAMON migration and pageout
-Date: Thu, 10 Sep 2026 07:06:45 -0700
-Message-ID: <20260910140645.168914-1-sj@kernel.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <e2d2b01e-e6eb-4009-a07e-e615d576c0c3@kernel.org>
-References: 
+	dkim=pass (2048-bit key) header.d=kernel-dk.20251104.gappssmtp.com header.i=@kernel-dk.20251104.gappssmtp.com header.b="NC8MC8Yr"
+Received: by mail-ot1-f49.google.com with SMTP id 46e09a7af769-7f3f52143cdso214012a34.2
+        for <nvdimm@lists.linux.dev>; Thu, 10 Sep 2026 13:55:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=kernel-dk.20251104.gappssmtp.com; s=20251104; t=1789073725; x=1789678525; darn=lists.linux.dev;
+        h=content-transfer-encoding:content-type:mime-version:date:message-id
+         :subject:references:in-reply-to:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=pkbEmlLYOqHu2rT/pG1b8F4ZrumOvKHVAf/LIvXXM5Y=;
+        b=NC8MC8YrWXVm6OvYPakfo0XLgjPJpuQ9f1DkwsOCM8NQ6WFvspW/KvI8xAHHsfnHVN
+         aK3jcd9vFEiCq0DSsPIXM8IY1+pHj5klZhw0T+KZxt5SlM3dbGWLYZjF7S083UTHyG89
+         ftfHIIU5ZjwAgQuc6NDTlWWWhFApFsVQG+IjyZhMYWsLi1upPWCK3C7Wn+TuNtmK47+f
+         04QOTvlnskpj7inzTcKweiQPk+VwuRxnVvQqrMgJLpkgryUBAq/j8ydguvn+JIuw0Gos
+         c+E+u0HL0kbrBSaW125lSsXQB07S5SXOgDjbdiZvpBPpYD9yvMnA4Mf93QmWihuTZJtw
+         IHlQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1789073725; x=1789678525;
+        h=content-transfer-encoding:content-type:mime-version:date:message-id
+         :subject:references:in-reply-to:cc:to:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=pkbEmlLYOqHu2rT/pG1b8F4ZrumOvKHVAf/LIvXXM5Y=;
+        b=nUdPSCm2wayz5tTanqBvax3vISOgy1kpJwxDKhMyaSj9cCtQ0/G5h7NIsIYFjeUP7a
+         9A5jX+zY7ZKrsVtXTUyKVxWJHzSLmNKsphcxJ8XV0gOeKoo9bAp/MFz2q6PIHbYB5VaY
+         K4ZdrXp46Hsv5LqT/ME6WRJXmULthnUG/cheR/jX70k3+zJfo9EPB6i+vehtnHHNbX23
+         8UTKa9Cp9RdvBudHrDT5x+nz/ExO9Xsd2rIog/XYJpTe4yFKFpxbqYNYUftWWzvoC0GX
+         8lczmJmJKm9LrrjRRkrUMg+UAYALyzqQrEIFnP8F8aItc0YUccKI0tIqt8Bm9r84xEaF
+         xbdg==
+X-Forwarded-Encrypted: i=1; AKwUvByilPLiLVGzkmvuQspV6aqCeRDOjdGVlZ1OwZFKF1Ve3asX2hdRdQG5V1eZ5HDrV+CoCf6sdeQ=@lists.linux.dev
+X-Gm-Message-State: AFuF++lckWmV2q57Z2mJS/K8aCnDUhYcSVnSljdfH9k7AcCYW00u/52t
+	iKZbvHgruIjFEailJp3pulzVPBX1gOzZpPcJZWKTlCWs8Bd8lLvGO9nzg4Hjh+U1PR0=
+X-Gm-Gg: AYBFou1+JkrWe/IeBdpW7QmGm+w28vXo+Jo12eF/BxL1jmY1Wh2PgI3KUpiydwgG0e7
+	2Nry0wwoETnkvQQOVpYqHyvQOIJaVNVumNXYkWM0Ya2woW4vb5xz1jsa8r7XDqTnXhwOcEyJt15
+	ev2YryO1sa1Cn47Gv6tIFrLbZHINkryy2lFhW4QEwPSbjiD5hgk4zHRaPMNkjIoZmEtdg28hhUR
+	3vHVKsaZHrA+xGzE8Bxk6Q4rTapv6hqQIHw+QiPFpaf12qYYSyiwqm/mppc1wKMMBizxYTcVMfT
+	vGyocigJLV5B+mAKjOEzC+2HHJmvh6m+3eBZ8fMMDvu1REdCM7nFwh6AGMqEG8vK/6BpbwF2cr1
+	T33cSz49AnhHv6/mUw/8tzi/cZBTOLUbhgH+mYHE0J05GLjvLVNTK0Dgja0QjMPegDJxy7OmPnA
+	si8em2dC8KN9lpbgynWSKisAijUY8ad/t//ynpKjuPQcyLCCkuUDYr+cw7cVF4Jb58uleMVwVC8
+	f/9X//xUdHIinBqebvviTGiGxHgKTzkcYdc3xsK3mzNh1GkY2c=
+X-Received: by 2002:a05:6830:2702:b0:800:d883:997f with SMTP id 46e09a7af769-803fec02e59mr471619a34.2.1789073724704;
+        Thu, 10 Sep 2026 13:55:24 -0700 (PDT)
+Received: from [127.0.0.1] ([96.43.243.2])
+        by smtp.gmail.com with ESMTPSA id 46e09a7af769-803f60fe54asm635779a34.15.2026.09.10.13.55.22
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 10 Sep 2026 13:55:23 -0700 (PDT)
+From: Jens Axboe <axboe@kernel.dk>
+To: Keith Busch <kbusch@kernel.org>, Christoph Hellwig <hch@lst.de>, 
+ Sagi Grimberg <sagi@grimberg.me>, linux-block@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, 
+ linux-fsdevel@vger.kernel.org, io-uring@vger.kernel.org, 
+ linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, 
+ linaro-mm-sig@lists.linaro.org, Pavel Begunkov <asml.silence@gmail.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>, 
+ Christian Brauner <brauner@kernel.org>, 
+ Andrew Morton <akpm@linux-foundation.org>, 
+ Sumit Semwal <sumit.semwal@linaro.org>, 
+ =?utf-8?q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
+ Nitesh Shetty <nj.shetty@samsung.com>, Kanchan Joshi <joshi.k@samsung.com>, 
+ Anuj Gupta <anuj20.g@samsung.com>, Tushar Gohad <tushar.gohad@intel.com>, 
+ William Power <william.power@intel.com>, 
+ Phil Cayton <phil.cayton@intel.com>, Damien Le Moal <dlemoal@kernel.org>, 
+ Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@kernel.org>, 
+ Mikulas Patocka <mpatocka@redhat.com>, 
+ Benjamin Marzinski <bmarzins@redhat.com>, 
+ Vishal Verma <vishal.l.verma@intel.com>, David Sterba <dsterba@suse.com>, 
+ Ilya Dryomov <idryomov@gmail.com>, dm-devel@lists.linux.dev, 
+ nvdimm@lists.linux.dev, linux-btrfs@vger.kernel.org, 
+ ceph-devel@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>
+In-Reply-To: <cover.1785596451.git.asml.silence@gmail.com>
+References: <cover.1785596451.git.asml.silence@gmail.com>
+Subject: Re: [PATCH v5 00/16] Add dmabuf read/write via io_uring
+Message-Id: <178907372259.484803.15807864431748251506.b4-ty@b4>
+Date: Thu, 10 Sep 2026 14:55:22 -0600
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15.2
 
-On Thu, 10 Sep 2026 10:58:05 +0200 "David Hildenbrand (Arm)" <david@kernel.org> wrote:
 
-> On 7/23/26 05:25, Gregory Price wrote:
-> > On Wed, Jul 22, 2026 at 05:19:42PM -0700, SJ Park wrote:
-> >> On Wed, 22 Jul 2026 08:16:56 -0400 Gregory Price <gourry@gourry.net> wrote:
-> >>
-> >>>
-> >>> See the damon changes in:
-> >>>
-> >>> https://lore.kernel.org/linux-mm/al-pkvmgIxGu3LzM@gourry-fedora-PF4VCD3F/T/#mfb99303c85dd9d4c3f58832dc28fc55583a7217a
-> >>
-> >> Summarizing what you want to say, quoting something from the patch, or at least
-> >> calling it "26th patch of this series" would have made reviewing much easier.
-> >> Cc-ing damon@ for only patches that toucing DAMON source files and the cover
-> >> letter of the series could also be helpful.  Please consider doing some of
-> >> these for future replies.
-> >>
-> > 
-> > I have been very much discouraged from this kind of trimming because it
-> > removes the context of the series from the individual patches - making it
-> > even more confusing.
+On Sat, 01 Aug 2026 16:46:12 +0100, Pavel Begunkov wrote:
+> The patch set allows to register a dmabuf to an io_uring instance for
+> a specified file and use it with io_uring read / write requests. The
+> infrastructure is not tied to io_uring and there could be more users
+> in the future. A similar idea was attempted some years ago by Keith [1]
+> (from where I borrowed a good number of changes). Later it was brough
+> back up to life by Tushar and Vishal.
 > 
-> Yes, 99% of upstream maintainers will scream at you if you CC them only on
-> individual patches :)
+> [...]
 
-I agree that not everyone would like selective Cc-ing, like I also replied.
-But the number might be changed after we got modern mailing archives and tools
-like lore (public-inbox)?
+Applied, thanks!
 
-At least for me, selective Cc-ing works better as long as the cover letter is
-Cc-ing all recipients of all patches.  I can understand the high level picture
-from the cover letter and directly jump to the specific patch that require my
-attention.  Of course the sender might failed at figuring out to which mails I
-really need to pay attention.  If the cover letter doesn't tell me some details
-or I feel the sender might not Cc-ed me on all the patches that require my
-attention, I can fetch the entire thread from lore (public-inbox).
+[01/16] dma-buf: introduce initial file I/O infrastructure
+        (no commit info)
+[02/16] iov_iter: add iterator type for dmabuf maps
+        (no commit info)
+[03/16] block: rename bi_bvec_done
+        (no commit info)
+[04/16] block: always adjust bi_offset on bio_advance_iter
+        (no commit info)
+[05/16] block: move bvec init into __bio_clone
+        (no commit info)
+[06/16] block: introduce bio_iov_iter_set()
+        (no commit info)
+[07/16] block: introduce dma map backed bio type
+        (no commit info)
+[08/16] block: add dma-buf support for raw bdev
+        (no commit info)
+[09/16] nvme-pci: implement dma-buf backed requests
+        (no commit info)
+[10/16] nvme-pci: rename nvme_pci_sgl_set_data to nvme_pci_dma_iter_set_sgl
+        (no commit info)
+[11/16] nvme-pci: add SGL support for the dmabuf path
+        (no commit info)
+[12/16] io_uring/rsrc: introduce buf registration structure
+        (no commit info)
+[13/16] io_uring/rsrc: extend buffer update
+        (no commit info)
+[14/16] io_uring/rsrc: add uncloneable regbuf flag
+        (no commit info)
+[15/16] io_uring/rsrc: add regbuf import flags
+        (no commit info)
+[16/16] io_uring/rsrc: add dmabuf backed registered buffers
+        (no commit info)
 
-Meanwhile, my private inbox have limited space and suboptimal UI.  Hence I use
-my private inbox as just an alarm and usually work on only public-inbox with a
-CLI tool.  Hence keeping noise in private inbox lower is more important to my
-specific workflow.  Again, my workflow may be very different from others.
+Best regards,
+-- 
+Jens Axboe
 
 
-Thanks,
-SJ
 
-[...]
