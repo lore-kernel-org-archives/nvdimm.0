@@ -1,132 +1,212 @@
-Received: from mail-wm2-f13.google.com (mail-wm2-f13.google.com [74.125.225.141])
+Received: from va-2-59.ptr.blmpb.com (va-2-59.ptr.blmpb.com [209.127.231.59])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9131647A87A
-	for <nvdimm@lists.linux.dev>; Sat, 12 Sep 2026 12:57:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.141
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1ED22345CCE
+	for <nvdimm@lists.linux.dev>; Sat, 12 Sep 2026 14:21:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.127.231.59
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789217867; cv=none; b=EzY9/qkTMpYuCnTxqUWBizQkKwRykmXPP7+mn8PZVP9J1qVXQsKARTwjyCGa7FceEYQLnRO6i/tIpmqnam5TggGzyQrfNSA3VUP0fULsGbP+2I0vD8arj8ewGJpWuanzJqpZ8nQZEabIAEf8GwZ7heJnbgea9oAL0Sd6Gi2Wzco=
+	t=1789222908; cv=none; b=ARBJ2fpPdVA2LzO3AdV7oFszFZqDpCXaY/ntGYP4ebIFC3QJ2qFXKCA9R5HJF19afUGyk5LDZZhmS8k/HmlLcQi09Bx5WEZON1V//F7gBVchmAq4xgVzQFiqi30T1dJuEyYETePFRRYAy/YoEBoAU+7Wp/xRjTTbcS/ATa6Kn5A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789217867; c=relaxed/simple;
-	bh=6N0ifHQ8O4u0BOZ6EF0w79HnCW/yPo/3nI3uyCXuO9A=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=UlpBQ8cj8bVrKfXHUyp0gbnY8Lbhmg/E8qRQFSg9Wn4zH69IpPFUyBc//TyZMW5Btb6AIQ4Mz/SFyYxSC7v7jfUQcpXq8LCDEeCZuDZuVxNvjIX9yZOZVYVOBSbhJ5Pap9NoRPm91lt/mdsP312Bt3TXHhra1Ph2MGc56jhL2JI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ZFoxWQka; arc=none smtp.client-ip=74.125.225.141
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1789222908; c=relaxed/simple;
+	bh=0wX6hOxSyzv13NfzbyN+AEPTOtfdE4C+hpqJPodyllQ=;
+	h=Subject:Mime-Version:Date:From:Content-Type:In-Reply-To:To:Cc:
+	 Message-Id:References; b=kqqkavGRAsj+Qov2dcN64uREx8fkSBlLzTTC0+kEBXTTMK5QHPms918ejBdfs7esRuBfQsSRndUaTqaajGl0OjV7xFy6EaXLrlucpgtfwlSYRCi3oHPav7iV2cMDGI0P4t0Ar4aES2Wwsd/odvsBVZWjhJWpUnCYxnGm56RU3e0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fygo.io; spf=pass smtp.mailfrom=fygo.io; dkim=pass (2048-bit key) header.d=fygo-io.20200929.dkim.larksuite.com header.i=@fygo-io.20200929.dkim.larksuite.com header.b=UGldNLs5; arc=none smtp.client-ip=209.127.231.59
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fygo.io
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fygo.io
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZFoxWQka"
-Received: by mail-wm2-f13.google.com with SMTP id 5b1f17b1804b1-49ccf3ca94bso2009335e9.3
-        for <nvdimm@lists.linux.dev>; Sat, 12 Sep 2026 05:57:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1789217863; x=1789822663; darn=lists.linux.dev;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=fAOw7eoVc0zYvL/f6e+XZRwdegk97u7KcjQYPN92otE=;
-        b=ZFoxWQkamFhrFXp7jZ4mhdRb1Rk7TaFuq3SG1J1lngZToCMRgrm0o7s6uPfRljivY5
-         EwN1mCxNUqN6CjflZRTfhdpd/J0N1FJXEiakTrFY1p9dgL5Vd7q568P6i2DLQM6WLUHi
-         RwpJfamHx7Z9YT0y3/PXG8tZoyYvBLSHVE0SUDMvB3xG1AEdgDvxgre8xGWdYpoKDa39
-         LYexEo9Zc3jGustipLJCdxo4LVH6omH+qqLtTUprTobuMTK7IGjTL2tMoT8atQKUjsk8
-         TLoCfSYHPjvNB1PbLQxQpEPApkhL+b5dmYcgoi6Neh4X1TNe803Yd86HWjbZh0P+4l6C
-         p03w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1789217863; x=1789822663;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=fAOw7eoVc0zYvL/f6e+XZRwdegk97u7KcjQYPN92otE=;
-        b=lARQtB48njVKcQWv2RodhAoK/zVsjF0Z14yNq5DL3bhoFf4svxBG+8Nnjz2f2sV+oe
-         rOcbqDetYueT6lhhUyzrfLst+8DKJheRMo2rheRIpfpNL3afqLuB2lquyiKIg/IZTx9y
-         lmHwLRIqDwGI+WZuP2hS+prLo8bu/dU9YHXfXaqDjQZfMXj6lU5E0iaeFqVo07okqr0C
-         ox38LScrlMWXx8xNjd2HLKIk7vU7JoB6ngYPY9IA33Mp7srENf+9SzdtyozXbC9/8DkP
-         V9rN3iknVeFmBrQJX1+8b+gdslkjP6WGB7rZ52h5Kx4LhWOVi85vqvJOiBtwa7FsdScP
-         +JqQ==
-X-Forwarded-Encrypted: i=1; AKwUvBy0wrJm2IA0hb/zXs9LCPv+yHRXhD+rL8DI9zCm+0PR9PFizx5YdqPaJpCXsJZVdPEy5abfgsY=@lists.linux.dev
-X-Gm-Message-State: AFuF++mu8LV5gY58/QwHJIv2VM1knL1idSre8SxQv2xdfX/kLPQIAgsP
-	Hw32Flk+x3Ul0FpRGX1sX2nSZx2rfwdZjE1J/lMtPapAN2Qute8gSWeM
-X-Gm-Gg: AYBFou3uPsxiH4MKi+Ntm3HV35eMRAWAxZOYY1yv0o2sw7mEaIEQZTOufoNffy6eQyM
-	IYSbDDYWN9GxtUcv3EGJOOjNBTmMduTLfa+IUjmGjjpoqD9mKQxyWhPxp8XB/v5kbNuK2KBJRmN
-	J0Whwm5lZAbTtyvRs0A3bfA4NcFcwpadLvuQ/s92twgRj+hgRLO/8FI5DJWgAtqNLOrV4CK1VZ2
-	ZkGapR81LiuG+ZMgbRr3mzQDTZxoZzkoaQa9gVOG0ts5yvZRzHzvWXG5rd4uxOOKABO223pKdP/
-	lVrEGQN18WCU7ETZ3+G7WynV4zPYGsX5woq9+38vvcJIHjSIhQVq227o3slXOKG5oIcRp6rqlc9
-	4AzO4M8CvlFOVRKOtf64h08n6Q8++dTMHmCgw/5z0VGxG5WQ5BOewWoHH72FZTA1xmjLi68kS6i
-	TqpfpZWLt/zeJm/o7LC5AYQeNpQjZH9yfWcy8kdOtWFvVPBTIAU1zQGwTxjTI8kqScCPyLdwaAH
-	VN5pV/Qbsbfo5FBG8K8d9tIoKlIfsAMdSv33/WH9qN2rwIG+95XuKkN7SxN+fsoMLhPUqDIIiuG
-	m9FGZwAMxNp9C64TTQMnOwRBrGo=
-X-Received: by 2002:a05:600c:6812:b0:49d:1d7e:4085 with SMTP id 5b1f17b1804b1-49e6cbec30dmr21535245e9.22.1789217862965;
-        Sat, 12 Sep 2026 05:57:42 -0700 (PDT)
-Received: from [10.192.161.217] (82-132-213-27.dab.02.net. [82.132.213.27])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-486eb32e7f5sm12751635f8f.9.2026.09.12.05.57.39
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sat, 12 Sep 2026 05:57:42 -0700 (PDT)
-Message-ID: <0c787163-dd07-4389-b9d5-916b8753f388@gmail.com>
-Date: Sat, 12 Sep 2026 13:57:37 +0100
+	dkim=pass (2048-bit key) header.d=fygo-io.20200929.dkim.larksuite.com header.i=@fygo-io.20200929.dkim.larksuite.com header.b="UGldNLs5"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+ s=s1; d=fygo-io.20200929.dkim.larksuite.com; t=1789222897;
+  h=from:subject:mime-version:from:date:message-id:subject:to:cc:
+ reply-to:content-type:mime-version:in-reply-to:message-id;
+ bh=m4/pESkF5aOOEVFDthMDfJ73cy1uGXqcU5VDQUIbEYU=;
+ b=UGldNLs5R+8hoPWBCmTD+McM5Lu8GHuFFxsmAmDuGrVLgTG7E9C0LBRQSirs7xt/2EJDwa
+ MpkQdDwP6+tg/xRfQJz06LqsuuwEGE1G8V1M/vDR/gVJeGWeWyVYUi8CbcSAiYrs8dwL1S
+ H5WrG0RhB1nnSdMfCNZEjrEgqOrXZ4rWyP4w8cUygCNxY3Sa97c10ob+L8OOlkylzKKnxQ
+ /B0Ky1v9kHB/rknQECUEC8/bx/mXrCnIkoe8x/3T/U9gowiymL3x1DGXVF9dQGIqNWLTBq
+ bMThFbPAPYcXsLS9ztGL8N/N5LLnQZsBtnSl3BTxJry0yWA7JeGYzv2Md+2UrQ==
+X-Lms-Return-Path: <lba+26aa55ff0+6b59bd+lists.linux.dev+yukuai@fygo.io>
+Subject: Re: [PATCH 2/3] blk-cgroup: store blkcg in bio instead of blkg
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
+Mime-Version: 1.0
+Received: from [192.168.1.104] ([39.182.0.161]) by smtp.larksuite.com with ESMTPS; Sat, 12 Sep 2026 14:21:35 +0000
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5 00/16] Add dmabuf read/write via io_uring
-To: Jens Axboe <axboe@kernel.dk>, Keith Busch <kbusch@kernel.org>,
- Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>,
- linux-block@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-nvme@lists.infradead.org, linux-fsdevel@vger.kernel.org,
- io-uring@vger.kernel.org, linux-media@vger.kernel.org,
- dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>,
- Andrew Morton <akpm@linux-foundation.org>,
- Sumit Semwal <sumit.semwal@linaro.org>,
- =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
- Nitesh Shetty <nj.shetty@samsung.com>, Kanchan Joshi <joshi.k@samsung.com>,
- Anuj Gupta <anuj20.g@samsung.com>, Tushar Gohad <tushar.gohad@intel.com>,
- William Power <william.power@intel.com>, Phil Cayton
- <phil.cayton@intel.com>, Damien Le Moal <dlemoal@kernel.org>,
- Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@kernel.org>,
- Mikulas Patocka <mpatocka@redhat.com>,
- Benjamin Marzinski <bmarzins@redhat.com>,
- Vishal Verma <vishal.l.verma@intel.com>, David Sterba <dsterba@suse.com>,
- Ilya Dryomov <idryomov@gmail.com>, dm-devel@lists.linux.dev,
- nvdimm@lists.linux.dev, linux-btrfs@vger.kernel.org,
- ceph-devel@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>
-References: <cover.1785596451.git.asml.silence@gmail.com>
- <178907372259.484803.15807864431748251506.b4-ty@b4>
- <eb469580-509a-4895-a819-e7f3e4fa0b0a@kernel.dk>
-Content-Language: en-US
-From: Pavel Begunkov <asml.silence@gmail.com>
-In-Reply-To: <eb469580-509a-4895-a819-e7f3e4fa0b0a@kernel.dk>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Date: Sat, 12 Sep 2026 22:21:28 +0800
+Content-Transfer-Encoding: quoted-printable
+X-Original-From: yu kuai <yukuai@fygo.io>
+From: "yu kuai" <yukuai@fygo.io>
+Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <a123f309-6ec7-470f-b5b0-f08cca6d2627@linux.ibm.com>
+Reply-To: yukuai@fygo.io
+To: "Nilay Shroff" <nilay@linux.ibm.com>, "Jens Axboe" <axboe@kernel.dk>, 
+	"Tejun Heo" <tj@kernel.org>, "Josef Bacik" <josef@toxicpanda.com>, 
+	"Johannes Weiner" <hannes@cmpxchg.org>, 
+	=?utf-8?q?Michal_Koutn=C3=BD?= <mkoutny@suse.com>, 
+	"yu kuai" <yukuai@fygo.io>
+Cc: "Christoph Hellwig" <hch@lst.de>, "Tao Cui" <cui.tao@linux.dev>, 
+	"Jan Kara" <jack@suse.cz>, "Jonathan Corbet" <corbet@lwn.net>, 
+	"Shuah Khan" <skhan@linuxfoundation.org>, "Coly Li" <colyli@fygo.io>, 
+	"Kent Overstreet" <kent.overstreet@linux.dev>, 
+	"Alasdair Kergon" <agk@redhat.com>, "Mike Snitzer" <snitzer@kernel.org>, 
+	"Mikulas Patocka" <mpatocka@redhat.com>, 
+	"Benjamin Marzinski" <bmarzins@redhat.com>, "Song Liu" <song@kernel.org>, 
+	"Li Nan" <magiclinan@didiglobal.com>, "Xiao Ni" <xiao@kernel.org>, 
+	"Pankaj Gupta" <pankaj.gupta.linux@gmail.com>, 
+	"Dan Williams" <djbw@kernel.org>, 
+	"Vishal Verma" <vishal.l.verma@intel.com>, 
+	"Dave Jiang" <dave.jiang@intel.com>, 
+	"Alison Schofield" <alison.schofield@intel.com>, 
+	"Ira Weiny" <iweiny@kernel.org>, 
+	"Andreas Gruenbacher" <agruenba@redhat.com>, 
+	"Matthew Wilcox" <willy@infradead.org>, 
+	"Andrew Morton" <akpm@linux-foundation.org>, 
+	"Chris Li" <chrisl@kernel.org>, "Kairui Song" <kasong@tencent.com>, 
+	"Kemeng Shi" <shikemeng@huaweicloud.com>, 
+	"Nhat Pham" <nphamcs@gmail.com>, "Baoquan He" <baoquan.he@linux.dev>, 
+	"Barry Song" <baohua@kernel.org>, 
+	"Youngjun Park" <youngjun.park@lge.com>, <cgroups@vger.kernel.org>, 
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>, 
+	<linux-block@vger.kernel.org>, <linux-bcache@vger.kernel.org>, 
+	<dm-devel@lists.linux.dev>, <linux-raid@vger.kernel.org>, 
+	<nvdimm@lists.linux.dev>, <virtualization@lists.linux.dev>, 
+	<gfs2@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>, 
+	<linux-mm@kvack.org>
+Message-Id: <4701cbcb-b877-4902-a5b6-59836c345ae1@fygo.io>
+References: <20260823133045.970199-1-yukuai@kernel.org> <20260823133045.970199-3-yukuai@kernel.org> <49d724b8-57c6-48fc-8099-69cd1b072351@linux.ibm.com> <befbc177-f7f5-4c44-b02e-20a99fc64c0c@fygo.io> <a123f309-6ec7-470f-b5b0-f08cca6d2627@linux.ibm.com>
 
-On 9/10/26 21:58, Jens Axboe wrote:
-> On 9/10/26 2:55 PM, Jens Axboe wrote:
+Hi,
+
+=E5=9C=A8 2026/9/7 14:02, Nilay Shroff =E5=86=99=E9=81=93:
+> On 9/6/26 5:09 PM, yu kuai wrote:
+>> Hi,
 >>
->> On Sat, 01 Aug 2026 16:46:12 +0100, Pavel Begunkov wrote:
->>> The patch set allows to register a dmabuf to an io_uring instance for
->>> a specified file and use it with io_uring read / write requests. The
->>> infrastructure is not tied to io_uring and there could be more users
->>> in the future. A similar idea was attempted some years ago by Keith [1]
->>> (from where I borrowed a good number of changes). Later it was brough
->>> back up to life by Tushar and Vishal.
+>> =E5=9C=A8 2026/9/6 18:56, Nilay Shroff =E5=86=99=E9=81=93:
+>>> On 8/23/26 7:00 PM, Yu Kuai wrote:
+>>>> @@ -257,20 +262,21 @@ static inline bool
+>>>> bio_issue_as_root_blkg(struct bio *bio)
+>>>> =C2=A0=C2=A0=C2=A0 * @blkcg: blkcg of interest
+>>>> =C2=A0=C2=A0=C2=A0 * @q: request_queue of interest
+>>>> =C2=A0=C2=A0=C2=A0 *
+>>>> =C2=A0=C2=A0=C2=A0 * Lookup a blkg for the @blkcg - @q pair, whether i=
+t is online or
+>>>> dying.
+>>>> =C2=A0=C2=A0=C2=A0 *
+>>>> - * Must be called in a RCU critical section.
+>>>> + * Must be called with either RCU read lock or queue_lock held.
+>>>> =C2=A0=C2=A0=C2=A0 *
+>>>> =C2=A0=C2=A0=C2=A0 * This does not acquire a reference.=C2=A0 The call=
+er must already hold
+>>>> one, or
+>>>> =C2=A0=C2=A0=C2=A0 * have the blkg pinned by I/O.
+>>>> =C2=A0=C2=A0=C2=A0 */
+>>>> =C2=A0=C2=A0 static inline struct blkcg_gq *blkg_lookup_any(struct blk=
+cg *blkcg,
+>>>> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 struct request_queue *q)
+>>>> =C2=A0=C2=A0 {
+>>>> -=C2=A0=C2=A0=C2=A0 RCU_LOCKDEP_WARN(!rcu_read_lock_held(),
+>>>> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0 "blkg_lookup_any() requires an RCU read lock");
+>>>> +=C2=A0=C2=A0=C2=A0 RCU_LOCKDEP_WARN(!rcu_read_lock_held() &&
+>>>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0 !lockdep_is_held(&q->queue_lock),
+>>>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0 "blkg_lookup_any() requires an RCU read lock or
+>>>> queue_lock");
+>>>> =C2=A0=C2=A0 =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 return rhashtable_lookup(&=
+q->blkg_hash, &blkcg->css.id,
+>>>> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 blkg_hash_params);
+>>>> =C2=A0=C2=A0 }
 >>>
->>> [...]
+>>> The changes look good to me. However, rhashtable_lookup() is annotated
+>>> with __must_hold_shared(RCU). Since we now officially support Clang
+>>> context annotations in the block layer, compiling with the latest
+>>> Clang/LLVM generates a number of context warnings, for example:
+>>>
+>>> block/blk-cgroup.h:277:9: warning: calling function 'rhashtable_lookup'
+>>> requires holding __ctx_lock_RCU 'RCU' [-Wthread-safety-analysis]
+>>> =C2=A0=C2=A0 277 |=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 retu=
+rn rhashtable_lookup(&q->blkg_hash,=20
+>>> &blkcg->css.id,
+>>> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 |=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 ^
+>>>
+>>> The same warning is reported from several other block layer source
+>>> files that include blk-cgroup.h.
+>>>
+>>> This indicates that rhashtable_lookup() requires the RCU read lock
+>>> from Clang's context-analysis perspective. Looking at the call paths of
+>>> blkg_lookup_any(), it appears that not all callers hold
+>>> rcu_read_lock() when invoking it.
 >>
->> Applied, thanks!
-> 
-> Eh no it is not applied, was just looking at the series locally and I
-> guess it got added to the b4 ty pile.
-> 
-> I am, however, wondering if we'll see a v6 of this soon? I had some
-> comments on the nvme dma mapping, that can be improved, but I'd rather
-> defer that to post getting this included.
+>> I was not aware of the above clang warning, this should not be a real=20
+>> problem
+>> because queue_lock should have the same protection as rcu, and I was=20
+>> trying
+>> not to make this patch too complex.
+>>
+> I agree that this is not a runtime correctness issue when the lookup=20
+> is already
+> protected by q->queue_lock.
+>
+>> I add the rcu_read_lock() in the following patch to covert queue_lock=20
+>> to blkcg_mutex:
+>>
+>> [RFC PATCH v3 3/6] blk-cgroup: protect blkgs with blkcg_mutex - Yu=20
+>> Kuai=20
+>> <https://lore.kernel.org/all/20260823152926.1043863-4-yukuai@kernel.org/=
+>
+>>
+>> Since this is related to compile warning, I'll move the rcu=20
+>> protection to this
+>> patch.
+>>
+> Since rhashtable_lookup() is annotated with __must_hold_shared(RCU),=20
+> Clang's
+> context analysis still reports warnings for these call paths. While this
+> doesn't cause a build failure (and only generates warning) when=20
+> CONFIG_WERROR
+> is not enabled, it could do so for configurations that enable=20
+> CONFIG_WERROR=3Dy.
+>
+> So IMO, moving the rcu_read_lock() protection into this patch makes=20
+> sense.
+> This would avoid introducing the Clang warnings/errors in this patch,=20
+> and then
+> you may accordingly adjust your subsequent series where the=20
+> q->queue_lock protection
+> is removed and the blkg lookup paths are protected by RCU.
+>
+> I also noticed that some paths already take q->queue_lock followed by=20
+> rcu_read_lock(),
+> so adding the RCU protection here should be consistent with those=20
+> existing paths.
 
-Working on it
+Turns out Clang will still warn after adding rcu_read_lock(). I'm not famil=
+iar how this
+works, but AI told me this is related to inline helpers, And I'll have to a=
+dd the same
+__must_hold_shared(RCU) in rhashtable_lookup() for following inline callers=
+ to kill the
+warning:
 
--- 
-Pavel Begunkov
+   static inline struct blkcg_gq *blkg_lookup_any(...)
+         __must_hold_shared(RCU);
 
+   static inline struct blkcg_gq *blkg_lookup(...)
+         __must_hold_shared(RCU);
+
+>
+> Thanks,
+> --Nilay
+
+--=20
+Thanks,
+Kuai
