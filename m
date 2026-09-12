@@ -1,163 +1,132 @@
-Received: from mail-pj2-f12.google.com (mail-pj2-f12.google.com [74.125.227.140])
+Received: from mail-wm2-f13.google.com (mail-wm2-f13.google.com [74.125.225.141])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69DB0449B11
-	for <nvdimm@lists.linux.dev>; Fri, 11 Sep 2026 08:25:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.140
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9131647A87A
+	for <nvdimm@lists.linux.dev>; Sat, 12 Sep 2026 12:57:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.141
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789115152; cv=none; b=suQEzHmtUAo5D9qnTIrFvYTWLPDtHjLdKKPe9HyO32HIo8/8V00ZvD03DC+mMLJUK6Owc2RmJ6sgqn+nd7IDDOPdE2DHTSgsMEAHeaMhrVWKV4VBSli5WsltxnYULpOA1kV7mg6Yn4NZtF0b6HOwc/gwIgV7T2jmtZHYEL9rEjs=
+	t=1789217867; cv=none; b=EzY9/qkTMpYuCnTxqUWBizQkKwRykmXPP7+mn8PZVP9J1qVXQsKARTwjyCGa7FceEYQLnRO6i/tIpmqnam5TggGzyQrfNSA3VUP0fULsGbP+2I0vD8arj8ewGJpWuanzJqpZ8nQZEabIAEf8GwZ7heJnbgea9oAL0Sd6Gi2Wzco=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789115152; c=relaxed/simple;
-	bh=k4LK5lbS3gaSrE0kwk0ec7AUi1syZRYY0+qgG0SlrdE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=nvSUkbQhAGCq5YBvHcOHdErZCv53swcrvTMQG50lBEqCeHtLoLLxURCJw1/z00FQ/2n7Z4jzA9dCr4wz23EO2udiUYXnsM6t9TKUaG2wI+Q3lLvy9bd6o6KWhZoESMwa5W7Hpebirv1MNG3B4jYPdH5N9kxg9XZvP9/4nlA94GE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=WBCwYWu4; arc=none smtp.client-ip=74.125.227.140
+	s=arc-20240116; t=1789217867; c=relaxed/simple;
+	bh=6N0ifHQ8O4u0BOZ6EF0w79HnCW/yPo/3nI3uyCXuO9A=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=UlpBQ8cj8bVrKfXHUyp0gbnY8Lbhmg/E8qRQFSg9Wn4zH69IpPFUyBc//TyZMW5Btb6AIQ4Mz/SFyYxSC7v7jfUQcpXq8LCDEeCZuDZuVxNvjIX9yZOZVYVOBSbhJ5Pap9NoRPm91lt/mdsP312Bt3TXHhra1Ph2MGc56jhL2JI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ZFoxWQka; arc=none smtp.client-ip=74.125.225.141
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WBCwYWu4"
-Received: by mail-pj2-f12.google.com with SMTP id 98e67ed59e1d1-398c066106cso491588a91.1
-        for <nvdimm@lists.linux.dev>; Fri, 11 Sep 2026 01:25:50 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZFoxWQka"
+Received: by mail-wm2-f13.google.com with SMTP id 5b1f17b1804b1-49ccf3ca94bso2009335e9.3
+        for <nvdimm@lists.linux.dev>; Sat, 12 Sep 2026 05:57:45 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1789115149; x=1789719949; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=Hh1hhSShntFbj0qIbpZ5cz58KTjWdr8vsIozL/BHi18=;
-        b=WBCwYWu4gCI3zi9MdBKRCKn9O0Fc+uHUvBz6VIGR/XU+PuDohfB3jVGEeRuqx2Le2J
-         btNvDY6sbcVnuPq0CVbA57r/KNjOEePGLbw4e74C67vQLyPurSxZB4Bw4Av0/HWkpT5E
-         72Aww+XUGEBFeRNlqsyTMZ1NzZuHJLfAJEf/I8ThlAiSVnFdbCG2b6nQlNOMkhvuJN3V
-         rRKDC5LRN5koIbGZh0GciKzCCWTSRun1KMXBhPSHVLX3/+6HX7Cjh6d0E8XP4hH418PH
-         hjWM0Sx2dA/ion/yTONjrDS5szfLHbH2tZz+ywHNotglWw/47O5WlW4d3NQ3QZVWLIny
-         kjLw==
+        d=gmail.com; s=20251104; t=1789217863; x=1789822663; darn=lists.linux.dev;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=fAOw7eoVc0zYvL/f6e+XZRwdegk97u7KcjQYPN92otE=;
+        b=ZFoxWQkamFhrFXp7jZ4mhdRb1Rk7TaFuq3SG1J1lngZToCMRgrm0o7s6uPfRljivY5
+         EwN1mCxNUqN6CjflZRTfhdpd/J0N1FJXEiakTrFY1p9dgL5Vd7q568P6i2DLQM6WLUHi
+         RwpJfamHx7Z9YT0y3/PXG8tZoyYvBLSHVE0SUDMvB3xG1AEdgDvxgre8xGWdYpoKDa39
+         LYexEo9Zc3jGustipLJCdxo4LVH6omH+qqLtTUprTobuMTK7IGjTL2tMoT8atQKUjsk8
+         TLoCfSYHPjvNB1PbLQxQpEPApkhL+b5dmYcgoi6Neh4X1TNe803Yd86HWjbZh0P+4l6C
+         p03w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1789115149; x=1789719949;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=1e100.net; s=20251104; t=1789217863; x=1789822663;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=Hh1hhSShntFbj0qIbpZ5cz58KTjWdr8vsIozL/BHi18=;
-        b=GoJeyF1r2raC7bLdsdK3jgMDy1FdndKgXn8zJDI+1j15VKxY78WX2sBkhjegLCuz4w
-         tz0J7yZDc+iZTqE3W/EcI1aep95GumlortLNHIjThtzD/Rma4rKb9lmkmpuP3NiyoTHm
-         tQAzarBiBEXfo/0+4GzgP0RfLIq2UVKQ48qs9cqGXgJifZEyZDT5x4BGmvGD6Mwah/jO
-         +3x8mg8ig06VufMkxzUfV9gEfYmwlLwy3b/rrLAbgw7CGdmUICtTx2ZQStqfv+YNuAho
-         tABp0lwhmq4xhIHe0pr11dJrUkUTKj7PXkY4imiXOWpMIh8WQeLO9hcOsdd5wApyUYYi
-         J+Yw==
-X-Forwarded-Encrypted: i=1; AKwUvByTy6bQtPwF6W3K8uqWPhUBY54n8Y5lLR8AKom2Jw6povjIJKRM95cSdO+aVBvtl/WB3OsOp3c=@lists.linux.dev
-X-Gm-Message-State: AFuF++kSHsWFX5ZSeyWv0rI4UAsVt98oRe/3RCuwWIDxKiFKLJCHBV8v
-	29rDqw+YGrIrw8+x8ZvYXx1y4610F3V0rYXO2LXCcr0ors8uk+vXKlER
-X-Gm-Gg: AYBFou0BoQpAgqw07ns0R7vfwZEEu9+sx/CA96ucsjXp0qR+wrHTcrmx0xaQqQB1g2G
-	E6KUcNix0ujJMbR3lkUXTL2NMjXQYAZXWEY+JnL+XL/qLFLNUsO8EyYXuxuPX+/YvkJtdnKzZTt
-	zZ0USxmT+nXFafuAVVTic4VdTESq2K7r698uyKR5zIKt57uoLzBXOMDQlv7QjBUEW/viyXjoxdx
-	IKB50yWAAieAwbd/zGWJhQlM2l7UvMuJ9BD/CRAJIKxfcHdR1jVBuzkTYWClUT82pemyhRZ5pPu
-	Z5FHe2vvngaiurhUsyjNbBoSqPuGjQmzdndLtZrGr3uhN6nFkmMiwW6DSfhQs6cZ5jME/Cx1OyR
-	fGac5lfHz7WKhAj8+IsYEH8EYeRD/7hocHl+CUD5RIgL/lPd3q4WoZwNsIFwLXY1U82ncSORZpX
-	UJe/LpXgil/twG93ZajYH/Dpm9PTxtzKn+9QdrbxXD1Gf4uRh1EaaUV/Fay1FkeaioCWt4C8iU2
-	Nzx3L/+1mI5FnOhyfq2Ef3UJg==
-X-Received: by 2002:a17:90b:4ad2:b0:398:9be6:f996 with SMTP id 98e67ed59e1d1-39d9c34a241mr4653694a91.21.1789115149333;
-        Fri, 11 Sep 2026 01:25:49 -0700 (PDT)
-Received: from volcano9f6e-hostos.amd.com ([165.204.217.251])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-14365b8137fsm4795964c88.9.2026.09.11.01.25.46
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 11 Sep 2026 01:25:48 -0700 (PDT)
-From: Hemanth Selam <hemanth.selam@gmail.com>
-To: Dan Williams <djbw@kernel.org>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>
-Cc: Ira Weiny <ira.weiny@intel.com>,
-	nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v2] nvdimm/pmem: Release gendisk on probe failure
-Date: Fri, 11 Sep 2026 13:55:43 +0530
-Message-ID: <20260911082543.473670-1-hemanth.selam@gmail.com>
-X-Mailer: git-send-email 2.48.1
+        bh=fAOw7eoVc0zYvL/f6e+XZRwdegk97u7KcjQYPN92otE=;
+        b=lARQtB48njVKcQWv2RodhAoK/zVsjF0Z14yNq5DL3bhoFf4svxBG+8Nnjz2f2sV+oe
+         rOcbqDetYueT6lhhUyzrfLst+8DKJheRMo2rheRIpfpNL3afqLuB2lquyiKIg/IZTx9y
+         lmHwLRIqDwGI+WZuP2hS+prLo8bu/dU9YHXfXaqDjQZfMXj6lU5E0iaeFqVo07okqr0C
+         ox38LScrlMWXx8xNjd2HLKIk7vU7JoB6ngYPY9IA33Mp7srENf+9SzdtyozXbC9/8DkP
+         V9rN3iknVeFmBrQJX1+8b+gdslkjP6WGB7rZ52h5Kx4LhWOVi85vqvJOiBtwa7FsdScP
+         +JqQ==
+X-Forwarded-Encrypted: i=1; AKwUvBy0wrJm2IA0hb/zXs9LCPv+yHRXhD+rL8DI9zCm+0PR9PFizx5YdqPaJpCXsJZVdPEy5abfgsY=@lists.linux.dev
+X-Gm-Message-State: AFuF++mu8LV5gY58/QwHJIv2VM1knL1idSre8SxQv2xdfX/kLPQIAgsP
+	Hw32Flk+x3Ul0FpRGX1sX2nSZx2rfwdZjE1J/lMtPapAN2Qute8gSWeM
+X-Gm-Gg: AYBFou3uPsxiH4MKi+Ntm3HV35eMRAWAxZOYY1yv0o2sw7mEaIEQZTOufoNffy6eQyM
+	IYSbDDYWN9GxtUcv3EGJOOjNBTmMduTLfa+IUjmGjjpoqD9mKQxyWhPxp8XB/v5kbNuK2KBJRmN
+	J0Whwm5lZAbTtyvRs0A3bfA4NcFcwpadLvuQ/s92twgRj+hgRLO/8FI5DJWgAtqNLOrV4CK1VZ2
+	ZkGapR81LiuG+ZMgbRr3mzQDTZxoZzkoaQa9gVOG0ts5yvZRzHzvWXG5rd4uxOOKABO223pKdP/
+	lVrEGQN18WCU7ETZ3+G7WynV4zPYGsX5woq9+38vvcJIHjSIhQVq227o3slXOKG5oIcRp6rqlc9
+	4AzO4M8CvlFOVRKOtf64h08n6Q8++dTMHmCgw/5z0VGxG5WQ5BOewWoHH72FZTA1xmjLi68kS6i
+	TqpfpZWLt/zeJm/o7LC5AYQeNpQjZH9yfWcy8kdOtWFvVPBTIAU1zQGwTxjTI8kqScCPyLdwaAH
+	VN5pV/Qbsbfo5FBG8K8d9tIoKlIfsAMdSv33/WH9qN2rwIG+95XuKkN7SxN+fsoMLhPUqDIIiuG
+	m9FGZwAMxNp9C64TTQMnOwRBrGo=
+X-Received: by 2002:a05:600c:6812:b0:49d:1d7e:4085 with SMTP id 5b1f17b1804b1-49e6cbec30dmr21535245e9.22.1789217862965;
+        Sat, 12 Sep 2026 05:57:42 -0700 (PDT)
+Received: from [10.192.161.217] (82-132-213-27.dab.02.net. [82.132.213.27])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-486eb32e7f5sm12751635f8f.9.2026.09.12.05.57.39
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sat, 12 Sep 2026 05:57:42 -0700 (PDT)
+Message-ID: <0c787163-dd07-4389-b9d5-916b8753f388@gmail.com>
+Date: Sat, 12 Sep 2026 13:57:37 +0100
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v5 00/16] Add dmabuf read/write via io_uring
+To: Jens Axboe <axboe@kernel.dk>, Keith Busch <kbusch@kernel.org>,
+ Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>,
+ linux-block@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-nvme@lists.infradead.org, linux-fsdevel@vger.kernel.org,
+ io-uring@vger.kernel.org, linux-media@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Sumit Semwal <sumit.semwal@linaro.org>,
+ =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+ Nitesh Shetty <nj.shetty@samsung.com>, Kanchan Joshi <joshi.k@samsung.com>,
+ Anuj Gupta <anuj20.g@samsung.com>, Tushar Gohad <tushar.gohad@intel.com>,
+ William Power <william.power@intel.com>, Phil Cayton
+ <phil.cayton@intel.com>, Damien Le Moal <dlemoal@kernel.org>,
+ Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@kernel.org>,
+ Mikulas Patocka <mpatocka@redhat.com>,
+ Benjamin Marzinski <bmarzins@redhat.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, David Sterba <dsterba@suse.com>,
+ Ilya Dryomov <idryomov@gmail.com>, dm-devel@lists.linux.dev,
+ nvdimm@lists.linux.dev, linux-btrfs@vger.kernel.org,
+ ceph-devel@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>
+References: <cover.1785596451.git.asml.silence@gmail.com>
+ <178907372259.484803.15807864431748251506.b4-ty@b4>
+ <eb469580-509a-4895-a819-e7f3e4fa0b0a@kernel.dk>
+Content-Language: en-US
+From: Pavel Begunkov <asml.silence@gmail.com>
+In-Reply-To: <eb469580-509a-4895-a819-e7f3e4fa0b0a@kernel.dk>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-pmem_attach_disk() allocates the gendisk with blk_alloc_disk() and hands
-it to devres only once device_add_disk() has succeeded.  Until that
-point the probe path owns the disk itself, which is why every failure
-after the allocation jumps to the out: label and puts it there.
+On 9/10/26 21:58, Jens Axboe wrote:
+> On 9/10/26 2:55 PM, Jens Axboe wrote:
+>>
+>> On Sat, 01 Aug 2026 16:46:12 +0100, Pavel Begunkov wrote:
+>>> The patch set allows to register a dmabuf to an io_uring instance for
+>>> a specified file and use it with io_uring read / write requests. The
+>>> infrastructure is not tied to io_uring and there could be more users
+>>> in the future. A similar idea was attempted some years ago by Keith [1]
+>>> (from where I borrowed a good number of changes). Later it was brough
+>>> back up to life by Tushar and Vishal.
+>>>
+>>> [...]
+>>
+>> Applied, thanks!
+> 
+> Eh no it is not applied, was just looking at the series locally and I
+> guess it got added to the b4 ty pile.
+> 
+> I am, however, wondering if we'll see a v6 of this soon? I had some
+> comments on the nvme dma mapping, that can be improved, but I'd rather
+> defer that to post getting this included.
 
-The devm_init_badblocks() failure returns directly instead, so the disk
-allocated a few lines earlier is never released.  Nothing releases it
-afterwards either: the devres action that would have done so has not
-been registered yet, so unbinding the namespace or destroying it does
-not reach the disk, and it stays allocated along with its queue and its
-bdev inode until the machine is rebooted.
+Working on it
 
-devm_init_badblocks() only fails when a single page allocation fails, so
-reaching this at all needs memory exhaustion during namespace probe, and
-because device_add_disk() has not run there is nothing user visible left
-behind: no device node, no sysfs entry, only the leaked memory.
-
-Release the gendisk through the existing cleanup path on this failure.
-
-Fixes: 3dd60fb9d95d ("nvdimm/pmem: stop using q_usage_count as external pgmap refcount")
-Signed-off-by: Hemanth Selam <hemanth.selam@gmail.com>
----
-v2, all of it from Alison's review of v1:
- - retitled, and the changelog rewritten as background, problem, impact
-   and resolution rather than a walk through the call sequence
- - says whether the disk is permanently leaked: it is, because the
-   devres action has not been registered at that point, so no later
-   unbind or destroy reaches it
- - says when the failure can be reached at all, and that nothing user
-   visible is left behind
- - the Fixes: tag re-derived.  v1 blamed b95f5f4391fa, but the early
-   return after the disk was allocated already existed before it; that
-   commit only changed which call failed.  The leak starts at
-   3dd60fb9d95d, which removed the pmem_release_queue devres action and
-   the fsdax_pagemap_ops .cleanup that had been freeing the disk on
-   these paths.  accf58afb689 then converted the addr and dax_dev
-   returns to goto out, and this one was missed.
- - the object counts kept, but measured across four batch sizes so that
-   the scaling is visible, and the shortfall you noticed explained
-
-Found by an AI-assisted review of the error paths in pmem_attach_disk().
-
-Tested on 7.3.0-rc2 in QEMU, with a legacy pmem region (memmap=1G!2G) and
-a local debug patch forcing the devm_init_badblocks() branch, as it is
-otherwise only reachable under memory exhaustion.  namespace0.0 was bound
-and unbound repeatedly with the branch forced, counting bdev_cache in
-/proc/slabinfo after a drop_caches and a settle:
-
-    failed probes      32     64    128    256
-    growth, unfixed   +24    +60   +120   +252
-    growth, fixed     +12    +12    +12    +12
-
-Without the patch the count tracks the number of failed probes, and the
-unbind between attempts does not bring it back down, which is what makes
-the leak permanent.  With the patch it is flat.  Both rows sit a little
-under the probe count because SLUB's active_objs is an estimate, which is
-the discrepancy you asked about in v1.  Clearing the debug flag and
-binding again still gives a working /dev/pmem0.
-
-v1: https://lore.kernel.org/all/20260824060113.2330468-1-hemanth.selam@gmail.com/
-
- drivers/nvdimm/pmem.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 30a51c365ce8..648fc7d66063 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -563,8 +563,10 @@ static int pmem_attach_disk(struct device *dev,
- 	nvdimm_namespace_disk_name(ndns, disk->disk_name);
- 	set_capacity(disk, (pmem->size - pmem->pfn_pad - pmem->data_offset)
- 			/ 512);
--	if (devm_init_badblocks(dev, &pmem->bb))
--		return -ENOMEM;
-+	if (devm_init_badblocks(dev, &pmem->bb)) {
-+		rc = -ENOMEM;
-+		goto out;
-+	}
- 	nvdimm_badblocks_populate(nd_region, &pmem->bb, &bb_range);
- 	disk->bb = &pmem->bb;
- 
 -- 
-2.48.1
+Pavel Begunkov
 
