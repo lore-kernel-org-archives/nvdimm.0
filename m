@@ -1,255 +1,482 @@
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B08C93EA979;
-	Sun, 13 Sep 2026 13:03:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789304639; cv=none; b=YhCMlEnKVmJp8+JhYEEfm4mw6oEExmj6FW/FOs6wPgkS7SbAjf42rD/0D/ZB+paUt+nqCwrIwfSqHKfXssWmh+rXwxVgtc6fGA7/wHLM3H1kE6bBPfeuCyfmEauyCU3DWFa34MTHoHxgm/eJTbHEDOKMy5ZqWauEF9pmnW+CmU0=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789304639; c=relaxed/simple;
-	bh=vzknxVFcrvnBravnnWXz7CdIMEkb2I+nFilCLAukFq8=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=i+/q6wuikEubuntXKwjL5u36Oc57+7NW/Ht3Y77p4ztvMMn8486PNnpJIfLGWrGfNOwB3dFZh7y5NJn1XmoiSzxFNYVx4cQsxMAQ09YbxI3vMK1mhHgpx5bHl6uY9boMFQowbARN2FxpBjpfgZn/vc8YCXC23DucP4vw4ncwgiU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=s7cH6nwq; arc=none smtp.client-ip=148.163.158.5
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CE922E737F
+	for <nvdimm@lists.linux.dev>; Tue, 15 Sep 2026 00:55:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.17
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789433728; cv=fail; b=kSMrumeiZY1ncG8qN7IAqvVJ0FjloreI7PQW1AOph9Vr4X/L+VQTltNoJL823qhUEM0gZy6Z+0ftzgyGR30Hw7ApiM2LBaPrrnVsqEytYyd5LSdCiFD+WaD0eo/7frUawJpdfsuVmj9ZVYWlljzTeZZygRYueiJlNVEAepiM9Oc=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789433728; c=relaxed/simple;
+	bh=DOnixE5gdmIZWQubnpedOHKw0od2jMbzq9d/xr4NrUc=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=ck0okX5C+KD6LIY4Rt+VFhrcWx1Fa1AfMhUvSx9MI9MYCfxCW2kKFxSkl3JsWNnpOBCe0YrFqnoMRB4ln6va0mubSO54/+2ImDT7o8wBCQTSiJGpP2svTLoh37vT/LExJbZW/h47sVs+arbXCYne6pb0w9tV+kT6+8FjX3r86I8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=VdQxPrga; arc=fail smtp.client-ip=198.175.65.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="s7cH6nwq"
-Received: from pps.filterd (m0360072.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68DAW0mw3165374;
-	Sun, 13 Sep 2026 13:02:57 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pp1; bh=Tw5ph9
-	TRn3iEi47uD/g6aGQm4s72n2paY6zzwlF58/o=; b=s7cH6nwqcyvhp4OvdUWNyd
-	4ygy35F5w9rHDOY9/8vTUzMIXqvfGRSRwu1EGjltzmPASuF8ids8GFmziTkDyork
-	QfHPNwMo2PjOshxl3iqi8/Dd6j95HphP5klAg8SOf8jM+OrJY8UHFJIHVZpis/cP
-	I+Ncoj09ZsZU5IjHz9ars8csebcoQWkYclZBrdwc4AXMzr77D12CfnqQXIwecdWE
-	bGemrxD0JnRmrG4UssSZo3gL+yoVAcCGjzqwmrUhMoSTy2WTwaBmWRcTQFsqqPzZ
-	LSV1Yr4qWP0vdRYvTHzMF3C2z1flckgI+Y76uGG8MQe/wDpyNPdWAN8oy+90pNxA
-	==
-Received: from ppma12.dal12v.mail.ibm.com (dc.9e.1632.ip4.static.sl-reverse.com [50.22.158.220])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4gmxcumgqr-1
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Sun, 13 Sep 2026 13:02:56 +0000 (GMT)
-Received: from pps.filterd (ppma12.dal12v.mail.ibm.com [127.0.0.1])
-	by ppma12.dal12v.mail.ibm.com (8.18.1.11/8.18.1.11) with ESMTP id 68DAZ5xi544511;
-	Sun, 13 Sep 2026 13:02:55 GMT
-Received: from smtprelay07.wdc07v.mail.ibm.com ([172.16.1.74])
-	by ppma12.dal12v.mail.ibm.com (PPS) with ESMTPS id 4gnh2psp2h-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Sun, 13 Sep 2026 13:02:55 +0000 (GMT)
-Received: from smtpav06.dal12v.mail.ibm.com (smtpav06.dal12v.mail.ibm.com [10.241.53.105])
-	by smtprelay07.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 68DD2sWL2163296
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Sun, 13 Sep 2026 13:02:54 GMT
-Received: from smtpav06.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 8BEF158043;
-	Sun, 13 Sep 2026 13:02:54 +0000 (GMT)
-Received: from smtpav06.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 11B2E58060;
-	Sun, 13 Sep 2026 13:02:42 +0000 (GMT)
-Received: from [9.61.162.129] (unknown [9.61.162.129])
-	by smtpav06.dal12v.mail.ibm.com (Postfix) with ESMTP;
-	Sun, 13 Sep 2026 13:02:41 +0000 (GMT)
-Message-ID: <1f229884-fd03-41a4-992f-8a98c108ee77@linux.ibm.com>
-Date: Sun, 13 Sep 2026 18:32:40 +0530
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="VdQxPrga"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1789433726; x=1820969726;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=DOnixE5gdmIZWQubnpedOHKw0od2jMbzq9d/xr4NrUc=;
+  b=VdQxPrgahAQJI//6L8Ak4vKSXtUEeYpbe2/I2qBqjqGp89svldsL1ptr
+   w8bJutE7g18VDxZXUDiyArTFHfz1RiL3voK5Xd+TbNBK1r9z+Xf6MEDT6
+   U90PTM85egMRpU2OKyPz1GGjnDdxbJQ0ZM0xbQxlOHdzhwI3Jc5nUCubp
+   j1LreSx1HrWKC2TBuCww4MG75mX3kC7ktGSKgjPbRc2y9RmJcqLzwvVKy
+   /nepaSvwNZEjAr26C/VMrSCVReauQ+2d/aCcqzvpBk0Okt9Q9Kya9c/ux
+   H+kulgU5e7CUlZAUiKpYqrL3gHIBaYuBZ3uEMq+AAN+tn1+LrKWJgfQXQ
+   A==;
+X-CSE-ConnectionGUID: ZVbBNeTsSXSgwQvV/A6WaQ==
+X-CSE-MsgGUID: GR+JO/TkRSSa95MRbX6NVw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11905"; a="89817321"
+X-IronPort-AV: E=Sophos;i="6.27,103,1787036400"; 
+   d="scan'208";a="89817321"
+Received: from orviesa003.jf.intel.com ([10.64.159.143])
+  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Sep 2026 17:55:26 -0700
+X-CSE-ConnectionGUID: jc/YIYmOQpa7RUBGzHKlAA==
+X-CSE-MsgGUID: In+f0esbTM2KpGdePBwy0A==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,103,1787036400"; 
+   d="scan'208";a="276318427"
+Received: from fmsmsx902.amr.corp.intel.com ([10.18.126.91])
+  by orviesa003.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Sep 2026 17:55:25 -0700
+Received: from FMSMSX903.amr.corp.intel.com (10.18.126.92) by
+ fmsmsx902.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.46; Mon, 14 Sep 2026 17:55:24 -0700
+Received: from fmsedg901.ED.cps.intel.com (10.1.192.143) by
+ FMSMSX903.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.46 via Frontend Transport; Mon, 14 Sep 2026 17:55:24 -0700
+Received: from DM5PR21CU001.outbound.protection.outlook.com (52.101.62.26) by
+ edgegateway.intel.com (192.55.55.81) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.46; Mon, 14 Sep 2026 17:55:23 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=THIDp7c2J/Wki1Sz7JF98JzDtSo/U2gVpryM3FschvWYFksbWKpIs3rle9Yn3RKyEUGfvwz60FIw+ibbWwA9ftkroZ77l0vwKoSZPDIPt4dOtxXz/7k+NXWXgJZFVf41PTm6VfgFNOcLygNY/axv6PtycDBWU03MV+DeAz78eRQhttJyi1ZCMRH6a5kqwwPOilyUcj28jBozxpSUqE/N2zlj3c2/u17VxMlhHfKzwj6O8vHYoDtVf3lBZU6hvIy5BL7VSVZEIhzaSPnVCO/bVuvKzdsyyBmL6BSg2JRMdkf8TS/FDDrWWJL4PHff0kI4v3mD3Tc4Mt3gGfLWekAx1g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=SfaOKeGx+sjPfM++CFO9vJkTF9FJ6wkuX3ghVrXfiZw=;
+ b=cmFey0uficDVxsZZTrHSbGgqWpG5eM4c8lNyFCqzILKcqvsyl6yH0viVIoy6RIVhdBlT2cJX6Hro9na5iRa3Tgr5tnr0qoknQdzSUKS+dFix0o1lp58WIMH64ps8Bb7Z7CcKW69XUO+aIYckykZaS0swWVFcgAu/nI58egQT7i6IkGbgG8xIEozwRXRkcH9/P9f8qQZ5LopuDj6QWbQ/DmSHKfAsK7GA0O3J6QE9xyCErpdxF+YwkDyksVEFHSDf8Xp9YpOTWvfTJuKkbhkDLnR/3iN7+ElUjwm/WWRR4pPyfQdhLRNQ7aKKQ2PXtr2M06Nm6tdbOc8kAtjYytecYQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com (2603:10b6:f:fc02::9)
+ by SA3PR11MB7555.namprd11.prod.outlook.com (2603:10b6:806:311::16) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.406.12; Tue, 15 Sep
+ 2026 00:55:21 +0000
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::e721:90d7:9214:2d53]) by DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::e721:90d7:9214:2d53%6]) with mapi id 15.21.0406.007; Tue, 15 Sep 2026
+ 00:55:21 +0000
+Date: Mon, 14 Sep 2026 17:55:16 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: Richard Cheng <icheng@nvidia.com>
+CC: <dave@stgolabs.net>, <jic23@kernel.org>, <dave.jiang@intel.com>,
+	<vishal.l.verma@intel.com>, <djbw@kernel.org>, <danwilliams@nvidia.com>,
+	<nvdimm@lists.linux.dev>, <iweiny@kernel.org>, <ming.li@zohomail.com>,
+	<kobak@nvidia.com>, <kaihengf@nvidia.com>, <kees@kernel.org>,
+	<newtonl@nvidia.com>, <kristinc@nvidia.com>, <mochs@nvidia.com>,
+	<linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: Re: [ndctl PATCH RESEND] test/cxl-mbox: Regression test for huge
+ CXL_MEM_SEND_COMMAND out.size
+Message-ID: <aqiXdEIiMb3I9w-3@aschofie-mobl2.lan>
+References: <20260624150158.55264-1-icheng@nvidia.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20260624150158.55264-1-icheng@nvidia.com>
+X-ClientProxiedBy: BY1P220CA0050.NAMP220.PROD.OUTLOOK.COM
+ (2603:10b6:a03:59e::12) To DS4PPF0BAC23327.namprd11.prod.outlook.com
+ (2603:10b6:f:fc02::9)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 2/3] blk-cgroup: store blkcg in bio instead of blkg
-To: yukuai@fygo.io, Jens Axboe <axboe@kernel.dk>, Tejun Heo <tj@kernel.org>,
-        Josef Bacik <josef@toxicpanda.com>,
-        Johannes Weiner <hannes@cmpxchg.org>,
-        =?UTF-8?Q?Michal_Koutn=C3=BD?= <mkoutny@suse.com>
-Cc: Christoph Hellwig <hch@lst.de>, Tao Cui <cui.tao@linux.dev>,
-        Jan Kara <jack@suse.cz>, Jonathan Corbet <corbet@lwn.net>,
-        Shuah Khan <skhan@linuxfoundation.org>, Coly Li <colyli@fygo.io>,
-        Kent Overstreet <kent.overstreet@linux.dev>,
-        Alasdair Kergon
- <agk@redhat.com>, Mike Snitzer <snitzer@kernel.org>,
-        Mikulas Patocka <mpatocka@redhat.com>,
-        Benjamin Marzinski <bmarzins@redhat.com>, Song Liu <song@kernel.org>,
-        Li Nan <magiclinan@didiglobal.com>, Xiao Ni <xiao@kernel.org>,
-        Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
-        Dan Williams <djbw@kernel.org>,
-        Vishal Verma <vishal.l.verma@intel.com>,
-        Dave Jiang <dave.jiang@intel.com>,
-        Alison Schofield <alison.schofield@intel.com>,
-        Ira Weiny
- <iweiny@kernel.org>,
-        Andreas Gruenbacher <agruenba@redhat.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>,
-        Kemeng Shi <shikemeng@huaweicloud.com>, Nhat Pham <nphamcs@gmail.com>,
-        Baoquan He <baoquan.he@linux.dev>, Barry Song <baohua@kernel.org>,
-        Youngjun Park <youngjun.park@lge.com>, cgroups@vger.kernel.org,
-        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-block@vger.kernel.org, linux-bcache@vger.kernel.org,
-        dm-devel@lists.linux.dev, linux-raid@vger.kernel.org,
-        nvdimm@lists.linux.dev, virtualization@lists.linux.dev,
-        gfs2@lists.linux.dev, linux-fsdevel@vger.kernel.org,
-        linux-mm@kvack.org
-References: <20260823133045.970199-1-yukuai@kernel.org>
- <20260823133045.970199-3-yukuai@kernel.org>
- <49d724b8-57c6-48fc-8099-69cd1b072351@linux.ibm.com>
- <befbc177-f7f5-4c44-b02e-20a99fc64c0c@fygo.io>
- <a123f309-6ec7-470f-b5b0-f08cca6d2627@linux.ibm.com>
- <4701cbcb-b877-4902-a5b6-59836c345ae1@fygo.io>
-Content-Language: en-US
-From: Nilay Shroff <nilay@linux.ibm.com>
-In-Reply-To: <4701cbcb-b877-4902-a5b6-59836c345ae1@fygo.io>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-Reinject: loops=2 maxloops=12
-X-Proofpoint-Spam-Info: AW1haW4tMjYwOTEzMDE4NiBTYWx0ZWRfX4bdtmyi6TbLm
- PnmDAd3K2Pznh8wKoHonQGBp0ysClcBa1OrztITcVcSLlgrYE8VP5c+wmKBSMI/Ab+s5CEAzUN9
- Ea8RX3OwXCxPBzrqczT1uoKyWJz8Gd8=
-X-Proofpoint-ORIG-GUID: 4e-ag4htDeTMNqeo8EQTo29EVzjiZK2X
-X-Proofpoint-GUID: 8nZCV6p6P95_uuj9tctUmrn0T5r3AWs2
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTEzMDE4NiBTYWx0ZWRfX+y0ctK5+xq+a
- /6vRvkZSZ9kg/PRUPUeLCGN03W3jPvQAMS6+jzOCs+1AkALnrqqa7cWBgjUJrz2tbNfuYpfkPSL
- PrpENPFKOh1zgy5s+IbHnaindMy9q5WpfnQQSFp1AQL7EDR3wzuMd2+angeKYcFptQeG84j5MmI
- kabMIcR/1Tlm6+B6eHGJ4jPSNJCnCQ8yiO/bzcNP4J4722NX91KHSo4tr/1jUlNXi9IzOR4aktQ
- PNlsV9N1f1DNgs1085Zy8B/VV5S2OoRShsuqNTwLGF8BVVlzGX+bVF2oC3VDMgg9Uz73fr4ialD
- sixKyB0QiUL7rpFtOUvpBRNyhS3Twogc9nUo132awmaYmfbOzhmXQ8mL9rZ6dMStjx1Q61vbFnA
- uMgB0RrOtgNGJrUNgP/wLPKUF0dIAtOt9VJngXCh/nk7vkWx1XqmFRsX/zMfWLS1KIuH+hV3Jek
- IeP+olEV9FhAvpQv9Mw==
-X-Authority-Analysis: v=2.4 cv=F+7C5ahN c=1 sm=1 tr=0 ts=6aa69f01 cx=c_pps
- a=bLidbwmWQ0KltjZqbj+ezA==:117 a=bLidbwmWQ0KltjZqbj+ezA==:17
- a=IkcTkHD0fZMA:10 a=VdqzKS8jKosA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=RnoormkPH1_aCDwRdu11:22 a=RzCfie-kr_QcCd8fBx8p:22 a=VwQbUJbxAAAA:8
- a=G2-K4aFLVDk7lefjgnMA:9 a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-09-13_04,2026-09-11_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- priorityscore=1501 suspectscore=0 phishscore=0 clxscore=1015 malwarescore=0
- lowpriorityscore=0 bulkscore=0 spamscore=0 impostorscore=0 adultscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2609040000 definitions=main-2609130186
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|SA3PR11MB7555:EE_
+X-MS-Office365-Filtering-Correlation-Id: d1e30fbf-19e9-4e48-1765-08df12c40463
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|1800799024|376014|23010399003|7416014|56012099006|11063799006|10067099003|22082099003|18002099003|3023799007;
+X-Microsoft-Antispam-Message-Info: lvOBgwIIrZQyJjduxLMEqRCjlesGxl2S9gQxJoh66Yum0yxJvzCYoc7WWEAl6fXEdOiC0RdvKR50xD5ntQmF7AJaIW1Kj/YK1icPLFc2qkeBcxtkzSehA4H0k4+WJp6CsVpXqvMayM4ZPq3K/qWcVH/hvY7ghZlpioEOA8zJQFdplOliBQARlN7rA0XOmY4zmF7TZ0V8uloyTcEGjn+RSvLe4kSZZdpzRE9Vx1ugLtw43fZHT6fVt9oO7vy2a/YzAKXOe5azJyO4DLddwVPBMbI5XCIm4mjO0RsnBf2OAByW2/+qpvFi8ciQ0zV82t1Kjz6/Pdqiqw5kEXPamNAVks+2qFeoqOgwJlkb3GxlxcLgeH3PFa4XNZMnZRrJ8XluoJwXuPjryqMH+M42vskCT5JfdDAa8N+g4wUFVvfrbavBcoOf9uQvFuuagYsrLgq2Nai1LPIQ9H3p4ka6gFWjtsYkE2WUpigIKR+d0MsE1sAl7HKki97vG/aGDOLFyvPmlbAo5VT/oZsh2e6lpNXMwd2QP8jdOzaPjORcnrcgsiHnDtv0RI0N61W5O52ZET4dsFQWZN6Arw0lkl0sf0sMUj2Q5IXQmmmYRIQD5IhpEHm0lIct1D+1WMuXwEhH9NmqxAl5yzo/ZKJwpIN1AE8KuIwLS/F66zF7lxJS28Uo/7o=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(376014)(23010399003)(7416014)(56012099006)(11063799006)(10067099003)(22082099003)(18002099003)(3023799007);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?jRdyQcZrPcQOo0xATRToJVNYqUcFORCg9/y2a7EpzioGuvATCBydeorEzc0U?=
+ =?us-ascii?Q?2XlFa2Upi/wjNqNQ9WYXDY94LGL9uClCxALmzFqS/dPWsuiaEgMQw+IRq3Fn?=
+ =?us-ascii?Q?H9LlKQxDoZyWvnGD652ucQz40zJ0+YofrXD5a+lHCK+WqneA+Kzrps0GHIMB?=
+ =?us-ascii?Q?8DDXj8lXXmP5soRPw0sjqdrjRLlyw0f2wX4wdXqUeTmNsdSJhSLPwBinkzJe?=
+ =?us-ascii?Q?/fu2eYaMzGwJJ7qBKHDyoK0iZp46DpImTCYkDHPuaG4lZHdVsrYtNtE8lFnu?=
+ =?us-ascii?Q?OLdiurCU0TWduLgAk7anQucEugHYtEW62PIRR2MJEV70mVbMVTMQrfkACrO7?=
+ =?us-ascii?Q?yA7bHshCOQ6uHgWNw/sixjFit8xeyYNOGiEgwYvjMl3q8ouRlVNhhckyrOg7?=
+ =?us-ascii?Q?6L7n2rSxdjq+bQNxWLDNqAB+h9zFtgLNfxY+sQJvSpogqq6ZLerb5OACVcwq?=
+ =?us-ascii?Q?I8m9VjZy3GUINbDxue3ZaFBCsVWHCsrTCEmF2Io1LORQGLzAlVKhpaMtG6OF?=
+ =?us-ascii?Q?4GUCwoNXZBjf/pWwOFx04VYRQJU8aiUSZCnkCC4Q08VptsKIuQgqgUdruYMg?=
+ =?us-ascii?Q?+3Y/kgz4gJpV/gQhvwgwTxUzG5zwUyizaritYd4PKp0lPg4WDTuKYQrqudrG?=
+ =?us-ascii?Q?lgihgJ2jWaslIrt7UgHmlngsdwyBCVd7yokhLyFbuo3rCo9tUgTmdTf2KmA0?=
+ =?us-ascii?Q?s2dVgZheWLQYXc05YK8pZ1XEglD2VGiIJfe0hV5deUQxQkG+T9TG9Rw4P8wK?=
+ =?us-ascii?Q?qmvMrjMhL7B83Gz/Vt5hJEefyJn3DYsIe7ID17g/1HpDtDZcDpbTr4q4LHJ5?=
+ =?us-ascii?Q?CwPWmcelJ26+ohJpzAXxfIzx8K8lA8NaaobLwCukzE5ABK1s9Jgyx1fsgX7t?=
+ =?us-ascii?Q?KqSRZbAlBSHH0P+u/jp+xLEzRbE3GPSqB5os073I4kby9AqpbndBTKuEQPDo?=
+ =?us-ascii?Q?hHpIvQZuqKxHaU+k+zc/RqIDwQ7eQQL/Rpc8ycHXvKx5NaHVL/evBJb0478o?=
+ =?us-ascii?Q?gCcIiXj89skwzDHxOe+CKnszAnfXVcS1ghM7MbaEVE9TNb3fwKhhqP9Tvzrr?=
+ =?us-ascii?Q?tC9NWHHccSFMoPs4xXnUVr+nqyKi6+QL4CXtEm4Ghh5W31493D9SrtuvYIvc?=
+ =?us-ascii?Q?PF+nePAlXqur/iS1+tfBz2e4lZsb4BPxmdoO+sh7zAEBoPHB4Vxt9jhMKfmk?=
+ =?us-ascii?Q?JBFOPMNlGg4InDEuENqstwnoezZbJEspHMoxs2DAJxzR7qDjNJFqEW8Bxxfp?=
+ =?us-ascii?Q?WZ+B2HA4MQTAackM8dkRzlQFHYdNinXzn4yksLAnmNOhq43QfNpVWsrII37f?=
+ =?us-ascii?Q?mHdiP/jVz93hYMj/n86y1g3gaMcuOYqVsd1Qx13G1vpxqsTGXdQi2N5BbPN2?=
+ =?us-ascii?Q?08e3gkThhpRuubO10IvW0D17C09gpwcs49hvFgMyMPOGwco/yXSpUTYaGVeW?=
+ =?us-ascii?Q?dYO+u/a6NPJ3k8a59DMmxheeTDGofcWl+CX+d6pwSGjBzyN+QrEJEInpzAfj?=
+ =?us-ascii?Q?Flyu6hS94flDOoJWpTNeAQq+yx5Jzfq3mVIO2NZc7IgTkL2NKDPhlzl24RpZ?=
+ =?us-ascii?Q?q3JetaNHdY8zaoIkCwjvodQFDn341kRBLEqBITd2sTjDaiyAaZlUXOd0TYlB?=
+ =?us-ascii?Q?c0ukra/cnVtngbT7u9MwxMR/shS3fqsH1/bsfmKQFpulgcgIUwVOdW2aFCrs?=
+ =?us-ascii?Q?4ggr6UH1YZfXP6fZ2a3IpHBJwaA5/eMbG8wLWzBJ5LKBEYLWcZlZfZiZnWLG?=
+ =?us-ascii?Q?d8Bd7je/+goF7h8KAgVBXYspxGszH00=3D?=
+X-Exchange-RoutingPolicyChecked: 4BtPZV5X8Gcmhhmoxy915netucvaB9Ry46QVXwYY7ic+7ILyQqTuhaCbNZUF5ccxlo0EvbOYM3HouiRUYobgK3cQDJMW+5ProxFAtoAor9/pZaI2qHEDc2Ca3xVnTHMLrNDWVYsbaIK7JcQ3wL66thAHfQ7mXpFlaty47RCVk0BUEg/xkw0jZw3XZ9BH/MLugMFqByYGQgXAOezMYcrW1myDKely28A2JuBWJYefWEkLZjIwdPuvbyUyADErpQ4fZX6XR0tJEddiGy1uzGwo7ahGmSNusox1y3aNi7Itu1SBw9YwOx9Dw41DPUdMJKQbd9c/Q1/oQq9zToEfxmH3/A==
+X-MS-Exchange-CrossTenant-Network-Message-Id: d1e30fbf-19e9-4e48-1765-08df12c40463
+X-MS-Exchange-CrossTenant-AuthSource: DS4PPF0BAC23327.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Sep 2026 00:55:21.0334
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: dG2RW1FWVJdKXAe2npD7vyMkNYzh0Q3wvYNZQKKgZEzK0ScKZEftXLyKHntX/+SX0AfOlfM0Asua73ru7frNLPP1LJOJNiIYTJjosKagLLg=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA3PR11MB7555
+X-OriginatorOrg: intel.com
 
-On 9/12/26 7:51 PM, yu kuai wrote:
-> Hi,
+On Wed, Jun 24, 2026 at 11:01:58PM +0800, Richard Cheng wrote:
+> Implement a regression test for unbounded kvzalloc() in the kernel's
+> cxl_mbox_cmd_ctor(), which a CXL_MEM_SEND_COMMAND with an out.size
+> greater than INT_MAX could drive into a size > INT_MAX kvmalloc() WARN.
 > 
-> 在 2026/9/7 14:02, Nilay Shroff 写道:
->> On 9/6/26 5:09 PM, yu kuai wrote:
->>> Hi,
->>>
->>> 在 2026/9/6 18:56, Nilay Shroff 写道:
->>>> On 8/23/26 7:00 PM, Yu Kuai wrote:
->>>>> @@ -257,20 +262,21 @@ static inline bool
->>>>> bio_issue_as_root_blkg(struct bio *bio)
->>>>>      * @blkcg: blkcg of interest
->>>>>      * @q: request_queue of interest
->>>>>      *
->>>>>      * Lookup a blkg for the @blkcg - @q pair, whether it is online or
->>>>> dying.
->>>>>      *
->>>>> - * Must be called in a RCU critical section.
->>>>> + * Must be called with either RCU read lock or queue_lock held.
->>>>>      *
->>>>>      * This does not acquire a reference.  The caller must already hold
->>>>> one, or
->>>>>      * have the blkg pinned by I/O.
->>>>>      */
->>>>>     static inline struct blkcg_gq *blkg_lookup_any(struct blkcg *blkcg,
->>>>>                                struct request_queue *q)
->>>>>     {
->>>>> -    RCU_LOCKDEP_WARN(!rcu_read_lock_held(),
->>>>> -             "blkg_lookup_any() requires an RCU read lock");
->>>>> +    RCU_LOCKDEP_WARN(!rcu_read_lock_held() &&
->>>>> +             !lockdep_is_held(&q->queue_lock),
->>>>> +             "blkg_lookup_any() requires an RCU read lock or
->>>>> queue_lock");
->>>>>           return rhashtable_lookup(&q->blkg_hash, &blkcg->css.id,
->>>>>                      blkg_hash_params);
->>>>>     }
->>>>
->>>> The changes look good to me. However, rhashtable_lookup() is annotated
->>>> with __must_hold_shared(RCU). Since we now officially support Clang
->>>> context annotations in the block layer, compiling with the latest
->>>> Clang/LLVM generates a number of context warnings, for example:
->>>>
->>>> block/blk-cgroup.h:277:9: warning: calling function 'rhashtable_lookup'
->>>> requires holding __ctx_lock_RCU 'RCU' [-Wthread-safety-analysis]
->>>>     277 |         return rhashtable_lookup(&q->blkg_hash,
->>>> &blkcg->css.id,
->>>>         |                ^
->>>>
->>>> The same warning is reported from several other block layer source
->>>> files that include blk-cgroup.h.
->>>>
->>>> This indicates that rhashtable_lookup() requires the RCU read lock
->>>> from Clang's context-analysis perspective. Looking at the call paths of
->>>> blkg_lookup_any(), it appears that not all callers hold
->>>> rcu_read_lock() when invoking it.
->>>
->>> I was not aware of the above clang warning, this should not be a real
->>> problem
->>> because queue_lock should have the same protection as rcu, and I was
->>> trying
->>> not to make this patch too complex.
->>>
->> I agree that this is not a runtime correctness issue when the lookup
->> is already
->> protected by q->queue_lock.
->>
->>> I add the rcu_read_lock() in the following patch to covert queue_lock
->>> to blkcg_mutex:
->>>
->>> [RFC PATCH v3 3/6] blk-cgroup: protect blkgs with blkcg_mutex - Yu
->>> Kuai
->>> <https://lore.kernel.org/all/20260823152926.1043863-4-yukuai@kernel.org/>
->>>
->>> Since this is related to compile warning, I'll move the rcu
->>> protection to this
->>> patch.
->>>
->> Since rhashtable_lookup() is annotated with __must_hold_shared(RCU),
->> Clang's
->> context analysis still reports warnings for these call paths. While this
->> doesn't cause a build failure (and only generates warning) when
->> CONFIG_WERROR
->> is not enabled, it could do so for configurations that enable
->> CONFIG_WERROR=y.
->>
->> So IMO, moving the rcu_read_lock() protection into this patch makes
->> sense.
->> This would avoid introducing the Clang warnings/errors in this patch,
->> and then
->> you may accordingly adjust your subsequent series where the
->> q->queue_lock protection
->> is removed and the blkg lookup paths are protected by RCU.
->>
->> I also noticed that some paths already take q->queue_lock followed by
->> rcu_read_lock(),
->> so adding the RCU protection here should be consistent with those
->> existing paths.
+> libcxl's cxl_cmd_set_output_payload() rejects an out.size larger than
+> the mailbox payload_max, so the test crafts a raw struct
+> cxl_send_command and issues the CXL_MEM_SEND_COMMAND ioctl directly
+> against the cxl_test mock memdev.
 > 
-> Turns out Clang will still warn after adding rcu_read_lock(). I'm not familiar how this
-> works, but AI told me this is related to inline helpers, And I'll have to add the same
-> __must_hold_shared(RCU) in rhashtable_lookup() for following inline callers to kill the
-> warning:
-> 
->     static inline struct blkcg_gq *blkg_lookup_any(...)
->           __must_hold_shared(RCU);
-> 
->     static inline struct blkcg_gq *blkg_lookup(...)
->           __must_hold_shared(RCU);
-> 
-Yes, that's correct. In this case the context requirement needs to be propagated through
-the inline helper call chain.
+> The test is for a kernel bug fix [1].
 
-Thanks,
---Nilay
+Hi Richard,
+
+I appreciate the new test and sorry it got buried in the backlog. I'm
+appending a diff that I have tested with in my pending branch. If you
+ACK this diff, then I'll just apply with that. If you want to change
+anything else, then send a v2.
+
+My changes are:
+- wire the test into the meson environment
+- update the shell script to be like others, including using check_dmesg
+  intead of reading tainted.
+- NO changes to your cxl-mbox.c
 
 
+-- Alison
 
+
+diff --git a/test/cxl-mbox.sh b/test/cxl-mbox.sh
+index 67fecf5a3f46..1b9f95fc7836 100755
+--- a/test/cxl-mbox.sh
++++ b/test/cxl-mbox.sh
+@@ -2,33 +2,25 @@
+ # SPDX-License-Identifier: GPL-2.0
+ # Copyright (C) 2026 Nvidia Corporation. All rights reserved.
+
+-. $(dirname "$0")/common
++. "$(dirname "$0")"/common
+
+ BIN="$TEST_PATH"/cxl-mbox
+ rc=77
+ # 237 is -ENODEV
+ ERR_NODEV=237
+-# TAINT_WARN is bit 9
+-TAINT_WARN=512
+
+ trap 'err $LINENO' ERR
+
+-modprobe -r cxl_test 2>/dev/null
++modprobe -r cxl_test
+ modprobe cxl_test
+-# cxl_test alone does not autoload the mock memdev module on this box
+-modprobe cxl_mock_mem
+
+ main()
+ {
+        test -x "$BIN" || do_skip "no CXL mailbox test"
+
+-       t0=$(cat /proc/sys/kernel/tainted)
+-
+        rc=0
+        "$BIN" || rc=$?
+
+-       t1=$(cat /proc/sys/kernel/tainted)
+-
+        echo "status: $rc"
+        if [ "$rc" -eq "$ERR_NODEV" ]; then
+                do_skip "no cxl_test memdev"
+@@ -36,9 +28,8 @@ main()
+                echo "fail: $LINENO" && exit 1
+        fi
+
+-       if (( (t1 & TAINT_WARN) && !(t0 & TAINT_WARN) )); then
+-               echo "fail: $LINENO kernel WARN taint (bit 9) set" && exit 1
+-       fi
++       rc=1
++       check_dmesg "$LINENO"
+
+        _cxl_cleanup
+ }
+diff --git a/test/meson.build b/test/meson.build
+index 07c8618cbc6e..69c22c579b02 100644
+--- a/test/meson.build
++++ b/test/meson.build
+@@ -139,6 +139,11 @@ revoke_devmem = executable('revoke_devmem', testcore + [
+
+ mmap = executable('mmap', 'mmap.c',)
+
++cxl_mbox = executable('cxl-mbox', 'cxl-mbox.c',
++  dependencies : libcxl_deps,
++  include_directories : root_inc,
++)
++
+ create = find_program('create.sh')
+ clear = find_program('clear.sh')
+ pmem_errors = find_program('pmem-errors.sh')
+@@ -173,6 +178,7 @@ cxl_elc = find_program('cxl-elc.sh')
+ cxl_dax_hmem = find_program('cxl-dax-hmem.sh')
+ cxl_region_replay = find_program('cxl-region-replay.sh')
+ cxl_type2 = find_program('cxl-type2.sh')
++cxl_mbox_sh = find_program('cxl-mbox.sh')
+
+ tests = [
+   [ 'libndctl',               libndctl,                  'ndctl' ],
+@@ -211,6 +217,7 @@ tests = [
+   [ 'cxl-dax-hmem.sh',        cxl_dax_hmem,       'cxl'   ],
+   [ 'cxl-region-replay.sh',   cxl_region_replay,  'cxl'   ],
+   [ 'cxl-type2.sh',           cxl_type2,          'cxl'   ],
++  [ 'cxl-mbox.sh',            cxl_mbox_sh,        'cxl'   ],
+ ]
+
+ if get_option('destructive').enabled()
+@@ -292,6 +299,7 @@ tests_deps = [
+   daxdev_errors,
+   dax_dev,
+   mmap,
++  cxl_mbox,
+ ]
+
+ if get_option('fwctl').enabled()
+
+
+> 
+> [1]: https://lore.kernel.org/all/20260624144147.53997-1-icheng@nvidia.com/
+> Signed-off-by: Richard Cheng <icheng@nvidia.com>
+> ---
+>  test/cxl-mbox.c  | 129 +++++++++++++++++++++++++++++++++++++++++++++++
+>  test/cxl-mbox.sh |  48 ++++++++++++++++++
+>  2 files changed, 177 insertions(+)
+>  create mode 100644 test/cxl-mbox.c
+>  create mode 100755 test/cxl-mbox.sh
+> 
+> diff --git a/test/cxl-mbox.c b/test/cxl-mbox.c
+> new file mode 100644
+> index 0000000..d81327b
+> --- /dev/null
+> +++ b/test/cxl-mbox.c
+> @@ -0,0 +1,129 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +// Copyright (C) 2026 Nvidia Corporation. All rights reserved.
+> +#include <errno.h>
+> +#include <fcntl.h>
+> +#include <stdio.h>
+> +#include <stdint.h>
+> +#include <stddef.h>
+> +#include <stdlib.h>
+> +#include <syslog.h>
+> +#include <string.h>
+> +#include <unistd.h>
+> +#include <sys/ioctl.h>
+> +#include <cxl/libcxl.h>
+> +#include <cxl/cxl_mem.h>
+> +
+> +static const char provider[] = "cxl_test";
+> +
+> +/*
+> + * The cxl_test mock advertises a 4 KiB (SZ_4K) mailbox payload_size and
+> + * IDENTIFY returns a full struct cxl_mbox_identify. Post-fix the kernel
+> + * clamps the output allocation to payload_size and copies that many bytes
+> + * back into out.payload, so the buffer must be >= payload_size. 64 KiB is
+> + * comfortably above the mock's 4 KiB payload.
+> + */
+> +#define OUT_BUF_SIZE	(64 * 1024)
+> +
+> +/*
+> + * Regression for the unbounded kvzalloc() in cxl_mbox_cmd_ctor() driven by a
+> + * huge CXL_MEM_SEND_COMMAND out.size. The kernel fix CLAMPS the output
+> + * allocation to the mailbox payload_size; it does not reject the request.
+> + * Assert the ioctl SUCCEEDS (no -ENOMEM) -- do NOT assert -EINVAL.
+> + */
+> +static int test_cxl_mbox_huge_out_size(struct cxl_memdev *memdev)
+> +{
+> +	struct cxl_send_command c = { 0 };
+> +	const char *devname;
+> +	char path[256];
+> +	void *buf;
+> +	int fd, rc;
+> +
+> +	devname = cxl_memdev_get_devname(memdev);
+> +	if (!devname)
+> +		return -ENODEV;
+> +
+> +	snprintf(path, sizeof(path), "/dev/cxl/%s", devname);
+> +
+> +	fd = open(path, O_RDWR);
+> +	if (fd < 0) {
+> +		if (errno == ENOENT || errno == ENODEV)
+> +			return -ENODEV;
+> +		fprintf(stderr, "failed to open %s: %s\n", path,
+> +			strerror(errno));
+> +		return -errno;
+> +	}
+> +
+> +	buf = calloc(1, OUT_BUF_SIZE);
+> +	if (!buf) {
+> +		rc = -ENOMEM;
+> +		goto out;
+> +	}
+> +
+> +	c.id = CXL_MEM_COMMAND_ID_IDENTIFY;
+> +	/*
+> +	 * 0x80000000 (2^31, > INT_MAX) is the proven reproducer that trips the
+> +	 * size > INT_MAX kvmalloc() WARN. out.size is __s32 in this vendored
+> +	 * UAPI; cast to avoid -Woverflow, the kernel reads the same 4 bytes
+> +	 * (kernel UAPI declares it __u32).
+> +	 */
+> +	c.out.size = (typeof(c.out.size))0x80000000U;
+> +	c.out.payload = (__u64)(uintptr_t)buf;
+> +
+> +	rc = ioctl(fd, CXL_MEM_SEND_COMMAND, &c);
+> +
+> +	/* Pass iff the kernel clamped (success), not rejected. */
+> +	if (rc == 0 && c.retval == 0) {
+> +		rc = 0;
+> +		goto out;
+> +	}
+> +
+> +	fprintf(stderr,
+> +		"CXL_MEM_SEND_COMMAND huge out.size mishandled: rc=%d errno=%d retval=%u\n",
+> +		rc, errno, c.retval);
+> +	rc = -ENXIO;
+> +
+> +out:
+> +	free(buf);
+> +	close(fd);
+> +	return rc;
+> +}
+> +
+> +static int test_cxl_mbox(struct cxl_ctx *ctx, struct cxl_bus *bus)
+> +{
+> +	struct cxl_memdev *memdev;
+> +
+> +	cxl_memdev_foreach(ctx, memdev) {
+> +		if (cxl_memdev_get_bus(memdev) != bus)
+> +			continue;
+> +		return test_cxl_mbox_huge_out_size(memdev);
+> +	}
+> +
+> +	return -ENODEV;
+> +}
+> +
+> +int main(int argc, char *argv[])
+> +{
+> +	struct cxl_ctx *ctx;
+> +	struct cxl_bus *bus;
+> +	int rc;
+> +
+> +	rc = cxl_new(&ctx);
+> +	if (rc < 0)
+> +		return rc;
+> +
+> +	cxl_set_log_priority(ctx, LOG_DEBUG);
+> +
+> +	bus = cxl_bus_get_by_provider(ctx, provider);
+> +	if (!bus) {
+> +		fprintf(stderr, "%s: unable to find bus (%s)\n",
+> +			argv[0], provider);
+> +		rc = -ENODEV;
+> +		goto out;
+> +	}
+> +
+> +	rc = test_cxl_mbox(ctx, bus);
+> +
+> +out:
+> +	cxl_unref(ctx);
+> +	return rc;
+> +}
+> diff --git a/test/cxl-mbox.sh b/test/cxl-mbox.sh
+> new file mode 100755
+> index 0000000..67fecf5
+> --- /dev/null
+> +++ b/test/cxl-mbox.sh
+> @@ -0,0 +1,48 @@
+> +#!/bin/bash -Ex
+> +# SPDX-License-Identifier: GPL-2.0
+> +# Copyright (C) 2026 Nvidia Corporation. All rights reserved.
+> +
+> +. $(dirname "$0")/common
+> +
+> +BIN="$TEST_PATH"/cxl-mbox
+> +rc=77
+> +# 237 is -ENODEV
+> +ERR_NODEV=237
+> +# TAINT_WARN is bit 9
+> +TAINT_WARN=512
+> +
+> +trap 'err $LINENO' ERR
+> +
+> +modprobe -r cxl_test 2>/dev/null
+> +modprobe cxl_test
+> +# cxl_test alone does not autoload the mock memdev module on this box
+> +modprobe cxl_mock_mem
+> +
+> +main()
+> +{
+> +	test -x "$BIN" || do_skip "no CXL mailbox test"
+> +
+> +	t0=$(cat /proc/sys/kernel/tainted)
+> +
+> +	rc=0
+> +	"$BIN" || rc=$?
+> +
+> +	t1=$(cat /proc/sys/kernel/tainted)
+> +
+> +	echo "status: $rc"
+> +	if [ "$rc" -eq "$ERR_NODEV" ]; then
+> +		do_skip "no cxl_test memdev"
+> +	elif [ "$rc" -ne 0 ]; then
+> +		echo "fail: $LINENO" && exit 1
+> +	fi
+> +
+> +	if (( (t1 & TAINT_WARN) && !(t0 & TAINT_WARN) )); then
+> +		echo "fail: $LINENO kernel WARN taint (bit 9) set" && exit 1
+> +	fi
+> +
+> +	_cxl_cleanup
+> +}
+> +
+> +{
+> +	main "$@"; exit "$?"
+> +}
+> 
+> base-commit: 8ad90e54f0ff4f7291e7f21d44d769d10f24e2b6
+> -- 
+> 2.43.0
+> 
