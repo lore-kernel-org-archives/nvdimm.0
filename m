@@ -1,101 +1,92 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from cstnet.cn (smtp25.cstnet.cn [159.226.251.25])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC9B9315D53;
-	Thu, 17 Sep 2026 00:23:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 829E54EE853
+	for <nvdimm@lists.linux.dev>; Thu, 17 Sep 2026 12:28:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.25
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789604616; cv=none; b=X94WkG7DaQwPBQ94XPOka/yM1w75MJIN/ssn1Z0ksTJKJyjAXPVImXn2HQ6mOzNn0wuUSf0zj8EWhEJ7ZoK9Q/CgwPm9JTnAuFC7WoRBwtmK87adze/NGM4p7s19pp3FjfrJN8ACb+CsIrplFyQy1ME9CTJIpQtWKjc+orFnHbQ=
+	t=1789648105; cv=none; b=sBjQ1NzT019zQqOiWzfV2MRPe1ULgyCB8N+vJHbYFNVpJXrajckAtsDdEh1Vp5XcCs4YlDXfKfBG9O52aJcaPbTYOyLwOHpmVCumphp7QBv3GsOF9P86AQjkijxlVwxzKMGs0XgGM9mBsLSq85qIUN4TWzO01oIF3kMkcgseaCk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789604616; c=relaxed/simple;
-	bh=wIbp6kbY9SXreddpMl+NLOnyv+09ILKJX/PkZ/rOcPs=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ML5iWUOehZCTy0vdInSAUCuiVZ/UYeH6qOyJ9GDvU9K/xjHVHY5Hp8QuRxio9jts2/yHzWuXeKKHlVq0h4P1sgZNEbma0J8I43Q8Oe0VxgOdbr340Q1pW17bFFka1P9JsihTWMZPv2ZotX5Ft5hnbuJ2mFWk8Wdc6s6XQV4V8bY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=n3ZHEYk4; arc=none smtp.client-ip=100.103.45.18
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="n3ZHEYk4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96CCD1F008A3;
-	Thu, 17 Sep 2026 00:23:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789604613;
-	bh=KJ24bnzQJXUUSHZe3TFDjdsZjI+E1/MFPH+Xn3ggaiU=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=n3ZHEYk43S5MUp2KU16Pyz/HfKJ9F/Gp//yizHZVdnMl+YlFi04w8ku1QQ/Fgyu3o
-	 hmqLYr3doGQUYx5xqzvECdbwlgoSI5566pSeYopUVF2P6FWHlm0h13Ah0TB4H+jYLj
-	 TwEFK2xrvviOcxoEyJJsVKFLyLDM1bjNII+9Z2OwCEK/LsWBMEKIVbykjrBba5xBEA
-	 +pFZV38G+KHl0JANlQhilPzaFg5C6z5u07+l4BmCMNvlGk2Y423YlBI58aIb31ueBU
-	 Yz8o/39p9Qowg8zgoH6teLcJNGR5gOAPl63DWOQM00zeH6VlMuadBF3hVT18zuQjjf
-	 j17ZcvcRZ3AKQ==
-From: Kees Cook <kees@kernel.org>
-To: Bill Wendling <morbo@google.com>
-Cc: Kees Cook <kees@kernel.org>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Ira Weiny <iweiny@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	=?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>,
-	Guangshuo Li <lgs201920130244@gmail.com>,
+	s=arc-20240116; t=1789648105; c=relaxed/simple;
+	bh=0+JgyF0oo3n2o9uBQku5EmBrQgG5ORRz/ZZCDwf6MHo=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=JFUz57QODtfrG7i9p3sdL7bOfy+PSFEM+MtAxhnNXAN0MVnuot2QvV2JJovboGPknTEX7e0eg01jaVJQh1Yj3TmQ+WQU6tMZVoCbQx3RtuJIda//AVWloAelENJBGqnm3i6B2UZlvkUjHPJPb4FvzGmUpQQpe5FyrulI5X5H5PY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.25
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
+Received: from dfae2b116770.home.arpa (unknown [36.110.52.2])
+	by APP-05 (Coremail) with SMTP id zQCowADH+ELh3KtqPoGACA--.43567S2;
+	Thu, 17 Sep 2026 20:28:17 +0800 (CST)
+From: Wentao Liang <vulab@iscas.ac.cn>
+To: dave.jiang@intel.com
+Cc: djbw@kernel.org,
+	ira.weiny@intel.com,
+	linux-kernel@vger.kernel.org,
 	nvdimm@lists.linux.dev,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	linux-hardening@vger.kernel.org
-Subject: [PATCH 7/7] nvdimm: ndtest: Return the string length from flags_show()
-Date: Wed, 16 Sep 2026 17:23:19 -0700
-Message-Id: <20260917002333.2306346-7-kees@kernel.org>
+	vishal.l.verma@intel.com,
+	Wentao Liang <vulab@iscas.ac.cn>,
+	stable@vger.kernel.org
+Subject: [PATCH] nvdimm/bus: Fix dev double put in nd_async_device_register()
+Date: Thu, 17 Sep 2026 12:28:16 +0000
+Message-Id: <20260917122816.2151081-1-vulab@iscas.ac.cn>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20260917002312.i.923-kees@kernel.org>
-References: <20260917002312.i.923-kees@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1391; i=kees@kernel.org; h=from:subject; bh=wIbp6kbY9SXreddpMl+NLOnyv+09ILKJX/PkZ/rOcPs=; b=owGbwMvMwCVmps19z/KJym7G02pJDFmrjb5VMJSLB3hvKrnam9S29Evh9AabubMDlHyM2bZc8 768yE6ro5SFQYyLQVZMkSXIzj3OxeNte7j7XEWYOaxMIEMYuDgFYCL3ahkZdr+VVd+omGSdleYZ /mJiuNdXliTHHftl9id8ei8x5fcFJUaGw/q/WAxPikidn7b5Ugu//yZ3Q9mvZrauG9afv3Ov2/k KFwA=
-X-Developer-Key: i=kees@kernel.org; a=openpgp; fpr=A5C3F68F229DD60F723E6E138972F4DFDC6DC026
 Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:zQCowADH+ELh3KtqPoGACA--.43567S2
+X-Coremail-Antispam: 1UD129KBjvJXoW7ZF45Kw17tr1kAF48Xr4UXFb_yoW8JFy7pr
+	s8Jas8ArZ7Grs8Ka1UZr1DuFyrKw1Iya4rury8J3y0grn8X345trWrWFWjqa1rArZ3GF1U
+	trW7tw18JF4kArJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUBFb7Iv0xC_Kw4lb4IE77IF4wAFc2x0x2IEx4CE42xK8VAvwI8I
+	cIk0rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2
+	AK021l84ACjcxK6xIIjxv20xvE14v26ryj6F1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v2
+	6F4j6r4UJwA2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x0267AKxV
+	W0oVCq3wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv
+	7VC0I7IYx2IY67AKxVWUtVWrXwAv7VC2z280aVAFwI0_Gr1j6F4UJwAm72CE4IkC6x0Yz7
+	v_Jr0_Gr1lF7xvr2IYc2Ij64vIr41lF7I21c0E0s8F02x267IIx4CEVc8vx2IErcIFxwCY
+	1x0262kKe7AKxVWUAVWUtwCF04k20xvY0x0EwIxGrwCF04k20xvE74AGY7Cv6cx26r48Zr
+	WUJr1UMxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCj
+	r7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVWUtVW8ZwCIc40Y0x0EwIxGrwCI42IY6x
+	IIjxv20xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AKxVW8JVWxJwCI42IY6xAI
+	w20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Gr1j6F4UJwCI42IY6I8E87Iv6x
+	kF7I0E14v26rxl6s0DYxBIdaVFxhVjvjDU0xZFpf9x07b5lk3UUUUU=
+X-CM-SenderInfo: pyxotu46lvutnvoduhdfq/1tbiCRQNA2qrq02cxwABsu
 
-flags_show() build their output with a seq_buf and return seq_buf_used(),
-which may include the trailing NUL byte when the seq_buf has
-overflowed. Use seq_buf_strlen() instead.
+device_add() takes and drops its own reference on every return path, so
+the async worker only owns the reference that __nd_device_register()
+took with get_device(). The failure branch drops that same reference once
+more before the unconditional put_device(), which underflows the refcount
+and frees the device while it is still referenced by its creator, as
+reported by KASAN for the parent pointer access in this function.
 
-The flag names are far shorter than the PAGE_SIZE buffer sysfs
-provides, so this cannot overflow today.
+Drop the spurious put_device() from the failure branch.
 
-Build tested ARCH=x86_64 with GCC 16.2.0, built out of tree with
-make M=tools/testing/nvdimm:
-tools/testing/nvdimm/test/ndtest.o
-
-Assisted-by: LLM
-Signed-off-by: Kees Cook <kees@kernel.org>
+Fixes: 4d88a97aa9e8c ("libnvdimm, nvdimm: dimm driver and base libnvdimm device-driver infrastructure")
+Cc: stable@vger.kernel.org
+Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
 ---
-Cc: Alison Schofield <alison.schofield@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Ira Weiny <iweiny@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
-Cc: Guangshuo Li <lgs201920130244@gmail.com>
-Cc: <nvdimm@lists.linux.dev>
----
- tools/testing/nvdimm/test/ndtest.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/nvdimm/bus.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/tools/testing/nvdimm/test/ndtest.c b/tools/testing/nvdimm/test/ndtest.c
-index 2051ad5d4882..f097f2992966 100644
---- a/tools/testing/nvdimm/test/ndtest.c
-+++ b/tools/testing/nvdimm/test/ndtest.c
-@@ -693,7 +693,7 @@ static ssize_t flags_show(struct device *dev,
- 	if (seq_buf_used(&s))
- 		seq_buf_printf(&s, "\n");
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 45b7d756e39a..a1f33a03aba8 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -488,10 +488,8 @@ static void nd_async_device_register(void *d, async_cookie_t cookie)
+ 	struct device *dev = d;
+ 	struct device *parent = dev->parent;
  
--	return seq_buf_used(&s);
-+	return seq_buf_strlen(&s);
- }
- static DEVICE_ATTR_RO(flags);
- 
+-	if (device_add(dev) != 0) {
++	if (device_add(dev) != 0)
+ 		dev_err(dev, "%s: failed\n", __func__);
+-		put_device(dev);
+-	}
+ 	put_device(dev);
+ 	if (parent)
+ 		put_device(parent);
 -- 
 2.34.1
 
