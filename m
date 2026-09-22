@@ -1,62 +1,64 @@
-Received: from mail-pz2-f12.google.com (mail-pz2-f12.google.com [74.125.228.12])
+Received: from mail-pz2-f40.google.com (mail-pz2-f40.google.com [74.125.228.40])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EEC341D641
-	for <nvdimm@lists.linux.dev>; Tue, 22 Sep 2026 08:25:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6C7B43440B
+	for <nvdimm@lists.linux.dev>; Tue, 22 Sep 2026 08:26:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.40
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790065561; cv=none; b=uh52C5e2tNdlSQo2m5InpK0+Fxn5+Qj3vYtjcl2AtzYyx3WiBdEDqqiMgWWLPv4w1w+Ac1FrzV1Grgb7Jt7f98FbY86YdyQt6MmfyWOrRtzMBr9TpMpqm706LUPVBbVWby70an6TR3nMMoJQovt73eCIar9AaZYSTruMzRWFtVU=
+	t=1790065565; cv=none; b=Dfa31k0F4viHo0CTuoYPbfuBsaOUvgPrc7DYdc8d+iyolfzn+3iT6TCWmZX/uC+heouQYMCFNGwiB/c9AvUUPEI6ScINNWBnBCeTBF4ZZsKqY+LcJE+o+9vSy9B3KGJdknuSuR8oN3zZYlnJMygiOlYZIGdSU+IbEhiE0emViIg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790065561; c=relaxed/simple;
-	bh=dBBpa7Ydst38i8cZsMQVxzXK9rqMNseU8twqVhQtE78=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=BR4KktfgJzhdTNaNu9izttW2QxrWOiRE36i2FX73ky5qfHnJaFaPoyRkyuUBOhfwBn8sTLuiAqimqT6ABihgGemrLdxX4883S+IjUT9/z8E44ggfWAy5A+pU+eQw0jBa397/fOEY9Jq6VdA+i0+0uSCgt2EhfXjPNYq3Mzu15Ng=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=kjexEEh9; arc=none smtp.client-ip=74.125.228.12
+	s=arc-20240116; t=1790065565; c=relaxed/simple;
+	bh=RIOE3frsVNEF/09JlwDYf3SmDs4Wsp08R0Ba5pjSn4w=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=rPEHTMHNl/BeLRWrOSS5B5c3MvjEH0gVxNXow7jY1rPF4y9CnxAR0YqZWgpyEhiey8U5nR8R+qHjtlyEtGZgjlbOuntqd54ja9twDI5OSafot1AT8f22jpc7qv6LYjgTPYIqH0YNGWdFo1IzmjrZcMHWei80rmrohQ/eW/9eaWg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=NHvr7xEK; arc=none smtp.client-ip=74.125.228.40
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="kjexEEh9"
-Received: by mail-pz2-f12.google.com with SMTP id 41be03b00d2f7-cc4bdf8abaaso3154807a12.2
-        for <nvdimm@lists.linux.dev>; Tue, 22 Sep 2026 01:25:58 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="NHvr7xEK"
+Received: by mail-pz2-f40.google.com with SMTP id 41be03b00d2f7-cc750a1482fso714463a12.2
+        for <nvdimm@lists.linux.dev>; Tue, 22 Sep 2026 01:26:02 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance.com; s=google; t=1790065558; x=1790670358; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=Id4aiEwWk24mT8CByvlZpwQS9RXne8NT6QXvKFa3y1M=;
-        b=kjexEEh9Z6oRWMq5DpdmaIw/VEHyLJ2FJsAfrLcDfnK9Kapz+jCZapDqvIZOD95CH2
-         Zk2MrXVrfmT1K0OMB1Bzp0PcT0hD6On7FXSkWTlgmvil98JSjwNm5kagYh5ZZkqSnHmf
-         lbqCQjnlvEz/zCriSOcpSzYvyIhO1patQ/ikoe7H11ihIWwNCWs1F2oaDly7A3Yfg9N7
-         chVNgM7P38JU3VUQ/cFxeq2n29YRWv2rB/bLLbWp27CzmYLIpAwI5fWcxJogIBQGA0ZC
-         u1pdx11V/PEbQ60guEUnphXlMxI474SAC0wSf02bUQEqeLWKpJZU4i/wjkCqybSZMhHB
-         N1/A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790065558; x=1790670358;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=bytedance.com; s=google; t=1790065562; x=1790670362; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=Id4aiEwWk24mT8CByvlZpwQS9RXne8NT6QXvKFa3y1M=;
-        b=XMrQGfcp7mLVaSlw6MOW/6mpgfQeGYE1WWxNjfahZHClXVHL0o1lwvscUubdFtcy1v
-         d1gTVcSG1/R7cbeE1xTmkQkDQ5DfqNVSQn6WMX2Dbkx80qC7VFIlackEiTOUrJgmqui0
-         /wycb459xaylsXQdAmsSHb+f76tPFq9OOCApQ4nDJvIP1u1s/CEtj3v2TXQXbI1F5pLC
-         DJbuk6W0aMl/eseEuHoxebm7T4lN5y8WKDQRQ/JvchPJpntcq1vWLSrZwvPVJ1ghQMpg
-         9GwTHKlg9aPvpbzXIc3ncpHr2HK2y7UtP6VZmZnlWUic7NOzU6KPSSEke84EmZOiS1T7
-         iAFA==
-X-Forwarded-Encrypted: i=1; AKwUvBzTc+1m8XjNEPLVThM6MI/eJsdrS+cFuZEAqWfLVC1s6I18lqH4U6XnD1HrCfUv9FIU0hgzQ9s=@lists.linux.dev
-X-Gm-Message-State: AFuF++mybyOZaqrFSELbrG+hWS/e4k24QPK0whVXP7XB42NszuwOqVoU
-	C+xgCXRwcPzjMqPHwJ1+9qsnJiFUs552UE5pAD2zbrZ2jWU+EGnLubHGup2T/TuDch8=
-X-Gm-Gg: AYBFou1mF93VhEIBByJPEnGy08fF8G5eTuJJMJNOYMlsbR3q/tQKYStEoPjLIZOXAS+
-	SKfMx8vf1i1p/Ggc3Fr7hIKu1dA0hyPIll6Nt5ZgnHo/jXyOqdFtDWVveIKvklnLhbmukgCBxZr
-	8kGps3J9fRhBueKSMA4b3N4GY8x0psyZJL8FyAtss50wJdJm3mM4d/h25pLRUGTMgD8CSsVGDvs
-	4Z1ntzDxh6J30tRpr98vs/p0AA9Qa3han2VgO1J9Ey1RIPfgliofaglw/05H//YRwNbyp8+78pq
-	JUc5tVNlk0oT2YuVT2YjnLndS/X5LLfYQ5vFRas2lDB6CGMfz4lIA5Yu9DGAWxWswDHAhP+4mBH
-	J1Y0bwCxsfoYWDdSbpqXYq4lgr/Cx9tPZnqEUkFXlUNIe57mQ4+++kJomMwL2FR10OsAkgs/yUt
-	biwuOQXPZskucSlbsQS9D3YB2rA4uMUgRq5ec7AZZv8KNtmyg2Otj1VJQ228D7xIpP/4tUUXD/c
-	z36+VQBTy0TZXvoWY5w
-X-Received: by 2002:a17:90b:1e53:b0:39e:2c5c:a69a with SMTP id 98e67ed59e1d1-3a07309eb75mr436231a91.5.1790065558109;
-        Tue, 22 Sep 2026 01:25:58 -0700 (PDT)
+        bh=WvGiIb4KIaeapLTxfhgArk7ORGg9nzESK+ScS9ezaus=;
+        b=NHvr7xEKYUayE6EhKP3To27VuwIp9IVEU0qFM/FLqkAJa7H3uK8YFr8IcO4jAAre13
+         Zpxo/nUMHhicxeUJtboE41kN7ZsEspw3okgMdFweugTxZ2cnDZlNmBc1OlemkbaPc/Cb
+         uJ2+Xc2P5WwYfbE0vBCCs3YaOuEY7zSEfhKIRdjkegcSIhqOxKPbmUOaAAvEPh6ThOxf
+         gjt3g5jGzE41T7OvWdBHOQ+ol1nxSk2ZS3CG/DACFBX/xRCqlI0YlsGLToTDjiqWLSXP
+         3wKi8ZD8dnQIbJsp4iKy5jLu0CPamK9sWrwg+9xLKo3OGLkPfeV252fz3v71S/TCNoCF
+         lV0w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790065562; x=1790670362;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=WvGiIb4KIaeapLTxfhgArk7ORGg9nzESK+ScS9ezaus=;
+        b=mYtSbWWHI+dczeJpb6a8yNJ6CwsYcrxbTjJ8wmnq2dKBmctAs9O9N8ciMoV2h/seMq
+         DPRrIY1WEHWH4vZ77XEStnsMx/81rDvPPD1FBEB1X2ju8pRjPqvJRd8PvYz3VyOdGGP5
+         493d0tiz4zOuNAioshvBkKpHzSha2AU/ZzR41sj5E9WTsFVkA1tpE78HmajHZP65mW0U
+         Trg0gh33JSDCSG05OngvUJmP/utYaJ7dg/tPBFQlKTXVe5l381uAZMOY6qNg3YNPNpKn
+         5D3dadxuLwrkwdy9nI8z0eogr7wFldx5+DKqvFOeof3tnaNdFdSTAScw/vyDGhZmijqn
+         9Cfg==
+X-Forwarded-Encrypted: i=1; AKwUvByEDyUpEWv5/Izg71gQSOv3mYoR9625ROqF4y7g85S5mB+IjiMgyTqv+uYdwoD7zrwRZeeKYh4=@lists.linux.dev
+X-Gm-Message-State: AFuF++keL52xS7iWmq99esWamls73CyQAUIwciMikQ/dKPNSBywS5auM
+	Gdfv+VcbNgS81ykE7G9+WEpEYtbvGRYySBjjlt0yyzV3vV4Wib+Dqi+0bI/DWVpYtsk=
+X-Gm-Gg: AYBFou0pRPIg9TrEHsxECf6I5ZCCl1wcIh1EBkpdXal29tlNGeP1sAM4raMUxDxKKd6
+	rPzRaqhkVFK59MGj1J0pZwfvKrA4ae3RFu1GoAP5eNMbeUn0XNXdvaAJhZ4id5nmS7ua+pbUD2+
+	cdvUqYQj0JNeY19rg0PWOl2UjtXGODGWhNNfJFN0O/B3aWLz+24N5VNyNT7An9w3zUBOlHLFkmC
+	x3gUShoiFcU1Er46Yn7iXAMrwYuqoKnMiYjdCInb2crLYxAPsnIv80HFmKiYERIZyj/QS7dRgxv
+	7R+NxNQNrGw1I3aJWSJGAWAiQb0Ru87+lbfn7tunv9IOsLuywD3vtqJhw2u+r3V+91tvZbddT90
+	f04NcX52mNoBuumk4l0ltZDeV0qZrLHrvhTAv9pklgiMr+0l2qfS4UybZcDSR5KA1Zs5P9b1m0n
+	EtH2kTbskSkOeSq5eFxNE4PGUybKYSsr9auqM+IRwrO+5zUEvhLfwbTVWezoD7EBIE45A8WjT11
+	7izPOuzN/Qo3kTHaHo=
+X-Received: by 2002:a17:90a:e7cc:b0:39d:f2a1:3a with SMTP id 98e67ed59e1d1-3a0730c5dfbmr453487a91.15.1790065561735;
+        Tue, 22 Sep 2026 01:26:01 -0700 (PDT)
 Received: from n232-176-004.byted.org ([36.110.163.97])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3a07385e516sm223056a91.0.2026.09.22.01.25.55
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3a07385e516sm223056a91.0.2026.09.22.01.25.58
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 22 Sep 2026 01:25:57 -0700 (PDT)
+        Tue, 22 Sep 2026 01:26:01 -0700 (PDT)
 From: Muchun Song <songmuchun@bytedance.com>
 To: Dan Williams <djbw@kernel.org>,
 	Vishal Verma <vishal.l.verma@intel.com>,
@@ -69,10 +71,12 @@ Cc: Andrew Morton <akpm@linux-foundation.org>,
 	linux-kernel@vger.kernel.org,
 	Muchun Song <songmuchun@bytedance.com>,
 	muchun.song@linux.dev
-Subject: [PATCH v2 0/2] dax: Fix Device DAX range allocation validation
-Date: Tue, 22 Sep 2026 16:25:49 +0800
-Message-ID: <20260922082551.874901-1-songmuchun@bytedance.com>
+Subject: [PATCH v2 1/2] dax/bus: fix mapping attribute error reporting
+Date: Tue, 22 Sep 2026 16:25:50 +0800
+Message-ID: <20260922082551.874901-2-songmuchun@bytedance.com>
 X-Mailer: git-send-email 2.54.0
+In-Reply-To: <20260922082551.874901-1-songmuchun@bytedance.com>
+References: <20260922082551.874901-1-songmuchun@bytedance.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -81,52 +85,55 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-While working on the HugeTLB Vmemmap Optimization (HVO) generalization,
-Sashiko reported that memmap_init_zone_device() could be asked to
-initialize struct pages with a large-page order for a physical range
-that was not naturally aligned to that order.
+After the DAX configuration locking was converted to rwsems, successful
+lock acquisition leaves rc set to zero in mapping_store(). Two error
+paths can return this stale value: an unbound region driver and a
+misaligned range size. The sysfs write therefore reports success without
+allocating the requested range.
 
-Following the Device DAX call path confirmed that the condition was
-reachable. Device DAX range validation checks the range size, but not
-its start address. An unaligned range can therefore reach
-memmap_init_zone_device() after the device binds, and a subsequent write
-to a userspace mapping may trigger a kernel panic. With the help of an
-LLM, I was able to reproduce the failure.
+Return -ENXIO when the region driver is not bound and -EINVAL when the
+range size is misaligned.
 
-The automatic resize path has a related problem. It can split an aligned
-size request across arbitrary free gaps, consume an unaligned fragment,
-and leave the resize partially applied when a later allocation fails.
-
-This series first fixes the mapping sysfs attribute to propagate
-validation failures. It then validates both the start and size of every
-Device DAX range and makes automatic resize account only for usable
-aligned space.
-
-The changes were tested by booting the kernel in a VM with a fragmented
-dynamic DAX region. Misaligned mappings were rejected with -EINVAL,
-aligned allocation and multi-range mmap read/write succeeded, and an
-allocation exceeding the usable aligned space returned -ENOSPC without
-leaving a partial allocation.
-
+Fixes: c05ae9d85b47 ("dax/bus.c: replace driver-core lock usage by a local rwsem")
+Assisted-by: LLM
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+---
 v2:
 - Return explicit errors before Device DAX range allocation
   (suggested by Dave Jiang)
-- Move the mapping error reporting fix before the range alignment
-  validation fix for independent backports (suggested by Dave Jiang)
-- Keep the alloc_is_aligned() name to avoid unrelated helper renaming
-  (suggested by Dave Jiang)
+- Move the patch before range alignment validation for independent
+  backports (suggested by Dave Jiang)
+---
+ drivers/dax/bus.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-v1: https://lore.kernel.org/all/20260915095621.3744167-1-songmuchun@bytedance.com/
-
-Muchun Song (2):
-  dax/bus: fix mapping attribute error reporting
-  dax/bus: fix Device DAX range alignment validation
-
- drivers/dax/bus.c | 142 +++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 110 insertions(+), 32 deletions(-)
-
-
-base-commit: 93f51579e7df248780214094418f205253383cc5
+diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+index b809e1a264af..e40c25401cf0 100644
+--- a/drivers/dax/bus.c
++++ b/drivers/dax/bus.c
+@@ -1192,7 +1192,7 @@ static ssize_t mapping_store(struct device *dev, struct device_attribute *attr,
+ 		return rc;
+ 	if (!dax_region->dev->driver) {
+ 		up_write(&dax_region_rwsem);
+-		return rc;
++		return -ENXIO;
+ 	}
+ 	rc = down_write_killable(&dax_dev_rwsem);
+ 	if (rc) {
+@@ -1201,8 +1201,12 @@ static ssize_t mapping_store(struct device *dev, struct device_attribute *attr,
+ 	}
+ 
+ 	to_alloc = range_len(&r);
+-	if (alloc_is_aligned(dev_dax, to_alloc))
++	if (!alloc_is_aligned(dev_dax, to_alloc)) {
++		dev_dbg(dev, "%s: size: %zu misaligned\n", __func__, to_alloc);
++		rc = -EINVAL;
++	} else {
+ 		rc = alloc_dev_dax_range(dev_dax, r.start, to_alloc);
++	}
+ 	up_write(&dax_dev_rwsem);
+ 	up_write(&dax_region_rwsem);
+ 
 -- 
 2.54.0
 
