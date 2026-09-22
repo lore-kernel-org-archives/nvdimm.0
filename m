@@ -1,160 +1,85 @@
-Received: from mta0.migadu.com (out-198.mta0.migadu.com [91.218.175.198])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57981383998
-	for <nvdimm@lists.linux.dev>; Tue, 22 Sep 2026 03:17:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.198
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52EEB37646C;
+	Tue, 22 Sep 2026 04:19:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790047074; cv=none; b=INNgqT18HcGogFBJ7Y5ef3taHU6WnHKr/MDjIru3la62ORk5Uzh/napEMvOhmECSqivRnU9NTkbcaBUKifpumoJaGTpDOd/Z2MOpiyQSTWEETdovvmMCOUTcE5/dQgZWlA9sIygHaEU6BQb+5L72dGlzBsdmkpdMjFnOorxhF1M=
+	t=1790050757; cv=none; b=EoIbVvaW7fTrFAMktdwhYZ5RY3Esmf4QzPMPZWGcHlKXavV1gMoum3oRoafY54gBKj+r1ZsNDCU5/0GOcItZ58ZQuqiRCNZHRKdw0t3Z7NUT6hTCkmKY9Ui3NoKjp9e+Jzxl9SciznIz38O5L4/kMHpRqp7RbPlEa7QcOcpo8pM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790047074; c=relaxed/simple;
-	bh=n5rx4IX4GsBUDhc4Iyun+qiv1PJKF2Xxv28G7taH6Vk=;
-	h=Content-Type:Mime-Version:Subject:From:In-Reply-To:Date:Cc:
-	 Message-Id:References:To; b=GFPYJUhdSFTYDnT7eSfYOtDBgT+2CVoFcBib9dtc6ONcVV6V2rz6ka3Xbqg/L0iDGyKteZ9KMyi4OFSWnD9gCvtj0v4luAIrjpFWSIKOkcOwVu63BwWW3ZyAJhvlQJ/Ig9yzvJj5UJnhT1t6ojI25XBeKsf8+TqhzCWUWQOkeMw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=OXZdkHQ5; arc=none smtp.client-ip=91.218.175.198
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1790050757; c=relaxed/simple;
+	bh=RSkNLe7Sg4XW5hNedsHvH2OlF9gD0i811YKpi50IXHE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=p6kLYP5dDiCsRDRfUZ9oxBCAP1MeMDNYW7mgZuJtzugLC6l2rNyfuxxEyPi8koWdLujXqZ4BdxDf2rFd1x42SY7umwG/6cKVdxgICsULAnmJILgTzPZ7T6KTzY7GO2ssIHHXQT9hLUYSwOsi67CHrYperVpnZ9OJ3h4HzrC7Sb8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hmENK7hI; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="OXZdkHQ5"
-X-Envelope-To: nvdimm@lists.linux.dev
-DKIM-Signature: a=rsa-sha256; bh=n5rx4IX4GsBUDhc4Iyun+qiv1PJKF2Xxv28G7taH6Vk=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1790047070; v=1; x=1790651870;
- b=OXZdkHQ5qaXAc8/OoEikBWoNlnVFMkAHE8uQc0aWfSKRzsW5dR7OSoOIsyTDF1S9ghN2J3W4
- wOpnAEU2hdKDZCN6XJvy26vEwrP0suDl0ycExkXUeqAMApj3rHmAyPSBiS0wVvMPv/EjqjRIuII
- hUQVD8AR5oxKbvTfTiuVTL/w=
-X-Envelope-To: nvdimm@lists.linux.dev
-Received: by mta10.migadu.com with ESMTPS id 007cbe3f9b98d031;
-	Tue, 22 Sep 2026 03:17:50 +0000
-X-Mizu-Trace-ID: 007cbe3f9b98d031
-X-Migadu-Flow: FLOW_OUT
-Content-Type: text/plain;
-	charset=us-ascii
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hmENK7hI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11E0E1F000FF;
+	Tue, 22 Sep 2026 04:19:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790050755;
+	bh=k3B9ThvTz5RGopdNhG1qzUIIExt5TxIgr3PrinYt/7I=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=hmENK7hIfI4nkqA98Oh/niUu0cIYksY6wSgej1XD5+GYL6UXYorVaivtQlNyJiSpX
+	 nivALJV8ZrE7rhhAByx7cYv653GwJshpUX47k6uUQFnx5+BhDo2hnkqJvqBaKu8Kcw
+	 5kMLFDuvGBAw1GqmMdPK2hMzY6yraEn+9mzKbOYvqVjynlIICrYbanO4a00LJ1hKGf
+	 gt8roYO5nUtNDUk5yGSvSZ1FAZ0JvgPEoiMFQBfEzxCb3Y4jtyqy5ZbqMnBE30e7v+
+	 Vt6XOWIKes5R7kUjN3pLm25oTTAPCGJ+vkJy+7XIE9X0KXiGe2DEjJC1NPnNwKtQDv
+	 uQYg1gExUb+SA==
+Date: Tue, 22 Sep 2026 06:19:08 +0200
+From: "Oscar Salvador (SUSE)" <osalvador@kernel.org>
+To: Kaitao Cheng <kaitao.cheng@linux.dev>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	David Hildenbrand <david@kernel.org>,
+	Lorenzo Stoakes <ljs@kernel.org>,
+	"Liam R . Howlett" <liam@infradead.org>,
+	Vlastimil Babka <vbabka@kernel.org>,
+	Mike Rapoport <rppt@kernel.org>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Michal Hocko <mhocko@suse.com>, Dan Williams <djbw@kernel.org>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Ira Weiny <iweiny@kernel.org>, Muchun Song <muchun.song@linux.dev>,
+	linux-mm@kvack.org, nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org, Kaitao Cheng <chengkaitao@kylinos.cn>
+Subject: Re: [PATCH 2/2] nvdimm/pmem: Remove test_and_clear_pmem_poison()
+Message-ID: <arIBvO3cFQ53ivG3@localhost.localdomain>
+References: <20260903053535.17611-1-kaitao.cheng@linux.dev>
+ <20260903053535.17611-3-kaitao.cheng@linux.dev>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3864.700.51.1.1\))
-Subject: Re: [PATCH 3/4] mm: add shared read-only vmemmap support for FS-DAX
-From: Muchun Song <muchun.song@linux.dev>
-In-Reply-To: <arEsjy0QwLekLVbf@localhost.localdomain>
-Date: Tue, 22 Sep 2026 11:17:27 +0800
-Cc: Muchun Song <songmuchun@bytedance.com>,
- Andrew Morton <akpm@linux-foundation.org>,
- Dan Williams <djbw@kernel.org>,
- David Hildenbrand <david@kernel.org>,
- linux-mm@kvack.org,
- nvdimm@lists.linux.dev,
- linux-kernel@vger.kernel.org,
- linux-fsdevel@vger.kernel.org,
- linux-cxl@vger.kernel.org,
- Vishal Verma <vishal.l.verma@intel.com>,
- Dave Jiang <dave.jiang@intel.com>,
- Alison Schofield <alison.schofield@intel.com>,
- Mike Rapoport <rppt@kernel.org>,
- Oscar Salvador <osalvador@suse.de>,
- Ira Weiny <iweiny@kernel.org>,
- Jan Kara <jack@suse.cz>,
- Matthew Wilcox <willy@infradead.org>,
- Lorenzo Stoakes <ljs@kernel.org>,
- Vlastimil Babka <vbabka@kernel.org>,
- Michal Hocko <mhocko@suse.com>,
- Qi Zheng <qi.zheng@linux.dev>
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <B7DD4587-81DD-4B82-934B-67B80A3A2D92@linux.dev>
-References: <20260903122128.12264-1-songmuchun@bytedance.com>
- <20260903122128.12264-4-songmuchun@bytedance.com>
- <arEsjy0QwLekLVbf@localhost.localdomain>
-To: "Oscar Salvador (SUSE)" <osalvador@kernel.org>
-X-Mailer: Apple Mail (2.3864.700.51.1.1)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260903053535.17611-3-kaitao.cheng@linux.dev>
 
+On Thu, Sep 03, 2026 at 01:35:35PM +0800, Kaitao Cheng wrote:
+> From: Kaitao Cheng <chengkaitao@kylinos.cn>
+> 
+> TestClearPageHWPoison() is now defined regardless of whether
+> CONFIG_MEMORY_FAILURE is enabled, returning false when memory failure
+> handling is unavailable.
+> 
+> The test_and_clear_pmem_poison() wrapper duplicates this configuration
+> handling and has no other pmem-specific behavior.
+> 
+> Call TestClearPageHWPoison() directly and remove the redundant wrapper.
+> This also removes the need to include page-flags.h from pmem.h.
+> 
+> No functional change is intended.
+> 
+> Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
 
+Nice cleanup, but as David noted, please squash patch#1 into this one.
 
-> On Sep 21, 2026, at 21:09, Oscar Salvador (SUSE) =
-<osalvador@kernel.org> wrote:
->=20
-> On Thu, Sep 03, 2026 at 08:21:26PM +0800, Muchun Song wrote:
->> FS-DAX registers persistent-memory ranges as ZONE_DEVICE memory, and =
-the
->> kernel normally allocates and initializes vmemmap storage for every
->> advertised PFN up front. Sparse pmem images and workloads that only =
-use the
->> DAX direct-access path may never need writable per-PFN state for most =
-of
->> that range, but still pay the memory and initialization cost.
->>=20
->> Add an opt-in dev_pagemap mode that populates FS-DAX vmemmap PTEs =
-from a
->> shared read-only metadata page. The shared page is initialized with =
-the
->> common ZONE_DEVICE and dev_pagemap state, so every PFN still has a =
-valid
->> struct page representation while private metadata allocation is =
-deferred.
->>=20
->> This relies on sizeof(struct page) being a power of two, so each =
-vmemmap
->> page contains a naturally aligned and repeatable set of struct page =
-slots.
->> It also requires architecture support for runtime vmemmap remapping,
->> because shared mappings must be replaced with private writable pages =
-before
->> a PFN can enter userspace mappings.
->>=20
->> The initial implementation is deliberately limited to a single
->> memory-block-aligned range. That is not a fundamental requirement, =
-but keeps
->> the registration and teardown paths simple; support for multiple =
-ranges or
->> less strict alignment can be added later.
->>=20
->> Provide vmemmap_materialize_page() to replace shared mappings in the
->> requested metadata range with private writable copies. A later patch =
-will
->> call it from the FS-DAX fault path.
->>=20
->> No caller enables the mode yet.
-> ... =20
->> +static int pgmap_vmemmap_shared_page_alloc(struct dev_pagemap =
-*pgmap, int nid)
->> +{
->> + 	const struct range *range =3D &pgmap->range;
->> +
->> + 	if (!is_power_of_2(sizeof(struct page)) ||
->> + 	    !IS_ENABLED(CONFIG_ARCH_SUPPORTS_VMEMMAP_REMAP) ||
->> + 	    !(pgmap->flags & PGMAP_VMEMMAP_OPTIMIZATION))
->> + 		return 0;
->> +
->> + 	if (pgmap->nr_range !=3D 1 ||
->> + 	    !IS_ALIGNED(range->start | range_len(range), =
-MIN_MEMORY_BLOCK_SIZE))
->> + 		return 0;
->> +
->> + 	pgmap->vmemmap_shared_page =3D alloc_pages_node(nid, GFP_KERNEL, =
-0);
->> +
->> + 	return pgmap->vmemmap_shared_page ? 0 : -ENOMEM;
->=20
-> I yet have to look into this with more detail, but this caught my eye.
-> Should not this be a best-efford mode optimization? So, if we were
-> unable to allocate the page, could not we treat this as a normal =
-"cannot
-> be optimized, follow by-default procedure" ?
->=20
->=20
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
 
-My thinking is that if we fail to allocate memory here, the subsequent
-vmemmap allocation will need way more memory than just this one page.
-So it's very likely to fail anyway.
+ 
 
-Thanks,
-Muchun
-
->=20
-> --=20
-> Oscar Salvador
-> SUSE Labs
-
-
+-- 
+Oscar Salvador
+SUSE Labs
