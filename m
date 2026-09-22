@@ -1,101 +1,132 @@
-Received: from mta0.migadu.com (out-9.mta0.migadu.com [91.218.175.9])
+Received: from mail-pz2-f12.google.com (mail-pz2-f12.google.com [74.125.228.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FCA33EDAA2
-	for <nvdimm@lists.linux.dev>; Tue, 22 Sep 2026 04:44:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EEC341D641
+	for <nvdimm@lists.linux.dev>; Tue, 22 Sep 2026 08:25:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790052279; cv=none; b=M+xcbfylrqlQmE9hZVknjzGrJ5++fVtpmYv989/bvbjg7gRfVqSPIRRYOmC36Vq38/PmiC3CMLoqJJ3D8X+CxKedl7vJMjYo5OfBUp5mN+uGAB1HRWdWNWfMZfgesDalNzq/2Y9PnpvRh5CuqGi4kiGPJ5Oydq4vP1F6npVMdN4=
+	t=1790065561; cv=none; b=uh52C5e2tNdlSQo2m5InpK0+Fxn5+Qj3vYtjcl2AtzYyx3WiBdEDqqiMgWWLPv4w1w+Ac1FrzV1Grgb7Jt7f98FbY86YdyQt6MmfyWOrRtzMBr9TpMpqm706LUPVBbVWby70an6TR3nMMoJQovt73eCIar9AaZYSTruMzRWFtVU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790052279; c=relaxed/simple;
-	bh=O9TtdOhD8pGjJ5szyUuOrZgrl+8A101U3MBnFYDvhY8=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=CoT9jDFRNVVkJt9Ren3IDmIvYOCpFT2HmNLbkvYbEYHbuVnAsfchKn7orTbdj+oG7u5SPdjc9EBtE+SW4Y93dm14xN8oi08Wt9WCiUfTHi16yVWpV3cImHY/FjxTqWogy3m1+hEki+5UlJjraZoIcoJJPCqq4zQBUpO/dpfDV5w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=PSPTnB4z; arc=none smtp.client-ip=91.218.175.9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1790065561; c=relaxed/simple;
+	bh=dBBpa7Ydst38i8cZsMQVxzXK9rqMNseU8twqVhQtE78=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=BR4KktfgJzhdTNaNu9izttW2QxrWOiRE36i2FX73ky5qfHnJaFaPoyRkyuUBOhfwBn8sTLuiAqimqT6ABihgGemrLdxX4883S+IjUT9/z8E44ggfWAy5A+pU+eQw0jBa397/fOEY9Jq6VdA+i0+0uSCgt2EhfXjPNYq3Mzu15Ng=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=kjexEEh9; arc=none smtp.client-ip=74.125.228.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="PSPTnB4z"
-X-Envelope-To: nvdimm@lists.linux.dev
-DKIM-Signature: a=rsa-sha256; bh=O9TtdOhD8pGjJ5szyUuOrZgrl+8A101U3MBnFYDvhY8=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1790052271; v=1; x=1790657071;
- b=PSPTnB4zSxw4Mu49Z0TQhV1FNPlOwzFXABfcbLftXqQKLWeNRNr6oL60cCkVQlc0FULpn0Yb
- +gYjqTpa1UfXszW/jk0eE40uHRK2besbBxrZ0EpN9YBsDdDiS7APJNSdXyp2cZlNpyokx+Do3Dr
- xWmwF19PBWWFEU81MNODolls=
-X-Envelope-To: nvdimm@lists.linux.dev
-Received: by mta10.migadu.com with ESMTPS id 1c91c1c822023d95;
-	Tue, 22 Sep 2026 04:44:31 +0000
-X-Mizu-Trace-ID: 1c91c1c822023d95
-X-Migadu-Flow: FLOW_OUT
-Message-ID: <10159c57-091e-474a-a154-4f675a39dcc2@linux.dev>
-Date: Tue, 22 Sep 2026 12:44:19 +0800
+	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="kjexEEh9"
+Received: by mail-pz2-f12.google.com with SMTP id 41be03b00d2f7-cc4bdf8abaaso3154807a12.2
+        for <nvdimm@lists.linux.dev>; Tue, 22 Sep 2026 01:25:58 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bytedance.com; s=google; t=1790065558; x=1790670358; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=Id4aiEwWk24mT8CByvlZpwQS9RXne8NT6QXvKFa3y1M=;
+        b=kjexEEh9Z6oRWMq5DpdmaIw/VEHyLJ2FJsAfrLcDfnK9Kapz+jCZapDqvIZOD95CH2
+         Zk2MrXVrfmT1K0OMB1Bzp0PcT0hD6On7FXSkWTlgmvil98JSjwNm5kagYh5ZZkqSnHmf
+         lbqCQjnlvEz/zCriSOcpSzYvyIhO1patQ/ikoe7H11ihIWwNCWs1F2oaDly7A3Yfg9N7
+         chVNgM7P38JU3VUQ/cFxeq2n29YRWv2rB/bLLbWp27CzmYLIpAwI5fWcxJogIBQGA0ZC
+         u1pdx11V/PEbQ60guEUnphXlMxI474SAC0wSf02bUQEqeLWKpJZU4i/wjkCqybSZMhHB
+         N1/A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790065558; x=1790670358;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=Id4aiEwWk24mT8CByvlZpwQS9RXne8NT6QXvKFa3y1M=;
+        b=XMrQGfcp7mLVaSlw6MOW/6mpgfQeGYE1WWxNjfahZHClXVHL0o1lwvscUubdFtcy1v
+         d1gTVcSG1/R7cbeE1xTmkQkDQ5DfqNVSQn6WMX2Dbkx80qC7VFIlackEiTOUrJgmqui0
+         /wycb459xaylsXQdAmsSHb+f76tPFq9OOCApQ4nDJvIP1u1s/CEtj3v2TXQXbI1F5pLC
+         DJbuk6W0aMl/eseEuHoxebm7T4lN5y8WKDQRQ/JvchPJpntcq1vWLSrZwvPVJ1ghQMpg
+         9GwTHKlg9aPvpbzXIc3ncpHr2HK2y7UtP6VZmZnlWUic7NOzU6KPSSEke84EmZOiS1T7
+         iAFA==
+X-Forwarded-Encrypted: i=1; AKwUvBzTc+1m8XjNEPLVThM6MI/eJsdrS+cFuZEAqWfLVC1s6I18lqH4U6XnD1HrCfUv9FIU0hgzQ9s=@lists.linux.dev
+X-Gm-Message-State: AFuF++mybyOZaqrFSELbrG+hWS/e4k24QPK0whVXP7XB42NszuwOqVoU
+	C+xgCXRwcPzjMqPHwJ1+9qsnJiFUs552UE5pAD2zbrZ2jWU+EGnLubHGup2T/TuDch8=
+X-Gm-Gg: AYBFou1mF93VhEIBByJPEnGy08fF8G5eTuJJMJNOYMlsbR3q/tQKYStEoPjLIZOXAS+
+	SKfMx8vf1i1p/Ggc3Fr7hIKu1dA0hyPIll6Nt5ZgnHo/jXyOqdFtDWVveIKvklnLhbmukgCBxZr
+	8kGps3J9fRhBueKSMA4b3N4GY8x0psyZJL8FyAtss50wJdJm3mM4d/h25pLRUGTMgD8CSsVGDvs
+	4Z1ntzDxh6J30tRpr98vs/p0AA9Qa3han2VgO1J9Ey1RIPfgliofaglw/05H//YRwNbyp8+78pq
+	JUc5tVNlk0oT2YuVT2YjnLndS/X5LLfYQ5vFRas2lDB6CGMfz4lIA5Yu9DGAWxWswDHAhP+4mBH
+	J1Y0bwCxsfoYWDdSbpqXYq4lgr/Cx9tPZnqEUkFXlUNIe57mQ4+++kJomMwL2FR10OsAkgs/yUt
+	biwuOQXPZskucSlbsQS9D3YB2rA4uMUgRq5ec7AZZv8KNtmyg2Otj1VJQ228D7xIpP/4tUUXD/c
+	z36+VQBTy0TZXvoWY5w
+X-Received: by 2002:a17:90b:1e53:b0:39e:2c5c:a69a with SMTP id 98e67ed59e1d1-3a07309eb75mr436231a91.5.1790065558109;
+        Tue, 22 Sep 2026 01:25:58 -0700 (PDT)
+Received: from n232-176-004.byted.org ([36.110.163.97])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3a07385e516sm223056a91.0.2026.09.22.01.25.55
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 22 Sep 2026 01:25:57 -0700 (PDT)
+From: Muchun Song <songmuchun@bytedance.com>
+To: Dan Williams <djbw@kernel.org>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Alison Schofield <alison.schofield@intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Joao Martins <joao.m.martins@oracle.com>,
+	nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Muchun Song <songmuchun@bytedance.com>,
+	muchun.song@linux.dev
+Subject: [PATCH v2 0/2] dax: Fix Device DAX range allocation validation
+Date: Tue, 22 Sep 2026 16:25:49 +0800
+Message-ID: <20260922082551.874901-1-songmuchun@bytedance.com>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 2/2] nvdimm/pmem: Remove test_and_clear_pmem_poison()
-To: "Oscar Salvador (SUSE)" <osalvador@kernel.org>,
- David Hildenbrand <david@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
- Lorenzo Stoakes <ljs@kernel.org>, "Liam R . Howlett" <liam@infradead.org>,
- Vlastimil Babka <vbabka@kernel.org>, Mike Rapoport <rppt@kernel.org>,
- Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
- Dan Williams <djbw@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>,
- Dave Jiang <dave.jiang@intel.com>,
- Alison Schofield <alison.schofield@intel.com>, Ira Weiny
- <iweiny@kernel.org>, Muchun Song <muchun.song@linux.dev>,
- linux-mm@kvack.org, nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
- Kaitao Cheng <chengkaitao@kylinos.cn>
-References: <20260903053535.17611-1-kaitao.cheng@linux.dev>
- <20260903053535.17611-3-kaitao.cheng@linux.dev>
- <arIBvO3cFQ53ivG3@localhost.localdomain>
-From: Kaitao Cheng <kaitao.cheng@linux.dev>
-In-Reply-To: <arIBvO3cFQ53ivG3@localhost.localdomain>
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-在 2026/9/22 12:19, Oscar Salvador (SUSE) 写道:
-> On Thu, Sep 03, 2026 at 01:35:35PM +0800, Kaitao Cheng wrote:
->> From: Kaitao Cheng <chengkaitao@kylinos.cn>
->>
->> TestClearPageHWPoison() is now defined regardless of whether
->> CONFIG_MEMORY_FAILURE is enabled, returning false when memory failure
->> handling is unavailable.
->>
->> The test_and_clear_pmem_poison() wrapper duplicates this configuration
->> handling and has no other pmem-specific behavior.
->>
->> Call TestClearPageHWPoison() directly and remove the redundant wrapper.
->> This also removes the need to include page-flags.h from pmem.h.
->>
->> No functional change is intended.
->>
->> Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
-> 
-> Nice cleanup, but as David noted, please squash patch#1 into this one.
+While working on the HugeTLB Vmemmap Optimization (HVO) generalization,
+Sashiko reported that memmap_init_zone_device() could be asked to
+initialize struct pages with a large-page order for a physical range
+that was not naturally aligned to that order.
 
-Although NVDIMM is currently the only external user of TestClearPageHWPoison,
-I still consider it a generic declaration. Combining the two patches might
-give the impression that TestClearPageHWPoison exists solely to serve a
-specific driver.
+Following the Device DAX call path confirmed that the condition was
+reachable. Device DAX range validation checks the range size, but not
+its start address. An unaligned range can therefore reach
+memmap_init_zone_device() after the device binds, and a subsequent write
+to a userspace mapping may trigger a kernel panic. With the help of an
+LLM, I was able to reproduce the failure.
 
-That said, I’m not opposed to merging the two patches, as doing so would
-make the submission more concise.
+The automatic resize path has a related problem. It can split an aligned
+size request across arbitrary free gaps, consume an unaligned fragment,
+and leave the resize partially applied when a later allocation fails.
 
-I think both approaches have their own advantages and disadvantages,
-which is why I haven’t sent a v2 yet.
+This series first fixes the mapping sysfs attribute to propagate
+validation failures. It then validates both the start and size of every
+Device DAX range and makes automatic resize account only for usable
+aligned space.
 
-> Reviewed-by: Oscar Salvador <osalvador@suse.de>
-> 
->  
+The changes were tested by booting the kernel in a VM with a fragmented
+dynamic DAX region. Misaligned mappings were rejected with -EINVAL,
+aligned allocation and multi-range mmap read/write succeeded, and an
+allocation exceeding the usable aligned space returned -ENOSPC without
+leaving a partial allocation.
+
+v2:
+- Return explicit errors before Device DAX range allocation
+  (suggested by Dave Jiang)
+- Move the mapping error reporting fix before the range alignment
+  validation fix for independent backports (suggested by Dave Jiang)
+- Keep the alloc_is_aligned() name to avoid unrelated helper renaming
+  (suggested by Dave Jiang)
+
+v1: https://lore.kernel.org/all/20260915095621.3744167-1-songmuchun@bytedance.com/
+
+Muchun Song (2):
+  dax/bus: fix mapping attribute error reporting
+  dax/bus: fix Device DAX range alignment validation
+
+ drivers/dax/bus.c | 142 +++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 110 insertions(+), 32 deletions(-)
 
 
+base-commit: 93f51579e7df248780214094418f205253383cc5
 -- 
-Thanks
-Kaitao Cheng
+2.54.0
 
