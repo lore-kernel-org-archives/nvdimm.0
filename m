@@ -1,85 +1,101 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mta0.migadu.com (out-9.mta0.migadu.com [91.218.175.9])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52EEB37646C;
-	Tue, 22 Sep 2026 04:19:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FCA33EDAA2
+	for <nvdimm@lists.linux.dev>; Tue, 22 Sep 2026 04:44:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790050757; cv=none; b=EoIbVvaW7fTrFAMktdwhYZ5RY3Esmf4QzPMPZWGcHlKXavV1gMoum3oRoafY54gBKj+r1ZsNDCU5/0GOcItZ58ZQuqiRCNZHRKdw0t3Z7NUT6hTCkmKY9Ui3NoKjp9e+Jzxl9SciznIz38O5L4/kMHpRqp7RbPlEa7QcOcpo8pM=
+	t=1790052279; cv=none; b=M+xcbfylrqlQmE9hZVknjzGrJ5++fVtpmYv989/bvbjg7gRfVqSPIRRYOmC36Vq38/PmiC3CMLoqJJ3D8X+CxKedl7vJMjYo5OfBUp5mN+uGAB1HRWdWNWfMZfgesDalNzq/2Y9PnpvRh5CuqGi4kiGPJ5Oydq4vP1F6npVMdN4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790050757; c=relaxed/simple;
-	bh=RSkNLe7Sg4XW5hNedsHvH2OlF9gD0i811YKpi50IXHE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=p6kLYP5dDiCsRDRfUZ9oxBCAP1MeMDNYW7mgZuJtzugLC6l2rNyfuxxEyPi8koWdLujXqZ4BdxDf2rFd1x42SY7umwG/6cKVdxgICsULAnmJILgTzPZ7T6KTzY7GO2ssIHHXQT9hLUYSwOsi67CHrYperVpnZ9OJ3h4HzrC7Sb8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hmENK7hI; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790052279; c=relaxed/simple;
+	bh=O9TtdOhD8pGjJ5szyUuOrZgrl+8A101U3MBnFYDvhY8=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=CoT9jDFRNVVkJt9Ren3IDmIvYOCpFT2HmNLbkvYbEYHbuVnAsfchKn7orTbdj+oG7u5SPdjc9EBtE+SW4Y93dm14xN8oi08Wt9WCiUfTHi16yVWpV3cImHY/FjxTqWogy3m1+hEki+5UlJjraZoIcoJJPCqq4zQBUpO/dpfDV5w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=PSPTnB4z; arc=none smtp.client-ip=91.218.175.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hmENK7hI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11E0E1F000FF;
-	Tue, 22 Sep 2026 04:19:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790050755;
-	bh=k3B9ThvTz5RGopdNhG1qzUIIExt5TxIgr3PrinYt/7I=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=hmENK7hIfI4nkqA98Oh/niUu0cIYksY6wSgej1XD5+GYL6UXYorVaivtQlNyJiSpX
-	 nivALJV8ZrE7rhhAByx7cYv653GwJshpUX47k6uUQFnx5+BhDo2hnkqJvqBaKu8Kcw
-	 5kMLFDuvGBAw1GqmMdPK2hMzY6yraEn+9mzKbOYvqVjynlIICrYbanO4a00LJ1hKGf
-	 gt8roYO5nUtNDUk5yGSvSZ1FAZ0JvgPEoiMFQBfEzxCb3Y4jtyqy5ZbqMnBE30e7v+
-	 Vt6XOWIKes5R7kUjN3pLm25oTTAPCGJ+vkJy+7XIE9X0KXiGe2DEjJC1NPnNwKtQDv
-	 uQYg1gExUb+SA==
-Date: Tue, 22 Sep 2026 06:19:08 +0200
-From: "Oscar Salvador (SUSE)" <osalvador@kernel.org>
-To: Kaitao Cheng <kaitao.cheng@linux.dev>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	David Hildenbrand <david@kernel.org>,
-	Lorenzo Stoakes <ljs@kernel.org>,
-	"Liam R . Howlett" <liam@infradead.org>,
-	Vlastimil Babka <vbabka@kernel.org>,
-	Mike Rapoport <rppt@kernel.org>,
-	Suren Baghdasaryan <surenb@google.com>,
-	Michal Hocko <mhocko@suse.com>, Dan Williams <djbw@kernel.org>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Ira Weiny <iweiny@kernel.org>, Muchun Song <muchun.song@linux.dev>,
-	linux-mm@kvack.org, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org, Kaitao Cheng <chengkaitao@kylinos.cn>
-Subject: Re: [PATCH 2/2] nvdimm/pmem: Remove test_and_clear_pmem_poison()
-Message-ID: <arIBvO3cFQ53ivG3@localhost.localdomain>
-References: <20260903053535.17611-1-kaitao.cheng@linux.dev>
- <20260903053535.17611-3-kaitao.cheng@linux.dev>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="PSPTnB4z"
+X-Envelope-To: nvdimm@lists.linux.dev
+DKIM-Signature: a=rsa-sha256; bh=O9TtdOhD8pGjJ5szyUuOrZgrl+8A101U3MBnFYDvhY8=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1790052271; v=1; x=1790657071;
+ b=PSPTnB4zSxw4Mu49Z0TQhV1FNPlOwzFXABfcbLftXqQKLWeNRNr6oL60cCkVQlc0FULpn0Yb
+ +gYjqTpa1UfXszW/jk0eE40uHRK2besbBxrZ0EpN9YBsDdDiS7APJNSdXyp2cZlNpyokx+Do3Dr
+ xWmwF19PBWWFEU81MNODolls=
+X-Envelope-To: nvdimm@lists.linux.dev
+Received: by mta10.migadu.com with ESMTPS id 1c91c1c822023d95;
+	Tue, 22 Sep 2026 04:44:31 +0000
+X-Mizu-Trace-ID: 1c91c1c822023d95
+X-Migadu-Flow: FLOW_OUT
+Message-ID: <10159c57-091e-474a-a154-4f675a39dcc2@linux.dev>
+Date: Tue, 22 Sep 2026 12:44:19 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260903053535.17611-3-kaitao.cheng@linux.dev>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 2/2] nvdimm/pmem: Remove test_and_clear_pmem_poison()
+To: "Oscar Salvador (SUSE)" <osalvador@kernel.org>,
+ David Hildenbrand <david@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+ Lorenzo Stoakes <ljs@kernel.org>, "Liam R . Howlett" <liam@infradead.org>,
+ Vlastimil Babka <vbabka@kernel.org>, Mike Rapoport <rppt@kernel.org>,
+ Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
+ Dan Williams <djbw@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>,
+ Dave Jiang <dave.jiang@intel.com>,
+ Alison Schofield <alison.schofield@intel.com>, Ira Weiny
+ <iweiny@kernel.org>, Muchun Song <muchun.song@linux.dev>,
+ linux-mm@kvack.org, nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
+ Kaitao Cheng <chengkaitao@kylinos.cn>
+References: <20260903053535.17611-1-kaitao.cheng@linux.dev>
+ <20260903053535.17611-3-kaitao.cheng@linux.dev>
+ <arIBvO3cFQ53ivG3@localhost.localdomain>
+From: Kaitao Cheng <kaitao.cheng@linux.dev>
+In-Reply-To: <arIBvO3cFQ53ivG3@localhost.localdomain>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Thu, Sep 03, 2026 at 01:35:35PM +0800, Kaitao Cheng wrote:
-> From: Kaitao Cheng <chengkaitao@kylinos.cn>
+在 2026/9/22 12:19, Oscar Salvador (SUSE) 写道:
+> On Thu, Sep 03, 2026 at 01:35:35PM +0800, Kaitao Cheng wrote:
+>> From: Kaitao Cheng <chengkaitao@kylinos.cn>
+>>
+>> TestClearPageHWPoison() is now defined regardless of whether
+>> CONFIG_MEMORY_FAILURE is enabled, returning false when memory failure
+>> handling is unavailable.
+>>
+>> The test_and_clear_pmem_poison() wrapper duplicates this configuration
+>> handling and has no other pmem-specific behavior.
+>>
+>> Call TestClearPageHWPoison() directly and remove the redundant wrapper.
+>> This also removes the need to include page-flags.h from pmem.h.
+>>
+>> No functional change is intended.
+>>
+>> Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
 > 
-> TestClearPageHWPoison() is now defined regardless of whether
-> CONFIG_MEMORY_FAILURE is enabled, returning false when memory failure
-> handling is unavailable.
-> 
-> The test_and_clear_pmem_poison() wrapper duplicates this configuration
-> handling and has no other pmem-specific behavior.
-> 
-> Call TestClearPageHWPoison() directly and remove the redundant wrapper.
-> This also removes the need to include page-flags.h from pmem.h.
-> 
-> No functional change is intended.
-> 
-> Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
+> Nice cleanup, but as David noted, please squash patch#1 into this one.
 
-Nice cleanup, but as David noted, please squash patch#1 into this one.
+Although NVDIMM is currently the only external user of TestClearPageHWPoison,
+I still consider it a generic declaration. Combining the two patches might
+give the impression that TestClearPageHWPoison exists solely to serve a
+specific driver.
 
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
+That said, I’m not opposed to merging the two patches, as doing so would
+make the submission more concise.
 
- 
+I think both approaches have their own advantages and disadvantages,
+which is why I haven’t sent a v2 yet.
+
+> Reviewed-by: Oscar Salvador <osalvador@suse.de>
+> 
+>  
+
 
 -- 
-Oscar Salvador
-SUSE Labs
+Thanks
+Kaitao Cheng
+
