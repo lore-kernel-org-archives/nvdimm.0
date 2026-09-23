@@ -1,32 +1,32 @@
-Received: from mta1.migadu.com (out-167.mta1.migadu.com [95.215.58.167])
+Received: from mta1.migadu.com (out-194.mta1.migadu.com [95.215.58.194])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 821D0416841
-	for <nvdimm@lists.linux.dev>; Wed, 23 Sep 2026 05:52:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.167
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D014C429037
+	for <nvdimm@lists.linux.dev>; Wed, 23 Sep 2026 05:53:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.194
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790142781; cv=none; b=KOlPDgLGyDD6dUm3hZMWaQeTcGh/ibG10WEBn+BrreiBCCwtZgWueY4aWeeO9vO5P8ORLam/JCAx+vI1q+fZic3U+uibfwVHQtq50g5DL8tLe2d/t5dB8LM5syYzc8gIRQQi76t/Kc6GvRQafMSgfJFRAdNUadXK3sgfF6jCpsY=
+	t=1790142814; cv=none; b=lyWO5pCYTdRGFWjZGP6Z9vpxKhFUrpRREMXtEkDcMB5RfS6psmISeygvsW2kdFXoTgO9mvgZfP/3Cy1TT5U3dz4ULHf2DhaKI/hYaG5l9fvu2MPqXHsi8uUFr4DZEcEk3MEIaeVPTASfHEczYjCY50Tq3UUr/Tpiv0RFVFz/iuA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790142781; c=relaxed/simple;
+	s=arc-20240116; t=1790142814; c=relaxed/simple;
 	bh=GtzyIimaRhdHKGvlttK2axmNG4AJfexvcRRfGpY2ECk=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=JNQmZOyDVVcwzGqzp1BG3+9qczolyCdMPa4CSq781gagDU386tD6JvsOxmcJJER7vY7w/i+KH8DAiMK6PCjDmxphjwSuWgatI7Yn/662ogLPgp8AnQCe7CMY8vdxIm1cx9B51BKoHi189Kyf/RZLzP7S0AGkoXOWZGScnscXSXc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=SbXL1Nkk; arc=none smtp.client-ip=95.215.58.167
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=neSb6j7FNYFiyWGsv+GEtcNkzoDOYSC+j0dpTn8sLQErukCk3oCxrwEVREpz1YNm1r2gL1xXJbajEDPvHqm4BYZ2WN41nBci2YqyEIJjOtyJPphaWTJtydz87z6Ry8PmXmbMufUlOinc8C1+27EraWXEloe5k0rNtyEW/VwexSg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=xcVDaIA6; arc=none smtp.client-ip=95.215.58.194
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="SbXL1Nkk"
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="xcVDaIA6"
 X-Envelope-To: nvdimm@lists.linux.dev
 DKIM-Signature: a=rsa-sha256; bh=GtzyIimaRhdHKGvlttK2axmNG4AJfexvcRRfGpY2ECk=;
  c=simple/simple; d=linux.dev;
  h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1790142776; v=1; x=1790747576;
- b=SbXL1NkkSWY+U7gyzXlZ6xqymEghVCzzdVcfFuqpBUOti+BsDZ/ATK6NoQOWS8zBFSvLJrIe
- fm70YV79Pq0EplWJhQaGDyJ33PvOMlpnpznYrn7R5tjyQSgjFeUjIHtaxbJG/8UvbJmrVMyfNHE
- +j4uSh7oLVlKPsUEVB+P0ekQ=
+ t=1790142810; v=1; x=1790747610;
+ b=xcVDaIA6AxJGFyl59gR9e+k4n6ll3IV+Ux5WtvjeEy7Uqvr9qSjbHiEbS4u701fHPsgb4MF3
+ 3WqOxoxDpUxacdcTKFiA3B63AJSLpbG3pM5hg1XYuBZPCNBId9XqzuCuQ9/OGIUbZEOkcqWxbRE
+ 3rWw06t2Zb0ebyMbx6R0GkPU=
 X-Envelope-To: nvdimm@lists.linux.dev
-Received: by smtp.migadu.com with ESMTPS id b3c3f588ab93e6be;
-	Wed, 23 Sep 2026 05:52:55 +0000
-X-Mizu-Trace-ID: b3c3f588ab93e6be
+Received: by smtp.migadu.com with ESMTPS id 4e0d178c503526e4;
+	Wed, 23 Sep 2026 05:53:30 +0000
+X-Mizu-Trace-ID: 4e0d178c503526e4
 X-Migadu-Flow: FLOW_OUT
 From: Kaitao Cheng <kaitao.cheng@linux.dev>
 To: Andrew Morton <akpm@linux-foundation.org>,
@@ -48,9 +48,9 @@ Cc: Muchun Song <muchun.song@linux.dev>,
 	linux-kernel@vger.kernel.org,
 	Kaitao Cheng <chengkaitao@kylinos.cn>,
 	Oscar Salvador <osalvador@suse.de>
-Subject: [PATCH] nvdimm/pmem: remove test_and_clear_pmem_poison()
-Date: Wed, 23 Sep 2026 13:52:26 +0800
-Message-ID: <20260923055226.56129-1-kaitao.cheng@linux.dev>
+Subject: [PATCH v2] nvdimm/pmem: remove test_and_clear_pmem_poison()
+Date: Wed, 23 Sep 2026 13:53:18 +0800
+Message-ID: <20260923055318.57485-1-kaitao.cheng@linux.dev>
 X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
