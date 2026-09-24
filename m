@@ -1,397 +1,207 @@
-Received: from mail-pj2-f13.google.com (mail-pj2-f13.google.com [74.125.227.141])
+Received: from mail-dy2-f42.google.com (mail-dy2-f42.google.com [74.125.229.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7309383C95
-	for <nvdimm@lists.linux.dev>; Thu, 24 Sep 2026 02:50:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.141
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2025D3090C6
+	for <nvdimm@lists.linux.dev>; Thu, 24 Sep 2026 04:30:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.229.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790218252; cv=none; b=C+VkrV3Zsr8Uo18UppsWmjnoHkdVJDuPNF5cM/LFh2H1WbyW6yTATRYfojqR/rEnROQ7CwTfmw14Beq21AXzJvn6i7ZHXRo7DCvVHMoEJo7vcFbvi5HRjKomzvqi49T7hWnP6zlvM+8Kx5tlIOLxQqKPTro+2Xxcq/VodE2m1GM=
+	t=1790224203; cv=none; b=dXJgQvp8n8Gfjt5uDKzFxIpNscy6NZNwU7FJcNNckshiw/w7RVZrHqePR1zFntS311CZDB577w9ykAG/BfBy1uaSYVQG1updPkCZn2dqTUGzNrYoHJvf+GdxqaeYRy2AJWeSiZRnFvoGGdUxPwRVIoyoykZXfAtgbVof9NdEaao=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790218252; c=relaxed/simple;
-	bh=PSGIyj/he3EQ5z9BehwBm22jMhvf+ztAjx5Btu3GKEA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=OBzHQeVxIVgV3cLDjnKHCyLknOKuet+T1hJcJ7ZL635/x6BmWs6ZwOeLng006/gMbQWj0yWu5mIplLPkEOsOorc+PDDFvovQSz09gWG7M0I3qAw56bJB4GBH99yLVnHAz5q8njdz5P+v5GsEyRF1F3lgdGp8JXmLOFBOFyBD7Ak=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=M7lsQ0gF; arc=none smtp.client-ip=74.125.227.141
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
+	s=arc-20240116; t=1790224203; c=relaxed/simple;
+	bh=DGI+jNvsZqaWgCIG18I9kcv8LEm8FvmlozW/ZGSMzbk=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=SD7gCFPm5TlYhS79UKq5nS4+7Ctlcd85z+ZzqFzPlULC6hPbluQxo6o3tZZ+2hzbpcVAZvZASlBAELPUKALCLyb2Ex1EZ8/gn3EnV57wjUYdFRc5hshQz0Ab7uMgz01r2lSGxE1tkuTmiuhR97XkWf+2o1jyAfomdQsy3m7AAac=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NEoZ+oeJ; arc=none smtp.client-ip=74.125.229.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="M7lsQ0gF"
-Received: by mail-pj2-f13.google.com with SMTP id d9443c01a7336-2d747f0135fso10641775ad.0
-        for <nvdimm@lists.linux.dev>; Wed, 23 Sep 2026 19:50:50 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NEoZ+oeJ"
+Received: by mail-dy2-f42.google.com with SMTP id 5a478bee46e88-33e630052ebso1944795eec.0
+        for <nvdimm@lists.linux.dev>; Wed, 23 Sep 2026 21:30:01 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance.com; s=google; t=1790218250; x=1790823050; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=OkhVxd3L9PzXsj1q1bSnMpIAsRsR0Q+1nWxwALhwIXY=;
-        b=M7lsQ0gFVDjmV/1ADI0MS3Sk0TSmzHDL0cOR6uz4ZWwMQotfVRUNi2jIwCp0KwCf7b
-         n4tihPzNYloVgh8wLVa9oFBCwxnjGsJt74ghcln/+71GDkTlDCOGSVzn6Njw3vjNEtKA
-         DH+QcX7t+zaFLaM8QT4PtXtiZtWBnWAdgDjasGBLsqyO0vrODAfC0cDVIivSqfmED2FY
-         9QI4Xs5jkK1ueiFZQ8VqV2BfeL7R7pfnI50/kVV9X5bhsXHsrExjNl3ne/HSOHOPjYUp
-         BP7Ux90OT5RHff1OGrm6O5kIK5dVHvsLx0GmsYqFVU79F7lU/64AfcIKDS+Z52VhCrQN
-         bCQQ==
+        d=gmail.com; s=20251104; t=1790224201; x=1790829001; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:date:from:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=AKL757kGHNvfsML+k55hOUcVYeXxT3urEJywVMirA7A=;
+        b=NEoZ+oeJzQe3KFEVeP5LUYK439GRKUZVYO5DTcD4MgBJjaPMml1//pR8n0uUlA64Yz
+         kMARjMUVls9Wg17wBItTnfS6/Ybr6YCHSKzhIfEAnmnhoX01exyBEhjuEdZJZR4rtcvu
+         NLL0Hx0WS6XjMgR1nIXJ8lsAos0cr5mpfP1vPxkNUfIVIupt7vbWVq/8YVjRmUCv06Ax
+         H29UIa9Hv9nwLwFBpOrO/PXLAWMcLHcKbZAf+tyQoKsk24H60vYhDqotE/HIYw9ey4lF
+         IkLeGBYOg/lGb92dM5C0qUihGyYjAN98IO0I5a3uOjHgzdlrrXilxgQZv2CDAF3PYKJX
+         29OQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790218250; x=1790823050;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=OkhVxd3L9PzXsj1q1bSnMpIAsRsR0Q+1nWxwALhwIXY=;
-        b=0PNuNxeSaKJkCYdZmfGjwGZp5yHlB6vN6gNYr4W1sqtvzmXBLy8K+rQmoGlyPAHvpg
-         U0owAw/H+99SjvsnWpdrJqh/ndKSD+gKU0Tj/i1iYANsJs7VOpmy4ICYzdYfOPtYvjGa
-         TymqcdzBK8XkcNKIoRUBpOhZx/WXBxv64l35H2y1qVBT7OFyJAjZMF+41ekI9DEb8kuC
-         emnuKlrSri1homEgce9wNtNlBaPJVAeiMJcOE+HjUstvxs2USdPYbVKDEOxfpSyySCOi
-         xz44i96leT1cwAI3qYD79w9Lf46hEg17EGgqedewiaMtZ2bOzqSSvAv6YBl/20ebO39p
-         yK9Q==
-X-Forwarded-Encrypted: i=1; AKwUvBxUeFqyffHRVL7KmNJOX37DauQXwXroXhzDIC/r8lez5pnjBPvHFR5oAIhwol0oaUF5gVJERaQ=@lists.linux.dev
-X-Gm-Message-State: AFuF++mQRbL0gNQqROPr/vjnlygtBeXVGTKEhs5ClDKhyDGZJAsVZy8v
-	SmZYtqTjtnM19uG7CQFQR2GZmB5jf7Uf3ZbGzOPLWARvmgfUM14YQH9nfE9BOeBP7zo=
-X-Gm-Gg: AYBFou24NbWhgp1++1uLAMqCY8H1WkCYTAWf7Qp3/yFyH/VKV1iYM+YNsHO7DVyzrrL
-	F/zCBkh/Uxh+eSj4dZ09sf9+DsgLAhDHYpMtjrZj13SuZ4HNkwZlul/NtXTbZkONz5VxX9Y6+3w
-	1nduh8gzm4KJWBmN2bqd6e9wznHEDhg5FwY/qkDiGPBOBshXU3z6m3iGkI8wMY7G8lcy6nUxAon
-	tPuMRNOFT6btzTpsnoHMTZKOCdtF8I+qyRxOxM2os6AYq5WnEuz4ThOIB25odKuX7zKAGDvzfMF
-	xw9JqZ5UM1NId5/Z2JJ/X9agLGOvAgLsq9sLz+OO8IRIAdLxzzeTK36NNUpvr/Eh0t4uB0TfaUp
-	QISMUe3hlP5rbas4qTQzz4CiksVJMzu1HaNGOmM+hwJDh2p/2tc206LZvTjGU86BTRlEMW/BLlk
-	U1n+r4ShqyuTYHZU616ZIJOy71/osqH0jH6KVNVkyzUeHKogzuBIdX3GoST5EK2kJ3AkoaSU6wz
-	lNHdvALpwnosL+++Tn5
-X-Received: by 2002:a17:902:f707:b0:2dd:c100:9439 with SMTP id d9443c01a7336-2df7e65c38dmr8400315ad.55.1790218249975;
-        Wed, 23 Sep 2026 19:50:49 -0700 (PDT)
-Received: from n232-176-004.byted.org ([36.110.163.100])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2df6a5a4f6bsm18638185ad.15.2026.09.23.19.50.47
+        d=1e100.net; s=20260707; t=1790224201; x=1790829001;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:date:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=AKL757kGHNvfsML+k55hOUcVYeXxT3urEJywVMirA7A=;
+        b=M/qvevCpfNPr7leHaah25bd8TFoEEX/SiDe/79qGow1oR0k09stCk58TSftocyyTU8
+         xN4jwtOawC6Hh92DwhlxF4z625urhe7FlCtD63hPMRPTRfb85aa5fc5TxG2E4oeVGIL5
+         pt1LUlN765gJAn0ZKWNw8kIcR9UkrDC+9TFh38ZOBq8ZgqxooRZD87tDeXJPZxA46ehO
+         ehHW4d47Y/JoXF7vACmSf0hTtrubtncsa33hhu61ig6OPjUj815jt7S7uzRduTTrxf6l
+         /3scbakwysX4X7Ix9+kdL3TYMYaeKxPsRG2dh0MSUab3YeU5i+iBBqcYEGINW4MOCDcU
+         jYFw==
+X-Forwarded-Encrypted: i=1; AKwUvByu+ioNMNP4GSk4u2w4YtH9i+hz3QBKasIw5x31/Dn/5xQh1OnHvdscmcMqR4nwt1F9sEkAIO4=@lists.linux.dev
+X-Gm-Message-State: AFuF++nA+9ZrHf4cGX6vMM5kldOMVvoiLVYhedT2dkG6cnEDVd/G3lVk
+	r+fm275Z/Gwi7QlhH0ZXczvFCi44ayC4E9BWZlBIFkuBlJzTk/FJ1TsW
+X-Gm-Gg: AYBFou382TBdTVKEsM/oqaBPfsdOXob4XkUx8kgdd/meNfDc/D/bQjpcbCT1uB8X2lf
+	pvMJ3douN9KM30L2RcQlVHRo6LtP1CyeTsowhl+doQdwEEUr/8n8Ka272JXQ+4kugaBXKUOi0Lg
+	EVgY5hzLlSZ6erdzqRm6at5EYhve5Og0HE7l35Rrv08XO4pN+TZ9XOaFWj5j+sZn/8gQedOd0YV
+	iKi7ZPRGq3UExyBA7YLun/R047/VRkTgq0I8OM0M2onki9eV3R6JykltHANcpgZYBzYiCaOAsMh
+	sPdlxtVEYIJ9l2qCFr9dmsgOklHTJANq+T7NbIBreM1CAMGDK4HBAEeEJdNJFz6KREy43+wIYqA
+	SNZ2Wa0E+oETyV7xnFbzCMQCcTIB4pOUINR6ebjPT0Mqe42fWWH+5H/uRdP+Gjsh5rk40T8x7f3
+	N7LTRyO7mh/7+31q/ijFeUWVNsK06ZYkq46HkOYPwDM6Ih9SneGfK7r+0xfoFnP2eeFw75OxnJx
+	eANr+QCW8HqzEFQwTGNhQ2qHVe0DACuExTCcPnDIB8WgfU4zCkxgnpN+hwZ3azqJVDsuqGuHXrv
+	a3EGR8hHAdAVXzyCd79Q3OO2S5A=
+X-Received: by 2002:a05:7300:d08e:b0:333:f2a3:5517 with SMTP id 5a478bee46e88-3400637c0eemr880525eec.26.1790224200857;
+        Wed, 23 Sep 2026 21:30:00 -0700 (PDT)
+Received: from 4470NRD-ASU.ssi.samsung.com (c-73-170-217-179.hsd1.ca.comcast.net. [73.170.217.179])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-33e96258204sm8590672eec.11.2026.09.23.21.29.59
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 23 Sep 2026 19:50:49 -0700 (PDT)
-From: Muchun Song <songmuchun@bytedance.com>
-To: Dan Williams <djbw@kernel.org>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Joao Martins <joao.m.martins@oracle.com>,
-	nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Muchun Song <songmuchun@bytedance.com>,
-	muchun.song@linux.dev
-Subject: [PATCH v3 2/2] dax/bus: fix Device DAX range alignment validation
-Date: Thu, 24 Sep 2026 10:50:35 +0800
-Message-ID: <20260924025035.1265035-3-songmuchun@bytedance.com>
-X-Mailer: git-send-email 2.54.0
-In-Reply-To: <20260924025035.1265035-1-songmuchun@bytedance.com>
-References: <20260924025035.1265035-1-songmuchun@bytedance.com>
+        Wed, 23 Sep 2026 21:30:00 -0700 (PDT)
+From: Anisa Su <anisa.su887@gmail.com>
+X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
+Date: Wed, 23 Sep 2026 21:29:58 -0700
+To: Jonathan Cameron <jic23@kernel.org>
+Cc: Anisa Su <anisa.su887@gmail.com>, sashiko-bot@kernel.org,
+	sashiko-reviews@lists.linux.dev, nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org
+Subject: Re: [PATCH v12 3/8] cxl/cdat: Gather DSMAS data for DCD partitions
+Message-ID: <arSnRvG0VGSMHSBM@4470NRD-ASU.ssi.samsung.com>
+References: <20260731084901.1512819-1-anisa.su@samsung.com>
+ <20260731084901.1512819-4-anisa.su@samsung.com>
+ <20260731090250.0C8DE1F000E9@smtp.kernel.org>
+ <20260804010748.7f9f8174@jic23-huawei>
+ <anL0mD3DKfwJh4UY@AnisaLaptop.localdomain>
+ <20260922003402.5134db4a@jic23-hlaptop>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260922003402.5134db4a@jic23-hlaptop>
 
-dev_dax->align describes the page size used by a Device DAX mapping.
-Both the start and size of every range must therefore be aligned to it;
-otherwise the starting PFN cannot represent a naturally aligned page of
-that size.
+On Tue, Sep 22, 2026 at 12:34:02AM +0100, Jonathan Cameron wrote:
+> On Wed, 5 Aug 2026 01:30:16 -0700
+> Anisa Su <anisa.su887@gmail.com> wrote:
+> 
+> > On Tue, Aug 04, 2026 at 01:07:48AM +0100, Jonathan Cameron wrote:
+> > > On Fri, 31 Jul 2026 09:02:49 +0000
+> > > sashiko-bot@kernel.org wrote:
+> > >   
+> > > > Thank you for your contribution! Sashiko AI review found 2 potential issue(s) to consider:
+> > > > - [Medium] The commit message claims to extract and store the 'read only' attribute from DSMAS tables, but this logic is completely missing from the code.  
+> > > 
+> > > Given it will make a lot of difference to a user if they think they have writeable
+> > > memory that isn't - I think we probably do want to have readonly here.
+> > >   
+> > I did some digging: it seems in v8, the read only flag was gathered and
+> > exposed in sysfs, but dropped during the region -> partition rework.
+> > 
+> > v8 of this commit used to do:
+> >     dent->read_only = dsmas->flags & ACPI_CDAT_DSMAS_READ_ONLY;
+> >     ...
+> >     mds->dc_region[i].read_only = dent->read_only;
+> > 
+> >     https://lore.kernel.org/all/20241210-dcd-type2-upstream-v8-6-812852504400@intel.com/
+> > 
+> > and a following patch exposed it, with a documented ABI:
+> > 
+> >   https://lore.kernel.org/all/20241210-dcd-type2-upstream-v8-7-812852504400@intel.com/
+> > 
+> >     /sys/bus/cxl/devices/memX/dcY/size
+> >     /sys/bus/cxl/devices/memX/dcY/read_only
+> >     /sys/bus/cxl/devices/memX/dcY/shareable
+> >     /sys/bus/cxl/devices/memX/dcY/qos_class
+> > 
+> > In v9 dynamic capacity moved from its own dc_region[] array and dcY/
+> > sysfs directory to the generic partition model:
+> > 
+> >   https://lore.kernel.org/all/20250413-dcd-type2-upstream-v9-3-1d4911a0b365@intel.com/
+> > 
+> > size and qos_class survived that move because ram and pmem already have
+> > them. read_only and shareable did not, because the generic partition
+> > model had nowhere to put attributes that only dynamic capacity has, but
+> > the commit message survived the rework.
+> > 
+> > More specifically, read_only was dropped from both the sysfs commit and
+> > this commit. shareable was dropped only from the sysfs commit, but still
+> > read from the DSMAS entry in v9 of this commit. Not sure why though; I
+> > didn't see any consumers of the attribute. Oh well... We use it now
+> > since shared extents are supported to check if an extent marked shared
+> > is actually in a shared partition.
+> > 
+> > So TLDR; I've removed the "read only" part from the commit message. But
+> > let me know if you think it should be re-introduced?
+> > 
+> > I agree with what you said about it being important for a user to know
+> > whether a partition is read only. Some things to consider:
+> > 
+> > - The partition model has no precedent for a DC only attribute.
+> >   dynamic_ram_1/ currently exposes size and qos_class, the same two that
+> >   ram/ and pmem/ expose. Adding read_only there would be the first
+> >   attribute that exists for one partition mode and not the others.
+> > 
+> > - shareable is in exactly the same position. It is gathered and used
+> >   internally but not exposed anywhere, so if we are adding one of these
+> >   back we should probably decide about both.
+> 
+> I vaguely recall the discussion on this ending up with we'd call the
+> partition something different to reflect the extra property.  
+> 
+> dynamic_readonly_1 / dynamic_sharedram_1 maybe?  Argument being
+> that these properties are as different from normal RAM as persistent
+> memory is.
+> 
+Yeah I think we discussed making it its own partition mode but I don't think there
+was a strong consensus, just that we agreed it should be exposed somewhere,
+somehow...
 
-Only range sizes are currently validated. A dynamic device can therefore
-select a large-page alignment and allocate a range whose start is not
-naturally aligned to that page size. The device binds successfully, but a
-subsequent write to a userspace mapping may trigger a kernel panic.
+I am leaning towards just putting it under dynamic_ram_1 even though
+these attributes would only exist for dynamic_ram mode:
 
-The automatic resize path can also split a size-aligned request across
-arbitrary free gaps. When devices with different alignments fragment a
-region, this can extend a range by less than its alignment. A later
-allocation then fails, leaving the failed resize partially applied.
+/sys/bus/cxl/devices/memX/dynamic_ram_1/shareable
+/sys/bus/cxl/devices/memX/dynamic_ram_1/read_only
 
-Validate both the start and size of allocated and adjusted ranges. Make
-the resize path account only for usable aligned space before changing any
-ranges, and skip gaps that cannot satisfy the device alignment. Initialize
-the device alignment before allocating its initial range so that all
-allocations use the same validation. Perform size validation under the
-same locks as alignment updates so the alignment cannot change before
-resizing begins.
+Mainly because if we go up to 8 partitions, we would have
+(dynamic_ram, dynamic_shared, dynamic_readonly, dynamic_shared_readonly) * 8.
+And NDCTL would have to know how to handle creating each type.
 
-A mapping with an unaligned start is now rejected with -EINVAL, while a
-naturally aligned mapping still binds successfully.
+I also don't see anything in the code that makes it terrible:
+- each partition mode has its own attribute array and visibility callback
+  function, so it doesn't affect ram/pmem modes
 
-Fixes: 6d82120f4156 ("device-dax: add an 'align' attribute")
-Assisted-by: LLM
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
----
-v3:
-- Serialize size alignment validation with alignment updates to avoid a
-  partial shrink after a concurrent alignment change (reported by Sashiko)
-- Document the size validation serialization in the commit message
+I brought it up because I wasn't sure if there was a specific reason why
+shareable and read_only weren't carried over after the partition
+rework. From a code standpoint, it seems fine to me?
+I assumed it was so all partitions would share common sub-attributes
+but I guess I shouldn't have assumed...
 
-v2:
-- Keep the alloc_is_aligned() name to avoid unrelated helper renaming
-  (suggested by Dave Jiang)
-- Move this patch after the mapping error reporting fix for independent
-  backports (suggested by Dave Jiang)
----
- drivers/dax/bus.c | 144 +++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 109 insertions(+), 35 deletions(-)
+> > 
+> > - I don't think the DSMAS Flags bit 6 (read only) is specific to DCD?
+> 
+> In theory yes, in practice there isn't a path for non DCD to actually
+> get the data in place and transtion to read only so maybe an expensive
+> source of zeros?  So yes allowed but not much use to anyone so we
+> won't see it.  
+> 
+Mmm very true. You might just clarifying this point here but just to make
+sure we're on the same page: I dropped the R_O part of the series and deferred
+it for the future because it includes implementing write rejection for
+r_o partitions which IMO can be done after the core functionality is in.
 
-diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index e40c25401cf0..8616527656d8 100644
---- a/drivers/dax/bus.c
-+++ b/drivers/dax/bus.c
-@@ -848,6 +848,44 @@ static int devm_register_dax_mapping(struct dev_dax *dev_dax, int range_id)
- 	return 0;
- }
- 
-+static inline unsigned long dev_dax_min_align(struct dev_dax *dev_dax)
-+{
-+	return max_t(unsigned long, dev_dax->align, memremap_compat_align());
-+}
-+
-+static inline bool alloc_is_aligned(struct dev_dax *dev_dax, resource_size_t size)
-+{
-+	/*
-+	 * The minimum mapping granularity for a device instance is a
-+	 * single subsection, unless the arch says otherwise.
-+	 */
-+	return IS_ALIGNED(size, dev_dax_min_align(dev_dax));
-+}
-+
-+static inline bool range_is_aligned(struct dev_dax *dev_dax, u64 start,
-+				    resource_size_t size)
-+{
-+	return IS_ALIGNED(start | size, dev_dax_min_align(dev_dax));
-+}
-+
-+static resource_size_t
-+aligned_gap_size(struct dev_dax *dev_dax, resource_size_t *start,
-+		 resource_size_t end)
-+{
-+	resource_size_t aligned_start = ALIGN(*start, dev_dax_min_align(dev_dax));
-+	resource_size_t size;
-+
-+	if (aligned_start < *start || aligned_start > end)
-+		return 0;
-+
-+	size = ALIGN_DOWN(end - aligned_start + 1, dev_dax_min_align(dev_dax));
-+	if (!size)
-+		return 0;
-+
-+	*start = aligned_start;
-+	return size;
-+}
-+
- static int alloc_dev_dax_range(struct dev_dax *dev_dax, u64 start,
- 		resource_size_t size)
- {
-@@ -870,6 +908,9 @@ static int alloc_dev_dax_range(struct dev_dax *dev_dax, u64 start,
- 		return 0;
- 	}
- 
-+	if (!range_is_aligned(dev_dax, start, size))
-+		return -EINVAL;
-+
- 	alloc = __request_region(res, start, size, dev_name(dev), 0);
- 	if (!alloc)
- 		return -ENOMEM;
-@@ -923,6 +964,9 @@ static int adjust_dev_dax_range(struct dev_dax *dev_dax, struct resource *res, r
- 	if (dev_WARN_ONCE(dev, !size, "deletion is handled by dev_dax_shrink\n"))
- 		return -EINVAL;
- 
-+	if (!range_is_aligned(dev_dax, range->start, size))
-+		return -EINVAL;
-+
- 	rc = adjust_resource(res, range->start, size);
- 	if (rc)
- 		return rc;
-@@ -955,15 +999,6 @@ static ssize_t size_show(struct device *dev,
- 	return sysfs_emit(buf, "%llu\n", size);
- }
- 
--static bool alloc_is_aligned(struct dev_dax *dev_dax, resource_size_t size)
--{
--	/*
--	 * The minimum mapping granularity for a device instance is a
--	 * single subsection, unless the arch says otherwise.
--	 */
--	return IS_ALIGNED(size, max_t(unsigned long, dev_dax->align, memremap_compat_align()));
--}
--
- static int dev_dax_shrink(struct dev_dax *dev_dax, resource_size_t size)
- {
- 	resource_size_t to_shrink = dev_dax_size(dev_dax) - size;
-@@ -1030,23 +1065,46 @@ static bool adjust_ok(struct dev_dax *dev_dax, struct resource *res)
- 	return true;
- }
- 
-+static resource_size_t
-+dax_region_aligned_avail_size(struct dax_region *dax_region,
-+			      struct dev_dax *dev_dax)
-+{
-+	struct resource *region_res = &dax_region->res;
-+	resource_size_t start = region_res->start;
-+	resource_size_t avail = 0;
-+	struct resource *res;
-+
-+	lockdep_assert_held_write(&dax_region_rwsem);
-+
-+	for_each_dax_region_resource(dax_region, res) {
-+		if (res->start > start) {
-+			resource_size_t gap_start = start;
-+
-+			avail += aligned_gap_size(dev_dax, &gap_start,
-+					res->start - 1);
-+		}
-+		start = res->end + 1;
-+	}
-+	if (start <= region_res->end)
-+		avail += aligned_gap_size(dev_dax, &start, region_res->end);
-+
-+	return avail;
-+}
-+
- static ssize_t dev_dax_resize(struct dax_region *dax_region,
- 		struct dev_dax *dev_dax, resource_size_t size)
- {
--	resource_size_t avail = dax_region_avail_size(dax_region), to_alloc;
- 	resource_size_t dev_size = dev_dax_size(dev_dax);
- 	struct resource *region_res = &dax_region->res;
- 	struct device *dev = &dev_dax->dev;
- 	struct resource *res, *first;
--	resource_size_t alloc = 0;
-+	resource_size_t alloc, to_alloc;
- 	int rc;
- 
- 	if (dev->driver)
- 		return -EBUSY;
- 	if (size == dev_size)
- 		return 0;
--	if (size > dev_size && size - dev_size > avail)
--		return -ENOSPC;
- 	if (size < dev_size)
- 		return dev_dax_shrink(dev_dax, size);
- 
-@@ -1054,6 +1112,8 @@ static ssize_t dev_dax_resize(struct dax_region *dax_region,
- 	if (dev_WARN_ONCE(dev, !alloc_is_aligned(dev_dax, to_alloc),
- 			"resize of %pa misaligned\n", &to_alloc))
- 		return -ENXIO;
-+	if (to_alloc > dax_region_aligned_avail_size(dax_region, dev_dax))
-+		return -ENOSPC;
- 
- 	/*
- 	 * Expand the device into the unused portion of the region. This
-@@ -1062,37 +1122,51 @@ static ssize_t dev_dax_resize(struct dax_region *dax_region,
- 	 */
- retry:
- 	first = region_res->child;
--	if (!first)
--		return alloc_dev_dax_range(dev_dax, dax_region->res.start, to_alloc);
-+	if (!first) {
-+		resource_size_t start = region_res->start;
-+
-+		alloc = aligned_gap_size(dev_dax, &start, region_res->end);
-+		return alloc_dev_dax_range(dev_dax, start, min(alloc, to_alloc));
-+	}
- 
- 	rc = -ENOSPC;
- 	for (res = first; res; res = res->sibling) {
- 		struct resource *next = res->sibling;
-+		resource_size_t start, end;
- 
- 		/* space at the beginning of the region */
- 		if (res == first && res->start > dax_region->res.start) {
--			alloc = min(res->start - dax_region->res.start, to_alloc);
--			rc = alloc_dev_dax_range(dev_dax, dax_region->res.start, alloc);
--			break;
-+			start = dax_region->res.start;
-+			end = res->start - 1;
-+			alloc = min(aligned_gap_size(dev_dax, &start, end), to_alloc);
-+			if (alloc) {
-+				rc = alloc_dev_dax_range(dev_dax, start, alloc);
-+				break;
-+			}
- 		}
- 
--		alloc = 0;
- 		/* space between allocations */
--		if (next && next->start > res->end + 1)
--			alloc = min(next->start - (res->end + 1), to_alloc);
--
--		/* space at the end of the region */
--		if (!alloc && !next && res->end < region_res->end)
--			alloc = min(region_res->end - res->end, to_alloc);
-+		if (next) {
-+			if (next->start <= res->end + 1)
-+				continue;
-+			end = next->start - 1;
-+		} else {
-+			/* space at the end of the region */
-+			if (res->end >= region_res->end)
-+				continue;
-+			end = region_res->end;
-+		}
- 
-+		start = res->end + 1;
-+		alloc = min(aligned_gap_size(dev_dax, &start, end), to_alloc);
- 		if (!alloc)
- 			continue;
- 
--		if (adjust_ok(dev_dax, res)) {
-+		if (start == res->end + 1 && adjust_ok(dev_dax, res)) {
- 			rc = adjust_dev_dax_range(dev_dax, res, resource_size(res) + alloc);
- 			break;
- 		}
--		rc = alloc_dev_dax_range(dev_dax, res->end + 1, alloc);
-+		rc = alloc_dev_dax_range(dev_dax, start, alloc);
- 		break;
- 	}
- 	if (rc)
-@@ -1115,11 +1189,6 @@ static ssize_t size_store(struct device *dev, struct device_attribute *attr,
- 	if (rc)
- 		return rc;
- 
--	if (!alloc_is_aligned(dev_dax, val)) {
--		dev_dbg(dev, "%s: size: %lld misaligned\n", __func__, val);
--		return -EINVAL;
--	}
--
- 	rc = down_write_killable(&dax_region_rwsem);
- 	if (rc)
- 		return rc;
-@@ -1130,6 +1199,11 @@ static ssize_t size_store(struct device *dev, struct device_attribute *attr,
- 	rc = down_write_killable(&dax_dev_rwsem);
- 	if (rc)
- 		goto err_dev;
-+	if (!alloc_is_aligned(dev_dax, val)) {
-+		dev_dbg(dev, "%s: size: %lld misaligned\n", __func__, val);
-+		rc = -EINVAL;
-+		goto err_dev;
-+	}
- 
- 	rc = dev_dax_resize(dax_region, dev_dax, val);
- 
-@@ -1228,9 +1302,9 @@ static ssize_t dev_dax_validate_align(struct dev_dax *dev_dax)
- 	int i;
- 
- 	for (i = 0; i < dev_dax->nr_range; i++) {
--		size_t len = range_len(&dev_dax->ranges[i].range);
-+		struct range *range = &dev_dax->ranges[i].range;
- 
--		if (!alloc_is_aligned(dev_dax, len)) {
-+		if (!range_is_aligned(dev_dax, range->start, range_len(range))) {
- 			dev_dbg(dev, "%s: align %u invalid for range %d\n",
- 				__func__, dev_dax->align, i);
- 			return -EINVAL;
-@@ -1468,6 +1542,7 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
- 		return ERR_PTR(-ENOMEM);
- 
- 	dev_dax->region = dax_region;
-+	dev_dax->align = dax_region->align;
- 	if (is_static(dax_region)) {
- 		if (dev_WARN_ONCE(parent, data->id < 0,
- 				"dynamic id specified to static region\n")) {
-@@ -1526,7 +1601,6 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
- 
- 	dev_dax->dax_dev = dax_dev;
- 	dev_dax->target_node = dax_region->target_node;
--	dev_dax->align = dax_region->align;
- 	ida_init(&dev_dax->ida);
- 
- 	dev_dax->memmap_on_memory = data->memmap_on_memory;
--- 
-2.54.0
-
+Thanks,
+Anisa
+> >   It describes any device scoped memory range, so a read only ram or pmem
+> >   partition is expressible in CDAT today and the driver ignores it.
+> >   Maybe it should be exposed in sysfs for every partition
+> >   rather than only on dynamic_ram_1? Which probably makes it a generic CDAT/partition
+> >   patch rather than something for this series.
+> > 
+> Jonathan
+> 
