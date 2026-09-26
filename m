@@ -1,296 +1,190 @@
-Received: from mail-qk2-f42.google.com (mail-qk2-f42.google.com [74.125.230.234])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8649388371
-	for <nvdimm@lists.linux.dev>; Fri, 25 Sep 2026 23:03:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.230.234
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB11A2E762C;
+	Sat, 26 Sep 2026 06:19:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790377386; cv=none; b=jcRKJVZSUWxiDh/ThTYJRThTNicBUXSKZfTXxNgV6LoCSN6ACrN3K3HQGFkRclh1yaHGpdam/jYrzmMEJu37HBbx77fjBP3u2eOxF+W+y5WH3Qq2GzrJJK5PLWXGjS9sMyzYayim4lb5eIwPj+Z5ZJUS3fMLAv8XzKwhNaAU8Bk=
+	t=1790403551; cv=none; b=qOzM17GjkUt4zVbPZuTerdcmabZW1anivzdGxoPQaDOD+Th9n8c3dDdgFGbFMAUHpyz4Yet02RPfzJVaqrS+wbkATcUjGw5+fnDdotStLXPNndE5WhlIAb5FkkVG+EqnibkJfKNO527DRsG8s/xFYnDYjtBMA5lyU4iXBDw5LbQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790377386; c=relaxed/simple;
-	bh=jandskfkITyjC7rvkXLAEoCYbYIdJkGLy5tzhgU6M4A=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Z/CTLjLUhWvlpyUbu58zMTlbTbxE8vsxiiWIisIJMltUxiUO72uQvGeTHLW3LCCEoBc5/p9eTyIAmJFtyg/zsWet8xUxkbD+FBgn7+trInvwwmCUC8MrD1NHfCuJBzOMmoeJA2640Y/qDMpI2euxiP+Bnv9ZcajR9cGC9EtqQlA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=Yqw8MZro; arc=none smtp.client-ip=74.125.230.234
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
+	s=arc-20240116; t=1790403551; c=relaxed/simple;
+	bh=LLAD/cysRIRq98BeK4gztFhOZ+m4K3Jogwtr/LAIuJI=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=Nor5nF8vlg1z6Ds/xeZjlSVMa1C8wWl7VN5nyIphxZkDNIEfQRLfLDebIx4QT+6UcCnlZej4Balf+gC4XDIZYqej+5Xoi62LIB/QtqFRLjyyfa35WcgAPov3PpX2y16I8JDUpvB4gECcOuMUB9LK1EvYh2utqhU1fGAexvyZI3g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UTmCT6tM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="Yqw8MZro"
-Received: by mail-qk2-f42.google.com with SMTP id af79cd13be357-93bd580489dso134067485a.1
-        for <nvdimm@lists.linux.dev>; Fri, 25 Sep 2026 16:03:03 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UTmCT6tM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB4691F000FF;
+	Sat, 26 Sep 2026 06:19:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1790377383; x=1790982183; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=PiEVC1BfM3JbJHmz6IrQSpeOS1QFhfgMFnl3j26Htjk=;
-        b=Yqw8MZro9UDKKrc1IJUOAwv2O8lyw6cCFSbq2IDce6k9h09f6wA0Oi8GrcJxL32nOn
-         qHYT/pWTKDlp6ogNvZFoyI51AmWVIlsEFLWWqSMGlo0IAchVcrSzEaIB2RCoRrvo4kMi
-         c/WBEfCWGlU70hXQf4i/id74pS28OhsYCN4DWCUXh44OErUJMUtGJUNgwK6Vhft7QwDw
-         zzzf0S3vi4vo6uFsoKtyVavTtrHbGtUN+/n3v5W2Ahtx3HcMe/qxrsg+5Qn6zkj8qxBb
-         6y1iAttdsLkOBZPE4NtiLuHUVVxl0+JukHucFj2R3YjuHqhd8dYmIYdk1ibKChWe2O/O
-         WqGg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790377383; x=1790982183;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=PiEVC1BfM3JbJHmz6IrQSpeOS1QFhfgMFnl3j26Htjk=;
-        b=qIh4SVisOYeI5rWo8bE0FlespXBGejE+m0rzX6FoPZwn1Eyfs1QgNdHIw480nefZ6p
-         S+Xj/Hv4OQWitTOiFKOnSsMIMyhnnkYIeI1ls1cGUPR/t8C3uC8QjQQZ8Qo3r8hqGAZd
-         ijn7C9yPHqH6PI+YHKxwXKn96e+D8U4U/49PhuoOpITurZBmxcKNT5O0+EzulqqzfrKj
-         456epIHAbqTsAs181w3gukDLfdEOILRMVwGIzCUYWuIxnL2BDcAS8vbeleSF0FxXpT8D
-         JKfN94EkQZfAyfFC/BJg8hh2m4bK55VgCSe5uSfHoqDFKhWTudpW3yDcHgcaB+EmXtD2
-         YsxQ==
-X-Forwarded-Encrypted: i=1; AKwUvBwRuHQDRqLY2G67WpJL0kibN7T1uW5OLCoHJTGo9D8jYhLvFJEckwdoD7Nq1oV95NsSW6ZiufI=@lists.linux.dev
-X-Gm-Message-State: AFuF++nA6myioZ3wb5Hsz7aIUbbdudv+Eb7vN4hZDfyZ81gT+hmJQPwE
-	fMJvzubHgbA//ZKIVdmMWKteGgt7WdTpbB8lQ6UchNVyLeCkVAYjZ7f7IQYbprjddpk=
-X-Gm-Gg: AYBFou0zRWmkz72/5Ui+1KK9i1k220DV4N6vtCQJzbf9pd3vRXDYxqRl4TmvmvjCctO
-	qY7wg9uxJEdkhkl0QFgVT7555V3jKf00v/26YNC4NtcHhMi2mD1Y59BhG+FJlGTPk0Xbu1g0QIA
-	JsCNgfBuWBz1y8CWov89MmytY81Hh9V65P+XOQ/7BdxBGEUw5ygYnFunZMf2C1ZCCUPbDHWV64b
-	g3NXWVo+SWy2uihtv3I2MR4OjPO4gkyhX2sCGffxvftKCLtR/3aFETipR5GoPce9HQgD3kgUTWQ
-	1HNtGFRmf9QzLUFtZwLlzU8lt7DsBumoshZ+Cw22cRgVTavRRmGHEo4OmV2FHWCEObwwiIaWdNK
-	8vRIZpCwFbwS1V6EZe9K1H2zvDQ5S6vOOBhOsC3DBeoDVopwXvBDWoFP9Dn04ycyTpJqvybsUkq
-	fOfrSS9DitBVJHgjheFt7zqKoOh3lTCXZFNs5W80nOqq0HrERCCG0db6O5INj589qKc7byOdJ0A
-	AIcGjaGpabMfRt5buzo22kOkAE32FppuK6VsOVPwmd4oU2OW2EF5jM=
-X-Received: by 2002:a05:620a:2614:b0:93a:2bdc:cd57 with SMTP id af79cd13be357-93c43b7f72amr755724385a.2.1790377382584;
-        Fri, 25 Sep 2026 16:03:02 -0700 (PDT)
-Received: from gourry-fedora-PF4VCD3F (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-93c4493af29sm290317085a.28.2026.09.25.16.03.00
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 25 Sep 2026 16:03:02 -0700 (PDT)
-Date: Fri, 25 Sep 2026 19:02:59 -0400
-From: Gregory Price <gourry@gourry.net>
-To: linux-mm@kvack.org
-Cc: Zhigang.Luo@amd.com, arun.george@samsung.com, balbirs@nvidia.com, 
-	brendan.jackman@linux.dev, yuzenghui@huawei.com, apopple@nvidia.com, alucerop@amd.com, 
-	matthew.brost@intel.com, akpm@linux-foundation.org, david@kernel.org, ljs@kernel.org, 
-	liam@infradead.org, vbabka@kernel.org, rppt@kernel.org, surenb@google.com, 
-	mhocko@suse.com, corbet@lwn.net, skhan@linuxfoundation.org, 
-	gregkh@linuxfoundation.org, rafael@kernel.org, dakr@kernel.org, djbw@kernel.org, 
-	vishal.l.verma@intel.com, dave.jiang@intel.com, alison.schofield@intel.com, 
-	osandov@osandov.com, jannh@google.com, pfalcato@suse.de, jackmanb@google.com, 
-	hannes@cmpxchg.org, ziy@nvidia.com, pbonzini@redhat.com, osalvador@suse.de, 
-	joshua.hahnjy@gmail.com, rakie.kim@sk.com, byungchul@sk.com, ying.huang@linux.alibaba.com, 
-	kasong@tencent.com, qi.zheng@linux.dev, shakeel.butt@linux.dev, baohua@kernel.org, 
-	axelrasmussen@google.com, yuanchu@google.com, weixugc@google.com, yury.norov@gmail.com, 
-	linux@rasmusvillemoes.dk, longman@redhat.com, ridong.chen@linux.dev, tj@kernel.org, 
-	mkoutny@suse.com, sj@kernel.org, jgg@ziepe.ca, jhubbard@nvidia.com, 
-	peterx@redhat.com, baolin.wang@linux.alibaba.com, npache@redhat.com, 
-	ryan.roberts@arm.com, dev.jain@arm.com, lance.yang@linux.dev, usama.arif@linux.dev, 
-	xu.xin16@zte.com.cn, chengming.zhou@linux.dev, roman.gushchin@linux.dev, 
-	muchun.song@linux.dev, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, 
-	driver-core@lists.linux.dev, nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, 
-	linux-debuggers@vger.kernel.org, linux-fsdevel@vger.kernel.org, kvm@vger.kernel.org, 
-	cgroups@vger.kernel.org, damon@lists.linux.dev, linux-kselftest@vger.kernel.org, 
-	kernel-team@meta.com
-Subject: Re: [PATCH v5 00/36] Private Memory NUMA Nodes
-Message-ID: <arb0mV23QmRVDtB3@gourry-fedora-PF4VCD3F>
-References: <20260720193431.3841992-1-gourry@gourry.net>
+	d=linux-foundation.org; s=korg; t=1790403549;
+	bh=0d2FoQNgB7w5W4igVSjXZBz5vM5BFD2MZGCHDpY+/iY=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=UTmCT6tMUksCasct4m6WGBQGIIq91wboZ/ltaw9f0etfNs5HNBcuscWHiY4/AfSPL
+	 BF+Ryz+38xr+l3wstvnofOr0t+y/7Ozx6CN/DjlMRcwtAFe75KfAQ223AiHiIfEP6T
+	 E+hgCPcbvG4pQJpXrvNXHtGAGpJvfQ8GnCMNLriQ=
+Date: Fri, 25 Sep 2026 23:19:08 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: "David Hildenbrand (Arm)" <david@kernel.org>
+Cc: Kaitao Cheng <kaitao.cheng@linux.dev>, Lorenzo Stoakes <ljs@kernel.org>,
+ "Liam R . Howlett" <liam@infradead.org>, Vlastimil Babka
+ <vbabka@kernel.org>, Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan
+ <surenb@google.com>, Michal Hocko <mhocko@suse.com>, Dan Williams
+ <djbw@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang
+ <dave.jiang@intel.com>, Alison Schofield <alison.schofield@intel.com>, Ira
+ Weiny <iweiny@kernel.org>, Muchun Song <muchun.song@linux.dev>,
+ linux-mm@kvack.org, nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
+ Kaitao Cheng <chengkaitao@kylinos.cn>
+Subject: Re: [PATCH 1/2] mm/page-flags: Define HWPoison test-and-change
+ helpers unconditionally
+Message-Id: <20260925231908.25febf6c085f52be3a65d59b@linux-foundation.org>
+In-Reply-To: <6eb272c0-0cfa-4354-a92b-4fc270e3b1fc@kernel.org>
+References: <20260903053535.17611-1-kaitao.cheng@linux.dev>
+	<20260903053535.17611-2-kaitao.cheng@linux.dev>
+	<6eb272c0-0cfa-4354-a92b-4fc270e3b1fc@kernel.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260720193431.3841992-1-gourry@gourry.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Mon, Jul 20, 2026 at 03:33:54PM -0400, Gregory Price wrote:
-> This series introduces the concept of "Private Memory Nodes", which
-> are opted into two basic functionalities by default:
->   - page allocation (mm/page_alloc.c)
->   - OOM killing
+On Mon, 7 Sep 2026 17:42:11 +0200 "David Hildenbrand (Arm)" <david@kernel.org> wrote:
+
+> On 9/3/26 07:35, Kaitao Cheng wrote:
+> > From: Kaitao Cheng <chengkaitao@kylinos.cn>
+> > 
+> > Page flag helpers for configuration-dependent flags provide false or no-op
+> > variants so that their users can be independent of the configuration.
+> > 
+> > The HWPoison helpers do not fully follow this pattern. When
+> > CONFIG_MEMORY_FAILURE is enabled, PAGEFLAG() and TESTSCFLAG() provide the
+> > regular, test-and-set, and test-and-clear operations. When it is disabled,
+> > only PAGEFLAG_FALSE() is instantiated, leaving TestSetPageHWPoison() and
+> > TestClearPageHWPoison() undefined.
+> > 
+> > Use TESTSCFLAG_FALSE() to provide the missing accessors when memory failure
+> > handling is disabled. Both accessors return false, which is consistent with
+> > HWPoison state being unavailable, and makes the accessor interface
+> > consistent across configurations.
+> > 
+> > Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
+> > ---
+> >  include/linux/page-flags.h | 1 +
+> >  1 file changed, 1 insertion(+)
+> > 
+> > diff --git a/include/linux/page-flags.h b/include/linux/page-flags.h
+> > index 7a863572adce..a2315ab1dd3a 100644
+> > --- a/include/linux/page-flags.h
+> > +++ b/include/linux/page-flags.h
+> > @@ -656,6 +656,7 @@ TESTSCFLAG(HWPoison, hwpoison, PF_ANY)
+> >  #define __PG_HWPOISON (1UL << PG_hwpoison)
+> >  #else
+> >  PAGEFLAG_FALSE(HWPoison, hwpoison)
+> > +TESTSCFLAG_FALSE(HWPoison, hwpoison)
+> >  #define __PG_HWPOISON 0
+> >  #endif
+> >  
 > 
+> Can we just squash this patch into #2 please?
 
-All, I wanted to preface v6 with an update, I probably won't be sending
-it out on-list before LPC (i've been a bit noisey as it is, I'll give
-it a rest).
-
-
-But I would like to give you the highlights for those interested.
-
-The latest working branch can be found here:
-https://github.com/gourryinverse/linux/tree/scratch/gourry/managed_nodes/rfc6-nonuma
-
-You will find the following:
-
-- There is no depedency on exported alloc_flags (willy, i found a way),
-  but there is a need for `folio_alloc_private()` to explicitly ask
-  for the ALLOC_ZONELIST_PRIVATE.
-
-- feature bits have been converted to node_state[] bits
-
-- N_MEMORY_COMMON was added to mean "common memory" - i.e. the existing
-  N_MEMORY set.  A private node is now defined as !N_MEMORY_COMMON.
-
-- opt-out sites no longer check for !N_MEMORY_PRIVATE, they instead
-  iterate over node_state[N_MEMORY_COMMON].  This is *much* cleaner.
-
-- opt-in sites get to define bits in terms of their own service, e.g.
-
-  /* for each reclaimable node */
-  for_each_node_mask_state(..., N_MEMORY_RECLAIM) {
-     ...
-  }
-
-  Or maybe even:
-
-  for_each_reclaimable_node()    :)
+I did that.
 
 
-- There are only 2 node features in the base set:
+From: Kaitao Cheng <chengkaitao@kylinos.cn>
+Subject: mm/page-flags: define HWPoison test-and-change helpers unconditionally
+Date: Thu, 3 Sep 2026 13:35:34 +0800
 
-  N_MEMORY_RECLAIM    -  generic reclaim runs on the node
-  N_MEMORY_COMPACTION -  compaction will run on the node
+Page flag helpers for configuration-dependent flags provide false or no-op
+variants so that their users can be independent of the configuration.
 
-  You'll notice there's no userland numa control support, more on this
-  in a moment.
+The HWPoison helpers do not fully follow this pattern.  When
+CONFIG_MEMORY_FAILURE is enabled, PAGEFLAG() and TESTSCFLAG() provide the
+regular, test-and-set, and test-and-clear operations.  When it is
+disabled, only PAGEFLAG_FALSE() is instantiated, leaving
+TestSetPageHWPoison() and TestClearPageHWPoison() undefined.
 
-  This is all you need to have functional device-private coherent
-  memory that uses the page allocator.
+Use TESTSCFLAG_FALSE() to provide the missing accessors when memory
+failure handling is disabled.  Both accessors return false, which is
+consistent with HWPoison state being unavailable, and makes the accessor
+interface consistent across configurations.
 
-  Disabling N_MEMORY_RECLAIM does not necessarily mean you're prevented
-  from using vmscan.c and the LRU - it just means we'd need to expose an
-  interface for a !N_MEMORY_RECLAIM node to explicitly ask for reclaim
-  to operate on it.
+Also remove now-unneeded test_and_clear_pmem_poison() from nvdimm/pmem.
 
-  Tiering (Demotion) *to* a node is not supported.  We can probably
-  debate whether this should mean tiering *from* a node should be
-  supported or not as well.  This is easy to change.
+Link: https://lore.kernel.org/20260903053535.17611-1-kaitao.cheng@linux.dev
+Link: https://lore.kernel.org/20260903053535.17611-2-kaitao.cheng@linux.dev
+Link: https://lore.kernel.org/20260903053535.17611-3-kaitao.cheng@linux.dev
+Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Muchun Song <muchun.song@linux.dev>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Alison Schofield <alison.schofield@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Ira Weiny <iweiny@kernel.org>
+---
 
+ drivers/nvdimm/pmem.c      |    2 +-
+ drivers/nvdimm/pmem.h      |   12 ------------
+ include/linux/page-flags.h |    1 +
+ 3 files changed, 2 insertions(+), 13 deletions(-)
 
-- The working branch also includes a minimal compressed-ram service
-  that only supports anonymous memory.
+--- a/include/linux/page-flags.h~mm-page-flags-define-hwpoison-test-and-change-helpers-unconditionally
++++ a/include/linux/page-flags.h
+@@ -655,6 +655,7 @@ TESTSCFLAG(HWPoison, hwpoison, PF_ANY)
+ #define __PG_HWPOISON (1UL << PG_hwpoison)
+ #else
+ PAGEFLAG_FALSE(HWPoison, hwpoison)
++TESTSCFLAG_FALSE(HWPoison, hwpoison)
+ #define __PG_HWPOISON 0
+ #endif
+ 
+--- a/drivers/nvdimm/pmem.c~mm-page-flags-define-hwpoison-test-and-change-helpers-unconditionally
++++ a/drivers/nvdimm/pmem.c
+@@ -80,7 +80,7 @@ static void pmem_mkpage_present(struct p
+ 		 * here since we're in the driver I/O path and
+ 		 * outstanding I/O requests pin the dev_pagemap.
+ 		 */
+-		if (test_and_clear_pmem_poison(page))
++		if (TestClearPageHWPoison(page))
+ 			clear_mce_nospec(pfn);
+ 	}
+ }
+--- a/drivers/nvdimm/pmem.h~mm-page-flags-define-hwpoison-test-and-change-helpers-unconditionally
++++ a/drivers/nvdimm/pmem.h
+@@ -1,7 +1,6 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
+ #ifndef __NVDIMM_PMEM_H__
+ #define __NVDIMM_PMEM_H__
+-#include <linux/page-flags.h>
+ #include <linux/badblocks.h>
+ #include <linux/memremap.h>
+ #include <linux/types.h>
+@@ -31,15 +30,4 @@ long __pmem_direct_access(struct pmem_de
+ 		long nr_pages, enum dax_access_mode mode, void **kaddr,
+ 		unsigned long *pfn);
+ 
+-#ifdef CONFIG_MEMORY_FAILURE
+-static inline bool test_and_clear_pmem_poison(struct page *page)
+-{
+-	return TestClearPageHWPoison(page);
+-}
+-#else
+-static inline bool test_and_clear_pmem_poison(struct page *page)
+-{
+-	return false;
+-}
+-#endif
+ #endif /* __NVDIMM_PMEM_H__ */
+_
 
-  Supporting file-backed memory (and shmem) is a whole different can
-  of worms that deserves its own discussion.
-
-  I will post this as a separate RFC from the base set, but it is
-  available to play with on my working branch.
-
-
-- I ship a basic dax driver for the base series, `anondax` which allows
-  existing devices to online a private node with both compaction and
-  reclaim support for testing.  This enables this use case:
-
-  fd = open(/dev/my_device, ..., O_DIRECT);
-  buf = mmap(fd, ..., MAP_SHARED)
-  my_file = open(myfile, ...);
-  read(buf, myfile); /* fault directly onto device memory */
-
-  With swap (and no tiering), this gives you a private over-commitable
-  node for which aspiring drivers can use to implement their own
-  mmu_notifier callback stream to manage device page tables and such.
-
-
-- The reason mempolicy (and user numa in general) is not supported is a
-  critical relationship between the OOM killer and page allocator.
-
-  In trivial scenarios, if a consumer of a private node overshoots and
-  causes an OOM - it will be the largest consumer and be chosen as the
-  victim.
-
-  If there are many consumers - what actually happens in practice is the
-  oom killer attempts to select a victim based on *task* policy... which
-  makes every task a candidate.  This leads to, among other things,
-  either an OOM storm and/or a full blown panic because a victim cannot
-  be located (depending on the constraints).
-
-  I've concluded that as-is, this is not tractable. But also, it is not
-  actually needed if the devices provide their own chardev to provide
-  a basic wrapper around folio_alloc_private().
-
-  This unfortunately means potential users like guest_memfd are unlikely
-  to be able to use the nodes without hard-coding the allocator
-  interface, as opposed to a mempolicy.
-
-  I think it's possible instead to *maybe* add N_MEMORY_USER_MIGRATION
-  and allow for explicit movement between nodes, but not full blown
-  mempolicies.
-
-  The relationship between page_alloc, cpuset, mempolicy, and the oom
-  killer is just too tight to allow allocations without the use of
-  __GFP_THISNODE - which the private allocation interface will enforce.
-
-
-As it stands, the series has been heavily minimized in both line count
-and patch number.
-
-The base series is ~22 commits with the scary diffstat below, but many
-of the core mm/ patches are similar to the patch below - with nearly
-all of the real complexity happening in reclaim and memory hotplug.
-
-despite the branch name, I intend to drop RFC from here-on, everything
-else required for the base series is in mm-new.
-
-
-See you at LPC
-~Gregory
-
--------
-
-diff --git a/mm/migrate.c b/mm/migrate.c
-index 7bdcdb57652f8..cd61566b44fa1 100644
---- a/mm/migrate.c
-+++ b/mm/migrate.c
-@@ -2266,7 +2266,7 @@ static int __add_folio_for_migration(struct folio *folio, int node,
-        if (is_zero_folio(folio) || is_huge_zero_folio(folio))
-                return -EFAULT;
-
--       if (folio_is_zone_device(folio))
-+       if (!folio_is_common_memory(folio))
-                return -ENOENT;
-
-        if (folio_nid(folio) == node)
-@@ -2390,7 +2390,7 @@ static int do_pages_move(struct mm_struct *mm, nodemask_t task_nodes,
-                err = -ENODEV;
-                if (node < 0 || node >= MAX_NUMNODES)
-                        goto out_flush;
--               if (!node_state(node, N_MEMORY))
-+               if (!node_state(node, N_MEMORY_COMMON))
-                        goto out_flush;
-
-                err = -EACCES;
-@@ -2475,7 +2475,7 @@ static void do_pages_stat_array(struct mm_struct *mm, unsigned long nr_pages,
-                if (folio) {
-                        if (is_zero_folio(folio) || is_huge_zero_folio(folio))
-                                err = -EFAULT;
--                       else if (folio_is_zone_device(folio))
-+                       else if (!folio_is_common_memory(folio))
-                                err = -ENOENT;
-                        else
-                                err = folio_nid(folio);
-
-
- Documentation/ABI/stable/sysfs-devices-node |  21 +++++++++++++++++
- Documentation/admin-guide/cgroup-v2.rst     |   7 ++++++
- Documentation/mm/physical_memory.rst        |  15 ++++++++++++-
- drivers/base/node.c                         |  67 +++++++++++++++++++++++++++++++++++++++++++++++++++++--
- drivers/dax/kmem.c                          |   2 +-
- include/linux/gfp.h                         |   6 +++++
- include/linux/memory_hotplug.h              |   2 +-
- include/linux/mmzone.h                      |  45 +++++++++++++++++++++++++++++++++++++
- include/linux/node.h                        |  12 ++++++++++
- include/linux/nodemask.h                    |  53 ++++++++++++++++++++++++++++++++++++++++++-
- kernel/cgroup/cpuset.c                      |  39 ++++++++++++++++++++++++++------
- kernel/sched/fair.c                         |   6 ++---
- mm/compaction.c                             |  21 +++++++++++------
- mm/damon/ops-common.c                       |  15 ++++++++-----
- mm/damon/vaddr.c                            |  20 +++++++++++++----
- mm/huge_memory.c                            |   2 +-
- mm/internal.h                               |  22 ++++++++++++++++++
- mm/khugepaged.c                             |   9 ++++++--
- mm/ksm.c                                    |   8 ++++---
- mm/madvise.c                                |   6 ++---
- mm/memory-tiers.c                           |  25 +++++++++++----------
- mm/memory_hotplug.c                         | 109 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-------------------------------
- mm/mempolicy.c                              |  51 +++++++++++++++++++++++++-----------------
- mm/migrate.c                                |   6 ++---
- mm/mm_init.c                                |  22 +++++++++---------
- mm/page_alloc.c                             | 115 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---------------
- mm/page_alloc.h                             |   5 +++++
- mm/vmscan.c                                 |  31 +++++++++++++++-----------
- 28 files changed, 585 insertions(+), 157 deletions(-)
