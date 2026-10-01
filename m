@@ -1,119 +1,152 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 939995304C3;
-	Thu,  1 Oct 2026 15:22:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B24C852D2BB;
+	Thu,  1 Oct 2026 15:24:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790868154; cv=none; b=q3hcXc18tK9KKHjMdcf7aIkbtFVAmdj6i+c032AWiVZaEYM5JQH5FgpLb5bAHkghPXXUGdzLCzJc2wDBPfGtfsqcg2UcqqBwVU7pJ0Wieg+7TgtiF5xQmhySHiH1qPsB6Ad+v8Z04dPdH/11fimQgOenKhWdL1/FniZ0NcPW1e8=
+	t=1790868287; cv=none; b=naiun62LJe6XipXh8f7dY+SIkk3qehdyMGcafblYy9Z7PVQVHd32Po01wA6xqNGrFGHtZZpuZzaUyD4oUWHhAfkNaYNct52CrssPc68/X+ER07c2YpMKeOWbgh2jAfXWZYy7JJyO925E6YIR9Bhe5LhPuiWN5aKKD3AnvsJIdjQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790868154; c=relaxed/simple;
-	bh=k71KAmtN9dvFtCOdhli9s45vBQlPLsAwNR/9B90as3M=;
+	s=arc-20240116; t=1790868287; c=relaxed/simple;
+	bh=T3A6DiVTK+d1UO+hhaAGjYtmW+WA3njvWThlDxn8JQ0=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=mLwcNTuVBQQOZukhDNjlvOdr0EcCGJstCpsRyNJQZTBL6L7OKxgsYwV5i2EuL7aCcsN5T2kBza1HhRkIZ86ujj/3OSUDjnhX2amUXmQYPKTxndhkc0lAwlSiOjrIxBmVAHa3bseURFJLo8fznvJI3Z4VIkJj1Z6pO2ImDBdEnIE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VTrGb12I; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=VShKUuYR6S/LJTPHSVsFN1LuxwqdBHZzjf27HBCDutQeZc6HZuXz+m1LJj9S0RwB4J2zF7vZ1RRGq1hEF4wBgTtW6djNfSCBXlkYbpURH0VJdamJ6QkmwZnlt+uulRfksabt5KNEI9h+p4HSyI2OEvWxbQSqD3r2grtGNDHROTQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Kq44/qtU; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VTrGb12I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 128201F00898;
-	Thu,  1 Oct 2026 15:22:33 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Kq44/qtU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22F521F000FF;
+	Thu,  1 Oct 2026 15:24:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790868153;
-	bh=jQxX/2gWR/n0N9XPUeTeH/dlX9sQCYpy4yT3lANa5l4=;
+	s=k20260515; t=1790868286;
+	bh=PqdObrnXiUApGAveeLfS9Fg6EdvcgjQqoGxrlhe3EHQ=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=VTrGb12ICxnVTCUvkpXBjG3Sdt+sYnX/lM/ABWAlqOM41pyrvGaYYrWZk94WMq/LS
-	 2W02MGsERjKKDohw/Xq+5i/jSMOIXxEhRXL04D0iNsHi8NjHm0wShsuqAVhphRz/nz
-	 uqALImu2NryXuZJtVTIS2NSYLJRF4o21L/gF/kFBDIhjX3/GYZYNIPjgs3ZFh0DFMo
-	 NNl/HkwLczDlWXcU3IBAewOtN/ujwC4AZWxJyyXuJo/R82aHowhSKTnKH1ImbooIcF
-	 duSiqZ+Mu85GAXAK4/vxFiiXHOsG5zZa6HmxJWk/cLHlA+Wts9jxjwKEzEArSH9r+t
-	 +gf2YRWTbUo0w==
+	b=Kq44/qtU2NW/vnXz92+X/rPEgkHBqzah8+9BD96xoRRgDzYP8saYig6Kowpz0553X
+	 VB6XlKuc2zb7yZrGY89cnvBsLzws5pt5Nvu9uDn+bbSK/qHFXYWvB/noeChl8vtWC0
+	 XvEPTzzujNZsIMgiBtUm7UdXHe58MIMaryjZLqMdOkqjU6v7h/N//jj2knKF26aoYh
+	 ZJ6jgJHjjDZ9vow9RkZBoRbeXwps+cvcVnIAZywHaDUJ+AfsEgDmEP4ORpTNkcqQv7
+	 my8NRmWHQ8ATvXOgQaW+ksL4QW2p8omXBbrlL0uj40kuwu0xHSHkBSEXhgXSPQO8GT
+	 acs4sF/ZUeI4g==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v2 4/8] fuse: support opening 64 bit backing ID
+Subject: Re: [PATCH v2 6/8] fuse: add extent map data structure
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Miklos Szeredi" <mszeredi@redhat.com>
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
-In-Reply-To: <20261001150935.655979-5-mszeredi@redhat.com>
+Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
+In-Reply-To: <20261001150935.655979-7-mszeredi@redhat.com>
 References: <20261001150935.655979-1-mszeredi@redhat.com>
- <20261001150935.655979-5-mszeredi@redhat.com>
+ <20261001150935.655979-7-mszeredi@redhat.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 01 Oct 2026 15:22:32 +0000
-Message-Id: <20261001152233.128201F00898@smtp.kernel.org>
+Date: Thu, 01 Oct 2026 15:24:45 +0000
+Message-Id: <20261001152446.22F521F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+Thank you for your contribution! Sashiko AI review found 2 potential issue(=
 s) to consider:
-- [Low] fuse: negative backing ID validation bypass due to unsigned convers=
-ion
+- [High] fuse: sleep in RCU read-side critical section during backing files=
+ cleanup
+- [Medium] fuse: missing overflow validation on ext->addr and ext->length
 --
 
-commit 38737a0048b9ea224c699e27954c4cb00bdfc596
+commit 791e33c26af3a517c133a125042b17d8f5ff57ec
 Author: Miklos Szeredi <mszeredi@redhat.com>
 
-fuse: support opening 64 bit backing ID
+fuse: add extent map data structure
 
-This commit adds a backing_id_64 field to fuse_open_out to allow opening
-files with 64-bit server-allocated backing IDs. When the server sets
-FUSE_BACKING_ID_64, the kernel reads the backing ID from backing_id_64
-instead of backing_id.
+Add support for creating and managing extent maps that map file regions to
+dax device regions. Introduce FUSE_NOTIFY_BACKING_MAP for populating extent
+maps from userspace.
 
-> diff --git a/fs/fuse/iomode.c b/fs/fuse/iomode.c
-> index 1a10bc65fb310..811ea603b7767 100644
-> --- a/fs/fuse/iomode.c
-> +++ b/fs/fuse/iomode.c
-> @@ -160,7 +160,9 @@ static int fuse_file_passthrough_open(struct inode *i=
-node, struct file *file)
+> diff --git a/fs/fuse/backing.c b/fs/fuse/backing.c
+> index c852f04989619..e954391d696d0 100644
+> --- a/fs/fuse/backing.c
+> +++ b/fs/fuse/backing.c
+[ ... ]
+> @@ -306,12 +310,36 @@ static void fuse_backing_rht_free(void *p, void *da=
+ta)
+> =20
+>  void fuse_backing_files_free(struct fuse_conn *fc)
 >  {
->  	struct fuse_file *ff =3D file->private_data;
->  	struct fuse_conn *fc =3D get_fuse_conn(inode);
-> +	struct fuse_open_out *outarg =3D &ff->args->open_outarg;
->  	struct fuse_backing *fb;
-> +	u64 backing_id;
->  	int err;
-> =20
->  	/* Check allowed conditions for file open in passthrough mode */
-> @@ -170,18 +172,38 @@ static int fuse_file_passthrough_open(struct inode =
-*inode, struct file *file)
->  	if (ff->open_flags & ~FOPEN_PASSTHROUGH_MASK)
->  		return fuse_EIO("conflicting open flags");
-> =20
-> -	fb =3D fuse_passthrough_open(file, ff->args->open_outarg.backing_id);
-> -	if (IS_ERR(fb))
-> -		return PTR_ERR(fb);
-> +	if (!fc->backing_id_64) {
-> +		if (outarg->backing_id_64 !=3D 0)
-> +			return fuse_EIO("64 bit backing ID set");
-> +
-> +		backing_id =3D outarg->backing_id;
-> +		if (backing_id <=3D 0)
+[ ... ]
+> +	/*
+> +	 * extents are referencing other backings, put these refs before
+> +	 * destroying the backings themselves
+> +	 */
+> +	rhashtable_walk_enter(&fc->backing_64_ht, &iter);
+> +	rhashtable_walk_start(&iter);
+> +	while ((fb =3D rhashtable_walk_next(&iter))) {
+> +		if (IS_ERR(fb)) {
+> +			if (PTR_ERR(fb) =3D=3D -EAGAIN)
+> +				continue;
+> +			break;
+> +		}
+> +		if (fb->type =3D=3D FUSE_BACKING_EXTMAP) {
+> +			fuse_ext_map_destroy(&fb->extents);
 
-[Severity: Low]
-Since outarg->backing_id is a signed 32-bit integer and backing_id is an
-unsigned 64-bit integer, will negative IDs bypass this explicit error check
-due to sign-extension during the assignment?
+[Severity: High]
+Does this code sleep in an RCU read-side critical section?
 
-If outarg->backing_id is negative, it gets sign-extended into a large
-positive value when assigned to the u64 backing_id. This causes the <=3D 0
-check to evaluate to false, skipping the intended "invalid backing ID"
-validation.
+rhashtable_walk_start() explicitly acquires the RCU read lock.
+When this code drops the final reference to the underlying DAXDEV backing,
+the call chain is:
 
-The code will then proceed and fail in fuse_backing_lookup(), logging
-"backing not found" instead of the expected "invalid backing ID" error.
+fuse_ext_map_destroy()
+  fuse_backing_put()
+    fuse_backing_free()
+      fs_put_dax()
+        iput()
 
-> +			return fuse_EIO("invalid backing ID");
-> +	} else {
-> +		if (outarg->backing_id !=3D 0)
-> +			return fuse_EIO("32 bit backing ID set");
-> +
-> +		backing_id =3D outarg->backing_id_64;
+Since iput() can sleep, it appears this could trigger 'scheduling while
+atomic' panics or lockdep warnings when unmounting a FUSE passthrough
+connection.
+
+> +			fb->extents.rb_node =3D NULL;
+> +		}
 > +	}
-> +	fb =3D fuse_backing_lookup(fc, backing_id);
-> +	if (!fb)
-> +		return fuse_EIO("backing not found");
+> +	rhashtable_walk_stop(&iter);
+> +	rhashtable_walk_exit(&iter);
+> +
+> +	rhashtable_free_and_destroy(&fc->backing_64_ht, fuse_backing_rht_free, =
+NULL);
+>  }
+
+> diff --git a/fs/fuse/ext_map.c b/fs/fuse/ext_map.c
+> new file mode 100644
+> index 0000000000000..ab01d678d08e5
+> --- /dev/null
+> +++ b/fs/fuse/ext_map.c
+[ ... ]
+> +static int fuse_add_extent(struct fuse_conn *fc, struct rb_root *extents,
+> +			   struct fuse_extent *ext)
+> +{
+> +	struct fuse_iext *new_fie __free(kfree) =3D kzalloc_obj(*new_fie);
+> +	struct rb_node *parent =3D NULL, **link =3D &extents->rb_node;
+> +	loff_t end;
+[ ... ]
+> +	if (overflows_type(ext->offset, loff_t) ||
+> +	    check_add_overflow(ext->offset, ext->length, &end))
+> +		return fuse_EIO("offset overflow");
+> +
+> +	new_fie->start =3D ext->offset;
+> +	new_fie->end =3D end;
+> +	new_fie->backing_offset =3D ext->addr;
+
+[Severity: Medium]
+Is it possible for the physical address calculation to wrap around?
+
+The bounds check above validates ext->offset, but appears to omit checking
+ext->addr + ext->length for overflow.
+
+Could a user-space process supplying an ext->addr near U64_MAX cause an
+integer overflow on the physical address range calculation, resulting in a
+non-contiguous backing mapping?
+
+> +
+> +	while (*link) {
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261001150935.6559=
-79-1-mszeredi@redhat.com?part=3D4
+79-1-mszeredi@redhat.com?part=3D6
