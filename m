@@ -1,152 +1,166 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B24C852D2BB;
-	Thu,  1 Oct 2026 15:24:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93E1E5304C9;
+	Thu,  1 Oct 2026 15:26:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790868287; cv=none; b=naiun62LJe6XipXh8f7dY+SIkk3qehdyMGcafblYy9Z7PVQVHd32Po01wA6xqNGrFGHtZZpuZzaUyD4oUWHhAfkNaYNct52CrssPc68/X+ER07c2YpMKeOWbgh2jAfXWZYy7JJyO925E6YIR9Bhe5LhPuiWN5aKKD3AnvsJIdjQ=
+	t=1790868390; cv=none; b=FsZZ+pOV0gkLUBdQAEo/T7iX9WKb75ampMbeqv2Js3cMQn5J9Q7w6CtmbFBXzJHlu8g4rFpgl+ev/syvF0wtloEO0g3/sizzt7sny8vZDJJx1wparhn+4Gi9dmgCvR8hJ2xH0FRsnbfb4fXiGSSCFvFK0yP157blLDwst8juS5E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790868287; c=relaxed/simple;
-	bh=T3A6DiVTK+d1UO+hhaAGjYtmW+WA3njvWThlDxn8JQ0=;
+	s=arc-20240116; t=1790868390; c=relaxed/simple;
+	bh=/zmhTRFI3agC/+L9uMXo395TxFMBOdfKgsdk5jmfj84=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=VShKUuYR6S/LJTPHSVsFN1LuxwqdBHZzjf27HBCDutQeZc6HZuXz+m1LJj9S0RwB4J2zF7vZ1RRGq1hEF4wBgTtW6djNfSCBXlkYbpURH0VJdamJ6QkmwZnlt+uulRfksabt5KNEI9h+p4HSyI2OEvWxbQSqD3r2grtGNDHROTQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Kq44/qtU; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=N6HbO5lJEYFOBZTnslfcsGoRLmCxT4dYsJJCjKrcSY+QPZZ9GFBtL7B6lRL1sHHvnVsNmljLhVFqYyS53y8LE6JeplRXkxLInS4CAgHFW1BpDHb2turHxWHqqqc4ox4PmM6tpUsWLWk1YCzefqFf2hmooqxgBo/qS+uN17P3V44=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mtSVTv/w; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Kq44/qtU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22F521F000FF;
-	Thu,  1 Oct 2026 15:24:46 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mtSVTv/w"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7BD51F000FF;
+	Thu,  1 Oct 2026 15:26:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790868286;
-	bh=PqdObrnXiUApGAveeLfS9Fg6EdvcgjQqoGxrlhe3EHQ=;
+	s=k20260515; t=1790868389;
+	bh=W9/I1HM6jPG/yJ7PaA7QVmKiMjVBdvOycYNOislFwRc=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=Kq44/qtU2NW/vnXz92+X/rPEgkHBqzah8+9BD96xoRRgDzYP8saYig6Kowpz0553X
-	 VB6XlKuc2zb7yZrGY89cnvBsLzws5pt5Nvu9uDn+bbSK/qHFXYWvB/noeChl8vtWC0
-	 XvEPTzzujNZsIMgiBtUm7UdXHe58MIMaryjZLqMdOkqjU6v7h/N//jj2knKF26aoYh
-	 ZJ6jgJHjjDZ9vow9RkZBoRbeXwps+cvcVnIAZywHaDUJ+AfsEgDmEP4ORpTNkcqQv7
-	 my8NRmWHQ8ATvXOgQaW+ksL4QW2p8omXBbrlL0uj40kuwu0xHSHkBSEXhgXSPQO8GT
-	 acs4sF/ZUeI4g==
+	b=mtSVTv/w/637JFOpULYNEZJjWEEJBNmmuo5dgTS9xml5Nlkk4wLrtt0XO6CDClB4B
+	 GwNFavQbdS0UIdQOzbXUs14r7HnM+RXlid4GzXE6p9E3GvYVrEBhf0c7RM09H4I/w9
+	 Jwhkj467AcNKi+E6+A+1S6ykI9ZKnxb4TCVIXlMk5ZLjePM6JZ8pXvEtM/fPUtemVP
+	 eaM+WLFctXg1eP+T5qH4MPcxqrS3i8exQ25cxhu3l+o2iNIuy53g+DQ7UxM8qs4a7k
+	 mJ7LZy+opakX7EVTzheUjbKuQAMvaYVq7H9wuH0m9i4NZ1rUOi27hjB7+Slznbjda3
+	 plzPMhiOE2U2Q==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v2 6/8] fuse: add extent map data structure
+Subject: Re: [PATCH v2 3/8] fuse: support 64 bit, server allocated backing
+ ID
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Miklos Szeredi" <mszeredi@redhat.com>
-Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
-In-Reply-To: <20261001150935.655979-7-mszeredi@redhat.com>
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
+In-Reply-To: <20261001150935.655979-4-mszeredi@redhat.com>
 References: <20261001150935.655979-1-mszeredi@redhat.com>
- <20261001150935.655979-7-mszeredi@redhat.com>
+ <20261001150935.655979-4-mszeredi@redhat.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 01 Oct 2026 15:24:45 +0000
-Message-Id: <20261001152446.22F521F000FF@smtp.kernel.org>
+Date: Thu, 01 Oct 2026 15:26:28 +0000
+Message-Id: <20261001152628.D7BD51F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
-Thank you for your contribution! Sashiko AI review found 2 potential issue(=
+Thank you for your contribution! Sashiko AI review found 3 potential issue(=
 s) to consider:
-- [High] fuse: sleep in RCU read-side critical section during backing files=
- cleanup
-- [Medium] fuse: missing overflow validation on ext->addr and ext->length
+- [High] fuse: unchecked rhashtable_init() return leads to NULL dereference
+- [High] fuse: race between process_init_reply() and ioctl corrupts IDR/rha=
+shtable union
+- [Medium] fuse: duplicate 64-bit backing IDs lead to memory leaks
 --
 
-commit 791e33c26af3a517c133a125042b17d8f5ff57ec
+commit 4b1027b3a4203f8caa807855de45ddb14b02bbb9
 Author: Miklos Szeredi <mszeredi@redhat.com>
 
-fuse: add extent map data structure
+fuse: support 64 bit, server allocated backing ID
 
-Add support for creating and managing extent maps that map file regions to
-dax device regions. Introduce FUSE_NOTIFY_BACKING_MAP for populating extent
-maps from userspace.
+This commit adds support for server allocated 64-bit backing IDs
+alongside the existing kernel allocated 32-bit IDs. It introduces
+FUSE_DEV_IOC_BACKING_CREATE and FUSE_NOTIFY_BACKING_REMOVE for
+managing the 64-bit backing IDs.
 
 > diff --git a/fs/fuse/backing.c b/fs/fuse/backing.c
-> index c852f04989619..e954391d696d0 100644
+> index 433fa3098d71f..3c879df7989c9 100644
 > --- a/fs/fuse/backing.c
 > +++ b/fs/fuse/backing.c
 [ ... ]
-> @@ -306,12 +310,36 @@ static void fuse_backing_rht_free(void *p, void *da=
-ta)
-> =20
->  void fuse_backing_files_free(struct fuse_conn *fc)
->  {
-[ ... ]
-> +	/*
-> +	 * extents are referencing other backings, put these refs before
-> +	 * destroying the backings themselves
-> +	 */
-> +	rhashtable_walk_enter(&fc->backing_64_ht, &iter);
-> +	rhashtable_walk_start(&iter);
-> +	while ((fb =3D rhashtable_walk_next(&iter))) {
-> +		if (IS_ERR(fb)) {
-> +			if (PTR_ERR(fb) =3D=3D -EAGAIN)
-> +				continue;
-> +			break;
-> +		}
-> +		if (fb->type =3D=3D FUSE_BACKING_EXTMAP) {
-> +			fuse_ext_map_destroy(&fb->extents);
-
-[Severity: High]
-Does this code sleep in an RCU read-side critical section?
-
-rhashtable_walk_start() explicitly acquires the RCU read lock.
-When this code drops the final reference to the underlying DAXDEV backing,
-the call chain is:
-
-fuse_ext_map_destroy()
-  fuse_backing_put()
-    fuse_backing_free()
-      fs_put_dax()
-        iput()
-
-Since iput() can sleep, it appears this could trigger 'scheduling while
-atomic' panics or lockdep warnings when unmounting a FUSE passthrough
-connection.
-
-> +			fb->extents.rb_node =3D NULL;
-> +		}
-> +	}
-> +	rhashtable_walk_stop(&iter);
-> +	rhashtable_walk_exit(&iter);
-> +
-> +	rhashtable_free_and_destroy(&fc->backing_64_ht, fuse_backing_rht_free, =
-NULL);
+> +static int fuse_backing_add_64(struct fuse_conn *fc, struct fuse_backing=
+ *fb)
+> +{
+> +	return rhashtable_insert_fast(&fc->backing_64_ht, &fb->hash_node, fuse_=
+backing_prm);
 >  }
 
-> diff --git a/fs/fuse/ext_map.c b/fs/fuse/ext_map.c
-> new file mode 100644
-> index 0000000000000..ab01d678d08e5
-> --- /dev/null
-> +++ b/fs/fuse/ext_map.c
-[ ... ]
-> +static int fuse_add_extent(struct fuse_conn *fc, struct rb_root *extents,
-> +			   struct fuse_extent *ext)
-> +{
-> +	struct fuse_iext *new_fie __free(kfree) =3D kzalloc_obj(*new_fie);
-> +	struct rb_node *parent =3D NULL, **link =3D &extents->rb_node;
-> +	loff_t end;
-[ ... ]
-> +	if (overflows_type(ext->offset, loff_t) ||
-> +	    check_add_overflow(ext->offset, ext->length, &end))
-> +		return fuse_EIO("offset overflow");
-> +
-> +	new_fie->start =3D ext->offset;
-> +	new_fie->end =3D end;
-> +	new_fie->backing_offset =3D ext->addr;
-
 [Severity: Medium]
-Is it possible for the physical address calculation to wrap around?
+Does this allow duplicate backing IDs, leading to a memory leak?
 
-The bounds check above validates ext->offset, but appears to omit checking
-ext->addr + ext->length for overflow.
+rhashtable_insert_fast() does not check for duplicate keys. If a user
+invokes FUSE_DEV_IOC_BACKING_CREATE multiple times with the exact same
+64-bit map->backing_id, they will all be inserted.
 
-Could a user-space process supplying an ext->addr near U64_MAX cause an
-integer overflow on the physical address range calculation, resulting in a
-non-contiguous backing mapping?
+When removing via fuse_backing_close_64(), rhashtable_remove_fast() will
+only retrieve and delete one instance, leaving the duplicates orphaned and
+leaking the struct fuse_backing objects.
 
+[ ... ]
+> +void fuse_backing_files_init_64(struct fuse_conn *fc)
+> +{
+> +	rhashtable_init(&fc->backing_64_ht, &fuse_backing_prm);
+> +	fc->backing_id_64 =3D true;
+>  }
+
+[Severity: High]
+What happens if rhashtable_init() fails here due to memory pressure?
+
+Since the return value is ignored, fc->backing_id_64 =3D true is set
+unconditionally. If rhashtable_init() returns an error, the hash table
+remains uninitialized.
+
+A subsequent ioctl triggering fuse_backing_open_64() would call
+rhashtable_insert_fast(), which dereferences the NULL ht->tbl, resulting
+in a kernel panic.
+
+> diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
+> index 2a1aadc08e2a8..9b65543c6cc79 100644
+> --- a/fs/fuse/fuse_i.h
+> +++ b/fs/fuse/fuse_i.h
+[ ... ]
+> @@ -770,8 +775,14 @@ struct fuse_conn {
+>  	struct fuse_sync_bucket __rcu *curr_bucket;
+> =20
+>  #ifdef CONFIG_FUSE_PASSTHROUGH
+> -	/** @backing_files_map: IDR for backing files ids */
+> -	struct idr backing_files_map;
+> +	/* Selected by backing_id_64 */
+> +	union {
+> +		/** @backing_files_map: IDR for backing files ids */
+> +		struct idr backing_files_map;
 > +
-> +	while (*link) {
+> +		/** @backing_64_ht: 64 bit ID lookup hash table */
+> +		struct rhashtable backing_64_ht;
+> +	};
+>  #endif
+>  };
+> =20
+> diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
+> index cbb10e19e7e86..bb76bddfc2417 100644
+> --- a/fs/fuse/inode.c
+> +++ b/fs/fuse/inode.c
+[ ... ]
+> @@ -1408,13 +1408,15 @@ static void process_init_reply(struct fuse_args *=
+args, int error)
+>  			 * them together.
+>  			 */
+>  			if (IS_ENABLED(CONFIG_FUSE_PASSTHROUGH) &&
+> -			    (flags & FUSE_PASSTHROUGH) &&
+> +			    (flags & (FUSE_PASSTHROUGH | FUSE_PASSTHROUGH_V2)) &&
+>  			    arg->max_stack_depth > 0 &&
+>  			    arg->max_stack_depth <=3D FILESYSTEM_MAX_STACK_DEPTH &&
+>  			    !(flags & FUSE_WRITEBACK_CACHE))  {
+>  				fc->passthrough =3D 1;
+>  				fc->max_stack_depth =3D arg->max_stack_depth;
+>  				fm->sb->s_stack_depth =3D arg->max_stack_depth;
+> +				if (flags & FUSE_PASSTHROUGH_V2)
+> +					fuse_backing_files_init_64(fc);
+
+[Severity: High]
+Can this sequence cause memory corruption in the union?
+
+If fc->passthrough =3D 1 is set locklessly before fuse_backing_files_init_6=
+4(fc)
+completes, a concurrent FUSE_DEV_IOC_BACKING_OPEN ioctl in fuse_backing_ope=
+n()
+could see fc->passthrough =3D=3D 1 and fc->backing_id_64 =3D=3D 0.
+
+It would proceed to call fuse_backing_id_alloc(), modifying the 32-bit
+backing_files_map IDR. Meanwhile, fuse_backing_files_init_64() executes
+rhashtable_init(&fc->backing_64_ht), which would blindly overwrite the very
+same memory union, corrupting the IDR state.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261001150935.6559=
-79-1-mszeredi@redhat.com?part=3D6
+79-1-mszeredi@redhat.com?part=3D3
