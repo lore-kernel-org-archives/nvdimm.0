@@ -1,205 +1,219 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE21836E466
-	for <nvdimm@lists.linux.dev>; Thu,  1 Oct 2026 05:41:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.20
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790833266; cv=fail; b=JeaLPSrV9ODEtFcfiytxu6nCQH+rU3BZ2XkWF9RleaDc8wVTg1q1mbh2Bxa0oyOLJVhTcENaywvGjF7yB0PfJsu80RbT/ci5/o4VvoigG0nHVZ3ptVyE3t5xdZCxVlJzMqRKiM5kAtJNOtZtzD1G4Vhw5ClRenEvhroILPzHpmA=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790833266; c=relaxed/simple;
-	bh=3m2GpNQ7lPUXAWewtvhWLjmjaT08c1k8QugMOXezBbc=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=uVmB5kpm5jEOh63NeXtBQTJD1KcNwo/mj1DfpfE5m2EWtn/OYaE9Jdf+ZS3g3aByFXextsW3OVIsLgbLI4NRpPIv32B+kibeiN4waDMjppPl+sqNXIdxzlryoM4+T6x1g/xlNFwmvXDKODQ1s+4m2znqZBTXRxeUM5DcwpvD2iU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=m/JOpQKI; arc=fail smtp.client-ip=198.175.65.20
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 076D551AED7
+	for <nvdimm@lists.linux.dev>; Thu,  1 Oct 2026 15:09:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790867387; cv=none; b=H9mb+XtYQg+f7S3ZtmR8IFihR00iEGOXnyzbfqiUJosbVJWE5Onye0xaIf5XN5yYzHrnnPFbHAc8szm7xddrmNKT3knGj+CtXcxc1eqKnEszac+ir/M3ftZRkecJUs05UWb40n9NQuhQizCgRHmxhB6SXaHShTOI+ylgQ5MPGUI=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790867387; c=relaxed/simple;
+	bh=QqGsxUZuEtLO/SWJKab8EXCQqECv/GPyBy+79b3jBMQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:content-type; b=BLqQUUYucUmC1ngL3nKc6yNP1zQJBd7swg2WtZ7P5c7c908AbkS1CFjISVEJ5JxXwEyg9qhfhEv2qzYxCfXqWN4BwQ6IqtGBXmLEb/xX4JMriKKrtN8z6VqThmFpHj1/OROeAvf6lzdPcHsaTrJmAHQwZVUHSkZ+Hio2bNcnwqg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=YoQGHLAC; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="m/JOpQKI"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1790833263; x=1822369263;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=3m2GpNQ7lPUXAWewtvhWLjmjaT08c1k8QugMOXezBbc=;
-  b=m/JOpQKIwVTalVVYvMKNRzpogGAJOk/dL3qvk9JmVhD4AQ3Up83c9F4S
-   qVqdXnoNhJ4Y0ZqIhquxV16R5knx6RaCGTtmP+s75qrBqC17CD7kwseEs
-   nJzh59qdMA6r4n3Z4BjeBDOb+uct2mptJHE7Y4uv7b+TmRNRE+91SH9PJ
-   rQap/Sfg+dSPxKNMsifHZGucJicLwYQoqheGTzaXkynme6MnNdREn+1Yv
-   lERnbPqips3nljbtSpL/9w+2oQJr0iS7JU2KB7Xj/fSqJfACt8KNps2ws
-   V9dtas7HrNYa2+psUH2Ee9s9o4dLBcRf+CZKlP6fDXVltYP6Z73xs7Igo
-   g==;
-X-CSE-ConnectionGUID: x3YM0qIaQTOB67eJR4DqFQ==
-X-CSE-MsgGUID: yvEzx9H3QUOWphpxZDci4w==
-X-IronPort-AV: E=McAfee;i="6800,10657,11921"; a="90349436"
-X-IronPort-AV: E=Sophos;i="6.27,134,1787036400"; 
-   d="scan'208";a="90349436"
-Received: from orviesa005.jf.intel.com ([10.64.159.145])
-  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Sep 2026 22:41:02 -0700
-X-CSE-ConnectionGUID: uU/O1kG0SQuV83wX5KZqwg==
-X-CSE-MsgGUID: edS0aAuNStm08iwb4zodLQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,134,1787036400"; 
-   d="scan'208";a="279686074"
-Received: from orsmsx901.amr.corp.intel.com ([10.22.229.23])
-  by orviesa005.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Sep 2026 22:41:02 -0700
-Received: from ORSMSX901.amr.corp.intel.com (10.22.229.23) by
- ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.49; Wed, 30 Sep 2026 22:41:01 -0700
-Received: from ORSEDG903.ED.cps.intel.com (10.7.248.13) by
- ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.49 via Frontend Transport; Wed, 30 Sep 2026 22:41:01 -0700
-Received: from SJ2PR03CU001.outbound.protection.outlook.com (52.101.43.44) by
- edgegateway.intel.com (134.134.137.113) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.49; Wed, 30 Sep 2026 22:40:59 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=s3ncUIEy+Bsg8liFF/T6CKL1B/9hhXqZQqlLFhhk2W9LfBHOnCumbyex2qdMFry43mn0O5q2wYLMiDh/LZqGV43kLAwwwGQ+tTVej1R0bmt28P71lOrXlmI5LOPS1MvlBCUzBMeacCcgm880dvriNrEtE/orb+X0diAXTSFcxdYhko+EXTVH47RthxerKbaEC/mvuGG+Ja/QsRJJL85/mT7sm79l42S5NR2A1Vx1dMA6soac8NwwQVEBgYUkbFOiKpGiu6HeXuvFvQYduqDB3/esscy1c6zgtqZCW8X0K/t2EY0ZmGhB1iTvV/k5KN5rst2j/HefArcFuqYZa5lTtw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=1Qvy1A2vzRfRduNjjivSAsrfzKc+XiNE9UR0+NaLGnQ=;
- b=seFwR6aY+Liixq8H7rOHVvBFL1dZ6GFbsWgPQr0RW9k/2WHe2KBRiBLcls+ZcSe8jUYcCiHpE4n9jR/8OJQdAUenVmxte0k5zkI3gYeU1Tq0Kx1JlSoANHbOMG9A/eUMRwOder3bZ7aISYVYLhHeormdWSv0jIZ/i0O9sshkTblUELZy/IrEs9or75XmAhwH0uy8MgNdDbz2/9Xl1xQw5do7ecWDA34JGAUxENGE35RuFimmiSchQhYUhwtgrrrMz/al8JwFo+pCHWSg5eYy5ZjEGfIDqGYAn3FY9do91w1/uyu9P5O4ex/nRmWaOya0MwFJBLNKn+Za+LhiKeuYCQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com (2603:10b6:f:fc02::9)
- by DS0PR11MB8207.namprd11.prod.outlook.com (2603:10b6:8:164::16) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.472.15; Thu, 1 Oct
- 2026 05:40:52 +0000
-Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com
- ([fe80::6fbf:c112:d0a8:f1a8]) by DS4PPF0BAC23327.namprd11.prod.outlook.com
- ([fe80::6fbf:c112:d0a8:f1a8%5]) with mapi id 15.21.0472.015; Thu, 1 Oct 2026
- 05:40:52 +0000
-Date: Wed, 30 Sep 2026 22:40:47 -0700
-From: Alison Schofield <alison.schofield@intel.com>
-To: Kees Cook <kees@kernel.org>
-CC: Bill Wendling <morbo@google.com>, <nvdimm@lists.linux.dev>, Dave Jiang
-	<dave.jiang@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Guangshuo Li <lgs201920130244@gmail.com>, Ira Weiny <iweiny@kernel.org>, Uwe
- =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, "Vishal
- Verma" <vishal.l.verma@intel.com>, Andy Shevchenko
-	<andriy.shevchenko@linux.intel.com>, Steven Rostedt <rostedt@goodmis.org>,
-	<nikitash.mariiaw@gmail.com>, <linux-kernel@vger.kernel.org>,
-	<linux-hardening@vger.kernel.org>
-Subject: Re: [PATCH v3 10/11] nvdimm: ndtest: Return the string length from
- flags_show()
-Message-ID: <ar3yXzo-0k0_BuCD@aschofie-mobl2.lan>
-References: <20260930235231.out.387-kees@kernel.org>
- <20260930235247.157921-10-kees@kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20260930235247.157921-10-kees@kernel.org>
-X-ClientProxiedBy: BY3PR05CA0009.namprd05.prod.outlook.com
- (2603:10b6:a03:254::14) To DS4PPF0BAC23327.namprd11.prod.outlook.com
- (2603:10b6:f:fc02::9)
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="YoQGHLAC"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1790867384;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=wUOje82dfH+H4WczVQo1AOkLQDRbkjxsMyPdE9CHREA=;
+	b=YoQGHLACTliSShMZaaVi9MtPMjtFWdecjt0tqoa4d5Fl/EGwtBiZHEQ0+d0wYePgW0H0VL
+	zbW7Zgt2zWT9p/BnKntq0wsKKlF1nN2tmMlScDnnp8s7vNEZcOovkMu1D6lqAKnApVNtaX
+	KPUMcYvhqzzl/usLMRFJENqPoyixipk=
+Received: from mail-ej1-f70.google.com (mail-ej1-f70.google.com
+ [209.85.218.70]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-35-UFiqG8xfPXqzOsCorxuZHw-1; Thu, 01 Oct 2026 11:09:42 -0400
+X-MC-Unique: UFiqG8xfPXqzOsCorxuZHw-1
+X-Mimecast-MFC-AGG-ID: UFiqG8xfPXqzOsCorxuZHw_1790867381
+Received: by mail-ej1-f70.google.com with SMTP id a640c23a62f3a-c2e41206a2bso63407666b.1
+        for <nvdimm@lists.linux.dev>; Thu, 01 Oct 2026 08:09:42 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790867381; x=1791472181;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=wUOje82dfH+H4WczVQo1AOkLQDRbkjxsMyPdE9CHREA=;
+        b=pDs0Dd6C2Fv5/fhIq0woiwuGC+pHOpywCamE7oRX53k0JVjg/63IKmEzC11vAHP2G1
+         uS8ifiT8zG9OkQBdtWgxOXj36OrbVOhYysjiQvH+28I+v8xpe0PZgR0NqaauQ9pLRYqx
+         IufudSzPcoYJ8I7CUsAg4owtRK+xp7ZmUsWcS4dE3rZELqPn0Y3jHoj72kVjr9dDBBxF
+         vJK8dX3un0tGHHMuiSRg0VRlYPb5WDGaisaFFiXXVI6eB4Wb0czgUknlCojo41IWel2K
+         A0hiW58QSGtkliuqSI4T+VBxZdTqyeELaCT1zAqonDmzTAMT9Brv42lvieu9wozucLeV
+         tTjQ==
+X-Forwarded-Encrypted: i=1; AKwUvBxpkMb8b8WM/zEd56Q86g91neq0lPQ2HIkI+A8OJ1TeVxwDfU3FDc8fFb/3tCsRpQ3DJDoI1Cg=@lists.linux.dev
+X-Gm-Message-State: AFuF++nuwWpEx9JV5zh1ZgouaLQL28QMo+/EzzKi3r83F5c0qMb7LmMM
+	7v43pv0CI17ypzfDRarrKXl35DHAHdy59xF0es7+WR/6TnR7pJefJfdwGw2CjkQayI6EzSX4Xjj
+	IXYqUCB2zPkaXVttwaUWyk10qFkxsTTkdpsDh140t3LdUxjCT9EhcjXdOtQ==
+X-Gm-Gg: AYBFou17heScCbxq86hREfx+xWDLoeQIP16/zI8b6KK6KUWc2eu5lyXtoUzZqx1OZmS
+	cLFxBoX7VcHKaT1hugJq10MYr6vJ3CfrJuyxtFpU+IDGRgB2r9BJMywF2LOExXtQEE2ukPbrCbd
+	E7kdRP9U4unycbY/bCuglfiHPdd0cuL5PtcbpzcW0ZRrXxm+GLxazmcVpeyueuq9sH2Y+d/UeMJ
+	2Jh3u4HzhXGMI2YHpnrnl4738jJRkDN50rR8meqNNVpfoBIfqH96q7dgmHAJL+nJ6TBdyyU3Klm
+	PtwUXh7YZyJwjEcmXn2lauvFw5+zoPiLACwRnVPmSd0SfhAWO45+fMJ85He6PYVP7/EtWic7Yrz
+	EnZNMr3afgCU7B+AcIx6qox8ZKDz0IV/+01D5PmPyd/8OxM3CuBcyyAQEMuo=
+X-Received: by 2002:a17:907:9691:b0:c2a:86d8:66bb with SMTP id a640c23a62f3a-c2e33d39b2amr286838366b.10.1790867381402;
+        Thu, 01 Oct 2026 08:09:41 -0700 (PDT)
+X-Received: by 2002:a17:907:9691:b0:c2a:86d8:66bb with SMTP id a640c23a62f3a-c2e33d39b2amr286836066b.10.1790867380994;
+        Thu, 01 Oct 2026 08:09:40 -0700 (PDT)
+Received: from maszat.piliscsaba.szeredi.hu (193-226-245-188.pool.digikabel.hu. [193.226.245.188])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c2e31d86372sm177735166b.56.2026.10.01.08.09.39
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 01 Oct 2026 08:09:39 -0700 (PDT)
+From: Miklos Szeredi <mszeredi@redhat.com>
+To: fuse-devel@lists.linux.dev
+Cc: John Groves <John@Groves.net>,
+	John Groves <john@groves.net>,
+	Amir Goldstein <amir73il@gmail.com>,
+	"Darrick J . Wong" <djwong@kernel.org>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Alison Schofield <alison.schofield@intel.com>,
+	nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org
+Subject: [PATCH v2 1/8] dax: replace exported dax_dev_get() with non-allocating dax_dev_find()
+Date: Thu,  1 Oct 2026 17:07:19 +0200
+Message-ID: <20261001150935.655979-2-mszeredi@redhat.com>
+X-Mailer: git-send-email 2.54.0
+In-Reply-To: <20261001150935.655979-1-mszeredi@redhat.com>
+References: <20261001150935.655979-1-mszeredi@redhat.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|DS0PR11MB8207:EE_
-X-MS-Office365-Filtering-Correlation-Id: aefc1754-869c-42a5-e894-08df1f7e8e30
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|23010399003|376014|7416014|1800799024|11063799006|4143699003|10067099003|3023799007|6133799003|56012099006|22082099003|18002099003;
-X-Microsoft-Antispam-Message-Info: b5Clpkqn3fXalUtLoHpUyD4jEjBpPL2mISwmd6oilLQaA4w7i3jV+EjZDxi5xu6ZKtwnxWKrB9NjnK+RZn0orUZzR4kdeVux7XaqVgWFTqp5l7rEbh1akd1LwGDfm7Cp57Lx0hboeQkhMxEMwkNBuyyf1dnHuUMLQy8MsBX34BB8mdabgL91Q6n/Cgq26zqgdaWmqZFsyWl9stKOTuhdpsJoUyHrR29bfH6p1U6+Vg5DdzyKxbDbLLZptBkfJTC8Ln7OaYC/p0fJ+7SP8w+3Wnk8GO/M97oMojclkKluJ4qkpKyRgy2r8/NJ3Vn4QHGvzKqYPyvOdefLsS/+q7hSYocnvxZfdm4XaKbBsMsl2T5SvhX59G7A2iyoMCigj0P/X9TR9fIA3NzKc/CGNPp7M7kHcv/+NL1pXUAMgd8N0Y/W0egDynVYhMRHubOd/mGE8kOqtJzbHaYigJxZNAARt5tg0G48vqdw3Gx3MF1fGn3EsSq9RwyWg02xvuFZe2vCPSzFiqM7l/Zla6sIlDV0rj0wwic7//gS3NKdKQZ6iiUt8preBKBfiMJXTD6MQpYNiSIOrspmSjAkt1WyZnICufXL3S0FCWoNInYbN06/O2h0iyB/iFfaVN9UdcSt+Af9WVZtKdkZzLGkv+l0fs80ionPXURl9DzD/2E+N4kiTA0=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(23010399003)(376014)(7416014)(1800799024)(11063799006)(4143699003)(10067099003)(3023799007)(6133799003)(56012099006)(22082099003)(18002099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?sIPyjB7weKR4nfFrJCLKSzxj3tvAB2dDbb9O4s/v4cWIibKlIfH5WMuxYBpC?=
- =?us-ascii?Q?AkYDnRlGZheyQ6VosOlIEIJ36gUDHwoSlv+GyyEqMRiChbfh8u4gPlud9lxm?=
- =?us-ascii?Q?hnPff8lt0eKQt3QFdjSz3JUxtGaA+tDHnzwbYAEqtVjqkDMTKzhDD2/4LDN1?=
- =?us-ascii?Q?B7k3WFxleAqtMcgEOXyjKZUuqPbaYnzlJCWPfe0qennW3BZVoVXHZ00yvEgg?=
- =?us-ascii?Q?RFBZgX7AyZl7ahlCnAACmideG8BXhfewamZP9b2+2N1mcC5JQwEq5BB9I4m7?=
- =?us-ascii?Q?dtIPRheAh011xbKa7O5pEkOa3cNYB3B86dHQrmDSCc5AyukJATUTfLwLRMxV?=
- =?us-ascii?Q?uCEk0SPZGA4sxnyoxaCDmMLlBgMh1rXpJS2RGtoJRL6nQ/IFYBauUHoM68WJ?=
- =?us-ascii?Q?VvdWw4QoULEqKeNXCebAQOuDb99qRXFoyTeLx3skGsrh0dpN1c0j7nkY9XjB?=
- =?us-ascii?Q?Sp++NqBpMlRBtPNqRkUpd9cdxplgVWJuXnWEiPnmRbnsmQBWPl+1xNrmT9uv?=
- =?us-ascii?Q?8/2z/799EtvOSSmVaBZUsw05SNB1B0yv+TCNcTg8N8WbcIiJHusvLEtaUiNP?=
- =?us-ascii?Q?qMPlTRJcxcPHqzPKKK9aUZPNqx6JbRRsjQwlNRnuDu6DizgrntMmhC7+7/P6?=
- =?us-ascii?Q?DLLroghhX6IrLifIzR6KephCMBjM1WpBMOJ359D/L/lxJpojj2WSyVWHsiaC?=
- =?us-ascii?Q?Zm5X9mkvcqI54RkHFLxg/cUrf1b0R+FEkdRxAv/3klTzWRI7ZKlnucgh2x4a?=
- =?us-ascii?Q?TWZP1UQAgrQVlJLj+wxol1IPs/ayBcQbg10PhKA8Wo6S4ufEbZzG2TpgEtZY?=
- =?us-ascii?Q?dT/vcT8Ylmra2VN48Q/2XF4EmOqS5z3yqZHenS3AxmRNPVJSw/3CP79xwh98?=
- =?us-ascii?Q?bEB6UBYaQS7Dgc9OtkzmpwsqGRa/o6yDnsP93FHoosVrbxSzAQaCzuaNkhZQ?=
- =?us-ascii?Q?b15++/k93tZKPNh27NAq5cTPBRcHQxJ/W9ff9h8DIA5ZgOASQn6CmVPIcEA0?=
- =?us-ascii?Q?wIEuG2TpuCSvZcgdgxRL6ZmA/pVw5ZQDEt9pogsRaB7xUxKEIzwbSeFxKFxn?=
- =?us-ascii?Q?lT7Lea3JERh/lzDAYJhNS3/hLTmOvco4wCpf3WH4/wdYV8h2t84/WAllWAEZ?=
- =?us-ascii?Q?bKqtp7Xd+4V+uWb/0wT36ZJp1nbynI4RhLGHSo5qRvksVK4N2so5RWuKbwa/?=
- =?us-ascii?Q?Pk4Kny3zaJZ9LkF6VY2VzgZUz0UY6r7+EVQQaU+qnAj3McP3ujK+CERBku2g?=
- =?us-ascii?Q?VjrMY08j94LWqtw+8OV7Z5n6IgLF4Z38X/OuClSjHlxJEIqkP1L/zUT8DFGB?=
- =?us-ascii?Q?JEH1Q5WHGWcK2PQoe638mOOXvTet/OZ1Ntwezg3e4OKkKxXMN7aKCjOTidGA?=
- =?us-ascii?Q?7MlzPu2CepejMv+6F9Y2oLwSxXjTQTlTSOCpeote8vCx14+eRD2u74FlS4mu?=
- =?us-ascii?Q?wTgXrUx3Ek3zR1Ildbe+dCrpSLR7zal7FILZlEsWCCHRKEyTyAwpLvXc16n9?=
- =?us-ascii?Q?6+LXx3oQK5mU6KbcE7iMS+SCCh7vcPPBDZbW1RxiDyCGStWaFgL6f/3DA3vt?=
- =?us-ascii?Q?lRxbnbWhA7en6fGvu5p0ClWWnvwS9gkAnolQnz5SxTW9iF2lUqPKuLusgveb?=
- =?us-ascii?Q?f5ExJK0BYVTVReVs6b1cYLeiXV3PPv9jLsM69A1zQWw/2pHmbqSEkg2Gwovz?=
- =?us-ascii?Q?PjhR67qZb79SqgKjcPIl93qN8ayDOjEHhYVzPJireVQQNitVCsw7sBBrh/VA?=
- =?us-ascii?Q?HyvFufSkXjYz5+p+xz9Ti64LMbqXxnI=3D?=
-X-Exchange-RoutingPolicyChecked: Bs4CYYfdS9XRHfWVaSMtBBW6j5Z4WIXubC1GabnEeV8dqRZ1ha/iBscKjgrnY3nyioiPd4uoi97ORH8fSlGdvr0JzgdVS2uuUsVghFql6oxsg1qqqI2cfcBZKDcNEJAOI+UiMc/rEQmgc6ZJaExn/UMsYPlFXx5C2Tq8kbqAWncm9zC/ISPwEYx0k4cST44bcz7DzrjR2LrhnyDfDC+/5FcRGp1zW9JtEdu2tiOEzRFXMFoDMJZU1VTkmy0SNJKtqnCSIM3aP5FlfZPPJ4MWU/3j3c7pMWxjc79e+jIb71hYc1KjJQmMDoCAEEevGIGU+/AzEc9U04o0jBjyXht3UA==
-X-MS-Exchange-CrossTenant-Network-Message-Id: aefc1754-869c-42a5-e894-08df1f7e8e30
-X-MS-Exchange-CrossTenant-AuthSource: DS4PPF0BAC23327.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Oct 2026 05:40:52.4108
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: bxozCcJOA+1bnV62pMq9J+wuTxaz6ESptmfqrbndW1tA9I6kLdX3RCA7vo1Yfnf/FXlB9xrAM/W5Tb+JPRXPft9ssqDQnX7HJ/JZGkS/0eE=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR11MB8207
-X-OriginatorOrg: intel.com
+X-Mimecast-Spam-Score: 0
+X-Mimecast-MFC-PROC-ID: 21_1bRSysbJcUqxcnQT-ymbGBKLbTyVOZe9dKSvoVzw_1790867381
+X-Mimecast-Originator: redhat.com
+Content-Transfer-Encoding: 8bit
+content-type: text/plain; charset="US-ASCII"; x-default=true
 
-On Wed, Sep 30, 2026 at 04:52:38PM -0700, Kees Cook wrote:
-> flags_show() build their output with a seq_buf and return seq_buf_used(),
-> which may include the trailing NUL byte when the seq_buf has
-> overflowed. Use seq_buf_strlen() instead.
-> 
-> The flag names are far shorter than the PAGE_SIZE buffer sysfs
-> provides, so this cannot overflow today.
-> 
-> Build tested ARCH=x86_64 with GCC 16.2.0, built out of tree with
-> make M=tools/testing/nvdimm:
-> tools/testing/nvdimm/test/ndtest.o
-> 
-> Assisted-by: LLM
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-> Signed-off-by: Kees Cook <kees@kernel.org>
+From: John Groves <John@Groves.net>
 
+This fix is in response to a Sashiko review, and some subsequent
+analysis.
 
-Hi Kees,
+dax_dev_get() uses iget5_locked() which creates a new inode if no
+matching one exists. This is correct for the internal caller
+(alloc_dax), but dangerous for external callers that look up devices
+from user-supplied or metadata-supplied dev_t values:
 
-Should I include this one in a 7.4 PR for nvdimm or is someone else
-merging the entire series?
+1. A new inode is created with DAXDEV_ALIVE set but no backing driver,
+   no ops, and no IDA-allocated minor number.
 
--- Alison
+2. On teardown, dax_destroy_inode() warns because kill_dax() was never
+   called, and dax_free_inode() calls ida_free() for a minor that was
+   never ida_alloc'd -- potentially freeing the minor of a real device.
 
+Add dax_dev_find() which uses ilookup5() for lookup-only semantics:
+it returns an existing dax_device with an elevated inode reference, or
+NULL if no device with the given dev_t exists. It never creates inodes.
+A dax_alive() check under dax_read_lock() guards against returning a
+device that is concurrently being torn down by kill_dax().
 
+Make dax_dev_get() static again (internal to super.c for alloc_dax),
+export dax_dev_find() instead.  Also add the missing CONFIG_DAX=n stub.
 
-> ---
->  tools/testing/nvdimm/test/ndtest.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/tools/testing/nvdimm/test/ndtest.c b/tools/testing/nvdimm/test/ndtest.c
-> index 2051ad5d4882..f097f2992966 100644
-> --- a/tools/testing/nvdimm/test/ndtest.c
-> +++ b/tools/testing/nvdimm/test/ndtest.c
-> @@ -693,7 +693,7 @@ static ssize_t flags_show(struct device *dev,
->  	if (seq_buf_used(&s))
->  		seq_buf_printf(&s, "\n");
->  
-> -	return seq_buf_used(&s);
-> +	return seq_buf_strlen(&s);
->  }
->  static DEVICE_ATTR_RO(flags);
->  
-> -- 
-> 2.34.1
-> 
+About the 'fixes' tag: this removes the export of dax_dev_get(),
+which was flawed, and replaces is with dax_dev_find(). It feels like
+the fixes tag makes sense for correcting an ABI error.
+
+Fixes: 2ae624d5a555d ("dax: export dax_dev_get()")
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Alison Schofield <alison.schofield@intel.com>
+Reviewed-by: "Darrick J. Wong" <djwong@kernel.org>
+Signed-off-by: John Groves <john@groves.net>
+Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+---
+ drivers/dax/super.c | 38 ++++++++++++++++++++++++++++++++++++--
+ include/linux/dax.h |  6 +++++-
+ 2 files changed, 41 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index 45f84b0eb909..824e1f6df378 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -565,7 +565,7 @@ static int dax_set(struct inode *inode, void *data)
+ 	return 0;
+ }
+ 
+-struct dax_device *dax_dev_get(dev_t devt)
++static struct dax_device *dax_dev_get(dev_t devt)
+ {
+ 	struct dax_device *dax_dev;
+ 	struct inode *inode;
+@@ -588,7 +588,41 @@ struct dax_device *dax_dev_get(dev_t devt)
+ 
+ 	return dax_dev;
+ }
+-EXPORT_SYMBOL_GPL(dax_dev_get);
++
++/**
++ * dax_dev_find - look up an existing dax_device by dev_t
++ * @devt: the device number to find
++ *
++ * Returns a dax_device with an elevated inode reference, or NULL if no
++ * device with the given dev_t exists. Unlike dax_dev_get(), this never
++ * allocates a new inode -- it is safe for external callers that are looking
++ * up devices from user-supplied or metadata-supplied dev_t values.
++ *
++ * Caller must put_dax() the returned device when done.
++ */
++struct dax_device *dax_dev_find(dev_t devt)
++{
++	struct dax_device *dax_dev;
++	struct inode *inode;
++	int id;
++
++	inode = ilookup5(dax_superblock, hash_32(devt + DAXFS_MAGIC, 31),
++			 dax_test, &devt);
++	if (!inode)
++		return NULL;
++
++	dax_dev = to_dax_dev(inode);
++	id = dax_read_lock();
++	if (!dax_alive(dax_dev)) {
++		dax_read_unlock(id);
++		iput(inode);
++		return NULL;
++	}
++	dax_read_unlock(id);
++
++	return dax_dev;
++}
++EXPORT_SYMBOL_GPL(dax_dev_find);
+ 
+ struct dax_device *alloc_dax(void *private, const struct dax_operations *ops)
+ {
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index fe6c3ded1b50..29113eb95e72 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -54,7 +54,7 @@ struct dax_device *alloc_dax(void *private, const struct dax_operations *ops);
+ void *dax_holder(struct dax_device *dax_dev);
+ void put_dax(struct dax_device *dax_dev);
+ void kill_dax(struct dax_device *dax_dev);
+-struct dax_device *dax_dev_get(dev_t devt);
++struct dax_device *dax_dev_find(dev_t devt);
+ void dax_write_cache(struct dax_device *dax_dev, bool wc);
+ bool dax_write_cache_enabled(struct dax_device *dax_dev);
+ bool dax_synchronous(struct dax_device *dax_dev);
+@@ -92,6 +92,10 @@ static inline void put_dax(struct dax_device *dax_dev)
+ static inline void kill_dax(struct dax_device *dax_dev)
+ {
+ }
++static inline struct dax_device *dax_dev_find(dev_t devt)
++{
++	return NULL;
++}
+ static inline void dax_write_cache(struct dax_device *dax_dev, bool wc)
+ {
+ }
+-- 
+2.54.0
+
