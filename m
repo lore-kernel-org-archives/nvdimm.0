@@ -1,96 +1,108 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E278D4D1788;
-	Wed, 30 Sep 2026 23:52:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 174962E3FE
+	for <nvdimm@lists.linux.dev>; Thu,  1 Oct 2026 05:15:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790812375; cv=none; b=l1IDRL90alPzokG4diX1FRZIuCEZhM0ckmS/h4m9QcfgXxyQRPtE+Wv9UCoD5r96ghbR6B4kVhEVAVTTZZ2xn4ChKUg0kQYEBxqiuV20ZzHdrX4gAIT7xYQ/nVly4Rzrx66bL4lZAtuhBxgIObryH1AtFnbIpgIbEL7bUIVMc6s=
+	t=1790831752; cv=none; b=K4l49o49dNaP4/c1kjkYBZ9QKCKtk/bTi2TngEpQb7Na8oe2iwybBIqAG/3WK/5dJ7vl1aq+EG1lCfzNOxlh50ujB6jMwQ4jVHAv2kIvpME795ooxLZt655ebv5xhJhxYj7Wm3secgBAxbuLiiczueiDVg905n/shRouQu++1Ak=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790812375; c=relaxed/simple;
-	bh=2AtxDeGumxoxvmY3xbTN0AxqV9yj2Kg5m9bB3ZVwy3c=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=h1hRJ6t0mPALt1oTkVkSom+7n+zVoGmuniLXXVvkMrdetEB/wXHMidmvZ5z5wP9TFIJzAqk9gjgl0VmbboKPbq07KHQNZerIqboErLni56BjsYs/azsGuLA8wGvzuCA+26MxZBXaAl8FPbJiQ2oArvdoceL1IYIX0dtXAj2faXg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oUlsyo40; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790831752; c=relaxed/simple;
+	bh=3VLZo6j36tRWay3iBxnPFiXrNqoJy08gVTblYkOFE6o=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=YSNRtrrHElSfDz4ZJ8LlGmEl8ye3z7SBnI33tswB1fnCPp7uHNeCt1+o3C5IF+yIbuUr45Q077ACX6z6nlvBQW/3TF6B9zIPBK+bNKsPutiu43WycB+0Qz1DR50SmLLnGvM1hCeYrSRyL4hlBM+82vXM3t0H09iFSL6GOV5bO6o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=JOsioHJK; arc=none smtp.client-ip=192.198.163.10
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oUlsyo40"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28E631F008A2;
-	Wed, 30 Sep 2026 23:52:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790812371;
-	bh=gG1wlNEkwzjCuDccxFHfdxljPSEWGUnfDlpru3ASekE=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=oUlsyo4092+ef0k+W+EK149GNGIaA9duEa6FaHmoSpE5O4ArtyyKJt8dYAhqtclfG
-	 7U0LVYd9laCr0WOTnhaZycuAlk5f5/piWQbjaXzQeZ25M9QJojYIwpaVk+825RAgw5
-	 CGZUHg0tboENUnLo9eZohwgChOfvgafiC3wayHH5k11wTs0BpZjBKHIgxPBthM7lIl
-	 yIq0RWDJtIcEQN4tpoTsZ92RL6pQNbKqLVYCawCUTRJ6TkVb+HFsp9fHhzTJPKm/Xq
-	 bbQT/iLzu7/Xjy2DteSjxJQtv9j7ViEQA+iJuGKHldN8M+me0xH6HbaHkvpV+IfPOp
-	 8V+Fi3qgPdsew==
-From: Kees Cook <kees@kernel.org>
-To: Bill Wendling <morbo@google.com>
-Cc: Kees Cook <kees@kernel.org>,
-	nvdimm@lists.linux.dev,
-	Alison Schofield <alison.schofield@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Guangshuo Li <lgs201920130244@gmail.com>,
-	Ira Weiny <iweiny@kernel.org>,
-	=?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	nikitash.mariiaw@gmail.com,
-	linux-kernel@vger.kernel.org,
-	linux-hardening@vger.kernel.org
-Subject: [PATCH v3 10/11] nvdimm: ndtest: Return the string length from flags_show()
-Date: Wed, 30 Sep 2026 16:52:38 -0700
-Message-Id: <20260930235247.157921-10-kees@kernel.org>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20260930235231.out.387-kees@kernel.org>
-References: <20260930235231.out.387-kees@kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="JOsioHJK"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1790831751; x=1822367751;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=3VLZo6j36tRWay3iBxnPFiXrNqoJy08gVTblYkOFE6o=;
+  b=JOsioHJKaa43MuUQQ59ZxuSjSGWw+a8G1krQATIzquRq9+zoisrQhE6H
+   L81rJlQJjy2IRZARCUNJmrN1CBZ3ekdobgABLxUYVI+2/VmKfB9W0N7EI
+   DFs3wvlLhfNO1Bb8kIyWwYUrX9d6Zx+rEb8EWR5AJ4lYwnBMNuZz4KFZt
+   44po0vQ+PyRm/xrouhs2lXAbwJtrqGf8+kcLpYkBSQUkpMA9GmELCAxiL
+   glkFV6YSmWXid8UtJ/fSMZND9h9xXcWuQbtJhD+L4VSoHUCjBQ4c7HRM9
+   P0rXXRvCz+3mqkhsNg2plQRTgHoqmFHeGbaxRXWt1iyCVmS3bU7ogHRk2
+   g==;
+X-CSE-ConnectionGUID: gUZsZVh8SmS9b1L7FPrPAg==
+X-CSE-MsgGUID: PsHxhmdvR2KsmB0lLJEqkQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11921"; a="102953773"
+X-IronPort-AV: E=Sophos;i="6.27,134,1787036400"; 
+   d="scan'208";a="102953773"
+Received: from fmviesa006.fm.intel.com ([10.60.135.146])
+  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Sep 2026 22:15:50 -0700
+X-CSE-ConnectionGUID: 36+b7W1mQQq/5s12nNZJVw==
+X-CSE-MsgGUID: k/GX+WnCR1uW3xR6Mooa9A==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,134,1787036400"; 
+   d="scan'208";a="274517233"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.124.223.57])
+  by fmviesa006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Sep 2026 22:15:50 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org
+Cc: Alison Schofield <alison.schofield@intel.com>
+Subject: [ndctl PATCH] test/cxl-region-sysfs.sh: test a repeat write of a region target
+Date: Wed, 30 Sep 2026 22:15:44 -0700
+Message-ID: <20261001051546.126881-1-alison.schofield@intel.com>
+X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1145; i=kees@kernel.org; h=from:subject; bh=2AtxDeGumxoxvmY3xbTN0AxqV9yj2Kg5m9bB3ZVwy3c=; b=owGbwMvMwCVmps19z/KJym7G02pJDFl7FxwTmX25ulfl/vcZB6YynW2bmyn+PmUDl2XFr2flH LM8/55f2VHKwiDGxSArpsgSZOce5+Lxtj3cfa4izBxWJpAhDFycAjCRr88ZGVasO+8UUHK59DD3 lEe1/2In7qytkDDcGuQ4+cyvh1mNk8MZGS6v0DisYbDkstRFa7XALaanIuISFsa+VdW2jWXOefL vDBsA
-X-Developer-Key: i=kees@kernel.org; a=openpgp; fpr=A5C3F68F229DD60F723E6E138972F4DFDC6DC026
 Content-Transfer-Encoding: 8bit
 
-flags_show() build their output with a seq_buf and return seq_buf_used(),
-which may include the trailing NUL byte when the seq_buf has
-overflowed. Use seq_buf_strlen() instead.
+A CXL driver fix making its way upstream [1] rejects a repeat write of
+an endpoint decoder to the region targetN attribute that already holds
+it. Without the fix, that write leaves the region half detached from the
+endpoint's ports, and a later write can crash the kernel.
 
-The flag names are far shorter than the PAGE_SIZE buffer sysfs
-provides, so this cannot overflow today.
+Add a test case to backstop that fix: write target0 twice on a partially
+populated region and check that the second write fails and leaves the
+region's decoders attached.
 
-Build tested ARCH=x86_64 with GCC 16.2.0, built out of tree with
-make M=tools/testing/nvdimm:
-tools/testing/nvdimm/test/ndtest.o
+[1] https://lore.kernel.org/all/94e9157aac2e99df1251d733769d539b914fdefc.1790829690.git.alison.schofield@intel.com/
+
 
 Assisted-by: LLM
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Kees Cook <kees@kernel.org>
+Signed-off-by: Alison Schofield <alison.schofield@intel.com>
 ---
- tools/testing/nvdimm/test/ndtest.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ test/cxl-region-sysfs.sh | 16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
-diff --git a/tools/testing/nvdimm/test/ndtest.c b/tools/testing/nvdimm/test/ndtest.c
-index 2051ad5d4882..f097f2992966 100644
---- a/tools/testing/nvdimm/test/ndtest.c
-+++ b/tools/testing/nvdimm/test/ndtest.c
-@@ -693,7 +693,7 @@ static ssize_t flags_show(struct device *dev,
- 	if (seq_buf_used(&s))
- 		seq_buf_printf(&s, "\n");
+diff --git a/test/cxl-region-sysfs.sh b/test/cxl-region-sysfs.sh
+index db1a163efb30..957a1792fbd7 100644
+--- a/test/cxl-region-sysfs.sh
++++ b/test/cxl-region-sysfs.sh
+@@ -87,9 +87,19 @@ do
+ 						     select(.mode == \"pmem\") | .decoder")
+ done
  
--	return seq_buf_used(&s);
-+	return seq_buf_strlen(&s);
- }
- static DEVICE_ATTR_RO(flags);
- 
+-# attach all endpoint decoders to the region
+-pos=0
+-for i in ${endpoint[@]}
++# a repeat write of an attached endpoint decoder must fail and leave
++# every decoder between it and the root attached
++echo "${endpoint[0]}" > "/sys/bus/cxl/devices/$region/target0"
++nr_attached=$(cat /sys/bus/cxl/devices/decoder*/region | grep -cx "$region")
++if echo "${endpoint[0]}" > "/sys/bus/cxl/devices/$region/target0" 2>/dev/null; then
++	err "$LINENO: repeat write of ${endpoint[0]} to target0 succeeded"
++fi
++nr=$(cat /sys/bus/cxl/devices/decoder*/region | grep -cx "$region")
++[ "$nr" -ne "$nr_attached" ] && err "$LINENO: $nr of $nr_attached decoders still attached"
++
++# attach the remaining endpoint decoders to the region
++pos=1
++for i in ${endpoint[@]:1}
+ do
+ 	echo $i > /sys/bus/cxl/devices/$region/target$pos
+ 	pos=$((pos+1))
 -- 
-2.34.1
+2.37.3
 
