@@ -1,70 +1,74 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99D7337B002;
-	Sat,  3 Oct 2026 04:05:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FC252C15BB;
+	Sat,  3 Oct 2026 04:05:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791000338; cv=none; b=WbNvUKchbvwjC4WHdClCHEeETqdG31/QXQVY1WMMPf+UhINHbz2/LWOtwnyLLSbO3cr6ogS2VDOxOsiNWuwR99j4R6XsCeytlKIZgTrxngpi1+kWHGSbeQJb4QVv7HHIeJUnDSJ14hjWRzNsOStkGy3hjj0p0w8wMLW4MFXzLmM=
+	t=1791000349; cv=none; b=VzBRmbt5xP1lOXdgZKxIIF/BTdNNWUxzgolrXHd8e0Jx+qESXnx18y65aZYJv/BLlL1PLUbm8VUDuw8c3bxgWn2g1V0oxtMqjutK3mTRiq8wHI597mOw10sP39kdrEIs2OVKn043VByPYg6tleu/LQWu3pP0R+K8WP1y4dX1U28=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791000338; c=relaxed/simple;
-	bh=8Z1PevSi95K/CYoaWfFWTA3wPCvrjFgD2OGpv194XPE=;
+	s=arc-20240116; t=1791000349; c=relaxed/simple;
+	bh=NiXLJEyOtRV65T9UaUugs4dflbMeOVGPIeiOvnfDEQc=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=FvX8nNJsS825P7gfODLE5qgSi7RRCOimbwSzqYR9jNz7fQ0+p7uzLVWry9lzuEJSSWcw4X6Al2C9AvY3Joz03/fzYKY5HQdWSh+PXc3880BKnRrZXAbcaMgiICEAWuIcWPQBjkg0SJlcl5hdrc1hQxkXvzOGPem1VBGa03M/nR4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bg3oZCgx; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=Qsx8t2PriCTSw9e51etPlbWBvroekZqU8N1gn83HsaX9ueuF0sDVNRnJvQNCguXzhx0sbY+lj4dF4iNGq4JtQoWdnBlnsV1k8WWyVhbP+M3syU+kRoeCakEGvabCUPtavG7U3ELUAQ+5H1ZXfRWRKGbMBpzj7ckTmYtfMP7VNzk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=P2HQwhf0; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bg3oZCgx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EF851F00893;
-	Sat,  3 Oct 2026 04:05:37 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="P2HQwhf0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E30AA1F000FF;
+	Sat,  3 Oct 2026 04:05:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791000337;
-	bh=8Z1PevSi95K/CYoaWfFWTA3wPCvrjFgD2OGpv194XPE=;
+	s=k20260515; t=1791000348;
+	bh=NiXLJEyOtRV65T9UaUugs4dflbMeOVGPIeiOvnfDEQc=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=bg3oZCgxuYgHBnSQjXpC72fYdE63uz0MIO+CMIN7kEKYV30UKRKMRTiZTRdxU4RhG
-	 UwMVzfJP/63BfWwiiLEJIPsm93V1uXyTr8JMF4pjaSXfY4A2pv+S6Z/SOQUjPDEVob
-	 fwDBm26leHgIV/iHZ2wcIdawe47p+C3D2rMU4jhYz2TKKTfMOgPFEbGjEnux4KX0G5
-	 9EQrH9H8TaRxk5yjeBccnPjGHcw1UBWosIZl4fwm/mIXhaCHTUNgin1Z5cUC9uSfzy
-	 sSQDcyzz51lJvwRplsuxDSakAQBJQXOqC9SsQZD74CqC5RnNSZGClylnEzwtfW2Pu5
-	 18x6Du30W9cmA==
+	b=P2HQwhf0mcF/kan44AijVbQlgwqy4eQpEhWxxYQSPu2Ie4uz+Zt/0Bi7sN0PRu/cQ
+	 QqBnzYjMWlug0cHWZKRI2JjRfol63IwOaMhffrt8bD4BlDr9kPoIZxup+MN89jti3N
+	 4UANnXw6atTrMiJ8VGno7Z7QnPFT6gJZIjMiAOM4Ga+78Rbs+39FlplxhbGUeesoMj
+	 3nvOn3Zg7OcbRMobmLoqmh2o4gKTevF5MkLnyk48gTDsQHReRgESmefHh/IHvNhsLN
+	 jdO/5zO0mOdRJKAybNZGg64Lgp1zK4NcPdtAcFDOh+Hxa5cEdOkDblrrEqW1TRQpI/
+	 dZfIcCK1/dBkA==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v4 07/11] bpf: Remove dead newline stripping from
- format_disasm_line()
+Subject: Re: [PATCH v4 08/11] seq_buf: Add seq_buf_init_append()
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Kees Cook" <kees@kernel.org>
-Cc: linux-trace-kernel@vger.kernel.org, linux-security-module@vger.kernel.org, bpf@vger.kernel.org, nvdimm@lists.linux.dev
-In-Reply-To: <20261003035921.1918874-7-kees@kernel.org>
+Cc: bpf@vger.kernel.org, nvdimm@lists.linux.dev, linux-security-module@vger.kernel.org, linux-trace-kernel@vger.kernel.org
+In-Reply-To: <20261003035921.1918874-8-kees@kernel.org>
 References: <20261003035906.too.263-kees@kernel.org>
- <20261003035921.1918874-7-kees@kernel.org>
+ <20261003035921.1918874-8-kees@kernel.org>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Sat, 03 Oct 2026 04:05:37 +0000
-Message-Id: <20261003040537.4EF851F00893@smtp.kernel.org>
+Date: Sat, 03 Oct 2026 04:05:47 +0000
+Message-Id: <20261003040547.E30AA1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
-> format_disasm_line() strips trailing newlines from the disassembly it
-> stores, as diag_print_insn_context() adds its own. Since
-> commit 483a1bb0b6cf8 ("bpf: Do not print a newline after disassembly in
-> bpf_verbose_insn()"), print_bpf_insn() does not emit one, so there is
-> nothing left to strip.
+> From: Bill Wendling <morbo@google.com>
 >=20
-> The strnlen() resync of the seq_buf length only existed so the loop
-> could index the buffer safely after an overflow, and the second
-> termination only restored the NUL that seq_buf_pop() does not write.
-> Remove all of it, keeping a single seq_buf_terminate().
+> Several strlcat() call sites being converted to seq_buf need behavior
+> seq_buf doesn't currently provide. The normal seq_buf_init() always
+> sets the new buffer size to 0 via seq_buf_clear(). Code migrating from
+> strlcat(buf, ...), which appends to whatever buf already contains,
+> can't use seq_buf_init() without discarding that existing content. Add
+> seq_buf_init_append(), which preserves the existing contents and positions
+> the seq_buf to append after it. A buffer with no NUL within its size
+> starts out overflowed, as strlcat() treats it as already truncated.
+> Add KUnit tests for behavior coverage.
 >=20
-> Build tested ARCH=3Dx86_64 defconfig with GCC 16.2.0 and
-> CONFIG_BPF_SYSCALL=3Dy.
+> Tests passed under qemu on ARCH=3Dx86_64 with GCC 16.2.0 and CONFIG_KASAN=
+=3Dy,
+> and on big-endian ARCH=3Ds390 with GCC s390x-linux-gnu 16.2.0.
 >=20
 > Assisted-by: LLM
+> Signed-off-by: Bill Wendling <morbo@google.com>
+> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Co-developed-by: Kees Cook <kees@kernel.org>
 > Signed-off-by: Kees Cook <kees@kernel.org>
 
 Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261003035906.too.=
-263-kees@kernel.org?part=3D7
+263-kees@kernel.org?part=3D8
 
