@@ -1,79 +1,70 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A5F82C15BB;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99D7337B002;
 	Sat,  3 Oct 2026 04:05:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791000338; cv=none; b=Mam0uGPoqaLJkNglZuWrNZTltAWS8td2xq88kEjK66eJ0n1C/pBxNNabaYh5io/cJPXYbC9Enkif0WObjCDO6RTOm0L2atnffngMRA1W3JmDTjB6KaENAdtRdTFU5Bmy1O0OBMZRY3FLlwx4qr+2ELT6GpqhZWjsW8jozfboI6g=
+	t=1791000338; cv=none; b=WbNvUKchbvwjC4WHdClCHEeETqdG31/QXQVY1WMMPf+UhINHbz2/LWOtwnyLLSbO3cr6ogS2VDOxOsiNWuwR99j4R6XsCeytlKIZgTrxngpi1+kWHGSbeQJb4QVv7HHIeJUnDSJ14hjWRzNsOStkGy3hjj0p0w8wMLW4MFXzLmM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1791000338; c=relaxed/simple;
-	bh=wm1LymwVT7XBEhPIohKLWSTsucHcXXNM8AgElJuJEEU=;
+	bh=8Z1PevSi95K/CYoaWfFWTA3wPCvrjFgD2OGpv194XPE=;
 	h=From:Subject:To:Cc:In-Reply-To:References:Content-Type:Date:
-	 Message-Id; b=MpqW4HnT8zp9IomiEaaSknaxkhYbdEQ/tvh7X4hF/D2owXliYhDaw5d58blXSRQFTM/dfIbeRhDVCP9QNes48qwr5zpzo/pf4se0Lqz9bqCJeEWbLDKhazQuTBri0BcbL8TccQ6eENP+7OANbOENGSunMl7uxHEXoOyQ8Mxzw30=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LoyBTaO+; arc=none smtp.client-ip=100.103.45.18
+	 Message-Id; b=FvX8nNJsS825P7gfODLE5qgSi7RRCOimbwSzqYR9jNz7fQ0+p7uzLVWry9lzuEJSSWcw4X6Al2C9AvY3Joz03/fzYKY5HQdWSh+PXc3880BKnRrZXAbcaMgiICEAWuIcWPQBjkg0SJlcl5hdrc1hQxkXvzOGPem1VBGa03M/nR4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bg3oZCgx; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LoyBTaO+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 986051F000FF;
-	Sat,  3 Oct 2026 04:05:36 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bg3oZCgx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EF851F00893;
+	Sat,  3 Oct 2026 04:05:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791000336;
-	bh=wm1LymwVT7XBEhPIohKLWSTsucHcXXNM8AgElJuJEEU=;
+	s=k20260515; t=1791000337;
+	bh=8Z1PevSi95K/CYoaWfFWTA3wPCvrjFgD2OGpv194XPE=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=LoyBTaO+HjW/NjlesA3BeZ3f3BcOeW6Izczv93Kcy4rUrcLZUr8C1InZPPbJPlqS/
-	 QodB22yT6Uv7kOTxcTDXrcDCycOSDsdQq6fMYfzexJEkEGVWs36reFzHS2NyVjYxoR
-	 XqhUZh04gZWrlquXIXUehwwzVyUnRA8z19k40w+/dQrflJB+msWsMYIlcTp7vX83Jy
-	 qsLtvL4t10WHzsRzug3aEKjOmeFTVZOWldCrahTlLGvyu9hMETWGBQW+R8dGig+kpk
-	 o0C1VxOhiiMFV3JZSoLONtAElVHfb68vV23lxCd/eJZbepgaJWIihRhp9CKGAvgoJ9
-	 fbMGKh4JHmiGA==
+	b=bg3oZCgxuYgHBnSQjXpC72fYdE63uz0MIO+CMIN7kEKYV30UKRKMRTiZTRdxU4RhG
+	 UwMVzfJP/63BfWwiiLEJIPsm93V1uXyTr8JMF4pjaSXfY4A2pv+S6Z/SOQUjPDEVob
+	 fwDBm26leHgIV/iHZ2wcIdawe47p+C3D2rMU4jhYz2TKKTfMOgPFEbGjEnux4KX0G5
+	 9EQrH9H8TaRxk5yjeBccnPjGHcw1UBWosIZl4fwm/mIXhaCHTUNgin1Z5cUC9uSfzy
+	 sSQDcyzz51lJvwRplsuxDSakAQBJQXOqC9SsQZD74CqC5RnNSZGClylnEzwtfW2Pu5
+	 18x6Du30W9cmA==
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v4 02/11] seq_buf: Do not pop from an overflowed seq_buf
+Subject: Re: [PATCH v4 07/11] bpf: Remove dead newline stripping from
+ format_disasm_line()
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Kees Cook" <kees@kernel.org>
-Cc: nvdimm@lists.linux.dev, bpf@vger.kernel.org, linux-security-module@vger.kernel.org, linux-trace-kernel@vger.kernel.org
-In-Reply-To: <20261003035921.1918874-2-kees@kernel.org>
+Cc: linux-trace-kernel@vger.kernel.org, linux-security-module@vger.kernel.org, bpf@vger.kernel.org, nvdimm@lists.linux.dev
+In-Reply-To: <20261003035921.1918874-7-kees@kernel.org>
 References: <20261003035906.too.263-kees@kernel.org>
- <20261003035921.1918874-2-kees@kernel.org>
+ <20261003035921.1918874-7-kees@kernel.org>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Sat, 03 Oct 2026 04:05:36 +0000
-Message-Id: <20261003040536.986051F000FF@smtp.kernel.org>
+Date: Sat, 03 Oct 2026 04:05:37 +0000
+Message-Id: <20261003040537.4EF851F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
-> When a seq_buf has overflowed, its len is size + 1, so seq_buf_pop()
-> decrements len to size and reads buffer[size], one byte past the end of
-> the buffer. It also leaves len equal to size, which no longer counts as
-> overflowed, so a truncated seq_buf then looks like a complete, full one.
+> format_disasm_line() strips trailing newlines from the disassembly it
+> stores, as diag_print_insn_context() adds its own. Since
+> commit 483a1bb0b6cf8 ("bpf: Do not print a newline after disassembly in
+> bpf_verbose_insn()"), print_bpf_insn() does not emit one, so there is
+> nothing left to strip.
 >=20
-> An overflowed seq_buf logically has no last character to pop: the
-> length of what was written has been lost, and the last byte of the
-> buffer may be the NUL written by vsnprintf() or bytes that were never
-> committed. Return -1 for an overflowed seq_buf, as for an empty one,
-> and leave it overflowed, as the rest of the seq_buf API does until
-> seq_buf_clear() or seq_buf_init().
+> The strnlen() resync of the seq_buf length only existed so the loop
+> could index the buffer safely after an overflow, and the second
+> termination only restored the NUL that seq_buf_pop() does not write.
+> Remove all of it, keeping a single seq_buf_terminate().
 >=20
-> The current callers do not reach this, e.g. trace_syscalls only calls
-> trace_seq_pop() when the trace_seq it pops from has not overflowed, and
-> kernel/bpf/diagnostics.c sets the length from strnlen() before popping.
+> Build tested ARCH=3Dx86_64 defconfig with GCC 16.2.0 and
+> CONFIG_BPF_SYSCALL=3Dy.
 >=20
-> Add tests for the pop corner cases.
->=20
-> Tests passed under qemu on ARCH=3Dx86_64 with GCC 16.2.0 and CONFIG_KASAN=
-=3Dy,
-> and on big-endian ARCH=3Ds390 with GCC s390x-linux-gnu 16.1.0.
->=20
-> Fixes: 32e0f607ac6a2 ("tracing: Add trace_seq_pop() and seq_buf_pop()")
 > Assisted-by: LLM
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 > Signed-off-by: Kees Cook <kees@kernel.org>
 
 Sashiko has reviewed this patch and found no issues. It looks great!
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261003035906.too.=
-263-kees@kernel.org?part=3D2
+263-kees@kernel.org?part=3D7
 
