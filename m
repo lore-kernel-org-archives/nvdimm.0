@@ -1,52 +1,47 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFB523812EF;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D05E838B7A6;
 	Sat,  3 Oct 2026 03:59:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790999967; cv=none; b=uxzNALErJYHaXWutPr/u6apHtaKTA485QRdvvgvqQenUEaInAnNc679XL+21xV+lRqXUhLw38eJwblkWiJulI9A//D8sq+Fc+CsqTsMc8vkVmJLt90llaYDgnzjHDW/LpUA1IR3J/h38+acHyF/6Y2v/5h8J7lPw3F037R4y4PA=
+	t=1790999968; cv=none; b=kpIbi38UVppsXfvebXFmAlbJugLN8gStYMQ/Van/BpGne3UgWLO1vPeu5o7vKwuyoTkde4rTNE+B/KWsF6KtVe4VB6Bl6+22t2zakxAyMVI1kuQopgYlMf9mjCTJkSguLRCoqFvVesM/SjIyPXhztlH7aqTxuM9CEkq6mDJlHxw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790999967; c=relaxed/simple;
-	bh=QMqRTQphegL+YGqZELWHP3PitTraEh7YCZhUt0ueL+o=;
+	s=arc-20240116; t=1790999968; c=relaxed/simple;
+	bh=qLtnL1zcugdCZ7k2f5owH6NFcJ+HwIDUAHkKxFRjTzw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=TrOUlyqfZA2jfQprdDEjIFk6oxkR18YsgwQwmR1rP//Su5yibyKfd6Y3i4stnrOotZpQq74YkRQUhvMghGdI4k7rBvqZUJ4Q3iKVXxQQWVcq3R0S9pHjK4jpdwD0iEx+vf27dlBkKsTbygeSz/86esvoupYa6cvRR20hqEl6nko=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LytJtbRz; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=I3VNVOzXrONfbvDvPqtErCpbCHqLeoUYA2oF3vRoZRFkrYnWzRarJXbOyyPSOIU9gM7WNAjtWRGgPW+DtTxP57Dtk7Veo925ogIooS4WrSPTj83AFOUod9WjKIfDdfvz6XEXeRdAJAW5zYm9lNuMvzaKHjTSPY7ms24aapDXMB4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UmXXk7oC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LytJtbRz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02C111F008A1;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UmXXk7oC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 109391F008AB;
 	Sat,  3 Oct 2026 03:59:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1790999962;
-	bh=sf8U9e/P/Ck4Sty1kLYW5Wh5J9iqRhQrRMwhuEB4BRc=;
+	bh=vT6DnMwBY+XwQ6aSwUxVvTPJh6+CpecvgsrumKxGDn8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=LytJtbRzVGJ2gB5rSYpjnUmcJ+xxGWASCXwMhF3wA5XiUuOMEkosCvymJLQhlFNfs
-	 1TTMLD2EK/4S/cHbZyE5se6S1k+tYmdqOTdG2KAtOgWR+pXYqlexmSa8twP9rvVvrt
-	 VYu+wXvwJJuwtvWiyTtwZ3qW/eev//6u22fX9HGF16AjZKB1faH96j/7wcoiaWx8x0
-	 kD75F0NM30qpfaoxE96GTf6M9S157++2HP8TF/dajR0TXvzEXzjAeytHg4X4Ti/dI0
-	 eV7823ZdWPtTDiZlWPOrzqEaJlwWMudWokHz5vbMcturB6i3ZZySAhMtrnVWhfdGCi
-	 uGewx4IfggbDg==
+	b=UmXXk7oClunsZGxVg0LdpLwxBEmS1dKK57/EqG1NCzGo/HBKLnkF+ATtDj1LEWhiL
+	 JRzt5u8c4YZ9ac+2rwB+NYvbST7zN7omAYAMfRdLFpmcPA2dLRaCQpI5cvvGZott9c
+	 xBh994/qIBf87DnJNnTwbyPKBT6TSn73F+rojOMDNDAfzAboURmN5JBRXDWfm6qpWN
+	 NbRH08r8aJSoOGk4A0/dvuhzGEFdsWs3I7bTH/ONxgK1efZuZw7Btq+CVMs3dRGNa1
+	 nOiOEe0dj/vIholrDWLDdbCqdLNSK6r5Z64A9lGxJXTP5JB82E7DJ1UprhuIxcvk2y
+	 QwUoisd2am7Dg==
 From: Kees Cook <kees@kernel.org>
 To: Bill Wendling <morbo@google.com>
 Cc: Kees Cook <kees@kernel.org>,
-	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
-	=?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@baylibre.com>,
-	linuxppc-dev@lists.ozlabs.org,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Nicholas Piggin <npiggin@gmail.com>,
-	Shivaprasad G Bhat <sbhat@linux.ibm.com>,
-	Thorsten Blum <blum@kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
 	Jonathan Corbet <corbet@lwn.net>,
+	linux-doc@vger.kernel.org,
+	"Matthew Wilcox (Oracle)" <willy@infradead.org>,
 	Andrew Morton <akpm@linux-foundation.org>,
-	David Gow <david@davidgow.net>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
 	Petr Mladek <pmladek@suse.com>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	David Gow <david@davidgow.net>,
 	Sergey Senozhatsky <senozhatsky@chromium.org>,
 	Shuvam Pandey <shuvampandey1@gmail.com>,
-	Steven Rostedt <rostedt@goodmis.org>,
 	=?UTF-8?q?G=C3=BCnther=20Noack?= <gnoack@google.com>,
-	"Matthew Wilcox (Oracle)" <willy@infradead.org>,
 	=?UTF-8?q?Micka=C3=ABl=20Sala=C3=BCn?= <mic@digikod.net>,
 	Masami Hiramatsu <mhiramat@kernel.org>,
 	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
@@ -62,6 +57,13 @@ Cc: Kees Cook <kees@kernel.org>,
 	Jiri Olsa <jolsa@kernel.org>,
 	Emil Tsalapatis <emil@etsalapatis.com>,
 	Ihor Solodrai <ihor.solodrai@linux.dev>,
+	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
+	=?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@baylibre.com>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	Shivaprasad G Bhat <sbhat@linux.ibm.com>,
+	Thorsten Blum <blum@kernel.org>,
 	Alison Schofield <alison.schofield@intel.com>,
 	Dave Jiang <dave.jiang@intel.com>,
 	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -69,18 +71,16 @@ Cc: Kees Cook <kees@kernel.org>,
 	Ira Weiny <iweiny@kernel.org>,
 	=?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>,
 	Vishal Verma <vishal.l.verma@intel.com>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Shuah Khan <skhan@linuxfoundation.org>,
 	linux-kernel@vger.kernel.org,
 	bpf@vger.kernel.org,
 	linux-security-module@vger.kernel.org,
 	linux-trace-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
 	nvdimm@lists.linux.dev,
-	linux-doc@vger.kernel.org,
 	linux-hardening@vger.kernel.org
-Subject: [PATCH v4 09/11] powerpc/papr_scm: Return the string length from the sysfs show functions
-Date: Fri,  2 Oct 2026 20:59:14 -0700
-Message-ID: <20261003035921.1918874-9-kees@kernel.org>
+Subject: [PATCH v4 11/11] docs: core-api: Document the seq_buf API
+Date: Fri,  2 Oct 2026 20:59:16 -0700
+Message-ID: <20261003035921.1918874-11-kees@kernel.org>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20261003035906.too.263-kees@kernel.org>
 References: <20261003035906.too.263-kees@kernel.org>
@@ -90,54 +90,111 @@ List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1508; i=kees@kernel.org; h=from:subject; bh=QMqRTQphegL+YGqZELWHP3PitTraEh7YCZhUt0ueL+o=; b=owGbwMvMwCVmps19z/KJym7G02pJDFkHaieba/YzTix0net+z9FNczWD3xSL6Bmfjz+/LZl7o m+b04tNHaUsDGJcDLJiiixBdu5xLh5v28Pd5yrCzGFlAhnCwMUpABPpfsLI8G+xe2b7uYcnTsoy RjS9/G+lccnp4Baxyqrb+yyP7PS+MZvhr6zjr/+rN3Fs+Hxk+RzO+Ca90weOZTT+Dj607E7Dcs5 4M1YA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=3434; i=kees@kernel.org; h=from:subject; bh=qLtnL1zcugdCZ7k2f5owH6NFcJ+HwIDUAHkKxFRjTzw=; b=owGbwMvMwCVmps19z/KJym7G02pJDFkHaqfIMonP55oyd9O3xfyq65u4lc99OHbTaOu6qY/fd a3MWuvL0lHKwiDGxSArpsgSZOce5+Lxtj3cfa4izBxWJpAhDFycAjARvUiG/ymW89/1/F11Uuor 55LI3fItuhlqp/9NU1XveFIY4bjMazHD/5B9d9sb1kUIzLjYFbXi+J/z5quz+/fccZw1nf1+qKz SOQ4A
 X-Developer-Key: i=kees@kernel.org; a=openpgp; fpr=A5C3F68F229DD60F723E6E138972F4DFDC6DC026
 Content-Transfer-Encoding: 8bit
 
-perf_stats_show() and flags_show() build their output with a seq_buf
-and return seq_buf_used(), which may include the trailing NUL byte
-when the seq_buf has overflowed. Use seq_buf_strlen() instead. As
-suggested in review, use it as well for flags_show()'s check whether
-any flag was printed.
+The kernel-doc in include/linux/seq_buf.h and lib/seq_buf.c documents
+the seq_buf interface, but no .rst file pulls either of them in, so none
+of it reaches the generated documentation.
 
-Build tested ARCH=powerpc ppc64_defconfig with GCC powerpc64-linux-gnu
-16.2.0:
-arch/powerpc/platforms/pseries/papr_scm.o
+Add the missing kernel-doc for seq_buf_clear() and seq_buf_init(), and a
+Sequence Buffers section to the kernel API documentation. The static
+internal helper seq_buf_can_fit() is left out. Additionally fix
+seq_buf_hex_dump() indentation to avoid the reported Sphinx error:
+
+  ERROR: Unexpected indentation.
+  WARNING: Block quote ends without a blank line; unexpected unindent.
+
+Verified with "make SPHINXDIRS=core-api htmldocs", which rendered
+happily into core-api/kernel-api.html.
 
 Assisted-by: LLM
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Co-developed-by: Bill Wendling <morbo@google.com>
+Signed-off-by: Bill Wendling <morbo@google.com>
+Tested-by: Randy Dunlap <rdunlap@infradead.org>
+Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Kees Cook <kees@kernel.org>
 ---
- arch/powerpc/platforms/pseries/papr_scm.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/core-api/kernel-api.rst |  9 +++++++++
+ include/linux/seq_buf.h               | 12 ++++++++++++
+ lib/seq_buf.c                         | 13 +++++++------
+ 3 files changed, 28 insertions(+), 6 deletions(-)
 
-diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
-index 75da96c08cdd..5c3bf06bb59b 100644
---- a/arch/powerpc/platforms/pseries/papr_scm.c
-+++ b/arch/powerpc/platforms/pseries/papr_scm.c
-@@ -1108,7 +1108,7 @@ static ssize_t perf_stats_show(struct device *dev,
+diff --git a/Documentation/core-api/kernel-api.rst b/Documentation/core-api/kernel-api.rst
+index 4c4a57c1c094..f5a0aedbbb48 100644
+--- a/Documentation/core-api/kernel-api.rst
++++ b/Documentation/core-api/kernel-api.rst
+@@ -96,6 +96,15 @@ Error Pointers
+ .. kernel-doc:: include/linux/err.h
+    :internal:
  
- free_stats:
- 	kfree(stats);
--	return rc ? rc : (ssize_t)seq_buf_used(&s);
-+	return rc ?: (ssize_t)seq_buf_strlen(&s);
++Sequence Buffers
++----------------
++
++.. kernel-doc:: include/linux/seq_buf.h
++   :internal:
++
++.. kernel-doc:: lib/seq_buf.c
++   :no-identifiers: seq_buf_can_fit
++
+ Sorting
+ -------
+ 
+diff --git a/include/linux/seq_buf.h b/include/linux/seq_buf.h
+index 50b1e78eeea6..c97dd9b0ba53 100644
+--- a/include/linux/seq_buf.h
++++ b/include/linux/seq_buf.h
+@@ -31,6 +31,10 @@ struct seq_buf {
+ 		.size = SIZE,				\
+ 	}
+ 
++/**
++ * seq_buf_clear - reset the seq_buf to be read / appended from the beginning
++ * @s: the seq_buf handle
++ */
+ static inline void seq_buf_clear(struct seq_buf *s)
+ {
+ 	s->len = 0;
+@@ -38,6 +42,14 @@ static inline void seq_buf_clear(struct seq_buf *s)
+ 		s->buffer[0] = '\0';
  }
- static DEVICE_ATTR_ADMIN_RO(perf_stats);
  
-@@ -1147,10 +1147,10 @@ static ssize_t flags_show(struct device *dev,
- 	if (health & PAPR_PMEM_SCRUBBED_AND_LOCKED)
- 		seq_buf_printf(&s, "scrubbed locked ");
- 
--	if (seq_buf_used(&s))
-+	if (seq_buf_strlen(&s))
- 		seq_buf_printf(&s, "\n");
- 
--	return seq_buf_used(&s);
-+	return seq_buf_strlen(&s);
- }
- DEVICE_ATTR_RO(flags);
- 
++/**
++ * seq_buf_init - initialize a seq_buf
++ * @s: the seq_buf handle
++ * @buf: pointer to the buffer
++ * @size: total size of @buf
++ *
++ * The contents of the buffer are ignored.
++ */
+ static inline void
+ seq_buf_init(struct seq_buf *s, char *buf, unsigned int size)
+ {
+diff --git a/lib/seq_buf.c b/lib/seq_buf.c
+index 8da2e9447adf..54b76044e4ba 100644
+--- a/lib/seq_buf.c
++++ b/lib/seq_buf.c
+@@ -409,12 +409,13 @@ int seq_buf_to_user(struct seq_buf *s, char __user *ubuf, size_t start, int cnt)
+  *
+  * Function is an analogue of print_hex_dump() and thus has similar interface.
+  *
+- * linebuf size is maximal length for one line.
+- * 32 * 3 - maximum bytes per line, each printed into 2 chars + 1 for
+- *	separating space
+- * 2 - spaces separating hex dump and ASCII representation
+- * 32 - ASCII representation
+- * 1 - terminating '\0'
++ * linebuf size is maximal length for one line::
++ *
++ *	32 * 3 - maximum bytes per line, each printed into 2 chars + 1 for
++ *		 separating space
++ *	2 - spaces separating hex dump and ASCII representation
++ *	32 - ASCII representation
++ *	1 - terminating '\0'
+  *
+  * Returns: zero on success, -1 on overflow.
+  */
 -- 
 2.55.0
 
