@@ -1,140 +1,95 @@
-Received: from mail-qt1-f171.google.com (mail-qt1-f171.google.com [209.85.160.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42FBD4734D4
-	for <nvdimm@lists.linux.dev>; Mon,  5 Oct 2026 13:33:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.171
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791207210; cv=pass; b=DX+c2VgAqnv3YWJcs3wvPDFYo6M8H9pryoq8thJD5Dn+J8PjUSWn24SmAYs5UT6REsSLOpqHaMSpTDHVPminTGrcUy4SaDGh/inbGObZC2iOs7QFKJKLQcD6h1WhmrNJqpucLgCUj7UbtjJcd/9vy6VZ5/0CnbrqYWveMd9926k=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791207210; c=relaxed/simple;
-	bh=I/7qOpbaPjFZCfk8Hbfl7OK+toY69qdxL0Ly1nx8uco=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Ri0mkdlyhwjJYr7kMjUXoqhwEZv0YPnDjymRwE55s2KQ+0KXWf31Oq3zC5tD2S/Hr4neOVot46Q8o8kjDuqnjkuY5HFlpI9rFeoMeBcB5HyXkvb8QXn4dy4HX1AutSptbVG3lBW1yRN3G8AZMSMh1geCTQhfQbD8A8YMGdXcbnE=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=N6Pm7ePu; arc=pass smtp.client-ip=209.85.160.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15DD84CEE55;
+	Mon,  5 Oct 2026 15:57:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791215842; cv=none; b=o608G2UiZDRYSbV4jculFRNqO/43Npx1t6RJeosZU6bXm2CtpLYA4b1We16qdet5aIkw76GmXsNfJzMdDjJZjL0Rv7SfpmgzqUe0y3XdhlGbI2KlnVX1fcV5U1+6TXMBHK5fQdI8wiKBuj/S8G42IhHy58/ZoCDG/vc4HFtoBFA=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791215842; c=relaxed/simple;
+	bh=83ejdE21ZGKoH4IcbNOtIYCWNlvKIrQjgUzARamzwfE=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=dOSYRqZdg6oJWsmwPfdIM/CiKWk2jXcXOMb3tz8dgIPgQsEoPNViVrK2q27JbBeUiv5i9u17Flbw2KCqASXcxbYr5+uI/zHvTkuozMkLeDMY8F/H0yHF6+OsSi6oxvK93KO17rm3sycc6caiRjhKtr3e3vuD8sNy3ryqOcfZMGE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=B/jfaiKY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="N6Pm7ePu"
-Received: by mail-qt1-f171.google.com with SMTP id d75a77b69052e-5350c1b9e0dso25142991cf.0
-        for <nvdimm@lists.linux.dev>; Mon, 05 Oct 2026 06:33:28 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791207207; cv=none;
-        d=google.com; s=arc-20260327;
-        b=O5ncKbIABnOIEIiVuR9uqtq7yGycjsszaQP5BzOviR7f6HWjxxXmRI2o1oOkyLrFjz
-         9GDT4NTXtCuwA0c3pLrEfjyG6AfPOLD5fF+kllF5r0B9gEJe/iPDvwCUQ8i1s9kiHrNw
-         YGha3qA6Tz9IfcZXHp/L7sIbZ5s5e7Um7C5tbZtMydQhX4cE45do90V9stEWScH6Atdz
-         zk6G0ZcjbLR0xBmxFu6a7nj9bZDHeQ7vuQRThmtv40AVk60XM1N01B8yi2mqRkn+/QH/
-         ByoTNGk2n4lXiZLbQ8Q2BVlEETgmKoZ0yxKq5f8vOy88xxsH4l4dIbm+CSdfE+u8Hpn9
-         xj9A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature;
-        bh=7otsqulBzc6rkKlGohX6jHgXmZfiW8WkwVHav/09IiY=;
-        fh=xl6OdDQ3PDomADplbfDYnut0bkxZdmSAp18S7XN+Ou0=;
-        b=Xqpg/UB9lzkD3KTmC6lfbaxDpq5F8zSZgmu/yTiEMRRIonTqLKHTbGNAA2T/lE3obu
-         OqYcDuERQqomyryqlnktlCmhXn2Gd/oKKeNMptE8vbl8waZjFZUM74Bu+r5ndtx4vfM3
-         u3XKmBfS/Jd/55W9xGY8iv12VLeij9HNptaoObYeiDInhkxzVUpt7GgCtjdvGDqeEpHM
-         rXr/OePVP20AdZfB9vTGf4+jAhNgO0KkODiWxqXmsIWxyLNbwRD5UiY1LczbusLkKLBB
-         8MPD9QZf7QPR4wEouH4nbQG4z3t5C2QqKvzGKL6/QiDm5c3uMDvi5zu2+vo+G/nrf9L7
-         BUSw==;
-        darn=lists.linux.dev
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1791207207; x=1791812007; darn=lists.linux.dev;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=7otsqulBzc6rkKlGohX6jHgXmZfiW8WkwVHav/09IiY=;
-        b=N6Pm7ePu/EL8WkBbZL/7V3x2BZ0Us2Si3cYGKJhvQubynK3n+E0SrGK8pjoLS7opuv
-         HNETtsNcGUhDFTx84xhvTLLaqfhpG0LRedwc0v5cSFmvYoi+Uf1DASH6AMjp/bAOc65P
-         xIFqUz/E7iBhmAeRsuAOXIrSZ2siJOuzy+Rto=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791207207; x=1791812007;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=7otsqulBzc6rkKlGohX6jHgXmZfiW8WkwVHav/09IiY=;
-        b=Tg1k0sCNpLt/Pzi0UHNy9VQhjFmJUjFtWA28E+1kuFtWUx1J6RD4uR61o2UH4oib8H
-         qJO0e6fqEeRneEzlehhHByY5q1FchwED67iIHnC6fPx0sbclJ+9FCKolD7dCPo1mNuLy
-         MpmQxs/GNg4QnK2d9zdoooZZmNA75mBPHXSc3BtSaBSIhkAPAE/D02BTeBb+wx3Ct25r
-         gw3NoWG+Ski60lnpX4TL4mSB/cBVHz88IVED6/UnlHWQ1xnudZIV3S463DYY+FPEcHJ2
-         WvAxX6A1HQrjvq36tsB9kMLkS9/OVNherVGrmFsy+Z3lvO14uEfGwFM446xkJrylWjbv
-         ipOQ==
-X-Forwarded-Encrypted: i=1; AKwUvByTlNR9OG+IhwYsZycfABD/xNyAL5HxROGb8rzwL3QZrUHgneWRhbbhJyefyjQiAnakEn395nE=@lists.linux.dev
-X-Gm-Message-State: AFuF++nzskvWbOWVwtIymUhzxXWVm8DsPBx7h+xYTCLvttJS0B3KUjNg
-	sKm0mfWjW8uoxYCgPsMLOq9+cJosT99BUCrY2g+1/uAlyIPnvkAOi6ZKWYbvgL5SlQd9Pi6n9wz
-	3xC7Kxo4L3/o+A9d50DIYAcwbhUx9eLWOQXfKReq5DA==
-X-Gm-Gg: AYBFou2zUYfS6+0maxB5/+6K5X0paDRoDxzpq2mn3wSf2U1ykt45mi8YaYJiv1FbFxi
-	hjiGZS5S9A74u7p2wJ5ZGzyRlw0x5aVX7s6zXt+i3cdcZWk2TxhZgLkihLb0Y95WerNosddoApW
-	jKbnZv4vWz7UTz2ZnpODT8MJ9c0a4evTZ56fqRHctOGdOXUIbnxoERdOxq7tAiLO5KOoCclUwVI
-	C4Qwlpv0y1An5j9oHNf+l1mRYwBbRN+RNC6aO/XZIi5gPu0k1fTo2vy/SuW8cQ6seV416ROATt8
-	LitUd4Crfs0xD2FGxAr6/RRRlJhKI/AGBiQcOndYxj3eo2mYTPsZ1VhbNV0sZqerXLOS++gsTah
-	q0JqOX86Dq//GPiy1uzMjOmc=
-X-Received: by 2002:a05:622a:1ba6:b0:533:9826:a9ac with SMTP id
- d75a77b69052e-53511e43589mr124329411cf.20.1791207207172; Mon, 05 Oct 2026
- 06:33:27 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="B/jfaiKY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 024B21F008A4;
+	Mon,  5 Oct 2026 15:57:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791215839;
+	bh=3OTiHc1/0syaVTh9plxPSwZX9JA+w6f18TNYUs4mWiI=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=B/jfaiKY1DaVksZkgxRP+KtV6co/Ste4zyrEZxOM09D8nw6Y1WUggA+HHzHyLLijI
+	 h+iUxjh/eEX3rPqeH4Hh7JRFwgF+YkaupsynORwDpANIaPTcZRFn3xq/ZffqFlkPF0
+	 ez6ddGkV3Yq5BqNRUqpIAnVBWWf29NKLt/iJI0EVW5MD7vFE5caqLQ5hSudSpMQKX0
+	 vH3jA1sTxjFkXGfC2tQwruEMV1EZ47F3C/weCUVYHykrn0gpJXlfjWL0TPcUnrV8dX
+	 vFmLtl3pCjYiLUQSXKdxnlZ6utHw7bFHRUGsaPg4qYLJXssSxzpXrxHOI/Fxw3zOpf
+	 iSr4oZ4FITEEA==
+From: Kees Cook <kees@kernel.org>
+To: Bill Wendling <morbo@google.com>
+Cc: Kees Cook <kees@kernel.org>,
+	nvdimm@lists.linux.dev,
+	Alison Schofield <alison.schofield@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Guangshuo Li <lgs201920130244@gmail.com>,
+	Ira Weiny <iweiny@kernel.org>,
+	=?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	linux-kernel@vger.kernel.org,
+	linux-hardening@vger.kernel.org
+Subject: [PATCH v5 11/12] nvdimm: ndtest: Return the string length from flags_show()
+Date: Mon,  5 Oct 2026 08:57:01 -0700
+Message-ID: <20261005155708.1471260-11-kees@kernel.org>
+X-Mailer: git-send-email 2.55.0
+In-Reply-To: <20261005155653.late.426-kees@kernel.org>
+References: <20261005155653.late.426-kees@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20261001150935.655979-1-mszeredi@redhat.com> <20261001150935.655979-4-mszeredi@redhat.com>
- <CAOQ4uxjWCRs59Qpc4t+2=i67rdJkHt=+rH07ZXv7ZzAvTjTm-A@mail.gmail.com> <CAOQ4uxi1+WgHJdnRKMD3tp24EOyx7iPByzSKLn_siTVY3_sRDQ@mail.gmail.com>
-In-Reply-To: <CAOQ4uxi1+WgHJdnRKMD3tp24EOyx7iPByzSKLn_siTVY3_sRDQ@mail.gmail.com>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Mon, 5 Oct 2026 15:33:15 +0200
-X-Gm-Features: AclHuK98SWoqABe7rwTyIrlCpXfPZvMeW8Yn8TO-gyQNFntxAo01LmvUy6dhY_s
-Message-ID: <CAJfpegttAHQAGhE61t-VZqfQv9Z==ovbyLY6qp3KOK_CvjBciA@mail.gmail.com>
-Subject: Re: [PATCH v2 3/8] fuse: support 64 bit, server allocated backing ID
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, fuse-devel@lists.linux.dev, 
-	John Groves <john@groves.net>, "Darrick J . Wong" <djwong@kernel.org>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Alison Schofield <alison.schofield@intel.com>, nvdimm@lists.linux.dev, 
-	linux-cxl@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1205; i=kees@kernel.org; h=from:subject; bh=83ejdE21ZGKoH4IcbNOtIYCWNlvKIrQjgUzARamzwfE=; b=owGbwMvMwCVmps19z/KJym7G02pJDFmHT5wVeXHJcdntO9XMGvYpzF/r2O8cPCBXN+9LzCquy qNb9D6s6ShlYRDjYpAVU2QJsnOPc/F42x7uPlcRZg4rE8gQBi5OAZjI59eMDNPeM56e67P6w2qX XWWTJ2Um39uS9cSg3rrP8pag6JNXrzsZGSYlC6iuNvfntZijP8H4gufTzpD0i1FxulcXTrzNzu2 gzQYA
+X-Developer-Key: i=kees@kernel.org; a=openpgp; fpr=A5C3F68F229DD60F723E6E138972F4DFDC6DC026
+Content-Transfer-Encoding: 8bit
 
-On Thu, 1 Oct 2026 at 20:59, Amir Goldstein <amir73il@gmail.com> wrote:
+flags_show() build their output with a seq_buf and return seq_buf_used(),
+which may include the trailing NUL byte when the seq_buf has
+overflowed. Use seq_buf_strlen() instead.
 
-> > > All 64 bit values are valid.
-> >
-> > Can you reserve id 0? or have a reason to need it?
+The flag names are far shorter than the PAGE_SIZE buffer sysfs
+provides, so this cannot overflow today.
 
-I thought that removing all restrictions on the value would be nice.
-But okay, zero value we can live without.
+Build tested ARCH=x86_64 with GCC 16.2.0, built out of tree with
+make M=tools/testing/nvdimm:
+tools/testing/nvdimm/test/ndtest.o
 
-> > It would feel a little less hacky if we do:
-> >     else
-> >           fuse_backing_files_init_32(fc);
-> >
-> > and set
-> >          fc->passthrough = 1;
-> >
-> > inside both of them to gate against fuse_backing_files_free()
-> > called without processing init response,
-> > or without either FUSE_PASSTHROUGH in the init response.
+Assisted-by: LLM
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Alison Schofield <alison.schofield@intel.com>
+Signed-off-by: Kees Cook <kees@kernel.org>
+---
+ tools/testing/nvdimm/test/ndtest.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Bigger problem is that IOC_BACKING_OPEN can be done before or during
-INIT.  So we need to take care of that case and the race as well.
-Fixed by:
+diff --git a/tools/testing/nvdimm/test/ndtest.c b/tools/testing/nvdimm/test/ndtest.c
+index 2051ad5d4882..f097f2992966 100644
+--- a/tools/testing/nvdimm/test/ndtest.c
++++ b/tools/testing/nvdimm/test/ndtest.c
+@@ -693,7 +693,7 @@ static ssize_t flags_show(struct device *dev,
+ 	if (seq_buf_used(&s))
+ 		seq_buf_printf(&s, "\n");
+ 
+-	return seq_buf_used(&s);
++	return seq_buf_strlen(&s);
+ }
+ static DEVICE_ATTR_RO(flags);
+ 
+-- 
+2.55.0
 
- - leaving the idr initialization fuse_conn_init()
-
- - adding fc->backing_id_32 flag which is set by fuse_backing_open()
-after chekcking that fc->backing_id_64 is not set.  All under fc->lock
-
- - in process_init_reply() checking fc->backing_id_32 before setting
-fc->backing_id_64 and failing the connection if so.  Also under
-fc->lock
-
- - in fuse_dev_ioctl_backing_create() if fch->initialized is not set
-return ENOTCONN
-
-> Also we should not enable passthrough if rhashtable_init has failed.
-
-rhashtable_init() can't fail if parameters are correct since it falls
-back to __GFP_NOFAIL() for allocation.
-
-Thanks,
-Miklos
