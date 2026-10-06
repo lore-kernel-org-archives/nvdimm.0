@@ -1,429 +1,154 @@
-Received: from mail-ed1-f52.google.com (mail-ed1-f52.google.com [209.85.208.52])
+Received: from mail-ed1-f43.google.com (mail-ed1-f43.google.com [209.85.208.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 775481AC44D
-	for <nvdimm@lists.linux.dev>; Tue,  6 Oct 2026 21:03:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B712A3C9EE8
+	for <nvdimm@lists.linux.dev>; Tue,  6 Oct 2026 21:24:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.43
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791320629; cv=pass; b=sewdweQZpHXJJoMcNKD/WEek0LseXdkeaEJJ4T5uLr1g9WNx/ewUt7fwTaW3NAptoh+LHV99OMCtrw+XhF17/o+RJu1yATsSS/T2zfAN6YiOTVUAP2Z9A6E67dVTj/JRgCNxbJtG+0u9MBl5F4dmtcj78vZpV0DYwr06d8udL2c=
+	t=1791321877; cv=pass; b=b3WTDJDokdang0LtJ/o+YrYS/WgDQdV+sa2j9wscL0/ELY+02q461lPKDaQ6qj9ymCH3x83QVkFTGMUpjbGjzbbm2XQ6iSBGM9K1oe+HVqQVH2ZNQT/8RfRU4xyeAYYJ1bnN23IS60GYKYqcFgEWy4pP7FVqyw91Qygql8iiqow=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791320629; c=relaxed/simple;
-	bh=b2W34P/urqYsA5joKgQX5pjyd0oiOSmqRBrDn5op+bM=;
+	s=arc-20240116; t=1791321877; c=relaxed/simple;
+	bh=j1Wh4CfTGvYBOyAROOZOXrtCRg+GLe0bKN/CGF567eM=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=JqdOggmqA9eF6S7ANSKMCkoz7kSJL3NO7szxUj2HLyBiTlLM8n/w3Zi2VspGldd7HRdG86lEkwLLlJ43T4Z8G0HNDKVHSNmY7XHEZDL2QNxXvCrEngkiuUUm/r8gOuQ9f80MPWObo0Q8i8kpfeJDGAgArS6cVRu4t2A/DfngabE=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EE2dKVFr; arc=pass smtp.client-ip=209.85.208.52
+	 To:Cc:Content-Type; b=gvYtZnx9VVfc2Y1TjAF7zAiAlSLcQW9Xsxt1l1DOwktbLBj9JbNEtfEwoBPLbs7u/ra8Jl/bTcgxH8ISutc9wWGivWTtTc+vwG8YkNDDWduF29XNC6HnJ1iNSZs4kFzuP2nhwLDFm7iEEVwzFwEivdLW2RIhHTxUcJkcSyavyZQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SQ1/i3QG; arc=pass smtp.client-ip=209.85.208.43
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EE2dKVFr"
-Received: by mail-ed1-f52.google.com with SMTP id 4fb4d7f45d1cf-6afa651700eso1965209a12.2
-        for <nvdimm@lists.linux.dev>; Tue, 06 Oct 2026 14:03:46 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791320625; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SQ1/i3QG"
+Received: by mail-ed1-f43.google.com with SMTP id 4fb4d7f45d1cf-6aa9164072cso1786744a12.2
+        for <nvdimm@lists.linux.dev>; Tue, 06 Oct 2026 14:24:35 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1791321874; cv=none;
         d=google.com; s=arc-20260327;
-        b=FcgtxbGDdiai4l5QsMj9pFDKL84qyUN6iw3xInTV94+Km+XaQHW9tcVbKs7LU8rqIX
-         oT+NCcEbMA5XEPmqMKdKZKCgQ3pgdjPll39XzzpRYH36dvFPBDAYIt7vBzyJMzmnYhJk
-         +FUbgixO9VGgnnMvYTRGlIdATj8lestk+Kzi5iBIr9E7yszipB9gJSmLURBhoKB2wK8F
-         F2pNWMrHzJftmlUN0vZYL34f7sIuYbGZCSKC1S0LKbcwHEhElr4w28i6AwpDFwTSYN/s
-         plPQGU0arYIarK8DKZZC2D9ewmHHSb9LOOSSisftek8irEKXhp3AvcBvXiTHTPyrJo6p
-         gqcw==
+        b=WM1YNlJWW4/dq1oDlzei0DOupNCrdxXLfUsl6hc29+iAyC7ztqyOTt/MzD9wOgnG2d
+         ICDXl2oVuZs4jNnAmnW6MO8eszSlA573MyMstKAAaaDEKCJu5gOs0nR/6i/8zBTwCHG0
+         Y5VvzJmXcqXA9ZgxICHROw/xunol+3HQS3fQdTnN0NaF+aP5X9TNDHpywHjFbSMROckV
+         dRh1qgLPbcgYyLFVWErpx4FIt4vcCIqT0yKdx3McVbVe1RaifdZhdyaw5yBHkuDGjW2x
+         Ik2ft5FHoMJxJB9OVm21ct+YrEJxAwMD2kU0SCMNUxwVJb3wKEMBrMX0wBO2AX8ALvsv
+         KxqQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=dLRok0n9UnxaSR+lfr4s0WqVEVY4M/HLtc9+zuOT7oA=;
-        fh=/mG4K5ppSzwDdhCqplyH3di7cb0TyFai6NlJHSL1sDY=;
-        b=TBMQAzbqyeHKlLwkT6FNuW3TkZ61zNtknnfo9zqoIblIULXre7NEw/J1JMjwiyuIaK
-         qkb7qPLZe7ydl11d7sed4RZachkfn850Ez2Ofo0g8p7f8QVQPFh+GJcLTO8zVdqabnUO
-         rWJG9a/sRGROhUGr2C64kZBYKXwOxNZN0MjnuP+SFS8KPNDMSbvfLPKvCJezwQoG/T9j
-         RHVTayFrnZAw5ODQHaetIH9nzSVhqpKiWo44xD+Mx40ynLqwWrtFVWejeCHZSatC2vFh
-         wIq5zVg75bDGTOO0h/IgOx6JXxlZF2JtROK1ReYxcZp3F549Ch743Zu77UNaa4MM8aaL
-         FsXg==;
+        bh=SYwc8JI6t2v5/H4JTTRJtWLrWEc8ZG38ZE/5tQf+csw=;
+        fh=YwYSVojvFic8ZI6cGiuJdLTO+ZAGqAQM++iPUh8/e1A=;
+        b=ZCEnc8yVuLrF0eYeBzWukQHgjHvQPEkfR19Z0FyVNyo37sC+nlMGUjkK6hA7qTDSv8
+         dPKP1YBSSne11cGhr1LsaSuQWldAy9shS++3JPBrXXBzAHl9x0wEdsgDNgSgVqinpDvR
+         0cF2uB4EFZG4INyU+dJ93OtyGerw/YAypStnEMXgt5wKDYdo/qrNkmGcc02pMadb259n
+         AaQPMwuBk/fuqJsesCKHFd8JCAHA039S3D/ASeazsv9kTok2MG8Qx63x4NjzWwNlfRUU
+         zWqBgTsjitkLPouk8uQn8HiqzGBhL5lbGmdaJ7RaWfukle4yK0xz7MrXgPjAbwxME6YN
+         7z+g==;
         darn=lists.linux.dev
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791320625; x=1791925425; darn=lists.linux.dev;
+        d=gmail.com; s=20251104; t=1791321874; x=1791926674; darn=lists.linux.dev;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=dLRok0n9UnxaSR+lfr4s0WqVEVY4M/HLtc9+zuOT7oA=;
-        b=EE2dKVFrFqe97nYdGsF1QCKMfxAKbZQsr8x8LPJiuCUsAwBIJ7C7iJqoGGfLXHDCnx
-         sotOOWX0ruE6jkcnxkx1z+kUJeHDhpl6btmhhcNWOKnnNYcdhNQg3rijsVbpGwVDXp3b
-         aTCqeV8rnoXBV8NH5BJ78JEDTBYiNOyx79KHO4JYfFIKmdAMGMXO1jhPaEErOKfJ5sGn
-         6vAXeCihPejTx8HDyzkVwgTs8kuXFTHpiei+fk0hAklkg1C0udk6ksUlzt4ZvBigZ+KE
-         DBZxmarxESKX5x2cIVDYXXV3aO/yovgskoF8tocGj8zhUiUYcLxIyL7OOusJXLQHoD2+
-         CXbg==
+        bh=SYwc8JI6t2v5/H4JTTRJtWLrWEc8ZG38ZE/5tQf+csw=;
+        b=SQ1/i3QGFbsatvE7AfyR3yBWL94OmmtW8i7SlpEWxwwFVD5MILjZaHNIGDPWmAuSTq
+         hjaaPdRQomlIYEEgKlo1kB/Ro9DPWyDKH+UHy/9KZ78aUCzjXlwWl7RYyISvw5ICx60o
+         OCJKOT3wVgiEtK4VC/gfWEg5XYOwDgSE/4NURCtWQCFch41INa1qwS/0857hkc846DNX
+         V4UBIceXHoe7yiFyJI8jnKmUn6oQlv5XoGKRbjlVLoK+HK19V5zI7ymb1wr1Yd2MybRp
+         EULYVu8jeu1PlTy/c9VF1kp1BWsseyy/GRyev3N8vsS33M64aAI+90EVsBLAuJ1iXQeb
+         OK2Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791320625; x=1791925425;
+        d=1e100.net; s=20260707; t=1791321874; x=1791926674;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=dLRok0n9UnxaSR+lfr4s0WqVEVY4M/HLtc9+zuOT7oA=;
-        b=vAC3E9h5ENHdOF2+YhYA4WJX9LmGdv/jCPZAaHLeWZDRf4iTQ1c2Vnp5ZINpcL74xJ
-         HsAHRgmH6ax2EiAVLMGIppzLh7knsj62J46Dht99+f/WNxId7Qosg2UWx7LkQZAuUZRq
-         vdu/iLBWghJwIQvSVjTY5gmjf1R6xbQZjf0V/J1kpDbTcLnosK/dg3uo+MlWXIlNjJsf
-         GNJg8y953/c+v3sBkEMnmRJZ2KELoAhygPL6Xf+gfl1HLxbkk10s/4He0ABRvNW5+j2y
-         SX5d60Yhy6GwnRCHVPDQyCMBiRr8cF3Acie9GV3ACix2EqK+h8xcFno/wqZr7856Xgw7
-         KfVA==
-X-Forwarded-Encrypted: i=1; AKwUvBzNDpXkitHJHw+s1Te0pql5MJ4Z2KwUDWe7SGucQY5suSWx7j77N/3VB5Td6Lf1398/iyG3TC8=@lists.linux.dev
-X-Gm-Message-State: AFq9FYKl3JLo9cYVXH9A88/deUrCgYuMbL3dhRAPw4m9syZ+v596eloN
-	qsdELKznYZlP89bki5gIMZ0km16wIyNySCSt37nTJ4eL/NOcHtZuhD7As+67w2LlohAWaw44o7S
-	HXXuIANyvxU6ERZhn9+vFV2gaMP3pzqw=
-X-Gm-Gg: AYBFou1abk2lZ+mZTALjFDDiCAk6/wzhl6cLnyF6775drpiambdpILqO5Ws5SrUJVAG
-	vH9XaAB0ZG+X7Vxc8hH9dIdTFJj5tcu07xmEMP4UkCiMiXruuO1HlhxEEMWR7d9yUTk75KFfN7I
-	0KJVlV5BhxdLTEilFcmSS3WuHgFUNfUUYmch+jG36w75RO/dz73pa1pSE9Wxp1UUSvaVvHmlweU
-	Z9EJ/vjnwmsWOxjM0VcIYJE1ejSJnftFCmbL23Y6aLBgUXpGtB/2XwBaAGflyER+HnFQq5FPOEF
-	wz+IUZ8S4V+n6b0rmNCuyQnSm0LUUlWopmMg4whnxwILz4qQBt8DgJZ5fWjA+FMJ52Vr/0fxVdC
-	l0hPgesZI3Pk=
-X-Received: by 2002:a05:6402:52d9:b0:6ab:6e:a8e4 with SMTP id
- 4fb4d7f45d1cf-6aff45977b7mr186880a12.44.1791320624200; Tue, 06 Oct 2026
- 14:03:44 -0700 (PDT)
+        bh=SYwc8JI6t2v5/H4JTTRJtWLrWEc8ZG38ZE/5tQf+csw=;
+        b=uySeTSfkqEuSCC8V2l7b6vP6U2rFNBLbWfos78Ee01rjYw7WpThBw2xvFUhZd1YiQ7
+         SCbfUHqITsTwbfmBUBJFVmvZWmo1THlrve2/FibnYLsj36PWsVT7b0SSmZuBvFPKI/1b
+         OmpZ74yttJbY5UNoN1sdBXFtuXEzh1x8zGT6z873s5LyVFv+uhxM/ikQ0kQVvF11payJ
+         4lEK8gfd5w5NTO5WO0YCwNh8SX4RY99Sg/QxSI3zoEf9kBejOa299RN0w5S9NfgF4mJ7
+         v0i3CeqzOqBNY0T0ql8V5sQ76nTjB/SIzdlT8Wgd7VKpYAesk6spV/gpkrN/KeRlK6AQ
+         lxKw==
+X-Forwarded-Encrypted: i=1; AKwUvBzNRBKKIeGVe4kDPVXkyV7O09ZIdUfmm6EO4Et/6nEv/LYd2oW11KPuWVzqbbz+UQWayl63ru4=@lists.linux.dev
+X-Gm-Message-State: AFq9FYLgq68RCdiTmQgLh1gZ1LU7N0GqGjzfAnYTvdHx/WkmZ5P6L/n5
+	Em+4SzsL6LERWhyXGbnTGGZonaQLcNjSuZFRp5tmACPMr68APrjRrdN92bF0XJP6Xa+82ncsDta
+	OVb5B+e1A/EedLmg+zbT3bdBCKQhwynQ=
+X-Gm-Gg: AYBFou0gQZsBd6cW8C+ZKiKbzD6F8WIV2naj/tneT0880GdcDTBmKjCsgTIygUjW5Qz
+	QTQ6hzgfjoEkA6zcoevI+xNEQ/smzI3gNCIxnPMnJmpDwo2nKtSEEX/XEqRDjfA1+f6aL/56FG2
+	35tQ4Ke25v6TyFNBLHFhn3O4oPcBWvLAeqngCyWDqFImJrf7hLk+z9B70cgsinBLhHPeJlatLLj
+	fdx2gRJefZ4wsaeST2KkqhRfSvtEPEExayVOpYoOKM/NVVnkyLmDn8nnmJ4EXORJGBlc/H2SiTm
+	hoo4P6F45MalXxx9axuv3tKN67v+89oPVPvfY6qAgA5dqO65cKdin54BXrVTNqLw6Qh53/HDmbz
+	MDBNeM1oY23g=
+X-Received: by 2002:a05:6402:21d7:b0:6ab:7700:9371 with SMTP id
+ 4fb4d7f45d1cf-6aff47b52d7mr243717a12.25.1791321873525; Tue, 06 Oct 2026
+ 14:24:33 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20261006180115.1425232-1-mszeredi@redhat.com> <20261006180115.1425232-4-mszeredi@redhat.com>
-In-Reply-To: <20261006180115.1425232-4-mszeredi@redhat.com>
+References: <20261001150935.655979-1-mszeredi@redhat.com> <20261001150935.655979-4-mszeredi@redhat.com>
+ <CAOQ4uxjWCRs59Qpc4t+2=i67rdJkHt=+rH07ZXv7ZzAvTjTm-A@mail.gmail.com>
+ <CAOQ4uxi1+WgHJdnRKMD3tp24EOyx7iPByzSKLn_siTVY3_sRDQ@mail.gmail.com> <CAJfpegttAHQAGhE61t-VZqfQv9Z==ovbyLY6qp3KOK_CvjBciA@mail.gmail.com>
+In-Reply-To: <CAJfpegttAHQAGhE61t-VZqfQv9Z==ovbyLY6qp3KOK_CvjBciA@mail.gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Tue, 6 Oct 2026 23:03:32 +0200
-X-Gm-Features: AclHuK8PYGjthWGD-uqyqrq3itYp173voPWzpkl2f7Ec_jhlpbwglDyFnI7Ntw0
-Message-ID: <CAOQ4uxg4gC0BB0UZz3bOhWm0-qXhoHDLbrQc3gC3WL+05=4Cwg@mail.gmail.com>
-Subject: Re: [PATCH v3 3/9] fuse: add helpers for EIO return value with kernel message
-To: Miklos Szeredi <mszeredi@redhat.com>
-Cc: fuse-devel@lists.linux.dev, John Groves <john@groves.net>, 
-	"Darrick J . Wong" <djwong@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Alison Schofield <alison.schofield@intel.com>, 
-	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
+Date: Tue, 6 Oct 2026 23:24:17 +0200
+X-Gm-Features: AclHuK_VeO0DSevIgJfwzhinVGoS4FTfS8bmWH03wQQ5EUrXtEm_7IyCpO31gUM
+Message-ID: <CAOQ4uxj76PJiumvXLHoJUKx_=FAueg3WQjYd64=B_TXo581POg@mail.gmail.com>
+Subject: Re: [PATCH v2 3/8] fuse: support 64 bit, server allocated backing ID
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Miklos Szeredi <mszeredi@redhat.com>, fuse-devel@lists.linux.dev, 
+	John Groves <john@groves.net>, "Darrick J . Wong" <djwong@kernel.org>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Alison Schofield <alison.schofield@intel.com>, nvdimm@lists.linux.dev, 
+	linux-cxl@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Oct 6, 2026 at 8:01=E2=80=AFPM Miklos Szeredi <mszeredi@redhat.com>=
- wrote:
->
-> Conditions are triggered by a buggy fuse server will result in -EIO which
-> is hard to interpret without any context.
->
-> Add helpers that print a short message to the kernel log as well as
-> returning the error value.  This serves a dual purpose:
->
->  - documents the error condition inside the code
->
->  - allows the implementor of the fuse server to get the context for the
->    error
->
-> Some debug messages are removed in favor of this.
->
-> This also changes the mmap return value from -ETXTBSY to -ENODEV if a
-> passthrough open raced with the prior check.  This makes both cases retur=
-n
-> -ENODEV if the file is in passthrough mode.
->
-> Additionally change the return value of fuse_file_cached_io_open() from a=
-n
-> error value to a bool (true on success) as the error value is translated
-> anyway.
->
-> Currently these use the pr_notice_once() variant.  Possibly should be
-> changed to a ratelimit of e.g. once per minute.
->
-> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+On Mon, Oct 5, 2026 at 3:33=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> w=
+rote:
 
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  fs/fuse/file.c        |  6 ++--
->  fs/fuse/fuse_i.h      |  4 ++-
->  fs/fuse/iomode.c      | 75 ++++++++++++++++++-------------------------
->  fs/fuse/passthrough.c | 19 ++++-------
->  4 files changed, 43 insertions(+), 61 deletions(-)
+> > > It would feel a little less hacky if we do:
+> > >     else
+> > >           fuse_backing_files_init_32(fc);
+> > >
+> > > and set
+> > >          fc->passthrough =3D 1;
+> > >
+> > > inside both of them to gate against fuse_backing_files_free()
+> > > called without processing init response,
+> > > or without either FUSE_PASSTHROUGH in the init response.
 >
-> diff --git a/fs/fuse/file.c b/fs/fuse/file.c
-> index 6d707f2b3bff..bde07948d1f0 100644
-> --- a/fs/fuse/file.c
-> +++ b/fs/fuse/file.c
-> @@ -2415,7 +2415,6 @@ static int fuse_file_mmap(struct file *file, struct=
- vm_area_struct *vma)
->         struct fuse_file *ff =3D file->private_data;
->         struct fuse_conn *fc =3D ff->fm->fc;
->         struct inode *inode =3D file_inode(file);
-> -       int rc;
+> Bigger problem is that IOC_BACKING_OPEN can be done before or during
+> INIT.  So we need to take care of that case and the race as well.
+> Fixed by:
 >
->         /* DAX mmap is superior to direct_io mmap */
->         if (FUSE_IS_VDAX(inode))
-> @@ -2457,9 +2456,8 @@ static int fuse_file_mmap(struct file *file, struct=
- vm_area_struct *vma)
->                  * After first mmap, the inode stays in caching io mode u=
-ntil
->                  * the direct_io file release.
->                  */
-> -               rc =3D fuse_file_cached_io_open(inode, ff);
-> -               if (rc)
-> -                       return rc;
-> +               if (!fuse_file_cached_io_open(inode, ff))
-> +                       return -ENODEV;
->         }
+>  - leaving the idr initialization fuse_conn_init()
 >
->         if ((vma->vm_flags & VM_SHARED) && (vma->vm_flags & VM_MAYWRITE))
-> diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-> index 8546855386b5..d9ec88028d7b 100644
-> --- a/fs/fuse/fuse_i.h
-> +++ b/fs/fuse/fuse_i.h
-> @@ -11,6 +11,8 @@
->  # define pr_fmt(fmt) "fuse: " fmt
->  #endif
+>  - adding fc->backing_id_32 flag which is set by fuse_backing_open()
+> after chekcking that fc->backing_id_64 is not set.  All under fc->lock
 >
-> +#define fuse_EIO(fmt, ...) (pr_notice_once("%s: " fmt "\n", __func__, ##=
-__VA_ARGS__), -EIO)
-> +
->  #include "args.h"
->  #include <linux/fuse.h>
->  #include <linux/fs.h>
-> @@ -1251,7 +1253,7 @@ int fuse_fileattr_set(struct mnt_idmap *idmap,
->                       struct dentry *dentry, struct file_kattr *fa);
+>  - in process_init_reply() checking fc->backing_id_32 before setting
+> fc->backing_id_64 and failing the connection if so.  Also under
+> fc->lock
 >
->  /* iomode.c */
-> -int fuse_file_cached_io_open(struct inode *inode, struct fuse_file *ff);
-> +bool fuse_file_cached_io_open(struct inode *inode, struct fuse_file *ff)=
-;
->  int fuse_inode_uncached_io_start(struct fuse_inode *fi,
->                                  struct fuse_backing *fb);
->  void fuse_inode_uncached_io_end(struct fuse_inode *fi);
-> diff --git a/fs/fuse/iomode.c b/fs/fuse/iomode.c
-> index 79637c09e883..1b8b267d0c0d 100644
-> --- a/fs/fuse/iomode.c
-> +++ b/fs/fuse/iomode.c
-> @@ -27,15 +27,15 @@ static inline bool fuse_is_io_cache_wait(struct fuse_=
-inode *fi)
->   * Blocks new parallel dio writes and waits for the in-progress parallel=
- dio
->   * writes to complete.
->   */
-> -int fuse_file_cached_io_open(struct inode *inode, struct fuse_file *ff)
-> +bool fuse_file_cached_io_open(struct inode *inode, struct fuse_file *ff)
->  {
->         struct fuse_inode *fi =3D get_fuse_inode(inode);
+>  - in fuse_dev_ioctl_backing_create() if fch->initialized is not set
+> return ENOTCONN
 >
->         /* There are no io modes if server does not implement open */
->         if (!ff->args)
-> -               return 0;
-> +               return true;
->
-> -       spin_lock(&fi->lock);
-> +       guard(spinlock)(&fi->lock);
->         /*
->          * Setting the bit advises new direct-io writes to use an exclusi=
-ve
->          * lock - without it the wait below might be forever.
-> @@ -53,8 +53,7 @@ int fuse_file_cached_io_open(struct inode *inode, struc=
-t fuse_file *ff)
->          */
->         if (fuse_inode_backing(fi)) {
->                 clear_bit(FUSE_I_CACHE_IO_MODE, &fi->state);
-> -               spin_unlock(&fi->lock);
-> -               return -ETXTBSY;
-> +               return false;
->         }
->
->         WARN_ON(ff->iomode =3D=3D IOM_UNCACHED);
-> @@ -64,8 +63,7 @@ int fuse_file_cached_io_open(struct inode *inode, struc=
-t fuse_file *ff)
->                         set_bit(FUSE_I_CACHE_IO_MODE, &fi->state);
->                 fi->iocachectr++;
->         }
-> -       spin_unlock(&fi->lock);
-> -       return 0;
-> +       return true;
->  }
->
->  static void fuse_file_cached_io_release(struct fuse_file *ff,
-> @@ -85,19 +83,16 @@ static void fuse_file_cached_io_release(struct fuse_f=
-ile *ff,
->  int fuse_inode_uncached_io_start(struct fuse_inode *fi, struct fuse_back=
-ing *fb)
->  {
->         struct fuse_backing *oldfb;
-> -       int err =3D 0;
->
-> -       spin_lock(&fi->lock);
-> +       guard(spinlock)(&fi->lock);
->         /* deny conflicting backing files on same fuse inode */
->         oldfb =3D fuse_inode_backing(fi);
-> -       if (fb && oldfb && oldfb !=3D fb) {
-> -               err =3D -EBUSY;
-> -               goto unlock;
-> -       }
-> -       if (fi->iocachectr > 0) {
-> -               err =3D -ETXTBSY;
-> -               goto unlock;
-> -       }
-> +       if (fb && oldfb && oldfb !=3D fb)
-> +               return -EBUSY;
-> +
-> +       if (fi->iocachectr > 0)
-> +               return -ETXTBSY;
-> +
->         fi->iocachectr--;
->
->         /* fuse inode holds a single refcount of backing file */
-> @@ -107,9 +102,7 @@ int fuse_inode_uncached_io_start(struct fuse_inode *f=
-i, struct fuse_backing *fb)
->         } else {
->                 fuse_backing_put(fb);
->         }
-> -unlock:
-> -       spin_unlock(&fi->lock);
-> -       return err;
-> +       return 0;
->  }
->
->  /* Takes uncached_io inode mode reference to be dropped on file release =
-*/
-> @@ -121,8 +114,11 @@ static int fuse_file_uncached_io_open(struct inode *=
-inode,
->         int err;
->
->         err =3D fuse_inode_uncached_io_start(fi, fb);
-> -       if (err)
-> -               return err;
-> +       if (err) {
-> +               if (err =3D=3D -EBUSY)
-> +                       return fuse_EIO("mismatched backing");
-> +               return fuse_EIO("conflicting caching mode");
-> +       }
->
->         WARN_ON(ff->iomode !=3D IOM_NONE);
->         ff->iomode =3D IOM_UNCACHED;
-> @@ -173,9 +169,11 @@ static int fuse_file_passthrough_open(struct inode *=
-inode, struct file *file)
->         int err;
->
->         /* Check allowed conditions for file open in passthrough mode */
-> -       if (!IS_ENABLED(CONFIG_FUSE_PASSTHROUGH) || !fc->passthrough ||
-> -           (ff->open_flags & ~FOPEN_PASSTHROUGH_MASK))
-> -               return -EINVAL;
-> +       if (!IS_ENABLED(CONFIG_FUSE_PASSTHROUGH) || !fc->passthrough)
-> +               return fuse_EIO("passthrough not enabled");
-> +
-> +       if (ff->open_flags & ~FOPEN_PASSTHROUGH_MASK)
-> +               return fuse_EIO("conflicting open flags");
->
->         fb =3D fuse_passthrough_open(file, ff->args->open_outarg.backing_=
-id);
->         if (IS_ERR(fb))
-> @@ -197,7 +195,6 @@ int fuse_file_io_open(struct file *file, struct inode=
- *inode)
->  {
->         struct fuse_file *ff =3D file->private_data;
->         struct fuse_inode *fi =3D get_fuse_inode(inode);
-> -       int err;
->
->         /*
->          * io modes are not relevant with virtiofs DAX and with server th=
-at does not
-> @@ -208,11 +205,12 @@ int fuse_file_io_open(struct file *file, struct ino=
-de *inode)
->
->         /*
->          * Server is expected to use FOPEN_PASSTHROUGH for all opens of a=
-n inode
-> -        * which is already open for passthrough.
-> +        * which is already open for passthrough.  Using incorrect open m=
-ode is
-> +        * a server mistake, which results in user visible failure of ope=
-n()
-> +        * with EIO error.
->          */
-> -       err =3D -EINVAL;
->         if (fuse_inode_backing(fi) && !(ff->open_flags & FOPEN_PASSTHROUG=
-H))
-> -               goto fail;
-> +               return fuse_EIO("FOPEN_PASSTHROUGH expected");
->
->         /*
->          * FOPEN_PARALLEL_DIRECT_WRITES requires FOPEN_DIRECT_IO.
-> @@ -233,23 +231,12 @@ int fuse_file_io_open(struct file *file, struct ino=
-de *inode)
->                 return 0;
->
->         if (ff->open_flags & FOPEN_PASSTHROUGH)
-> -               err =3D fuse_file_passthrough_open(inode, file);
-> -       else
-> -               err =3D fuse_file_cached_io_open(inode, ff);
-> -       if (err)
-> -               goto fail;
-> +               return fuse_file_passthrough_open(inode, file);
->
-> -       return 0;
-> +       if (!fuse_file_cached_io_open(inode, ff))
-> +               return fuse_EIO("conflicting passthrough open");
->
-> -fail:
-> -       pr_debug("failed to open file in requested io mode (open_flags=3D=
-0x%x, err=3D%i).\n",
-> -                ff->open_flags, err);
-> -       /*
-> -        * The file open mode determines the inode io mode.
-> -        * Using incorrect open mode is a server mistake, which results i=
-n
-> -        * user visible failure of open() with EIO error.
-> -        */
-> -       return -EIO;
-> +       return 0;
->  }
->
->  /* No more pending io and no new io possible to inode via open/mmapped f=
-ile */
-> diff --git a/fs/fuse/passthrough.c b/fs/fuse/passthrough.c
-> index b43d3e0f7081..489838462d1e 100644
-> --- a/fs/fuse/passthrough.c
-> +++ b/fs/fuse/passthrough.c
-> @@ -159,34 +159,29 @@ struct fuse_backing *fuse_passthrough_open(struct f=
-ile *file, int backing_id)
->         struct fuse_conn *fc =3D ff->fm->fc;
->         struct fuse_backing *fb =3D NULL;
->         struct file *backing_file;
-> -       int err;
->
-> -       err =3D -EINVAL;
->         if (backing_id <=3D 0)
-> -               goto out;
-> +               return ERR_PTR(fuse_EIO("invalid backing_id"));
->
-> -       err =3D -ENOENT;
->         fb =3D fuse_backing_lookup(fc, backing_id);
->         if (!fb)
-> -               goto out;
-> +               return ERR_PTR(fuse_EIO("backing not found"));
->
->         /* Allocate backing file per fuse file to store fuse path */
->         backing_file =3D backing_file_open(file, file->f_flags,
->                                          &fb->file->f_path, fb->cred);
-> -       err =3D PTR_ERR(backing_file);
->         if (IS_ERR(backing_file)) {
->                 fuse_backing_put(fb);
-> -               goto out;
-> +               return ERR_PTR(fuse_EIO("failed to open backing file (%ld=
-)", PTR_ERR(backing_file)));
->         }
->
-> -       err =3D 0;
->         ff->passthrough =3D backing_file;
->         ff->cred =3D get_cred(fb->cred);
-> -out:
-> -       pr_debug("%s: backing_id=3D%d, fb=3D0x%p, backing_file=3D0x%p, er=
-r=3D%i\n", __func__,
-> -                backing_id, fb, ff->passthrough, err);
->
-> -       return err ? ERR_PTR(err) : fb;
-> +       pr_debug("%s: backing_id=3D%d, fb=3D0x%p, backing_file=3D0x%p\n",=
- __func__,
-> +                backing_id, fb, ff->passthrough);
-> +
-> +       return fb;
->  }
->
->  void fuse_passthrough_release(struct fuse_file *ff, struct fuse_backing =
-*fb)
-> --
-> 2.54.0
->
+
+I guess that works, but why the asymmetry between the two modes?
+
+We could check fch->initialized in both _open() and _create()
+and then no need for the backing_id_32 flag?
+
+Unless we gate _open() with fch->initialized, then it could fail on
+either one of these cases:
+
+                if (!fc->passthrough || !capable(CAP_SYS_ADMIN))
+                        return -EPERM;
+
+                if (inode->i_sb->s_stack_depth >=3D fc->max_stack_depth)
+                        return -ELOOP;
+
+Quite randomly.
+
+Maybe I am missing something.
+
+Thanks,
+Amir.
