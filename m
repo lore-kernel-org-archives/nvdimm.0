@@ -1,184 +1,118 @@
-Received: from mail-ed1-f47.google.com (mail-ed1-f47.google.com [209.85.208.47])
+Received: from mail-qv1-f43.google.com (mail-qv1-f43.google.com [209.85.219.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E06CD38A739
-	for <nvdimm@lists.linux.dev>; Tue,  6 Oct 2026 22:09:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E787D46A608
+	for <nvdimm@lists.linux.dev>; Wed,  7 Oct 2026 12:46:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.219.43
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791324543; cv=pass; b=h3a6hKco6sKhSW7+Thk3yQ+c4SXl+d11dRPibjzpN3y/oCWVAAblQZeGniki360sjieEFWCTIWhf/mM6h+VDCXnqXdh/iIVjgkJvQND0K1xdSRQvOLuiTogK13/6afJwgLs7F/W9g+GpFFw0gY3uT+FJYAXZPzq58xI8lTmp4wU=
+	t=1791377203; cv=pass; b=JoNLEc/zM1juevGg7GElKJ1vvfePPj7wYnGjgeZ9GqfhaeosEB/T1cMs1roDJlFgdN+ts/qeKz2H0QeMONme1sRy/26XFDishmyZg1g10XAFsvC9Eh7KqlO2skoK6kbEgv7Uzy68MtqEdpUKOP1sP+L4vfAANp1rXX3SSJIh/kY=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791324543; c=relaxed/simple;
-	bh=FVulpAnYmlaz6ZGBqEF0kXcLNEDT1/mgk/OAXn/LvVk=;
+	s=arc-20240116; t=1791377203; c=relaxed/simple;
+	bh=DQ66qo2LBVsMUtYcU8ALmcwIh6GNxRlKIPrYYWjh+QQ=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Ta7xWxDMkijj4xRJyK08MLAqFHdysmM4OoiSMmEusK4XXDacYS3PTMi2UcyvJOaF00C5fFM9UMM7XHDkZXekix1CfwNcujYfOgBcXwM7RNmgUYa7ZfaQA6QbW8FQREVen9DeSR3Scv7vG3e7VRacvNEofELaG7ZeDs/1e4n2G0E=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=aCAKsNoE; arc=pass smtp.client-ip=209.85.208.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 To:Cc:Content-Type; b=qWG15Eus+6uiiwp4s5crG9eIP1ad3LQvRxv41p4TSi0QLY4NSnla4DjuzUl741YKSMoIezI8MG49ITFJNx+HoXFPAkIJW0rrVS3XKopVA1VdE3L6wQnVeV8EgPWg24sRNQHFoIBgru4eob17Dtl8FMfTP3XxI3Y3hRtoyp5tQKE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=nnAYqY7e; arc=pass smtp.client-ip=209.85.219.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aCAKsNoE"
-Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-6ab006eb282so4979581a12.0
-        for <nvdimm@lists.linux.dev>; Tue, 06 Oct 2026 15:09:00 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791324539; cv=none;
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="nnAYqY7e"
+Received: by mail-qv1-f43.google.com with SMTP id 6a1803df08f44-9179bfa9e9cso28637836d6.1
+        for <nvdimm@lists.linux.dev>; Wed, 07 Oct 2026 05:46:34 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1791377193; cv=none;
         d=google.com; s=arc-20260327;
-        b=IoysjELQczgMKaWwY2xbYs5cgVww6f9kxZhLqFMDf7ZkAd8S81Ij6upvDMjXvy3dss
-         UL9TqC1Vc0hLXPhS39bb80CfHYwO61wyJcTPMeXRcrwMuvmAZ7Gcy9a9sCEal9zjjU0S
-         NjjT66gfIdvK5nsBcVD3F6JG5ENz1KjV1f6GpJYnl/QJiC18b9zlB+NspzupbAX1ERfQ
-         iLdRaLRKhKZnnDhzpfCtbw2Wjkr5XOvL7q7W5Z6b0Ru8nSOHjNBlERWGrigLsAcTxvO4
-         ro6KSMpWRFPOHm+cmlv77zCVEi/jLyZ2CJARqrlotTMClnPr24h3T1OQueOy3snexSN/
-         Favg==
+        b=gHVCth6EO4BO5rP9/XGbuqRysOlgscEcsKeksolxn/1dXz5OU4oqWE7+vaZFcwRXec
+         kqAkOVszDS3nEpyphexD8TKdU8xrUMkS5Up4CfwqZn+FoZsYwZjBLuQ7RiyhP3bGJIek
+         SK5yq4BSbPAVL6MIJUPyzbkoOf2jfFTr3Pe5Q5w8/4TJCnaRs9zfWsWSzrjngF33/hX1
+         Xx+NM2o3XymB35m8JGRFuVYNiJ5Sc5voOxwYHrpj63rLvkGPKNHdlER9a6+UUHtrfL2h
+         It3GvqltfoS9AIdMBv8sW7CJ5mz8dMI8624hiVcl/4+fQu18FtCZd/4ciKI3kU0cKm3a
+         piJg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=1Vo8bv/Mw9ldCtrjaA+pK24JIKyIXZlS7hf38pMZ204=;
-        fh=K9GA38GbRf1wcSpe2eMnZpNTjONzzHu+Ab4vJiobTQs=;
-        b=MwYuEzh5jt1S9sEX1gNDiDBcF1KkC19SKNu1LychXaCAxP69NIXJnOXQF6XUU99LNs
-         4aTIodcS2AoSZJuqU3p6MpKPRQZoJeo8qWFNZFAi4AuArTywl7LYDm19GFvRXTTGFhlh
-         WIk57o/KLbPWYdFoQEnzYNFzDZSO6hPmEkXfKMcdAOBHMP8N5o+J8purxUhyA/NwhuAP
-         EcgdpL5z9gThoGYBUvcSejcPzlqEWthkbAKrHc5T2us492c80mwq1WPcuC3NTimeDEZa
-         y9Zs9c4gf/6/jnUVZUoMA8RUcnjVgbv7Atp+3lJSso1PlXOv0hbtBRdxzctJm0opxS6s
-         MyPQ==;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=dUNhGKEa9s44b6qdRqUnNpXSObQsUXKjp/BQgjN+C1k=;
+        fh=W0sxt3dvGT1xovUoP9SyDP5MVDTRd4J15I1I1i4xl9o=;
+        b=PC8aMgltzgSmQKRCF9XXRnjS+kTjM38p9Wq+QKU2hSDtLxstT6uRYEmTuPmlaB30NX
+         OnrV6h/zIWNPfvqcMX03+NseJTVFQF0uX5DVK9CAu4h9z5o8pX3F0DGGPqLKTTyYkBw8
+         mxRbNx4daRoURCPui4+/mRld4qT+KwB4Wr9P+0MZI50tdP2rw1Ies0/kBg+0t5+lYCaD
+         4VFP1MX9TeCbsN6b0a9OcPoC0EKzNMCEa+0dRZbXjUr68m8W3IZXKeaJcuwyZ4Hi+VOa
+         y5rxFYmX+2rJKJAITErlqSZtSk+n/ofqBrpR0nFJCBgSjzRkglDl/DhMuQkCrYEmi+8e
+         qpFg==;
         darn=lists.linux.dev
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791324539; x=1791929339; darn=lists.linux.dev;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=1Vo8bv/Mw9ldCtrjaA+pK24JIKyIXZlS7hf38pMZ204=;
-        b=aCAKsNoEkJ3jN4oRHf14V6igtFlUpMczxJRXeUBBwi4rg+77HVvQEjxMr0EYA9fG0z
-         oy3+UQnQS4U4MP2/D/tWgtRHMVzncNSgZXFD+/Q2DHMGErR1Q5cguLBkosRP2K1MRG7l
-         vOgjCtGeDfuYU7DgWZ5K+KaexkWj1MLFHYCddy46dEQ0UXoThL7DJM2KkhoLq+PctxbV
-         V/lnoJsHvP/lJyDCwONuCm9u1cqtTPixp++gc1wbNJOwOQHGyPK9ypbgBt9B3yzEOrSW
-         zJ8igvoxreGkgPU0pUBoaxVaU2C/WbUFl5KkG7Xe2rVZ5VAI7VgUEDOhDQkXSM9nFyRj
-         ZQnw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791324539; x=1791929339;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+        d=szeredi.hu; s=google; t=1791377193; x=1791981993; darn=lists.linux.dev;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=1Vo8bv/Mw9ldCtrjaA+pK24JIKyIXZlS7hf38pMZ204=;
-        b=X9Jl9POB1km7ztYAZP96oJCO4uBxe7SYheJ1+Yl2lN8hR0YWq4IdRu4wsN7AEIvNo+
-         YUrnmEiEFU/emoqhCgomHBUbBJfSghrVh5bzxwi++ODZymINtvfPuSaG05gojZYOYYLL
-         VBfYi0eOsvxtO8iMQ9UXpwL8K/fcGU3xQ41JxDZfZmehNnyw/KC4nob8C/OmhgQ3A9Tq
-         fH4QYYHKsXWSMjoBZNITHPJcZbqzRpROZMKlEyDZneR4sku07fATBnodlWaGKA5FzY5K
-         Qyks22y4f0VGra4F/OSNIIPi6/kckoK/DlLrJcyHL0cFandDHCcktTR1wtoQPGll0VLg
-         gmMw==
-X-Forwarded-Encrypted: i=1; AKwUvBxG0V7yovqJ5USKVMjarFqp9mHXe5p8REihJIpsYannMZxPzWNjsaoe91Ei0OUEWbJjc+EMBec=@lists.linux.dev
-X-Gm-Message-State: AFq9FYLK/jIxYwPAMtA5UiwtU4c2zYPzSEvBsW+KJob85EG+T0mriq5o
-	dX+3f+5NxD0snMFqej08av8O1r1zL5hPyxg3UToBIR601aCH2e4aQBluBqeTmInqDCgjSGwUm1i
-	CJ9LgyeIzFKuAAAtlj7BuNifeWPoyraQ=
-X-Gm-Gg: AYBFou0+d+xktttr3BccF8M8dJdvQ8ZK5q5R9C2lUIyP8T5L+8u6BkiFq5w5WDUP4/d
-	w8hiFaIrpbm9xe3NJDlP7K47KL9haKi12HsUkIjNVPdvmGyhILl9bp0/QnwFSRiYepS4/mZUg/8
-	L8yDgKEvIYU1dE4f7ExihnnfZ1yDdaZ8NVvePMJGulW0TmzVuFh4AYSW+FY7UgkAZRuqY4PSAJ/
-	wYf3YkA50BNL9gDJ2hN8myR5vMce3uNnwsYWJi/4es33dnoyBEvLt4x8oWM1zcTx+0DiwERHoc8
-	W92VIAr73CLNROlseBhoVpr+D9Mux4POJ6pIaQoRfGlYsdzDsWFpBE/GOmbYVLcgKPhRNn02yR9
-	7EH6JmkHlDhM=
-X-Received: by 2002:a05:6402:51ce:b0:6af:bd48:4b2c with SMTP id
- 4fb4d7f45d1cf-6aff2daf769mr405047a12.5.1791324538890; Tue, 06 Oct 2026
- 15:08:58 -0700 (PDT)
+        bh=dUNhGKEa9s44b6qdRqUnNpXSObQsUXKjp/BQgjN+C1k=;
+        b=nnAYqY7e7g2xpmsNmoLx1SyiS++scdYqd270N1eE1c+BYvhkRuARMUG8HXrNw9GeS+
+         NlxhtB+HDZ2itjqVJm5bpv2LTtwTFS8D9QTuv9FGSrfU3k4LnBit0Dte80jkRXqfF33D
+         6+EcqMAbAlM+aKpTg+Q1SNnRwgGM39S+2B2KU=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791377193; x=1791981993;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=dUNhGKEa9s44b6qdRqUnNpXSObQsUXKjp/BQgjN+C1k=;
+        b=2AkfUIl/4USPOP118AGx+7AaM46QdoSCq4rViKILU/9bXdNrYDwEEKeeUCa89pQUrk
+         TkOirf1M0ZeTk9KFuVxt4P8IyxfAcjO4fTLyagiWAW+EP6ZOMQ2CSfMwNpKgwny+bvql
+         KU+iK5NZv7DeS84BrqHMxHD4riQ8cKOWDWPa+Cbnyp6yasQMcz4IfKrnf/1Ka4HHNpym
+         f1kCSa6tH5MtBCZs6WIp+b6UiTQn6/tPv8YqwqJuFABoQ4UW/yeC3OMPSPpOgr3+dt9j
+         D38nrnaFEEK0IBKE3Zh0YXi4GANSGyPE4MMArX8PUsxhgUpOpyWoSEpCCHyLi9oSEs72
+         T8uQ==
+X-Forwarded-Encrypted: i=1; AKwUvBwTUXeTCg5uzoiO+DxXq+UBGo2gml45R3TadW0YMPPFEJDq0OIyc34cPUVOdu7rPU22Dwzzu/E=@lists.linux.dev
+X-Gm-Message-State: AFuF++nWLNrlYszvgrLxWk6aspgBY97cCsr9OF+M8dQqCV79PqA/JriT
+	PCgIrjYxgJGALIwA4Nh360lapwRU0rVRfP+qUX7VGWKG6DVpMu9fXiI7j4c1Szh6CbPhAybF5FE
+	3F0Q0clJHK6St0XyZ/kJ1LFP0xoLZthE9NGN31mDaGg==
+X-Gm-Gg: AYBFou2wXG5BprCse++j8Sf6Lb5yhHx/XxcS660tPm8xUlHCCbyGac8JANui6pdeIvF
+	ulf+Q169PkZaFx6cmhzWUKeGGbjNdkDR9vycrKBDz3kg5xMh3XgAjCPy4SlYxfMT7lrQmm6bKjy
+	AttbM+rugc2kKT+/6QM/gQNUubr5P4XwYXua7SMcjyByZiCVHx6588/bpVxTL0wSDvZuGmFz2X2
+	lRHNSrJ6Jwq5+Z16uczCNMmf/mlfRl2m+yMwIp5dIjExfWVkbaHjQLA+0ADV/TVlcouiRane7gw
+	jYntx0HTCr16A0QPCI483V01/8QJWCvTB/tt8h78d/ltXAcMEr561W4+UUaQpcX2eGP8nQyxDrY
+	9LTo3RWubqO15
+X-Received: by 2002:a05:6214:5992:b0:912:5f4c:ad3b with SMTP id
+ 6a1803df08f44-919977eb9c7mr39837396d6.16.1791377193347; Wed, 07 Oct 2026
+ 05:46:33 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20261006180115.1425232-1-mszeredi@redhat.com> <20261006180115.1425232-5-mszeredi@redhat.com>
-In-Reply-To: <20261006180115.1425232-5-mszeredi@redhat.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 7 Oct 2026 00:08:46 +0200
-X-Gm-Features: AclHuK-kNEGr89TsaMC-r6qkBAXhNslF5fmkkNhAIDRFq3AWhso05mVTqiKMWVw
-Message-ID: <CAOQ4uxjRAgNKEKOj3yrh0fp_uBdQ-G=5C55G6M8vyjWgp2zvoA@mail.gmail.com>
-Subject: Re: [PATCH v3 4/9] fuse: support 64 bit, server allocated backing ID
-To: Miklos Szeredi <mszeredi@redhat.com>
-Cc: fuse-devel@lists.linux.dev, John Groves <john@groves.net>, 
-	"Darrick J . Wong" <djwong@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Alison Schofield <alison.schofield@intel.com>, 
-	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
+References: <20261001150935.655979-1-mszeredi@redhat.com> <20261001150935.655979-4-mszeredi@redhat.com>
+ <CAOQ4uxjWCRs59Qpc4t+2=i67rdJkHt=+rH07ZXv7ZzAvTjTm-A@mail.gmail.com>
+ <CAOQ4uxi1+WgHJdnRKMD3tp24EOyx7iPByzSKLn_siTVY3_sRDQ@mail.gmail.com>
+ <CAJfpegttAHQAGhE61t-VZqfQv9Z==ovbyLY6qp3KOK_CvjBciA@mail.gmail.com> <CAOQ4uxj76PJiumvXLHoJUKx_=FAueg3WQjYd64=B_TXo581POg@mail.gmail.com>
+In-Reply-To: <CAOQ4uxj76PJiumvXLHoJUKx_=FAueg3WQjYd64=B_TXo581POg@mail.gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Wed, 7 Oct 2026 14:46:21 +0200
+X-Gm-Features: AclHuK_kiKb8PFtEuseEkzlQkRsY4kgMloE-Yk2LCuIBBYBmhlknL6iE41fdO20
+Message-ID: <CAJfpegsKRX-sumEA5bjvfNwpkXp35HM_QPd8taMPooR0gHpKaA@mail.gmail.com>
+Subject: Re: [PATCH v2 3/8] fuse: support 64 bit, server allocated backing ID
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <mszeredi@redhat.com>, fuse-devel@lists.linux.dev, 
+	John Groves <john@groves.net>, "Darrick J . Wong" <djwong@kernel.org>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Alison Schofield <alison.schofield@intel.com>, nvdimm@lists.linux.dev, 
+	linux-cxl@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, Oct 6, 2026 at 8:01=E2=80=AFPM Miklos Szeredi <mszeredi@redhat.com>=
- wrote:
+On Tue, 6 Oct 2026 at 23:24, Amir Goldstein <amir73il@gmail.com> wrote:
+
+> Unless we gate _open() with fch->initialized, then it could fail on
+> either one of these cases:
 >
-> Add support for server allocated 64-bit backing IDs alongside the
-> existing kernel allocated 32-bit IDs.
+>                 if (!fc->passthrough || !capable(CAP_SYS_ADMIN))
+>                         return -EPERM;
 >
-> Opened with FUSE_DEV_IOC_BACKING_CREATE, the backing ID sent via
-> fuse_backing_create_in.backing_id.
+>                 if (inode->i_sb->s_stack_depth >= fc->max_stack_depth)
+>                         return -ELOOP;
 >
-> Closed with FUSE_NOTIFY_BACKING_REMOVE.  Since close only provides the
-> backing ID, not the file descriptor, it doesn't have to be done with an
-> ioctl.
+> Quite randomly.
 >
-> Backing ID can take any 64 bit value other than zero.
->
-> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
-> ---
->  fs/fuse/backing.c         | 179 ++++++++++++++++++++++++++++----------
->  fs/fuse/dev.c             |  24 +++++
->  fs/fuse/dev.h             |   3 +
->  fs/fuse/fuse_i.h          |  24 ++++-
->  fs/fuse/inode.c           |  15 +++-
->  fs/fuse/notify.c          |  28 ++++++
->  fs/fuse/passthrough.c     |   3 +
->  include/uapi/linux/fuse.h |  22 ++++-
-[...]
-> diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
-> index cbb10e19e7e8..b5b51865d59f 100644
-> --- a/fs/fuse/inode.c
-> +++ b/fs/fuse/inode.c
-> @@ -1408,13 +1408,24 @@ static void process_init_reply(struct fuse_args *=
-args, int error)
->                          * them together.
->                          */
->                         if (IS_ENABLED(CONFIG_FUSE_PASSTHROUGH) &&
-> -                           (flags & FUSE_PASSTHROUGH) &&
-> +                           (flags & (FUSE_PASSTHROUGH | FUSE_PASSTHROUGH=
-_V2)) &&
->                             arg->max_stack_depth > 0 &&
->                             arg->max_stack_depth <=3D FILESYSTEM_MAX_STAC=
-K_DEPTH &&
->                             !(flags & FUSE_WRITEBACK_CACHE))  {
->                                 fc->passthrough =3D 1;
->                                 fc->max_stack_depth =3D arg->max_stack_de=
-pth;
->                                 fm->sb->s_stack_depth =3D arg->max_stack_=
-depth;
-> +                               if (flags & FUSE_PASSTHROUGH_V2) {
+> Maybe I am missing something.
 
-Since I was contemplating myself on whether I should also add an init flag
-FUSE_PASSTHROUGH_INO, it occured to me that arg->max_stack_depth
-has plenty of spare bits to host FUSE_PASSTHROUGH_* feature flags.
-
-So if we rebrand it as arg->passthrough_params
-
-#define FUSE_PASSTROUGH_PARAMS(max_backing_stack_depth, flags) \
-             ((max_backing_stack_depth & 0xff) + 1) | ((flags & 0xff) << 8)
-
-We could use a feature flag  FUSE_PASSTROUGH_SERVER_ID_64
-instead of wasting another init flag
-It also avoid the unneeded questions/documentation/awkwardness
-regarding FUSE_PASSTHROUGH_V2 with/out FUSE_PASSTHROUGH
-
-But mostly, it leaves room for more extensions.
-
-> +                                       /* Prevent race with fuse_backing=
-_open() */
-> +                                       scoped_guard(spinlock, &fc->lock)=
- {
-> +                                               if (fc->backing_id_32)
-> +                                                       ok =3D false;
-> +                                               else
-> +                                                       fc->backing_id_64=
- =3D true;
-> +                                       }
-> +                                       if (ok)
-> +                                               fuse_backing_files_init_6=
-4(fc);
-> +                               }
-
-See my comments on backing_id_32 gating on the v2 patch.
+No, you are right.
 
 Thanks,
-Amir.
+Miklos
