@@ -1,63 +1,63 @@
-Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
+Received: from mail-pf1-f182.google.com (mail-pf1-f182.google.com [209.85.210.182])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A28F73A8732
-	for <nvdimm@lists.linux.dev>; Sat, 10 Oct 2026 22:57:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 107473A0B24
+	for <nvdimm@lists.linux.dev>; Sat, 10 Oct 2026 22:57:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791673062; cv=none; b=A7N+PGNH/b400rqNMSRuaVt1/FxmceArBP+r4S/V8G8fO/kXZUwY6B2JJUTJSI/KEaRBWWZP3gWkUVw370c23QRQTXvpx38Ms2D6ez9jwEG5+FAGqyQ3LmTDcMpR3hHAKPtEzOU65Fz9kNNARytGKo4m77L3b84TaglPDO2epPc=
+	t=1791673069; cv=none; b=cVmiGeh0uZtw3kDm9U7KMfRuVrlnPzK43lXG8ILd9GTk1cPsco9bATpcRg70igyhBCfBppAtQtaBanyBrmNBz5iL0lowKltGIrTdtRqwu+0VIPeWq1y11LQoFuYo/B2E2SS+wtPTjcflNgRMnfU8Gxpum12rjlrm/wY7i+WMeA4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791673062; c=relaxed/simple;
-	bh=O85p7dQKkoCkjAQRK1NTGmBvnoYH4SGayD20o4UpkIk=;
+	s=arc-20240116; t=1791673069; c=relaxed/simple;
+	bh=JnmxjIlhNrqNDcxHSzbYS1DDAMqga2BAmEwhynazEsY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=IupmbYFD87kT/rm+SMtQ5fmnPhT/CsUPgOAQBIM0/JMONitL10pl/EkeHlleYDp5ik3zHl52AVZWZEsvd0cx3ZJmPfLZxlauNR9PQgGOlCaWscK2wZab8SZQlydDDp1Irdy1refgbBNO6vlKKOfCbj+/OvaYUoJbXmE8SBIBp9E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=i6x//2OI; arc=none smtp.client-ip=209.85.216.51
+	 MIME-Version; b=OyLcOgA+xnoNbGigKAnBWQAs9h9ljxGUf/vG52x+swOeCL3dkrHnpcSXiB3y7+uOwhlho8vRHjMqtFa0BgqkrmOFnMEz8m12nSVYiUrfBlu/gcfFa02mclmBOPWHMrYWsV2tAtijIV4NScU5jIvZr52XVgHDMFZszFV1755KVhM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YRFYnStK; arc=none smtp.client-ip=209.85.210.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="i6x//2OI"
-Received: by mail-pj1-f51.google.com with SMTP id 98e67ed59e1d1-3ab868eb9cfso310993a91.0
-        for <nvdimm@lists.linux.dev>; Sat, 10 Oct 2026 15:57:38 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YRFYnStK"
+Received: by mail-pf1-f182.google.com with SMTP id d2e1a72fcca58-88bd2b44f3aso319498b3a.0
+        for <nvdimm@lists.linux.dev>; Sat, 10 Oct 2026 15:57:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791673057; x=1792277857; darn=lists.linux.dev;
+        d=gmail.com; s=20251104; t=1791673062; x=1792277862; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=ppxBfGCc+Is1s0EIeQ9jLa31H147Yqy45OpXxBr6feE=;
-        b=i6x//2OIXT/EUtL1NtByp8op5NVfvLDLMOpJ8v/7fVW6WkFb+QlPJExfYer501/vob
-         NGEZpf4AHPYqCwr1SybX8AAaLq4DIp+dBStp/rBGZFf59Ip/88/7/tcBhEakOqUujnVB
-         18N9IyBda0IBgFvghtWcrgkZP2dXS/Rbs97y0GyprMceexwZyrIr3iHzms7PfKsPLY30
-         q9vNiALNL9SvyGyhr18bWiGboT29bUvK8X71AyckRkmY8sP2/MkLmn5lWkmFJ5URKpM0
-         ERp5OilAg+zROegYwD4IAl3faB4LGzPWnilGtpX/tJRjl+uctjbEs5LxFqadQGiD+VFr
-         /rqQ==
+        bh=1YTLtaT9iHCUU2BwSqHbgs21TBjanDGosXtNAr9CKhM=;
+        b=YRFYnStKD58lYP168+y80TflFvWN9chbAjN8vNxr6bEDrnskCUt5H+7Um5EQfXltca
+         zA9DUtObkhjxCisgWvH20dZZxhDRZE7zgtdXfSFlbV8z2vXgoqwft8iwJoMVs9RbpfpR
+         t3sxpDtY8DLiJ9c/OItmoxu2KoOKKn40eGgfK1G2jQH6NwP3JHdydQVCMGeEMC9pzsA3
+         CkD4UBnfDZaurDDVQgaa8o/x8/1vrLLKYJy13DsGO9cAuk+oyoOq9ul7TAbue8e0fFjF
+         YXqFh90xj1LF9X6QMYcHwx0FqtZe2J+zJIb85NtGVxgvZp1s9c3iykX8bKiGMjikEoZV
+         416A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791673057; x=1792277857;
+        d=1e100.net; s=20260707; t=1791673062; x=1792277862;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=ppxBfGCc+Is1s0EIeQ9jLa31H147Yqy45OpXxBr6feE=;
-        b=gpd6V+GTFi2NqC0IAe/OFKL9NQ9YY13SZ9KlC+iw5A83uYOiThJXC91/63+bPd88Nz
-         0/cp0Cgh+qQIXsu07nc0FQme5Ri6xiBOp+ULuCENaCJWl5cwVEkCfNyEZQZOi2T7kD0A
-         DnBZ6E1K08PCSGHVluktp0YPbD1Iv6B8iwW0ui2Bjb3KznUPq/cb4kyG3YlSJg6g6DQu
-         M6hezwmNvLNw3ED/twF8UeOmpVOnP5aL/OVJHg9vo3TPRi3cgZDCD6gsUBF4rXIndv8b
-         0o/7UYn3LcwNMiHPDTXMM2IZWELDgmw1iL19T2DPWDuXREjXycsw3os4K6n6OGbQeBbo
-         Eagw==
-X-Gm-Message-State: AFq9FYJukIXEmKbXDXcCeZdX3oPK9Epgl00m6IDpY1KORRVZ+EzV4Wld
-	HvxHF8THad//6z4Do+bb2gIGtvd302HlEnAzJoPU/6M1F8OWez9ZZotI
-X-Gm-Gg: AYBFou1uUpw2uUFRPZQyuYzTCOgKMElPlOC+P/zwVPU7g57QKPqBRrg8gw+IqVzuzQj
-	qpHsvvJMFKn5s4/aTRz3xWVD7xqeWSVIR2PitH97lDZyNB6ggeN7ZGxS828jeQJZeRPh6FGT2X8
-	aJ3r9keHGBgyreqAnS+GTOdtg9zvquQCeKEoiw0d10+01nuq6bVLKVUWzOyANlerlju9bphPK0V
-	83ebgwuxtlv2De1U5YalW4UIrkzZ4luXV43+RCw3EQz4AkHAwR7VKfI6hc52WViqOGztV7c5h1N
-	qaLIq09dGPv75vuck/3kXa/l9jA5VdpyS35ofvvmzaGzyCxlIQ0p/0+TPTARum7qlzCecKoZkWi
-	0f+PTFMmxcKoWSANIboZMONLpPNhd1qgRgwI635qDfoUB1Cqpp4KBDegG2dHqAa4Y3+BHQxoUiD
-	MvRC9RXhVJwsO/XDuWckcoILHQbJV63gRJhMubgj+qbefvNsI3k3fr+ckX8RPfRlBGTUVSUyByk
-	/2hhSjJEtM1bKdrknBr8bH2JkAd
-X-Received: by 2002:a17:90b:568f:b0:39e:6795:f7da with SMTP id 98e67ed59e1d1-3ab3a7474d4mr5321563a91.19.1791673057510;
-        Sat, 10 Oct 2026 15:57:37 -0700 (PDT)
+        bh=1YTLtaT9iHCUU2BwSqHbgs21TBjanDGosXtNAr9CKhM=;
+        b=FkhoLormNkxjpb9uT80n0V9JVbfiF5NFSTXeu0TVQiFlShfVW2yew86JNqM88WfKMt
+         jzFrVKXMc8G7GZzqHnSxnM/8P7/IbKrI78xz51VRciV7oIywur+U/hq7k+1CBo57GZiJ
+         2KVHzM+wBSybriC8D6TorVRP7Q/+PYbG+NF5nfRCOZDSzIa8SeJwd5uy1tA3WX6Lb6CR
+         t8TjaHmHw8bdtUr+9rYHrXMNO6C1txYLHx+I2P7iNtvZUogRUqNd/wNEwZ8pN3hIKndy
+         DubWVDBot15BQnQHh+QD8cklRez5n5Kp7PMHbnn/lMnTcx3iqfCBnkKOH/SQI33FRX+D
+         e2yQ==
+X-Gm-Message-State: AFq9FYJLF3ie5fxtICm2ODI0Y1bJ44brlbPHNkeBaJBkOkR/toj7JDRr
+	HWuvHD1E3hJyIp57e22TGsm+YF2utgrFtfpOgDu0wRtSJI79bxDvLp6e
+X-Gm-Gg: AYBFou1UwOcEweBuMnaBOiFRO5NyrKLPKYz4u5/2X+zyLHt9jQkMYQzEAfb6VSwgrA6
+	50YXfjXu3GjMwbgZVr73nvJxGx2xl6fsU1gZ6pTmL1L16hk8fNp8/j3diIW4b23VRL+Z4oXCVWH
+	aHzHeRenAeMhDYM/X24qBJtrs2qcM3ViT2NDTClIGVg2X/vHdyogzKqlug4FSR/peGCUQWBixgz
+	s6rxfCjjQuJWeXLbbmrI69o0mJaj/G3HaSwGJ1fILuZfxjEk3JuTjMdHxviE91WFtIKVesLEhWL
+	X1GEbb/KGmIxQX48bs4kvslWXs2F69fOGC/ZZFgxmI2d4EEyIqUerc+E0J9enPu1X0zPtLn6s4o
+	ufcJDXLH2AqcESBL4NcvE4yxW3EVa0jIcbSfFxJkEV2lVJ2KolW4SVAtKfhScyYH9YmRGl3bg8m
+	/Y8+1xXUGG0mE/nxyR1C7H6lNeL72FvkOMxgHH51+OaxF0Zy2kzYkd+Wzmyi1k3tkXcMC/Dfiex
+	/2KKAQUAxtdONRMCqDfai+lubmz
+X-Received: by 2002:a05:6a21:178a:b0:3d3:ad3c:49a9 with SMTP id adf61e73a8af0-3e16be86b53mr4752997637.23.1791673062136;
+        Sat, 10 Oct 2026 15:57:42 -0700 (PDT)
 Received: from cxlqual.. ([220.120.90.131])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-cd3d9e07329sm2603662a12.5.2026.10.10.15.57.33
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-cd3d9e07329sm2603662a12.5.2026.10.10.15.57.37
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 10 Oct 2026 15:57:36 -0700 (PDT)
+        Sat, 10 Oct 2026 15:57:41 -0700 (PDT)
 From: Anisa Su <anisa.su887@gmail.com>
 X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
 To: linux-cxl@vger.kernel.org
@@ -75,9 +75,9 @@ Cc: nvdimm@lists.linux.dev,
 	Gregory Price <gourry@gourry.net>,
 	Richard Cheng <icheng@nvidia.com>,
 	Anisa Su <anisa.su@samsung.com>
-Subject: [PATCH v16 7/8] cxl/core: Enforce partition order/simplify partition calls
-Date: Sun, 11 Oct 2026 07:54:58 +0900
-Message-ID: <20261010225852.10727-8-anisa.su@samsung.com>
+Subject: [PATCH v16 8/8] Documentation/cxl: Document DPA partition layout and ordering rules
+Date: Sun, 11 Oct 2026 07:54:59 +0900
+Message-ID: <20261010225852.10727-9-anisa.su@samsung.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261010225852.10727-1-anisa.su@samsung.com>
 References: <20261010225852.10727-1-anisa.su@samsung.com>
@@ -89,228 +89,89 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Ira Weiny <iweiny@kernel.org>
+DC Partitions complicate DPA ordering. Add a DPA Partitions section to
+cxl-driver.rst describing spec-mandated and Linux requirements for the
+layout.
 
-Device partitions share one flat DPA space in a fixed order: static
-volatile capacity at DPA 0, static persistent capacity immediately above
-it, and dynamic capacity above all static capacity.  The static pair is
-mandated by CXL r4.0 8.2.10.9.2.1 "Get Partition Info", Table 8-310: the
-device "shall provide this volatile capacity starting at DPA 0" and
-"shall provide this persistent capacity starting at the DPA immediately
-following the volatile capacity".  Dynamic capacity has no such rule.
-Table 8-347 only requires the region base to be 256M aligned, so placing
-it directly above static capacity is a Linux requirement,
-enforced by cxl_configure_dcd().
+maturity-map.rst breaks the DCD entry into sub-items so the map shows
+what this series lands: partition enumeration is [1], event handling
+and DC-backed DAX regions remain [0] until the follow-on series enables
+them. The parent stays [0]; nothing is usable yet.
 
-    DPA 0                                                     end
-    +---------------+---------------+---------------------------+
-    |      ram      |     pmem      |       dynamic_ram_1       |
-    +---------------+---------------+---------------------------+
-    part[0]         part[1]         part[2]
-
-Signed-off-by: Ira Weiny <iweiny@kernel.org>
-Co-developed-by: Anisa Su <anisa.su@samsung.com>
+Suggested-by: Gregory Price <gourry@gourry.net>
 Signed-off-by: Anisa Su <anisa.su@samsung.com>
 Tested-by: Wonjae Lee <wj28.lee@samsung.com>
 Tested-by: Junhee Park <jh9934.park@samsung.com>
 Tested-by: Heesoo Kim <habil.kim@samsung.com>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
 Reviewed-by: Alison Schofield <alison.schofield@intel.com>
 ---
- drivers/cxl/core/hdm.c    | 10 ++++++++++
- drivers/cxl/core/memdev.c | 32 +++++++++-----------------------
- drivers/cxl/cxlmem.h      | 12 ------------
- drivers/cxl/mem.c         |  2 +-
- include/cxl/cxl.h         | 20 ++++++++++++++++++++
- 5 files changed, 40 insertions(+), 36 deletions(-)
+ .../driver-api/cxl/linux/cxl-driver.rst       | 35 +++++++++++++++++++
+ Documentation/driver-api/cxl/maturity-map.rst |  4 +++
+ 2 files changed, 39 insertions(+)
 
-diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
-index 379540246333..ec5742debb52 100644
---- a/drivers/cxl/core/hdm.c
-+++ b/drivers/cxl/core/hdm.c
-@@ -470,6 +470,16 @@ int cxl_dpa_setup(struct cxl_dev_state *cxlds, const struct cxl_dpa_info *info)
- 		return 0;
- 	}
+diff --git a/Documentation/driver-api/cxl/linux/cxl-driver.rst b/Documentation/driver-api/cxl/linux/cxl-driver.rst
+index dd6dd17dc536..212df4fb8d63 100644
+--- a/Documentation/driver-api/cxl/linux/cxl-driver.rst
++++ b/Documentation/driver-api/cxl/linux/cxl-driver.rst
+@@ -181,6 +181,41 @@ A Memory Device is a discrete base object that is not a port.  While the
+ physical device it belongs to may also host an `endpoint`, the relationship
+ between an `endpoint` and a `memdev` is not captured in sysfs.
  
-+	/* Verify partitions are in expected order. */
-+	for (int i = 1; i < info->nr_partitions; i++) {
-+		if (info->part[i].mode < info->part[i - 1].mode) {
-+			dev_err(dev, "Partition order mismatch: %d (%s) follows %d (%s)\n",
-+				i, cxl_mode_name(info->part[i].mode),
-+				i - 1, cxl_mode_name(info->part[i - 1].mode));
-+			return -EINVAL;
-+		}
-+	}
++DPA Partitions
++~~~~~~~~~~~~~~
++A memory device presents its capacity as one flat `Device Physical Address`
++(DPA) space divided into `partitions`, which Linux lays out in a fixed
++order::
 +
- 	cxlds->dpa_res = DEFINE_RES_MEM(0, info->size);
++  DPA 0                                                     end
++  +---------------+---------------+---------------------------+
++  |      ram      |     pmem      |       dynamic_ram_1       |
++  +---------------+---------------+---------------------------+
++  part[0]         part[1]         part[2]
++
++Part of that order is required by the CXL specification and part of it is a
++Linux choice.
++
++The `ram` and `pmem` order is mandated.  CXL r4.0 section 8.2.10.9.2.1 "Get
++Partition Info" (4100h), Table 8-310, mandates that volatile capacity starts
++at DPA 0 and pmem starts at the DPA immediately following it.
++
++Dynamic Capacity partitions only need to be 256MB aligned according to
++CXL r4.0 section 8.2.10.9.9.1 "Get Dynamic Capacity Configuration"
++(opcode 4800h), Table 8-347. So a device could leave a gap between ram/pmem
++(static) capacity and its first DC partition, or between one DC partition
++and the next.
++
++Linux chooses not to support gaps between static and dynamic capacity: the
++first DC partition must begin at the DPA immediately following static
++capacity -- after pmem, after ram on a device with no pmem, or at DPA 0 on
++a device with no static capacity at all.
++
++Currently, only one dynamic partition is supported. A device may report up
++to eight (CXL r4.0 Table 8-346); Linux configures the first as its
++`dynamic_ram_1` partition. Gaps between DC partitions are not checked, since
++only the first is used.
++
+ Port Relationships
+ ~~~~~~~~~~~~~~~~~~
+ In our example described above, there are four host bridges attached to the
+diff --git a/Documentation/driver-api/cxl/maturity-map.rst b/Documentation/driver-api/cxl/maturity-map.rst
+index 282c1102dd81..fefd31899229 100644
+--- a/Documentation/driver-api/cxl/maturity-map.rst
++++ b/Documentation/driver-api/cxl/maturity-map.rst
+@@ -150,6 +150,10 @@ Memory-pooling
+ * [1] Hotplug of LDs (via PCI hotplug)
+ * [0] Dynamic Capacity Device (DCD) Support
  
- 	for (int i = 0; i < info->nr_partitions; i++) {
-diff --git a/drivers/cxl/core/memdev.c b/drivers/cxl/core/memdev.c
-index 71493231f5e5..787988e92965 100644
---- a/drivers/cxl/core/memdev.c
-+++ b/drivers/cxl/core/memdev.c
-@@ -77,20 +77,12 @@ static ssize_t label_storage_size_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(label_storage_size);
++  * [1] DC partition enumeration / configuration (Get DC Config, CDAT DSMAS, event interrupts)
++  * [0] Extent add / release event handling
++  * [0] DC-backed DAX regions
++
+ Multi-host sharing
+ ------------------
  
--static resource_size_t cxl_ram_size(struct cxl_dev_state *cxlds)
--{
--	/* Static RAM is only expected at partition 0. */
--	if (cxlds->part[0].mode != CXL_PARTMODE_RAM)
--		return 0;
--	return resource_size(&cxlds->part[0].res);
--}
--
- static ssize_t ram_size_show(struct device *dev, struct device_attribute *attr,
- 			     char *buf)
- {
- 	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
- 	struct cxl_dev_state *cxlds = cxlmd->cxlds;
--	unsigned long long len = cxl_ram_size(cxlds);
-+	unsigned long long len = cxl_part_size(cxlds, CXL_PARTMODE_RAM);
- 
- 	return sysfs_emit(buf, "%#llx\n", len);
- }
-@@ -103,7 +95,7 @@ static ssize_t pmem_size_show(struct device *dev, struct device_attribute *attr,
- {
- 	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
- 	struct cxl_dev_state *cxlds = cxlmd->cxlds;
--	unsigned long long len = cxl_pmem_size(cxlds);
-+	unsigned long long len = cxl_part_size(cxlds, CXL_PARTMODE_PMEM);
- 
- 	return sysfs_emit(buf, "%#llx\n", len);
- }
-@@ -426,10 +418,11 @@ static struct attribute *cxl_memdev_attributes[] = {
- 	NULL,
- };
- 
--static struct cxl_dpa_perf *to_pmem_perf(struct cxl_dev_state *cxlds)
-+static struct cxl_dpa_perf *part_perf(struct cxl_dev_state *cxlds,
-+				      enum cxl_partition_mode mode)
- {
- 	for (int i = 0; i < cxlds->nr_partitions; i++)
--		if (cxlds->part[i].mode == CXL_PARTMODE_PMEM)
-+		if (cxlds->part[i].mode == mode)
- 			return &cxlds->part[i].perf;
- 	return NULL;
- }
-@@ -440,7 +433,7 @@ static ssize_t pmem_qos_class_show(struct device *dev,
- 	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
- 	struct cxl_dev_state *cxlds = cxlmd->cxlds;
- 
--	return sysfs_emit(buf, "%d\n", to_pmem_perf(cxlds)->qos_class);
-+	return sysfs_emit(buf, "%d\n", part_perf(cxlds, CXL_PARTMODE_PMEM)->qos_class);
- }
- 
- static struct device_attribute dev_attr_pmem_qos_class =
-@@ -452,20 +445,13 @@ static struct attribute *cxl_memdev_pmem_attributes[] = {
- 	NULL,
- };
- 
--static struct cxl_dpa_perf *to_ram_perf(struct cxl_dev_state *cxlds)
--{
--	if (cxlds->part[0].mode != CXL_PARTMODE_RAM)
--		return NULL;
--	return &cxlds->part[0].perf;
--}
--
- static ssize_t ram_qos_class_show(struct device *dev,
- 				  struct device_attribute *attr, char *buf)
- {
- 	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
- 	struct cxl_dev_state *cxlds = cxlmd->cxlds;
- 
--	return sysfs_emit(buf, "%d\n", to_ram_perf(cxlds)->qos_class);
-+	return sysfs_emit(buf, "%d\n", part_perf(cxlds, CXL_PARTMODE_RAM)->qos_class);
- }
- 
- static struct device_attribute dev_attr_ram_qos_class =
-@@ -501,7 +487,7 @@ static umode_t cxl_ram_visible(struct kobject *kobj, struct attribute *a, int n)
- {
- 	struct device *dev = kobj_to_dev(kobj);
- 	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
--	struct cxl_dpa_perf *perf = to_ram_perf(cxlmd->cxlds);
-+	struct cxl_dpa_perf *perf = part_perf(cxlmd->cxlds, CXL_PARTMODE_RAM);
- 
- 	if (a == &dev_attr_ram_qos_class.attr &&
- 	    (!perf || perf->qos_class == CXL_QOS_CLASS_INVALID))
-@@ -520,7 +506,7 @@ static umode_t cxl_pmem_visible(struct kobject *kobj, struct attribute *a, int n
- {
- 	struct device *dev = kobj_to_dev(kobj);
- 	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
--	struct cxl_dpa_perf *perf = to_pmem_perf(cxlmd->cxlds);
-+	struct cxl_dpa_perf *perf = part_perf(cxlmd->cxlds, CXL_PARTMODE_PMEM);
- 
- 	if (a == &dev_attr_pmem_qos_class.attr &&
- 	    (!perf || perf->qos_class == CXL_QOS_CLASS_INVALID))
-diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-index bac7e1ac715f..35268d1c387c 100644
---- a/drivers/cxl/cxlmem.h
-+++ b/drivers/cxl/cxlmem.h
-@@ -412,18 +412,6 @@ struct cxl_security_state {
- 
- #define CXL_MAX_DC_PARTITIONS 8
- 
--static inline resource_size_t cxl_pmem_size(struct cxl_dev_state *cxlds)
--{
--	/*
--	 * Static PMEM may be at partition index 0 when there is no static RAM
--	 * capacity.
--	 */
--	for (int i = 0; i < cxlds->nr_partitions; i++)
--		if (cxlds->part[i].mode == CXL_PARTMODE_PMEM)
--			return resource_size(&cxlds->part[i].res);
--	return 0;
--}
--
- static inline resource_size_t cxl_part_size(struct cxl_dev_state *cxlds,
- 					    enum cxl_partition_mode mode)
- {
-diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
-index 798e5c369cfc..9c4ef401cbad 100644
---- a/drivers/cxl/mem.c
-+++ b/drivers/cxl/mem.c
-@@ -139,7 +139,7 @@ static int cxl_mem_probe(struct device *dev)
- 		return -ENXIO;
- 	}
- 
--	if (cxl_pmem_size(cxlds) && IS_ENABLED(CONFIG_CXL_PMEM)) {
-+	if (cxl_part_size(cxlds, CXL_PARTMODE_PMEM) && IS_ENABLED(CONFIG_CXL_PMEM)) {
- 		rc = devm_cxl_add_nvdimm(dev, parent_port, cxlmd);
- 		if (rc) {
- 			if (rc == -ENODEV)
-diff --git a/include/cxl/cxl.h b/include/cxl/cxl.h
-index 728decda57fd..1c04a7823f64 100644
---- a/include/cxl/cxl.h
-+++ b/include/cxl/cxl.h
-@@ -130,6 +130,26 @@ struct cxl_dpa_perf {
- 	int qos_class;
- };
- 
-+/*
-+ * Partitions share one flat DPA space in a fixed order:
-+ *
-+ *   DPA 0                                                     end
-+ *   +---------------+---------------+---------------------------+
-+ *   |      ram      |     pmem      |       dynamic_ram_1       |
-+ *   +---------------+---------------+---------------------------+
-+ *     part[0]         part[1]         part[2]
-+ *
-+ * The static ram and pmem partition order is mandated by CXL r4.0
-+ * 8.2.10.9.2.1 "Get Partition Info" (opcode 4100h), Table 8-310: volatile
-+ * capacity starts at DPA 0 and persistent capacity starts at the DPA
-+ * immediately following it.  A dynamic partition has no such
-+ * requirement -- 8.2.10.9.9.1 "Get Dynamic Capacity Configuration"
-+ * (opcode 4800h), Table 8-347, only requires the DC Region Base to be
-+ * 256MB aligned -- but Linux follows that precedent and requires it to
-+ * start at the DPA immediately following static capacity: after pmem,
-+ * after ram on a device with no pmem, or at DPA 0 on a device with no
-+ * static capacity at all.  cxl_configure_dcd() enforces it.
-+ */
- enum cxl_partition_mode {
- 	CXL_PARTMODE_RAM,
- 	CXL_PARTMODE_PMEM,
 -- 
 2.43.0
 
