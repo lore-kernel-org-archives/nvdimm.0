@@ -1,131 +1,219 @@
-Received: from mail-qt1-f181.google.com (mail-qt1-f181.google.com [209.85.160.181])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 272874A92F5
-	for <nvdimm@lists.linux.dev>; Fri,  9 Oct 2026 10:40:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CCCE1B7910
+	for <nvdimm@lists.linux.dev>; Sat, 10 Oct 2026 01:48:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.15
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791542415; cv=pass; b=lR8Lxf805q68fG0wlLfjRKIRZvf111QlDWQ9pfjpk7YD2O+JrKJbF2/nLAgaUzuoMvZrb7Mb3PN5jA5y6favf2v2rEMXjEENiX2cKJhLBO9tAcO6qTGO0HNEvZj08AHOOSlAfiD3djwB6PkeNuBfyfGXrQBXkV5tEGS90n25hkg=
+	t=1791596939; cv=fail; b=PtBdy3x4jU05NmtBHEDOq/xw1QHeWXeoRKvF7CNJU/C1/ivPwyPf81aFy6oRdlL4DnIkWjfpngExqIM8W2bnKy1Sh3AFHMXXGnqtR3wAMxOrW4SEfGudvrwZuBE9dow+DVUuXG6idn4Jd+ul86nDyVr5Klw8ho6sKFJIKxg4ez4=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791542415; c=relaxed/simple;
-	bh=TdmxEYfYtkSXgsQopCBGSZ8pT5p6msP1oRfZOE4Yi+A=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=fHV7CxLzqdLnpO4MyCLSwUuM5xCIKdhXnYQK5xm3z67zJ7RYHCgw2wQJwD3mAx1+P6GM1wpQWiMBVHOXKzOQy/NIePfm4586Q3OzB3lnu4/c/0BDGZOdDiBpcIGeov2MouI9S8wQ/IBNvc2Ug82Pr6+AjbQYy66xGh3Py49oD34=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=RCUR+Mc0; arc=pass smtp.client-ip=209.85.160.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	s=arc-20240116; t=1791596939; c=relaxed/simple;
+	bh=jSrpQwPDuh4p3gYoRMqRzwngYqbnTuhSUOkh5f1GqNs=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=EQfmPKqoREsTF1Y3o3mJTyXBfsr/c3EumqjVjtmW8Nuxl1EGBJCcQ2tzJeDVfzO0ojnIne0A2DNMuvOeBXc6e+LYefJVuwaodD1ZmsYaMhzlJ4cuJLoxRotDzNx7B/YSGCM1CeF3GuUPu7qN/ZIAT4l2ZuNEAKWay3D8MylWgVo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=immExsmG; arc=fail smtp.client-ip=198.175.65.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="RCUR+Mc0"
-Received: by mail-qt1-f181.google.com with SMTP id d75a77b69052e-5338c1197easo50967901cf.0
-        for <nvdimm@lists.linux.dev>; Fri, 09 Oct 2026 03:40:12 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791542412; cv=none;
-        d=google.com; s=arc-20260327;
-        b=WmG/FaJdwLQAEztsXLvcN+P7P3gRMAzeIlrvE+wk3QVVX/uyvtZOWgasC07p34t6So
-         vjwfuvMUajcCsG4hmGMjQHP8W9+UfVRwwlHaHsoaOggGuqPbQPSpsdhuNuqN3EKHgh3a
-         tKk1FiZT78DatO1juBhzuK8VQZELote2NNtWhIdigS9DkTgQ6M8hqB9Cd8ReA6CWcn4X
-         w+SdFLQbibvZENVAmIQyFanQ18XVtA8EsodRw4Sot221Jo3o3Bcvzmp8A1Ks/tcgK53a
-         vyDr5UIjmJLHHco0I+bKWXVF8tKiY7DrQKBUNoHF6fgmxE2dwTwtygJPoS6kn/kXjhHW
-         g1Uw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature;
-        bh=Dj6hvZEw0Eh9ZS8EwZEyRVpYOqz/OSg7EGiwmx0le9o=;
-        fh=Ih5LigMjYEj6tq+Lu5077TDL31d+N+hzTXhJ2bodsc0=;
-        b=NhooPJhSBnzpVWZPnvIj489xgT2BRWlLBpg79w5Zv0SY1BqDGNnv9kkS9k2JjgW/rb
-         LaKkCXEkbPcEhUZ3SMIcAFYm6cprJu4e3lWjc7uRi0RGNekxjgLsDkURL0shZhdTGoIE
-         C4y1y+GV2Qd6S/r5MutDrom5i4IpW6d9dCufUNl66skOZfj27Lgcf0OM3qleSKlUEvJu
-         XF5EgESWTawIbqYd7k8GDpqyzfoG6Knm5hG7WPfzNk96h4H1UMXAyxbxVwhezb99LGgv
-         usPKXE8sIE0jZ9OnEjWs4YWEqsyV3FgNeM3fHD3I8cNkBQfQ7Fzx7dNYZWqAgqsQNt0Y
-         XneA==;
-        darn=lists.linux.dev
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1791542412; x=1792147212; darn=lists.linux.dev;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=Dj6hvZEw0Eh9ZS8EwZEyRVpYOqz/OSg7EGiwmx0le9o=;
-        b=RCUR+Mc06oiX9lCu1sHvZ2vZftCHr7fw60m2uDmzLYEe95/EY3lJW0LC6a/+yY7upb
-         2zo/UkA1muXGRXJenVZ/Ha5FBcD9migzSzFgTJXrKR/q2asuACr1ULUYa3cKKyDtBpR2
-         hfGNmQ4rgRDmwFSL2RbpOb5cNRmx3UrPyckxY=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791542412; x=1792147212;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=Dj6hvZEw0Eh9ZS8EwZEyRVpYOqz/OSg7EGiwmx0le9o=;
-        b=0XymjGR6Ku1sQtgZS4WDxLixVp8JEIW7PRA+O47pFo360KeviXfdGBuAR1MaQlxPEu
-         qa2ekyLSkHNQ619GyT2SVttt+Ge8ZoWZhvhbWzauhsQL7TnFWtG+x9DR1OxsTD0AywEh
-         lTI086U5tiBGMnG0WDNZZngA9tYnE3hDiojrnX9jQXMxfa4edzcoJvyILpM5OZINvMeB
-         YLsAMrzvhhZPzEJ28pKCEJZP6wPdlkEmwyTWIXC8RDqT+oA+gl6TPz9f/8jIfHUeJUzh
-         UOy4u0mXiqH84F4+SkYoSN9wm/K3bRRQCVUa9U0pQYhFFQ8arQbPKGms9FGcI/pE4HJT
-         8hNA==
-X-Forwarded-Encrypted: i=1; AKwUvBwJs9waMRHG51KeFeDK7/0GQwLW5dTn0J03N+0DauIbSwnGyG86rIjcgoOuqi0wEuFV4dhlGI4=@lists.linux.dev
-X-Gm-Message-State: AFuF++l1/aWC6+juTpKfzTx643M6PG40YFdSh4NrS3GUeW+4KdM0LrsC
-	J8xqCHWN8/CtHEa6taEGDaHN/mV4BWKpRCo79aDw7hMFDTxbeCp+h0TUP3MX1/Q99zkWluuLqnN
-	d8lVZR/5zg0rfIJP9KjHo7hc1wyxDYXUqBeIkY47fwg==
-X-Gm-Gg: AYBFou35PvfXICcaJ2keNHh+qu+qTatuf1S4wUM5LmzWGuK0mwafz+9engd8OBXcGhk
-	vo0+L2bAFbad9FnL0V1l6AVOf6yC45EiFyonAPSf7ZMtDldZHgVVAC6QJPXJ1LJkEPfwyeZpu2b
-	sPhH3mT3ONBPuZpjNvQR0ogZSPj3cTCt1Zdd1MeQfEReMco+ZtUfwOqBIavxRhWo8FyDBISujT1
-	L3PECKAsj3bWfbF39aMV0r5UedN4tCyjorMD1ptZ7Kj2mMvMVrTi53PpDjPFtPTN97Vt6zQcHGc
-	MPtPGc2yk9qbZDzZakvVVJaehuNYlRa6H5R/OT3vli1Y65ZqLCfoHMsGU1jB7Z/Sc6dXbgaXYEO
-	W0xqF3jWf0ns/
-X-Received: by 2002:a05:622a:54b:b0:533:6f90:9e7e with SMTP id
- d75a77b69052e-5359fa918b1mr20240541cf.27.1791542411710; Fri, 09 Oct 2026
- 03:40:11 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="immExsmG"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1791596937; x=1823132937;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=jSrpQwPDuh4p3gYoRMqRzwngYqbnTuhSUOkh5f1GqNs=;
+  b=immExsmGH+ehmgFadBnSIHF6gGRPE/nq6yq5sQTNVxBv7dkILac//PRk
+   4N5NUUd3OaP/QPEYfN69XEjW1WsN0y1+sqXoiYd3ydsDpZMau+3Dz+BcK
+   uWGyCm0Z018uIukg//PbobJtXdRf/17ex7KyfCQZA+ulfbYQ2Da2mRL94
+   SXTUckWgvGcJ12RiB+r0xQofC0UfC5HIAxYVcfTkE8O2RyKPNTwrt5H8+
+   1hX9LNRjkltE2LULRBi5vWRRDvTEKr/zzOioCOUI8cwq49LOJHy5d9MJW
+   /R+9ZvfcoZ/duJeu2ytnAsH8Zqctc9CJSBaOZfDztIp2awniqPYK4ejag
+   Q==;
+X-CSE-ConnectionGUID: Bsj4hx9CS7KlKMELcIB1Mg==
+X-CSE-MsgGUID: Iot51x9VSGqw02+Gvqm+OA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11930"; a="392385"
+X-IronPort-AV: E=Sophos;i="6.27,149,1787036400"; 
+   d="scan'208";a="392385"
+Received: from fmviesa006.fm.intel.com ([10.60.135.146])
+  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2026 18:48:57 -0700
+X-CSE-ConnectionGUID: MHHISchbTWaIjMT6m+zclg==
+X-CSE-MsgGUID: 25ZcOwTaTx+6a0P/O+6kZw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,149,1787036400"; 
+   d="scan'208";a="802133"
+Received: from fmsmsx902.amr.corp.intel.com ([10.18.126.91])
+  by fmviesa006.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2026 18:48:57 -0700
+Received: from FMSMSX903.amr.corp.intel.com (10.18.126.92) by
+ fmsmsx902.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.49; Fri, 9 Oct 2026 18:48:56 -0700
+Received: from fmsedg901.ED.cps.intel.com (10.1.192.143) by
+ FMSMSX903.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.49 via Frontend Transport; Fri, 9 Oct 2026 18:48:56 -0700
+Received: from SA9PR02CU001.outbound.protection.outlook.com (40.93.196.23) by
+ edgegateway.intel.com (192.55.55.81) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.49; Fri, 9 Oct 2026 18:48:56 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=bjWnMz6gIFuE0kzBOp8oCZ6+fT2afYV/vQv+pAdcKvzFA1Mt0R+h3ycy4x6AEYhvYLcSG3kotY5qxzs7WYAWtgntNX0zNjuzAft1K8d8ay41744pEBpErK6pLAl/ho+lbhFD/Fw5btmGez0fmB++UqaNfCJY3s3sXDg+DDdGmhz/5KoIP3tgJ7GmW7YfAW6IrxeSXYd+QzoPu2josXPcH07zUxtI6O4pgt8kKpIE0G7UZOVOR/gYuuSnN6aDBYqIIAIdfxUWvpscqWof56EKmrsEor0EnEFR/4ST6R8tn9jvuLYhL8e3THSkXhE9M0axfZBXsKmXDLHM6Fc1Yrh0uQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=O5JcoL3ea+n7Kn97ueIBiX0U4/tCVDTllHRxkFFl6e8=;
+ b=n5Wg06pZvSwRVOK51VY2XvGjYU1yYjSa8UCHS2GMJU50ua9hDOvabRdsOm/7TGBt4uUUQ1SKoR8J2RBnOkOLOY6ffdTPEq9G+/g6Wh/Gz9Uq1/rIS7/qyCeqd7jvErVyADrjaN5lcUUe7nUloUqhecKeaJzJUfQ/6kS9dcju+EYKyhRWqqVXAObvs6aG/Aar88aWz1ycoBRagu4q47iuyMZAPawlZz/qu1/7Dgg2dvan1dbupaOIG+OAw+SFoFwr6BxEmhtHoJen079L+Khg/I/GscvmAmPClkyqVqrKGhH6y2g8GsUI1bb5HAliaMSQ5g23Y2Z3bOdhIhdQPj2maA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com (2603:10b6:f:fc02::9)
+ by SJ2PR11MB7520.namprd11.prod.outlook.com (2603:10b6:a03:4c2::19) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.451.35; Sat, 10 Oct
+ 2026 01:48:46 +0000
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::6fbf:c112:d0a8:f1a8]) by DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::6fbf:c112:d0a8:f1a8%5]) with mapi id 15.21.0496.017; Sat, 10 Oct 2026
+ 01:48:45 +0000
+Date: Fri, 9 Oct 2026 18:48:40 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: Jiale Yao <yaojiale02@163.com>
+CC: Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang
+	<dave.jiang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, "Joao
+ Martins" <joao.m.martins@oracle.com>, <nvdimm@lists.linux.dev>,
+	<linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<stable@vger.kernel.org>
+Subject: Re: [PATCH] dax/device: defer publishing the dynamic pgmap
+Message-ID: <asmZeDROBmmc-3kz@aschofie-mobl2.lan>
+References: <20260927114736.1113965-1-yaojiale02@163.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20260927114736.1113965-1-yaojiale02@163.com>
+X-ClientProxiedBy: SJ0PR05CA0101.namprd05.prod.outlook.com
+ (2603:10b6:a03:334::16) To DS4PPF0BAC23327.namprd11.prod.outlook.com
+ (2603:10b6:f:fc02::9)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20261001150935.655979-1-mszeredi@redhat.com> <asQcBebepPb9CXzS@groves.net>
- <CAJfpeguEUTYk9m7g2gZTMui0yFDYWSGL1SZ9PvoYiCqjDmHp9A@mail.gmail.com> <asZcsPT-Q8qga0SU@groves.net>
-In-Reply-To: <asZcsPT-Q8qga0SU@groves.net>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Fri, 9 Oct 2026 12:39:58 +0200
-X-Gm-Features: AclHuK9bZ1vBizXVx85EODvHCHAG09uRctj1VxFiQmSS5BJHJIYfB0DeoAwYH60
-Message-ID: <CAJfpegtZvQsu6gD1-zXvmELcu1-93ZKKEdKHMXqHzChgd_TXKg@mail.gmail.com>
-Subject: Re: [PATCH v2 0/8] fuse: DAX device based extent maps (famfs)
-To: John Groves <john@groves.net>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, fuse-devel@lists.linux.dev, 
-	Amir Goldstein <amir73il@gmail.com>, "Darrick J . Wong" <djwong@kernel.org>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Alison Schofield <alison.schofield@intel.com>, nvdimm@lists.linux.dev, 
-	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, david@kernel.org, 
-	willy@infradead.org, brauner@kernel.org
-Content-Type: text/plain; charset="UTF-8"
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|SJ2PR11MB7520:EE_
+X-MS-Office365-Filtering-Correlation-Id: 720aa857-25b1-4f28-7ed9-08df26709ef4
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|23010399003|1800799024|366016|376014|261009223027099003|11063799006|56012099006|6133799003|10067099003|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info: QAIyNGlkecwABVxlgYp+7y/y25ojr7CWZkT+psYTxGHla8nMbvSkCp6YGDK3oXva+Rmy3e/JCRDPPaRCGFcYNSVCDDc0imIY6SwqESsbfXOkT/FF0TycI8a4Fl6sgDeCoND8B6PaADFZuLP2yiYHcfHcWbZ3QjONWbQR3EwSU8AH48n4WlWKI5fPEWRLonWaKz8J3nDkezcz4XVQNL5rQHx2TAbJSJE5N2aqSEA4mnClovQ5/7rP0PXKJguVal5MeVgWcxo57M1UBHahiBHORn3FFBVBO3T6emE4ztbXNg+h0h3nKEnMGlnyiX/xytVy1qv8wFR8ft4BnjFFpTaCZsttYeiE7alsVjFUV8cGvlVFmQCxkY+ZvQ5K2OVboDjAtrHpOjCQ2n5QxjKcZEJmijjmj3cswpE2b7UIypg/cuMn5Y/WJ4E+tGNl3apC4yPD5tcQaHWfDfC06ZOvmsB1gAz+W+xp4AqUsIGc0UZBkAigNjMyRxckjoSEltTleGk+zGxYhgk2XgqEcZFMRiXbkuCPmVR4f6pMYGdDdkBf/91lr1VfUoVIAd0PYbhSyIdlFAwctPI+9hQVHicwpyhPorA7FvoHsIzRc9ekusWJRMGn+XJ6mK89jleB4u2WauQig6yQz5bvQ7Et6hhA1cRKzPiQJ1IZjIFszp68Z4XprJQ=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(1800799024)(366016)(376014)(261009223027099003)(11063799006)(56012099006)(6133799003)(10067099003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?0xhJIgDLDZnsQiMdjrYU4J0XvThI7Ji+/YqKd+q3Sx8BovBEaZ2plUDX8MKe?=
+ =?us-ascii?Q?cjZWbrxj7XMqsBJOTkW2Ipcd/ma4H6LxFXbnwtLeome/8Yrk/b9EQg+co1U2?=
+ =?us-ascii?Q?aV7kr/91oObk3AWfEZU8heq6fJqDLGguiAKoT8rZoJ6GwDdMYuoFjnUQbe+8?=
+ =?us-ascii?Q?pdskuH/YRtWXu4/zOYtsJjbRfIl5gxnoqRYLPRUytnX9sHC+r8QFaHLkNIn1?=
+ =?us-ascii?Q?eeJCU6P5pYzOWq0eVQURSf9RbRfyDrdK6/zrY8ogEvf0e8eCa/WQ1zmCH4/+?=
+ =?us-ascii?Q?l4Lwug7BqIR25G9XpYaLINZGN3UM26zsZCGKI1BE/+t0VFdrozlhwlBrXVSr?=
+ =?us-ascii?Q?opEKerbGxGCZLLEtYD42DkqnU/u+JOIDi5f//Lstr1KlyFkU7GAjcQgkFkCq?=
+ =?us-ascii?Q?bygrgg3SwSP/nI/i+wyxa5l1PJHvP4YDt+9FjV2rszRGoyOoXkIN0+Ku/rAe?=
+ =?us-ascii?Q?I4aMgUecSh2XGVAaE9Cf0rL2ABIAQ8+iZoscYkKS2A2xXgF6sUOFci0Hf/t5?=
+ =?us-ascii?Q?7YFhZJPVh6CunBuHZm54bogTtovDcViruW5skctk9DDcmqz+jopTUD4CxWQJ?=
+ =?us-ascii?Q?6kHp8bHwYv6nYNMaZwnKpb5YwVrjMPasoneW27y6Ap5bQW8+oPr3/b4Gug3F?=
+ =?us-ascii?Q?Jvo8uCc7YxPeLvFgivSAp3BE5aWD3GMrQc87AoZOLUEaF0rj+Hp8pV4H7WlI?=
+ =?us-ascii?Q?uWZSlexRgXzGBg4w0PZNT4aGHz5He6//6HV5Rgp6YB3CjFyieg7d3kHhWPAI?=
+ =?us-ascii?Q?OZad1/LO8TfaBnQlZJiy87VhrbIsU2GFkXH21Y4qfIfXK/iK+PwJ2iuZkKV8?=
+ =?us-ascii?Q?gy7AB7uRh3YVv2j+6SJ081wyazLm8cMIRKXoL+QVUv1CEX7zqyv3w05Ze8qU?=
+ =?us-ascii?Q?ePQhcHZY+obnXlablNRk2pwXsUmiZNrNERbX3VwMAeOBxK1QaD8X6JayUzYv?=
+ =?us-ascii?Q?qIemyvUffmc9NBQw/bCh04gsuaZDTIBNgw7uoiTXjlnFMwkJzOY1NvYvnp7I?=
+ =?us-ascii?Q?U8hCMdqLNf3ls1StLNqUYuklpuG2iklXwbrYfZ9j03G85mgPfx8PX5nsUeR2?=
+ =?us-ascii?Q?BFwdtsn49IGxOdo4XvGF939mSlSSaBDe7aUAz3Je9PjXNnb9kfYnCeNRjBRA?=
+ =?us-ascii?Q?pdkT1sPqN4UqW8pATHeh4AjRZO7YNh/DsAZw2kG4OONGqk0qS0nd2be7ob2r?=
+ =?us-ascii?Q?KNtwUsjpIhBx0+P1KtWRKfTI8nBGjLWJql+dYdgDOO1cXzZfe8CqtAX8Trk5?=
+ =?us-ascii?Q?vvkRR9VvxEvB57vrfgdWIfe1IfayZ4b2XlrWQS1b3o5377zetb/Lt1wO8+Cp?=
+ =?us-ascii?Q?5FdVGaX4AV3oiobsEmQwX+ODm+fitQe/1rFT+fGgqOAOG4FZi0mTskGeyKJA?=
+ =?us-ascii?Q?1NJ6t9ZjKeOMR9YA++HcgVeHdGq73E159ViLOujUujWSbg9RNGL9JI1ndmSo?=
+ =?us-ascii?Q?UHvBwBy3yeUtM5f7T8huxRl0wSn9FdabIF2NK4IRKYpEgDX9A1Q8GVnfmxjp?=
+ =?us-ascii?Q?ZYIQJPApgT2wSglwOkc4+A7PG80KpCgEo7QHVvhfsLb0crhd13kuW7rj2BIm?=
+ =?us-ascii?Q?kFdHKyXrswerzKIPxswTJK4ffcTnAyE/Hhv1COrzVUHVcPvkeNLREuw/bdmc?=
+ =?us-ascii?Q?GxpZ1TGdulbi+9CTfN+Cs71KVplnlPF63w3o2PZhwikEPNjZH6vMtt/SZgr7?=
+ =?us-ascii?Q?wlltTVjDVA51RqUIneRh7TL3R+R1CyFYajSpjjLIKgCoTI6E0WKfZwVqfVT5?=
+ =?us-ascii?Q?FkjW+/JGvbBi8BPYYEpbZPsPiDnBN/I=3D?=
+X-Exchange-RoutingPolicyChecked: GzjNbVavYI99QUPY3/ZmTKzmOlUQOaoZXCm0xSgtZaO8i1b3gUXAEytyYFC9u6U0cIEYx6ibxPM2hwbW/H5JHy6j63xo+dQzqllO1BnFIuzVL/3tOhJd0VBV0iD/or/HJP5oldESvLTdt5WI3PCIObr/On3PGpFySslNcMa31CLL7t3aCNHOr9EJLPyN6EiigEkOftJ5wt5Wct5CGAaKHDgBuqe2IUtGRtQ83/yK62aGZKeJA85fE/k70def+Vl/XGCpFZL39x3fXM24Nwdo+1xGrepzPsxYx+Kn/DhhqOK+EJVdV+qOTeNjf3riZ+EWAsYES9ZzhZVgImX2vb8Yfg==
+X-MS-Exchange-CrossTenant-Network-Message-Id: 720aa857-25b1-4f28-7ed9-08df26709ef4
+X-MS-Exchange-CrossTenant-AuthSource: DS4PPF0BAC23327.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Oct 2026 01:48:45.6761
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 4HJy1hlUkS/cy/MDAzw6OUXdIs2ju0qUecezBixPD6T3Kp/ceOiUun6Z2NO7vE/2QJ9rZlZR1tv+XpkZlhckNZPTVa6SBd4TXYoxMoyKjNU=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR11MB7520
+X-OriginatorOrg: intel.com
 
-On Fri, 9 Oct 2026 at 01:00, John Groves <john@groves.net> wrote:
+On Sun, Sep 27, 2026 at 07:47:36PM +0800, Jiale Yao wrote:
+> The dynamic device-dax probe path publishes its devm-allocated pgmap
+> before several operations that can still fail.  If one of them fails,
+> devres frees the pgmap while dev_dax->pgmap remains non-NULL.  A later
+> bind then fails the dynamic-dax invariant check and leaves the device
+> unusable until its region is recreated.
+> 
+> Defer assigning dev_dax->pgmap until the final devm action has been
+> installed and probe can no longer fail.  A failed probe then never
+> publishes the temporary pgmap.
+> 
+> Fixes: fc65c4eb0b2a ("device-dax: ensure dev_dax->pgmap is valid for dynamic devices")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Jiale Yao <yaojiale02@163.com>
+> ---
+>  drivers/dax/device.c | 9 +++++++--
+>  1 file changed, 7 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+> index d0c9b4e03b47..8cd8e05872c3 100644
+> --- a/drivers/dax/device.c
+> +++ b/drivers/dax/device.c
+> @@ -409,7 +409,6 @@ static int dev_dax_probe(struct dev_dax *dev_dax)
+>  			return -ENOMEM;
+>  
+>  		pgmap->nr_range = dev_dax->nr_range;
+> -		dev_dax->pgmap = pgmap;
+>  
+>  		for (i = 0; i < dev_dax->nr_range; i++) {
+>  			struct range *range = &dev_dax->ranges[i].range;
+> @@ -450,7 +449,13 @@ static int dev_dax_probe(struct dev_dax *dev_dax)
+>  		return rc;
+>  
+>  	run_dax(dax_dev);
+> -	return devm_add_action_or_reset(dev, dev_dax_kill, dev_dax);
+> +	rc = devm_add_action_or_reset(dev, dev_dax_kill, dev_dax);
+> +	if (rc)
+> +		return rc;
+> +
+> +	/* Probe can no longer fail; expose the pgmap via dev_dax. */
+> +	dev_dax->pgmap = pgmap;
+> +	return 0;
+>  }
 
-> Fewer fields is nice, but it's on the honor system that the server allocated
-> large enough strips - since strips carry the chunk_size rather than their
-> actual size when CYCLIC is set. IMO it would be an improvement to add the
-> chunk_size to the header; then the strip sizes could be validated.
+Hi Jiale,
 
-Cyclic maps could easily be generalized to not require a fixed chunk
-size.  Giving a different meaning to extent length (strip length)
-would break that, it would no longer be a CYCLIC map.  It's an
-un-generalization that has dubious value, since the strip length is
-implicit in either the file size or the parent extent length.
+Please address the NULL ptr dereference issue that Sashiko identified.
 
-In other words: make the server validate the strip size, and all will
-be good.  The kernel really doesn't need this information.
+Could we instead register the dev_dax_kill cleanup action first, then assign
+dev_dax->pgmap, and finally call run_dax()?
 
-> So that's a bug. I've fixed it locally and will share that in the next day
-> or two. I also needed to refactor your patch the famfs user space because
-> it disabled ABI compatibility with some older versions of the famfs kernel
-> that I'm still supporting users with. If you can wait to patch that further
-> until I share an update, it will be cleaner on my end.
+That would leave the pgmap unpublished on probe failure while ensuring it is
+initialized before the device becomes usable. I believe the existing kill_dev_dax()
+already clears the pgmap for dynamic devices during teardown.
 
-Yeah, thanks.
+It sounds like you may have reproduced this issue already. Can you confirm that
+you've tested the fix with a failed probe followed by a successful rebind? It
+would also be good to confirm that normal bind/unbind/rebind still works.
 
-> Having said all that, this topic seems to recur and be contentious - we are
-> working on tests that can demonstrate bottlenecks - but my current ask is
-> that if I can offer an alternative approach to rbtree that is better on
-> paper, can we please use it?
+-- Alison
 
-If it's not adding complexity, then sure.
-
-Thanks,
-Miklos
+>  
+>  static struct dax_device_driver device_dax_driver = {
+> -- 
+> 2.34.1
+> 
