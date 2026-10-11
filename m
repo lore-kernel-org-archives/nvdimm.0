@@ -1,177 +1,234 @@
-Received: from mail-pf1-f182.google.com (mail-pf1-f182.google.com [209.85.210.182])
+Received: from mail-yx2-f5.google.com (mail-yx2-f5.google.com [74.125.224.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 107473A0B24
-	for <nvdimm@lists.linux.dev>; Sat, 10 Oct 2026 22:57:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.182
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791673069; cv=none; b=cVmiGeh0uZtw3kDm9U7KMfRuVrlnPzK43lXG8ILd9GTk1cPsco9bATpcRg70igyhBCfBppAtQtaBanyBrmNBz5iL0lowKltGIrTdtRqwu+0VIPeWq1y11LQoFuYo/B2E2SS+wtPTjcflNgRMnfU8Gxpum12rjlrm/wY7i+WMeA4=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791673069; c=relaxed/simple;
-	bh=JnmxjIlhNrqNDcxHSzbYS1DDAMqga2BAmEwhynazEsY=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=OyLcOgA+xnoNbGigKAnBWQAs9h9ljxGUf/vG52x+swOeCL3dkrHnpcSXiB3y7+uOwhlho8vRHjMqtFa0BgqkrmOFnMEz8m12nSVYiUrfBlu/gcfFa02mclmBOPWHMrYWsV2tAtijIV4NScU5jIvZr52XVgHDMFZszFV1755KVhM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YRFYnStK; arc=none smtp.client-ip=209.85.210.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD6D93BBFBD
+	for <nvdimm@lists.linux.dev>; Sun, 11 Oct 2026 06:36:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.133
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791700572; cv=pass; b=NtsmsxH14BctLaDbbqLGr43r2C+HR66xKcg3eKPOAq6FZJ5mdkXE5tmqD5SQ5/U74hTVJJ2AmXSTlXbuKDG2zMs1pccV0UwaUOse7X5jRvEkLed09v5o5JiKyhwBirRUPsx7pgXQooozV8RiriygY/deyoO/Sk99NbD/ZWBG3+k=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791700572; c=relaxed/simple;
+	bh=7hD88bWiAam8+NXWjV2nyhl9mwoC6BjQ1vQ4o2Q4L98=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=aXalsYi7K8R6XKqAeNoi2camfMAeXov2mc8Ogu6HlFIB11xtYdJYtzt5dLFBCRnmTNaI2Xlj6VRvUHE6lr+vYd2ipX/frX0hn1qrlvyhjUQs1CvGda5ggsiB3WeNei6NxGtw0DgXKd3+aURYhovh10GtT53d4XLACSPHYdwz8lU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Ap1tM+DT; arc=pass smtp.client-ip=74.125.224.133
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YRFYnStK"
-Received: by mail-pf1-f182.google.com with SMTP id d2e1a72fcca58-88bd2b44f3aso319498b3a.0
-        for <nvdimm@lists.linux.dev>; Sat, 10 Oct 2026 15:57:42 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Ap1tM+DT"
+Received: by mail-yx2-f5.google.com with SMTP id 956f58d0204a3-672d92bbfd3so504906d50.1
+        for <nvdimm@lists.linux.dev>; Sat, 10 Oct 2026 23:36:10 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1791700570; cv=none;
+        d=google.com; s=arc-20260327;
+        b=q5Q2FqeHac48vhQAcomIM9z4zzb24X6o0aWXz7HpaUYYBy+iKdYS2s5lSKpD/41LIy
+         2g6GJj4SCbhb9dygZkuUYQyPpjdQjwgziu1O2UaqH3pR21eTzt5MckoaMaRf+medUWrn
+         lWbStPg6/ltLSo22YPEV0Ht7KagO3/sFFodPe87slgMBjTyEXIB6Ry82/W+NxmnjKgSK
+         9nPtbMiy6gyDrpwjCBqtu4uor6Zw5tQkmxMMDkQgd3yh1ZRYbXQiTpn4LHw4geZ+IX89
+         8e/tjxd6+bPswALNn1/IabzMjR+EXh96bziGQ8JIJuK3cFce0yoWodcBDAl32Piw2MaR
+         98KQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=atEifmmOXWuQlnCZ1ScxDD9fnEVZxipao95maoAjOXM=;
+        fh=m74ElSqHazzSng+Mltoi5J3j8qED2+GBqGz/HsIcJkA=;
+        b=c0K/xxEisuIt1rI6H8NpYr9i9OoayGEhIJjfC57OXyiaX2AwBD0CwbGp0CFDRReMxH
+         BveG7iptuWo9/g0oVpnjM5dqxBDdE8wTHwHKboPXFqpqFUINW60//jeba6jC//bpD9aG
+         pCviof25TOj1OmyN4ctpxkw7YhyeIDgZG5FOR25ddhrgzB8zxkUB6nbiKjlqghRTT8Co
+         KLsRQFgN1zZmg5PUxdkDwBnErQQ1ydfahm6ArZBBMRyk2FvhCYHkId2hcIiO6MtQHHi2
+         a4qd5IQwOmfTFk8M3L/+oMULWizL9Y8MAyci4JwTQ7IDxjNqWOW/IhVLSjm486HvvIhb
+         DSoQ==;
+        darn=lists.linux.dev
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791673062; x=1792277862; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=1YTLtaT9iHCUU2BwSqHbgs21TBjanDGosXtNAr9CKhM=;
-        b=YRFYnStKD58lYP168+y80TflFvWN9chbAjN8vNxr6bEDrnskCUt5H+7Um5EQfXltca
-         zA9DUtObkhjxCisgWvH20dZZxhDRZE7zgtdXfSFlbV8z2vXgoqwft8iwJoMVs9RbpfpR
-         t3sxpDtY8DLiJ9c/OItmoxu2KoOKKn40eGgfK1G2jQH6NwP3JHdydQVCMGeEMC9pzsA3
-         CkD4UBnfDZaurDDVQgaa8o/x8/1vrLLKYJy13DsGO9cAuk+oyoOq9ul7TAbue8e0fFjF
-         YXqFh90xj1LF9X6QMYcHwx0FqtZe2J+zJIb85NtGVxgvZp1s9c3iykX8bKiGMjikEoZV
-         416A==
+        d=gmail.com; s=20251104; t=1791700570; x=1792305370; darn=lists.linux.dev;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=atEifmmOXWuQlnCZ1ScxDD9fnEVZxipao95maoAjOXM=;
+        b=Ap1tM+DTpOc++iTRhS1MOCs5F225CXG7viRQ5m8nLQ8A2bCPae+h9dWdM6uBx9R6tR
+         J0FUXMZ61qdtf78kmy0iSFs7KqPXtTtA5XgWlQtAcP8tAyCfG8B+e04RRzwgIa4owOEM
+         xirYdVBKncoLdkMitlpd9FyYjtHKkXk8/jlGxQdzV9E5eaXJZD7av12UU4w35Bnlzd9f
+         TyRy7uydKlitJkiwrWklxZrLslXIs9o0c/cLyC+P/7H/urlccffxAhJbaM73hCIvKIPj
+         ziv11LPp8WkQ5qHHUGo1D3773LmlnND0VRsbK+LgFSOipULTgPhqLRjHSeUH4cmYj6wf
+         0Jfw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791673062; x=1792277862;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=1YTLtaT9iHCUU2BwSqHbgs21TBjanDGosXtNAr9CKhM=;
-        b=FkhoLormNkxjpb9uT80n0V9JVbfiF5NFSTXeu0TVQiFlShfVW2yew86JNqM88WfKMt
-         jzFrVKXMc8G7GZzqHnSxnM/8P7/IbKrI78xz51VRciV7oIywur+U/hq7k+1CBo57GZiJ
-         2KVHzM+wBSybriC8D6TorVRP7Q/+PYbG+NF5nfRCOZDSzIa8SeJwd5uy1tA3WX6Lb6CR
-         t8TjaHmHw8bdtUr+9rYHrXMNO6C1txYLHx+I2P7iNtvZUogRUqNd/wNEwZ8pN3hIKndy
-         DubWVDBot15BQnQHh+QD8cklRez5n5Kp7PMHbnn/lMnTcx3iqfCBnkKOH/SQI33FRX+D
-         e2yQ==
-X-Gm-Message-State: AFq9FYJLF3ie5fxtICm2ODI0Y1bJ44brlbPHNkeBaJBkOkR/toj7JDRr
-	HWuvHD1E3hJyIp57e22TGsm+YF2utgrFtfpOgDu0wRtSJI79bxDvLp6e
-X-Gm-Gg: AYBFou1UwOcEweBuMnaBOiFRO5NyrKLPKYz4u5/2X+zyLHt9jQkMYQzEAfb6VSwgrA6
-	50YXfjXu3GjMwbgZVr73nvJxGx2xl6fsU1gZ6pTmL1L16hk8fNp8/j3diIW4b23VRL+Z4oXCVWH
-	aHzHeRenAeMhDYM/X24qBJtrs2qcM3ViT2NDTClIGVg2X/vHdyogzKqlug4FSR/peGCUQWBixgz
-	s6rxfCjjQuJWeXLbbmrI69o0mJaj/G3HaSwGJ1fILuZfxjEk3JuTjMdHxviE91WFtIKVesLEhWL
-	X1GEbb/KGmIxQX48bs4kvslWXs2F69fOGC/ZZFgxmI2d4EEyIqUerc+E0J9enPu1X0zPtLn6s4o
-	ufcJDXLH2AqcESBL4NcvE4yxW3EVa0jIcbSfFxJkEV2lVJ2KolW4SVAtKfhScyYH9YmRGl3bg8m
-	/Y8+1xXUGG0mE/nxyR1C7H6lNeL72FvkOMxgHH51+OaxF0Zy2kzYkd+Wzmyi1k3tkXcMC/Dfiex
-	/2KKAQUAxtdONRMCqDfai+lubmz
-X-Received: by 2002:a05:6a21:178a:b0:3d3:ad3c:49a9 with SMTP id adf61e73a8af0-3e16be86b53mr4752997637.23.1791673062136;
-        Sat, 10 Oct 2026 15:57:42 -0700 (PDT)
-Received: from cxlqual.. ([220.120.90.131])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-cd3d9e07329sm2603662a12.5.2026.10.10.15.57.37
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 10 Oct 2026 15:57:41 -0700 (PDT)
-From: Anisa Su <anisa.su887@gmail.com>
-X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
-To: linux-cxl@vger.kernel.org
-Cc: nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Ira Weiny <iweiny@kernel.org>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Fan Ni <nifan.cxl@gmail.com>,
-	Li Ming <ming.li@zohomail.com>,
-	Benjamin Cheatham <benjamin.cheatham@amd.com>,
-	Gregory Price <gourry@gourry.net>,
-	Richard Cheng <icheng@nvidia.com>,
-	Anisa Su <anisa.su@samsung.com>
-Subject: [PATCH v16 8/8] Documentation/cxl: Document DPA partition layout and ordering rules
-Date: Sun, 11 Oct 2026 07:54:59 +0900
-Message-ID: <20261010225852.10727-9-anisa.su@samsung.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20261010225852.10727-1-anisa.su@samsung.com>
-References: <20261010225852.10727-1-anisa.su@samsung.com>
+        d=1e100.net; s=20260707; t=1791700570; x=1792305370;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=atEifmmOXWuQlnCZ1ScxDD9fnEVZxipao95maoAjOXM=;
+        b=Berl+Z4haF5y37+royA90x/0xQbV74dHolx9UD12UIzgD0O0E4WZyBuD6CB0tXdt3p
+         lkvReiFUvKW3b5EklaW/W5tKrjHz9NrEO0GPvYRsmT2lzUAXCl9vWaCIyQMHPIY3MVSw
+         Y1NdpO2OqLR7RVbLYP32eBOcQ2d0yJzAj5FmL6XgKoOlqZ6gtCxguOsBpp8fWhPSsHub
+         3wjHsXEToQWq3ujrj1O/h1sjaTDFvqya4kc3EZKrBFuyI8EiPNLRFv9ht4xo91BnTKTB
+         YRD3m9XGXGAKtQaPlU0PHQWT9MC4yTAP+x/QovB/MHI6rZMyn34S/vzPn03y1jYK4EMx
+         JoMQ==
+X-Gm-Message-State: AFq9FYIyHghhRB+KHqi5uaSC6trHCFtk8+AuSVEELwnMjjye6EQ/Ievn
+	zKqfppN2ytpVNEI7EIhHwhEZMWx/piW7673XMk19LN7OhryI4NDGNsSassdxswYr1yfz6r2DXjJ
+	+CjsJfkC+as64ygkSwx+aTW9F3b24Sqs=
+X-Gm-Gg: AYBFou2qsPadfPe1LnscaXn/poyc2TZHww8Iz5zSlUOqeeLbwBnwCujhO9JgZzmqH7e
+	QR1fTNjefQ/lwM62FN1hX7UrbOcvhGOwUH1G2iI5GxgRQ/x30bGQmUH8plCe2ktu/wYq3BUJwln
+	2yQQgLrSSbGDjCxZ2dgY+iX/SQBEbo+CottNLS8DOfqIm40MXg+cXC81KFZR0jqKQXePwsl4+VR
+	U7fmZUvuHhVEnyzfXClb2kbNvb1lPJTjQC3Bg/KA7Tl79OI/trkfXr1d0+g/h2aIehHcELeFwpf
+	GynxYBLJ91M6Gjsxk/L+OwaQgb8m1+V7/V2oDdFirzx89Ib476N7msA=
+X-Received: by 2002:a53:ed4f:0:b0:674:2095:58cf with SMTP id
+ 956f58d0204a3-679362f029dmr1632902d50.109.1791700569625; Sat, 10 Oct 2026
+ 23:36:09 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20261010071453.6028-1-jianyungao89@gmail.com> <sashiko-outbox-166309@kernel.org>
+In-Reply-To: <sashiko-outbox-166309@kernel.org>
+From: Jianyun Gao <jianyungao89@gmail.com>
+Date: Sun, 11 Oct 2026 14:35:57 +0800
+X-Gm-Features: AclHuK9RoUADDw1tz0eQK1gtI1KrPPfDOq8OoVJJE_g9_50GffvdcXsqG9DlN_k
+Message-ID: <CAHP3+4Cu5=LaMy0ONkTmuJej7kq7v6b5NEzUG-Gb7em90nyBJw@mail.gmail.com>
+Subject: Re: [PATCH] dax: fix wrong size passed to dax_iomap_direct_access()
+ in dax_range_compare_iter()
+To: sashiko-reviews@lists.linux.dev
+Cc: nvdimm@lists.linux.dev
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-DC Partitions complicate DPA ordering. Add a DPA Partitions section to
-cxl-driver.rst describing spec-mandated and Linux requirements for the
-layout.
+Thank you for the review!
 
-maturity-map.rst breaks the DCD entry into sub-items so the map shows
-what this series lands: partition enumeration is [1], event handling
-and DC-backed DAX regions remain [0] until the follow-on series enables
-them. The parent stays [0]; nothing is usable yet.
+Regarding the first issue (memcmp ignores page-in-page offset), you
+are correct. This will be fixed in the v2 version of this patch, which
+adds offset_in_page(pos1)/offset_in_page(pos2) to the saddr/daddr
+arguments in the memcmp() call.
 
-Suggested-by: Gregory Price <gourry@gourry.net>
-Signed-off-by: Anisa Su <anisa.su@samsung.com>
-Tested-by: Wonjae Lee <wj28.lee@samsung.com>
-Tested-by: Junhee Park <jh9934.park@samsung.com>
-Tested-by: Heesoo Kim <habil.kim@samsung.com>
-Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
-Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
-Reviewed-by: Alison Schofield <alison.schofield@intel.com>
----
- .../driver-api/cxl/linux/cxl-driver.rst       | 35 +++++++++++++++++++
- Documentation/driver-api/cxl/maturity-map.rst |  4 +++
- 2 files changed, 39 insertions(+)
+Regarding the second issue (bypassed length check when pfnp is NULL),
+this is a pre-existing behavior of dax_iomap_direct_access() shared by
+all callers that pass a NULL pfnp (e.g., dax_iomap_copy_around(),
+dax_unshare_iter()). In the dedupe path, the access range is
+guaranteed to be within the iomap mapping via len =3D min(len,
+min(smap->length, dmap->length)), and filesystem iomap mappings do not
+cross device boundaries. This is outside the scope of this patch and
+would be better addressed as a separate fix to
+dax_iomap_direct_access() itself.
 
-diff --git a/Documentation/driver-api/cxl/linux/cxl-driver.rst b/Documentation/driver-api/cxl/linux/cxl-driver.rst
-index dd6dd17dc536..212df4fb8d63 100644
---- a/Documentation/driver-api/cxl/linux/cxl-driver.rst
-+++ b/Documentation/driver-api/cxl/linux/cxl-driver.rst
-@@ -181,6 +181,41 @@ A Memory Device is a discrete base object that is not a port.  While the
- physical device it belongs to may also host an `endpoint`, the relationship
- between an `endpoint` and a `memdev` is not captured in sysfs.
- 
-+DPA Partitions
-+~~~~~~~~~~~~~~
-+A memory device presents its capacity as one flat `Device Physical Address`
-+(DPA) space divided into `partitions`, which Linux lays out in a fixed
-+order::
-+
-+  DPA 0                                                     end
-+  +---------------+---------------+---------------------------+
-+  |      ram      |     pmem      |       dynamic_ram_1       |
-+  +---------------+---------------+---------------------------+
-+  part[0]         part[1]         part[2]
-+
-+Part of that order is required by the CXL specification and part of it is a
-+Linux choice.
-+
-+The `ram` and `pmem` order is mandated.  CXL r4.0 section 8.2.10.9.2.1 "Get
-+Partition Info" (4100h), Table 8-310, mandates that volatile capacity starts
-+at DPA 0 and pmem starts at the DPA immediately following it.
-+
-+Dynamic Capacity partitions only need to be 256MB aligned according to
-+CXL r4.0 section 8.2.10.9.9.1 "Get Dynamic Capacity Configuration"
-+(opcode 4800h), Table 8-347. So a device could leave a gap between ram/pmem
-+(static) capacity and its first DC partition, or between one DC partition
-+and the next.
-+
-+Linux chooses not to support gaps between static and dynamic capacity: the
-+first DC partition must begin at the DPA immediately following static
-+capacity -- after pmem, after ram on a device with no pmem, or at DPA 0 on
-+a device with no static capacity at all.
-+
-+Currently, only one dynamic partition is supported. A device may report up
-+to eight (CXL r4.0 Table 8-346); Linux configures the first as its
-+`dynamic_ram_1` partition. Gaps between DC partitions are not checked, since
-+only the first is used.
-+
- Port Relationships
- ~~~~~~~~~~~~~~~~~~
- In our example described above, there are four host bridges attached to the
-diff --git a/Documentation/driver-api/cxl/maturity-map.rst b/Documentation/driver-api/cxl/maturity-map.rst
-index 282c1102dd81..fefd31899229 100644
---- a/Documentation/driver-api/cxl/maturity-map.rst
-+++ b/Documentation/driver-api/cxl/maturity-map.rst
-@@ -150,6 +150,10 @@ Memory-pooling
- * [1] Hotplug of LDs (via PCI hotplug)
- * [0] Dynamic Capacity Device (DCD) Support
- 
-+  * [1] DC partition enumeration / configuration (Get DC Config, CDAT DSMAS, event interrupts)
-+  * [0] Extent add / release event handling
-+  * [0] DC-backed DAX regions
-+
- Multi-host sharing
- ------------------
- 
--- 
-2.43.0
-
+On Sat, Oct 10, 2026 at 3:35=E2=80=AFPM <sashiko-bot@kernel.org> wrote:
+>
+> Thank you for your contribution! Sashiko AI review found 2 potential issu=
+e(s) to consider:
+> - [High] fsdax: dax_range_compare_iter() memcmp ignores page-in-page offs=
+et
+> - [High] fsdax: out-of-bounds access due to bypassed length check in dax_=
+iomap_direct_access()
+> --
+>
+> commit 05244bba82891c8d959214ace5da854f182c9e20
+> Author: Jianyun Gao <jianyungao89@gmail.com>
+>
+> dax: fix wrong size passed to dax_iomap_direct_access() in dax_range_comp=
+are_iter()
+>
+> dax_range_compare_iter() passes ALIGN(pos + len, PAGE_SIZE) as the size
+> argument to dax_iomap_direct_access(), but this is an absolute file
+> offset rather than a length. This causes the underlying
+> dax_direct_access() to request a massively inflated nr_pages via
+> PHYS_PFN(size), leading to unnecessarily large access ranges and
+> potential spurious -EHWPOISON from driver badblock scans.
+>
+> > diff --git a/fs/dax.c b/fs/dax.c
+> > index 08adeaed2baf1..fb12d0c0dcd49 100644
+> > --- a/fs/dax.c
+> > +++ b/fs/dax.c
+> > @@ -2190,6 +2190,7 @@ static int dax_range_compare_iter(struct iomap_it=
+er *it_src,
+> >       const struct iomap *dmap =3D &it_dest->iomap;
+> >       loff_t pos1 =3D it_src->pos, pos2 =3D it_dest->pos;
+> >       void *saddr, *daddr;
+> > +     size_t size1, size2;
+> >       int id, ret;
+> >
+> >       len =3D min(len, min(smap->length, dmap->length));
+> > @@ -2205,13 +2206,13 @@ static int dax_range_compare_iter(struct iomap_=
+iter *it_src,
+> >       }
+> >
+> >       id =3D dax_read_lock();
+> > -     ret =3D dax_iomap_direct_access(smap, pos1, ALIGN(pos1 + len, PAG=
+E_SIZE),
+> > -                                   &saddr, NULL);
+> > +     size1 =3D ALIGN(len + (pos1 & ~PAGE_MASK), PAGE_SIZE);
+> > +     ret =3D dax_iomap_direct_access(smap, pos1, size1, &saddr, NULL);
+>
+> [Severity: High]
+> Does this code risk an out-of-bounds access in the subsequent memcmp() if=
+ the
+> underlying physical DAX memory mapped is shorter than requested?
+>
+> Looking at dax_iomap_direct_access(), it bypasses the length validation w=
+hen
+> the pfnp argument is NULL:
+>
+> fs/dax.c:dax_iomap_direct_access() {
+>     ...
+>         if (!pfnp)
+>                 goto out_check_addr;
+>         rc =3D -EINVAL;
+>         if (PFN_PHYS(length) < size)
+>                 goto out;
+>     ...
+> }
+>
+> If the iomap extent crosses a device mapper target boundary, such as on
+> dm-linear, dm_dax_direct_access() truncates the mapping length and return=
+s
+> fewer pages than requested.
+>
+> Because dax_iomap_direct_access() is called here with a NULL pfnp, it ski=
+ps
+> the length check and returns success even for short mappings.
+>
+> Could this regression cause the subsequent memcmp() to read beyond the
+> physically contiguous mapped memory?
+>
+> >       if (ret < 0)
+> >               goto out_unlock;
+> >
+> > -     ret =3D dax_iomap_direct_access(dmap, pos2, ALIGN(pos2 + len, PAG=
+E_SIZE),
+> > -                                   &daddr, NULL);
+> > +     size2 =3D ALIGN(len + (pos2 & ~PAGE_MASK), PAGE_SIZE);
+> > +     ret =3D dax_iomap_direct_access(dmap, pos2, size2, &daddr, NULL);
+> >       if (ret < 0)
+> >               goto out_unlock;
+> >
+>
+> [Severity: High]
+> Is it possible that the memcmp() that follows compares the wrong file dat=
+a
+> because it ignores the page-in-page offset?
+>
+> The dax_iomap_direct_access() function translates a file offset to a kern=
+el
+> virtual address, but the returned pointers saddr and daddr are strictly
+> page-aligned, ignoring any page-in-page offset (pos & ~PAGE_MASK).
+>
+> When filesystem block sizes are smaller than the architecture's page size=
+,
+> deduplication requests can be block-aligned but not page-aligned.
+>
+> If memcmp() is called directly on saddr and daddr without adding the
+> pos1 & ~PAGE_MASK and pos2 & ~PAGE_MASK offsets:
+>
+> fs/dax.c:dax_range_compare_iter() {
+>     ...
+>         *same =3D !memcmp(saddr, daddr, len);
+>     ...
+> }
+>
+> Will this regression compare memory starting from the page boundary inste=
+ad of
+> the actual file offset? Could this lead to FIDEDUPERANGE incorrectly
+> deduplicating non-identical blocks and causing data corruption?
+>
+> --
+> Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261010071453.60=
+28-1-jianyungao89@gmail.com?part=3D1
