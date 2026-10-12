@@ -1,76 +1,46 @@
-Received: from mail-qk1-f172.google.com (mail-qk1-f172.google.com [209.85.222.172])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D65A448E0D9
-	for <nvdimm@lists.linux.dev>; Mon, 12 Oct 2026 16:18:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3BB14AF679;
+	Mon, 12 Oct 2026 16:38:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791821922; cv=none; b=u0LNexuqYgmYTZuUZ7DE/I7vQhc+cD2OPAXh0KVsnsBhFnF83O+gwXRAizNpOeXcRkDN0qCDMPJ2DfmwArfxwjkwaxcv+mWOUtBOwgFhs15T6LYOqoOTAyBIGYIGlUdZJ4e+qE6pooT8kbXMMS5yZmyHP/cmLAzIJtq5hwBb0KM=
+	t=1791823133; cv=none; b=CB9Z4lU5o2gksACyFk16/XkiqDnP0v8LngznHOmuaYaX4uXf7CT0B3C0OWbXaa2ysDVIYguya7/bAFyKXdA4uIuRnI7YCqTogBruiqLcCoWdMwXBUbqR18KxHM6RseDdvjM6moergT3GHITptKrrNrzUIRviMOm6X8ImmSfsYfA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791821922; c=relaxed/simple;
-	bh=4YpWVz2t7P3nkCK75u6xOdBsc4nHUlNeMIe6NmdDkAs=;
+	s=arc-20240116; t=1791823133; c=relaxed/simple;
+	bh=/mK22dta9kNjF7ZjGNr1WtxNtqsskF5mTL23V9gBXZw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Iv58mEVocDYHQEBIZsRQkSA6/9ZozuL/jz3VJLcmv89q7TjF3O47qttdnrXq0MkTTI6mLGqCXTPBuZXr6Lr79P0HX1IPpoqcecD3abI8cX5/OLJj3M/hZEK19lkE1tKl71+CQo/DnDqpc6AcM9ONpo0QjIe82NOxB4yqQbgoA6o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=ubvyKBzV; arc=none smtp.client-ip=209.85.222.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
+	 Content-Type:Content-Disposition:In-Reply-To; b=kodSCRlr2X30EfEH9rbwG3EPVBhrsUGqer9QNP/vhYp5mrgYzHe7BTM4VqcYYiWZhfhlTrSHZNHKzVGO4qUDzDa/3WgO1Pd05hXLeqlpfPhCc7Mw+Yzfmw0JGtjMr6PCxuEdFHnbERbfHk9MxX6N68fxfvPIMXN0FyneZKI/RBg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PoS36Qib; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="ubvyKBzV"
-Received: by mail-qk1-f172.google.com with SMTP id af79cd13be357-93cbee4b010so122979185a.0
-        for <nvdimm@lists.linux.dev>; Mon, 12 Oct 2026 09:18:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1791821919; x=1792426719; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=ycCA/46fGP9bMzNSUFEULycpfUfNegmWCSDBNo9iDiA=;
-        b=ubvyKBzVDv/BM7Fr4Y54BLd2MhX88gbH4GJMFvapbNl5hDylvr1aLe7MjGmuJzjV5p
-         sJG4h5jOesWnt82OTqwOycUwOmm0XPbAZgyZoC1X+DADYWDHLk+FfSp+P3c9lTTZEBz+
-         +5raWptlGm22PKFb0kWDPpeTQNflthrXcQTcj0aM7rQzeZwCjUf428pFNuVd+hmjgffp
-         8kh9C72iVRcynfiL0hWFWID+VIkpNsHdxAzucLm8sHLx7fLGy6eKzx/OVeCShHilFsG0
-         zFQvisWHiiIGOUjTny1WDVlt3fFuO8ajCXtL8V1pWLGC4qOW4k9oD26tBd/+N8zISW2C
-         wYoQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791821919; x=1792426719;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=ycCA/46fGP9bMzNSUFEULycpfUfNegmWCSDBNo9iDiA=;
-        b=O3TJdjaqXo4WEUulGvc0WCKRt2YZwEPTT89caVnBZcoa2Yc+yUSOxrlTIVu/Tuuq/Q
-         lFmMNG97sGV8mvu9W0FPjeYmioEqQv8r4RjcTXZSW+7f8ma7QYACd4qHQgP5PmeQ2pYT
-         obSTia9V3NeYuB8W6fUmdF62vxnODfSvhdFIWSS3TFY67b23T0cMXLgV3OXY25yLh635
-         ZzLZuuj5DJQFJ3AYAP/vOUorzRNlAG6nDzuwAgun8VdJtIDwRD4sjEG/IM2F1WAo0O9d
-         N0VVS7YA3UJW5oAQFEabGSAfzk5d3ohLgwDDArGrGNeKUrJ7MWMro8Uh3u12gXah0K8v
-         mI+g==
-X-Forwarded-Encrypted: i=1; AKwUvBzOsZ6MDjPdqf/hmtx3Wt8hnctjpVSWrOxW/SfE0288ed5TsunsziHHS3hXvnPJqv0rcQCgCZg=@lists.linux.dev
-X-Gm-Message-State: AFq9FYIvWMTtV57Hn9kxNdBlm3QSe29aNyaRRZ7B+pbkvhqZ0LPNQVG0
-	xZeJmE4KzyMWmRNqTh5QEudn0ayi7p39kgE1w2eZGEtiDBmV1tdV3tDVnF++avGi0+g=
-X-Gm-Gg: AYBFou1oGYcg5/Cph+inIC7DRcvbjDE1jpAHHyJ3i1f1IBc2+0hsPP1gA+OR0/t8aap
-	keE0lssrtye5UgZTzrxtr0okjts+KdYm+QIKcQp6gN+d1lOQ5V5cMaPLvtWMCM2uyhnk7ps3yX4
-	0MSiIQujm/QIaK2UfUMc4fBO28mgipNt/vXmXHJzL4KqECWknt3z+vp4Eu+kDS7+8QzmyhVHG0r
-	O9uw7OOpnBEyQyVtCbTxLHyuffb81V6AkODLjI2r8Cg3/YkyZOdpEanXPUC4umz+jsgrU9NP92G
-	pq9NQ4s+O6y8g0iiemUvzOKd/fLQidHKdiMs8KL3oWvJ1Wch32vX5jT5keWDhhoSn4hmt60H/2H
-	+7KfuhbxdapA8fRInKQsQ596Rr4wiYRXXRP5KePjpE9QutflNBmgfPs2XkNXLDzGiUn8scJDc+5
-	O8ydjdBGXIaD6ywRybYzRz+iYOiBJDxmwueO2w6AAoNKF+/TyWDgXbApHQ4s43LuG1EFlcm/wh/
-	jjoCkQesZqjux6Xl5ci3pI1/UkyJdOzZXYyvkazLyMWnLSq+UTPAcE=
-X-Received: by 2002:a05:620a:2981:b0:939:6df7:73f1 with SMTP id af79cd13be357-93ebd27484bmr1635268185a.51.1791821918598;
-        Mon, 12 Oct 2026 09:18:38 -0700 (PDT)
-Received: from gourry-fedora-PF4VCD3F (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-93ef50295a7sm20807785a.23.2026.10.12.09.18.37
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 12 Oct 2026 09:18:38 -0700 (PDT)
-Date: Mon, 12 Oct 2026 12:18:36 -0400
-From: Gregory Price <gourry@gourry.net>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PoS36Qib"
+Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id 71F8B1F0089C;
+	Mon, 12 Oct 2026 16:38:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791823131;
+	bh=szjcYq+EbhVJ+5lSDxxeRT3bShaf2kRoD2IGWvKJDPA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=PoS36QibNCy6wANR4L2Qf2luYhUeNCU4kDGruG3kYtyyr9MOXSZtaicKoRM7iyNP1
+	 kBL9ogfYAkquYe2gxoqoR5zp1rEbWm6K/MtWuY2JqFo/RXW7anLYQCRhcf6IsizknP
+	 WRyyeyPCxgZTEtFPjdNCfbgDkTuMrJGvQIuhYgwbSDl8CS1TWbZyHZMEZ1/GCHckUd
+	 fTsXc/TDd2SCdHKl3By/bzo1wLeOIXwJT9LZU1Z9EELbZWCOy9Fi4V0XTLdyq629uS
+	 5OEer7+CPB+uVaB5xYc8t7lEQNNz+zFN68PN3hp6AY1U5Wd8ajLVGqUWeAOenRTqEE
+	 eG40W0QZWiQxQ==
+Date: Mon, 12 Oct 2026 09:38:51 -0700
+From: "Darrick J. Wong" <djwong@kernel.org>
 To: jianyungao89@gmail.com
-Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org, 
-	Dan Williams <djbw@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Alison Schofield <alison.schofield@intel.com>, 
-	"open list:DEVICE DIRECT ACCESS (DAX)" <nvdimm@lists.linux.dev>, 
-	"open list:DEVICE DIRECT ACCESS (DAX)" <linux-cxl@vger.kernel.org>
-Subject: Re: [PATCH v2] dax: fix dax_core_init error return code
-Message-ID: <as0IMU-uIENTAXSW@gourry-fedora-PF4VCD3F>
-References: <20261012151857.22534-1-jianyungao89@gmail.com>
+Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org,
+	Jan Kara <jack@suse.cz>, Dan Williams <djbw@kernel.org>,
+	Matthew Wilcox <willy@infradead.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>,
+	Brian Foster <bfoster@redhat.com>,
+	"open list:FILESYSTEM DIRECT ACCESS (DAX)" <linux-fsdevel@vger.kernel.org>,
+	"open list:FILESYSTEM DIRECT ACCESS (DAX)" <nvdimm@lists.linux.dev>
+Subject: Re: [PATCH v2] dax: fix wrong error code returned from
+ dax_dedupe_file_range_compare()
+Message-ID: <20261012163851.GU1615495@frogsfrogsfrogs>
+References: <20261012144925.6728-1-jianyungao89@gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -79,18 +49,54 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261012151857.22534-1-jianyungao89@gmail.com>
+In-Reply-To: <20261012144925.6728-1-jianyungao89@gmail.com>
 
-On Mon, Oct 12, 2026 at 11:18:57PM +0800, jianyungao89@gmail.com wrote:
+On Mon, Oct 12, 2026 at 10:49:24PM +0800, jianyungao89@gmail.com wrote:
 > From: Jianyun Gao <jianyungao89@gmail.com>
 > 
-> dax_core_init() mistakenly returns 0 on error paths. Change the
-> error return to use rc so the actual error code is propagated
-> to the caller.
+> When dax_range_compare_iter() returns a negative error code (e.g. -EIO),
+> dax_dedupe_file_range_compare() incorrectly returns 'ret' which holds the
+> positive return value from iomap_iter() indicating more iterations remain.
+> This positive value leaks to the caller, where vfs_dedupe_file_range()
+> interprets it as success (bytes_deduped = len), causing userspace to
+> incorrectly believe deduplication completed.
 > 
-> Fixes: 9567da0b408a ("device-dax: Introduce bus + driver model")
+> Return 'status' instead to propagate the actual error code.
+> 
+> Fixes: 39eb05112987 ("dax: advance the iomap_iter on dedupe range")
 > Cc: stable@vger.kernel.org
 > Signed-off-by: Jianyun Gao <jianyungao89@gmail.com>
+> Reviewed-by: Jan Kara <jack@suse.cz>
 
-Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
+Seems fine to me,
+Reviewed-by: "Darrick J. Wong" <djwong@kernel.org>
 
+--D
+
+> ---
+> 
+> Changes in v2:
+> - Add Fixes tag and Cc stable
+> - Add Reviewed-by tag from Jan Kara
+> 
+> v1: Link: https://lore.kernel.org/lkml/20261010021010.19575-1-jianyungao89@gmail.com/
+> 
+>  fs/dax.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 6ba50142eeb2..1f6a4fbb97bd 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -2261,7 +2261,7 @@ int dax_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
+>  		status = dax_range_compare_iter(&src_iter, &dst_iter,
+>  				min(src_iter.len, dst_iter.len), same);
+>  		if (status < 0)
+> -			return ret;
+> +			return status;
+>  		src_iter.status = dst_iter.status = status;
+>  	}
+>  	return ret;
+> -- 
+> 2.34.1
+> 
