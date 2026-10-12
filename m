@@ -1,337 +1,172 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85A1446EF7C;
-	Mon, 12 Oct 2026 09:16:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C69546C830
+	for <nvdimm@lists.linux.dev>; Mon, 12 Oct 2026 09:47:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791796561; cv=none; b=B4HGvU4pw5LEJ9FbEyOcCzmOxYN0grfRq8/ID31pwTReCSS8nZx12LL0vt4nsqTLcsFLgbWsi3tLUPwTBKJTA+CVLB8VL6ltzJ7IXY/aePyJtCST8MXqdRAvUCWIUKQNfgeVezH8dI0rDK0DlSxmc/VkomQdiraEFUBukagM90o=
+	t=1791798475; cv=none; b=fVaXOM6OmzpV1RSq6pRv1EPomYaeJBEn431hMZL4HdOikbnpYfdrvVgbJYQDKvQUkPETQ/YfIWzDj852GekUoikmgrn/2SboWwkU1QnrxYRa3a0acet3xqx18dZFVoi5/OyIaqz4vssSG/NgHJINMMF+14BAe+xZKQ8Pox26JVU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791796561; c=relaxed/simple;
-	bh=KLBlgaeDuHabe1zhJimoUA0bpK31OVHOkP7Odbueqqw=;
+	s=arc-20240116; t=1791798475; c=relaxed/simple;
+	bh=LEk/A/nrJyywMNg3MM69Syjo6/JmBTolLn8hKM1th50=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=oe60CEOSN7ATLgs5h+gNQ+a49kfdPJFrJomKhmKhH7CC8RpTdi7RPZHZ3HvXxOPOR1QbJOn3IASChyUJ/drwsdqbSU1VArosS0E6ZbOmVKUr7LYa9RTcmq0hYaRKXpOm0XRCdxm21OATjTihzv0Eyg0V4nhnVvIjuzbHYaYAUK8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EMB9HcnR; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=qoElJHFdvmkm7Ihkk23NbTCl+XsG4a+g3H0yC6KVd1C7sDkpcTA2PlgNwwV4CZJsDzJ6croRiUWD7fRHrmfb0RsbVqp/H3gjCY7n5oXILm16+V4kR34qqI6d2k3bB9mXCn0YL5eFlSiFW/EQixy8n/lFqJGmXOU63zES9TVeiOQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=yhr/xUfg; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=VFZx090F; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=OcE8jk2U; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=coWOxpQO; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EMB9HcnR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 075251F0089B;
-	Mon, 12 Oct 2026 09:15:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791796560;
-	bh=I0HNRCS/h711M+WA/GHMYCEaRzzHTm0vVBiP9fZikGI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=EMB9HcnR2Vy1CAnUk7OHOf5GsCaVPZ7a6Bro4eKk5SUaBIH94yOCIIzkHLk/dn29g
-	 kV8aB+iGe4QM9ZmQqytyp1noivDVB6UtVQb5bb2D2X08dewTXGvGNOyFzYt7aWPou9
-	 sUgXqAh09Pcup1sCOdYqDR+BacTYknTjLFf6XdQkB+ifvAqaXyOnlrtogEEhpZ8brj
-	 r7mW4WAB9D1fJ+rHQJcJhySpnlLAb1oYZJOVxiPuABLWHmaPPa61rJvRfygQG9hGJe
-	 iDkCjJKuTlNSHA3hlUKE9BPI/4vLJ63BW6D8A+VpIZfP9YwnHLUUu8rgBLrGz7Ioz5
-	 COyMaej6bm63A==
-Date: Mon, 12 Oct 2026 11:15:39 +0200
-From: Alejandro Colomar <alx+linux-hardening@kernel.org>
-To: Kees Cook <kees@kernel.org>
-Cc: Alejandro Colomar <alx@kernel.org>, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Bill Wendling <morbo@google.com>, 
-	"Matthew Wilcox (Oracle)" <willy@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, 
-	David Gow <david@davidgow.net>, Petr Mladek <pmladek@suse.com>, 
-	Shuvam Pandey <shuvampandey1@gmail.com>, Steven Rostedt <rostedt@goodmis.org>, 
-	Jonathan Corbet <corbet@lwn.net>, Sergey Senozhatsky <senozhatsky@chromium.org>, 
-	=?utf-8?Q?G=C3=BCnther?= Noack <gnoack@google.com>, =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>, 
-	Masami Hiramatsu <mhiramat@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, 
-	Jiri Kosina <jikos@kernel.org>, Alexei Starovoitov <ast@kernel.org>, 
-	Daniel Borkmann <daniel@iogearbox.net>, Andrii Nakryiko <andrii@kernel.org>, 
-	Eduard Zingerman <eddyz87@gmail.com>, Kumar Kartikeya Dwivedi <memxor@gmail.com>, 
-	Martin KaFai Lau <martin.lau@linux.dev>, Song Liu <song@kernel.org>, 
-	Yonghong Song <yonghong.song@linux.dev>, Jiri Olsa <jolsa@kernel.org>, 
-	Emil Tsalapatis <emil@etsalapatis.com>, Ihor Solodrai <ihor.solodrai@linux.dev>, 
-	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>, Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@baylibre.com>, 
-	Madhavan Srinivasan <maddy@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>, 
-	Nicholas Piggin <npiggin@gmail.com>, Shivaprasad G Bhat <sbhat@linux.ibm.com>, 
-	Thorsten Blum <blum@kernel.org>, Alison Schofield <alison.schofield@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Guangshuo Li <lgs201920130244@gmail.com>, Ira Weiny <iweiny@kernel.org>, 
-	Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Randy Dunlap <rdunlap@infradead.org>, Shuah Khan <skhan@linuxfoundation.org>, 
-	linux-kernel@vger.kernel.org, bpf@vger.kernel.org, linux-security-module@vger.kernel.org, 
-	linux-trace-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, nvdimm@lists.linux.dev, 
-	linux-doc@vger.kernel.org, linux-hardening@vger.kernel.org
-Subject: Re: [PATCH v4 05/11] seq_buf: Add seq_buf_strlen()
-Message-ID: <asyalCF06dhpVxPc@debian>
-References: <20261003035906.too.263-kees@kernel.org>
- <20261003035921.1918874-5-kees@kernel.org>
- <asEhEe0Urb5Wx7yi@ashevche-desk.local>
- <202610040023.A3865A6@keescook>
- <asIPlnb0noMd33rr@ashevche-desk.local>
- <20261005112209.1e47fa-kees@kernel.org>
- <asOKvhT01aNb5-Dg@debian>
- <20261005155839.d5d200-kees@kernel.org>
- <asPSYn7sLqiH39Fu@debian>
- <20261012005620.466497-kees@kernel.org>
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="yhr/xUfg";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="VFZx090F";
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="OcE8jk2U";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="coWOxpQO"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id CC6781F78F;
+	Mon, 12 Oct 2026 09:47:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1791798472; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=1XtAnjY5kuB4iyaUZjBNl24UZ1rbK0xSs9L8uM9evPQ=;
+	b=yhr/xUfgauf8MOgSogCvtvtL4chYrx+Xoyc8bmEyprv2FWXRTCiJR5eqo8MbDWim5Boalb
+	wIl4B+F5VDkKmE1ghX1FSbBC/ttQivWS9jLYDo1mTMTWLsBjtAOteCpLtDCxCAewZeMFA6
+	lVXOrHJJMtNmYozZUHzZwtERQ8i/crg=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1791798472;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=1XtAnjY5kuB4iyaUZjBNl24UZ1rbK0xSs9L8uM9evPQ=;
+	b=VFZx090F859J+UsL2O/mlsn/BD9mN7HU/G1B9wHLxQOGe9s7OvXq5CP1UgV8lDZVFg8wDc
+	tlV2AYBpbdimi3CQ==
+Authentication-Results: smtp-out2.suse.de;
+	dkim=pass header.d=suse.cz header.s=susede2_rsa header.b=OcE8jk2U;
+	dkim=pass header.d=suse.cz header.s=susede2_ed25519 header.b=coWOxpQO
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1791798471; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=1XtAnjY5kuB4iyaUZjBNl24UZ1rbK0xSs9L8uM9evPQ=;
+	b=OcE8jk2UYrLK2rP8vUosEYXaW3bb92WsnsxKV/1QQDWvx463l56ViXJxvSXNjRFpqnwkI9
+	Fz6PyFWBIHc7Y98tVOQdTqn9Tbv9LdSKMmRuc+aT/K+BA4BiEvz7KxUj8n+cdUn7dLgb/6
+	vii8HS7V5KYTLAdLqo+s6YJUuheKpfQ=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1791798471;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=1XtAnjY5kuB4iyaUZjBNl24UZ1rbK0xSs9L8uM9evPQ=;
+	b=coWOxpQO/8FARLxH8xLc69bcFhBRTKrI+hgeFxNMvVw862niU3olZ9bMVn8ZcHQeMEYHYe
+	XqN9WnOIMNu7Y0Dw==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id A8D2D13314;
+	Mon, 12 Oct 2026 09:47:51 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id P45vIseszGo2fgAAD6G6ig
+	(envelope-from <jack@suse.cz>); Mon, 12 Oct 2026 09:47:51 +0000
+Received: by quack3.suse.cz (Postfix, from userid 1000)
+	id 3BE2DA1403; Mon, 12 Oct 2026 11:47:36 +0200 (CEST)
+Date: Mon, 12 Oct 2026 11:47:36 +0200
+From: Jan Kara <jack@suse.cz>
+To: jianyungao89@gmail.com
+Cc: linux-kernel@vger.kernel.org, Dan Williams <djbw@kernel.org>, 
+	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
+	"open list:FILESYSTEM DIRECT ACCESS (DAX)" <linux-fsdevel@vger.kernel.org>, 
+	"open list:FILESYSTEM DIRECT ACCESS (DAX)" <nvdimm@lists.linux.dev>
+Subject: Re: [PATCH] dax: fix wrong error code returned from
+ dax_dedupe_file_range_compare()
+Message-ID: <g43wbteg6ntidsfrhlb56okwjmu2lerja563uldjrgoxplpsmv@as744f3re7hm>
+References: <20261010021010.19575-1-jianyungao89@gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="j57xlliim47wxj7u"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261012005620.466497-kees@kernel.org>
+In-Reply-To: <20261010021010.19575-1-jianyungao89@gmail.com>
+X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
+X-Rspamd-Queue-Id: CC6781F78F
+X-Rspamd-Action: no action
+X-Spam-Level: 
+X-Spamd-Result: default: False [-4.01 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	MID_RHS_NOT_FQDN(0.50)[];
+	R_DKIM_ALLOW(-0.20)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	RCVD_COUNT_THREE(0.00)[3];
+	FREEMAIL_TO(0.00)[gmail.com];
+	ARC_NA(0.00)[];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	MIME_TRACE(0.00)[0:+];
+	RCVD_TLS_LAST(0.00)[];
+	FREEMAIL_ENVRCPT(0.00)[gmail.com];
+	TO_DN_SOME(0.00)[];
+	DNSWL_BLOCKED(0.00)[2a07:de40:b281:104:10:150:64:97:from,2a07:de40:b281:106:10:150:64:167:received];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	RCPT_COUNT_SEVEN(0.00)[9];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	DKIM_TRACE(0.00)[suse.cz:+];
+	MISSING_XM_UA(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.cz:email,suse.cz:dkim,suse.com:email,imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns]
+X-Spam-Flag: NO
+X-Spam-Score: -4.01
 
+On Sat 10-10-26 10:10:09, jianyungao89@gmail.com wrote:
+> From: Jianyun Gao <jianyungao89@gmail.com>
+> 
+> When dax_range_compare_iter() returns a negative error code (e.g. -EIO),
+> dax_dedupe_file_range_compare() incorrectly returns 'ret' which holds the
+> positive return value from iomap_iter() indicating more iterations remain.
+> This positive value leaks to the caller, where vfs_dedupe_file_range()
+> interprets it as success (bytes_deduped = len), causing userspace to
+> incorrectly believe deduplication completed.
+> 
+> Return 'status' instead to propagate the actual error code.
+> 
+> Signed-off-by: Jianyun Gao <jianyungao89@gmail.com>
 
---j57xlliim47wxj7u
-Content-Type: text/plain; protected-headers=v1; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-From: Alejandro Colomar <alx+linux-hardening@kernel.org>
-To: Kees Cook <kees@kernel.org>
-Cc: Alejandro Colomar <alx@kernel.org>, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Bill Wendling <morbo@google.com>, 
-	"Matthew Wilcox (Oracle)" <willy@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, 
-	David Gow <david@davidgow.net>, Petr Mladek <pmladek@suse.com>, 
-	Shuvam Pandey <shuvampandey1@gmail.com>, Steven Rostedt <rostedt@goodmis.org>, 
-	Jonathan Corbet <corbet@lwn.net>, Sergey Senozhatsky <senozhatsky@chromium.org>, 
-	=?utf-8?Q?G=C3=BCnther?= Noack <gnoack@google.com>, =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>, 
-	Masami Hiramatsu <mhiramat@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, 
-	Jiri Kosina <jikos@kernel.org>, Alexei Starovoitov <ast@kernel.org>, 
-	Daniel Borkmann <daniel@iogearbox.net>, Andrii Nakryiko <andrii@kernel.org>, 
-	Eduard Zingerman <eddyz87@gmail.com>, Kumar Kartikeya Dwivedi <memxor@gmail.com>, 
-	Martin KaFai Lau <martin.lau@linux.dev>, Song Liu <song@kernel.org>, 
-	Yonghong Song <yonghong.song@linux.dev>, Jiri Olsa <jolsa@kernel.org>, 
-	Emil Tsalapatis <emil@etsalapatis.com>, Ihor Solodrai <ihor.solodrai@linux.dev>, 
-	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>, Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@baylibre.com>, 
-	Madhavan Srinivasan <maddy@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>, 
-	Nicholas Piggin <npiggin@gmail.com>, Shivaprasad G Bhat <sbhat@linux.ibm.com>, 
-	Thorsten Blum <blum@kernel.org>, Alison Schofield <alison.schofield@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Guangshuo Li <lgs201920130244@gmail.com>, Ira Weiny <iweiny@kernel.org>, 
-	Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Randy Dunlap <rdunlap@infradead.org>, Shuah Khan <skhan@linuxfoundation.org>, 
-	linux-kernel@vger.kernel.org, bpf@vger.kernel.org, linux-security-module@vger.kernel.org, 
-	linux-trace-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, nvdimm@lists.linux.dev, 
-	linux-doc@vger.kernel.org, linux-hardening@vger.kernel.org
-Subject: Re: [PATCH v4 05/11] seq_buf: Add seq_buf_strlen()
-Message-ID: <asyalCF06dhpVxPc@debian>
-References: <20261003035906.too.263-kees@kernel.org>
- <20261003035921.1918874-5-kees@kernel.org>
- <asEhEe0Urb5Wx7yi@ashevche-desk.local>
- <202610040023.A3865A6@keescook>
- <asIPlnb0noMd33rr@ashevche-desk.local>
- <20261005112209.1e47fa-kees@kernel.org>
- <asOKvhT01aNb5-Dg@debian>
- <20261005155839.d5d200-kees@kernel.org>
- <asPSYn7sLqiH39Fu@debian>
- <20261012005620.466497-kees@kernel.org>
-MIME-Version: 1.0
-In-Reply-To: <20261012005620.466497-kees@kernel.org>
+Looks good. Feel free to add:
 
-Hi Kees,
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-> Date: 2026-10-11 17:56:27-0700
-> From: Kees Cook <kees@kernel.org>
->
-> On Mon, Oct 05, 2026 at 06:43:23PM +0200, Alejandro Colomar wrote:
-> > > Yes, though not often: the sched_ext debug dump builds a nested per-C=
-PU
-> > > seq_buf from seq_buf_get_buf(), which returns a size of 0 once the du=
-mp
-> > > buffer has overflowed, and it handles that case on purpose (see the
-> > > "$s may already have overflowed" comment in kernel/sched/ext/ext.c).
-> >
-> > Hmmmm, so IIUC, it is a sentinel value, and not really a buffer size?
->=20
-> It's the real size of what's left. seq_buf_get_buf() hands out the
-> unused tail of the seq_buf. Once that has overflowed there is no tail,
-> so it returns NULL for the buffer and 0 for the size, and sched_ext
-> initializes the nested seq_buf with both. So that case does get the NULL;
-> the 0 is how much room it has.
->=20
-> > Did you consider not holding the size of the buffer, but rather an end
-> > pointer?  It also allows you to find how much you can write to the
-> > buffer, but has slightly better semantics: the end doesn't change if you
-> > advance the position.  'end' can only change through reallocations
-> > (which I don't know if you do in the kernel).
->=20
-> The size doesn't change either: it is set by seq_buf_init(), and writers
-> advance "len", an offset from the start of the buffer. seq_buf never
-> reallocates.
+								Honza
 
-The size changes here:
-
-	$ grepc -h -B8 seq_buf_get_buf include/
-	/**
-	 * seq_buf_get_buf - get buffer to write arbitrary data to
-	 * @s: the seq_buf handle
-	 * @bufp: the beginning of the buffer is stored here
-	 *
-	 * Returns: the number of bytes available in the buffer, or zero if
-	 * there's no space.
-	 */
-	static inline size_t seq_buf_get_buf(struct seq_buf *s, char **bufp)
-	{
-		WARN_ON(s->len > s->size + 1);
-
-		if (s->len < s->size) {
-			*bufp =3D s->buffer + s->len;
-			return s->size - s->len;
-		}
-
-		*bufp =3D NULL;
-		return 0;
-	}
-
-With an end pointer, that would be simplified to:
-
-	static inline size_t my_seq_buf_get_buf(struct seq_buf *s, char **bufp)
-	{
-		WARN_ON(s->p >=3D s->end);
-
-		*bufp =3D s->p;
-		if (s->p !=3D NULL)
-			return s->end - s->p;
-		return 0;
-	}
-
-Moreover, if we change the API of that function, we could entirely get
-rid of this function.  Here's an example where I see seq_buf_get_buf()
-used, where I've modified it to use pointers:
-
-diff --git i/kernel/sched/ext/ext.c w/kernel/sched/ext/ext.c
-index 3219f0da0fe4..82904e4456e3 100644
---- i/kernel/sched/ext/ext.c
-+++ w/kernel/sched/ext/ext.c
-@@ -6893,8 +6893,7 @@ static void scx_dump_cpu(struct scx_sched *sch, struc=
-t seq_buf *s,
-         * Use a nested seq_buf to generate the standard dump so that we
-         * can decide whether to commit later.
-         */
--       avail =3D seq_buf_get_buf(s, &buf);
--       seq_buf_init(&ns, buf, avail);
-+       seq_buf_init(&ns, s->p, s->end);
-=20
-        dump_newline(&ns);
-        scx_dump_line(&ns, "CPU %-4d: nr_run=3D%u flags=3D0x%x cpu_rel=3D%d=
- ops_qseq=3D%lu ksync=3D%lu",
-
-Considering the .p would replace the current .len, and would encode
-overflow as a NULL pointer, and .end would replace the current .size,
-and wouldn't ever change (not even on overflow, sice that info would be
-stored in .p).  Now you wouldn't need to test whether the remaining
-size can be 0, but would instead test whether ->p is NULL (you could do
-that internally if you want to avoid accessing internals).
-
-> An end pointer wouldn't remove the empty case: buffer =3D=3D end is the s=
-ame
-
-The thing is that you'd never reach buffer=3D=3Dend.  If that would have to
-happen, you'd instead store a NULL in buffer.  This has the nice
-property that if you try to read it as a string, it will crash (instead
-of giving you a pointer that is not a string, which could result in a
-buffer overrun).
-
-> condition as size =3D=3D 0, so the accessors would still need the check. =
-It
-> also makes overflow harder to record. seq_buf marks it with len =3D=3D si=
-ze +
-> 1, and the matching position pointer, end + 1, would be weird.
-
-Not really.  I'll show an example without the structure; just using
-plain string-copying functions, which shows it more obviously.  The
-structures are, after all, just an encapsulation of this logic.
-
-With sizes and lengths:
-
-	char    buf[42];
-	size_t  len, size;
-
-	len =3D 0;
-	for (int i =3D 0; i < 10; i++) {
-		x =3D strscpy(buf + len, "foo", size - len);
-		if (x < 0)
-			goto fail;
-		len +=3D x;
-	}
-vs
-	char  buf[42];
-	char  *p, *end;
-
-	p =3D buf;
-	e =3D ARRAY_END(buf);
-	for (int i =3D 0; i < 10; i++)
-		p =3D stpecpy(p, end, "foo");
-	if (p =3D=3D NULL)
-		goto fail;
-
-Let's say that each iteration of the loop is a step where we'd inherit
-an old buffer into a new one with the functions showed above.  With a
-length and a size, you need to update the size.  With a position pointer
-and an end pointer, you only need to update the position pointer, and it
-encodes the information about the overflow/truncation too.  Because
-truncation is encoded as an invalid position (NULL), we can never
-recover from that, and thus we don't need to have so many checks in each
-iteration.
-
-An important detail is that the functions that use such a position
-pointer should check whether the position is NULL, and do nothing.
-In this example, stpecpy() has such an early check:
-
-	char *
-	stpecpy(char *dst, const char *end, const char *restrict src)
-	{
-		ssize_t  dlen;
-
-		if (dst =3D=3D NULL)
-			return NULL;
-
-		dlen =3D strscpy(dst, src, end - dst);
-		if (dlen < 0)
-			return NULL;
-
-		return dst + dlen;
-	}
-
-As you can see, we can never reach a point where p=3D=3Dend, because once
-truncation happens, p becomes NULL and never recovers from that.  This
-simplifies greatly the handling of truncation.
-
-> Changing the representation would also means changes outside
-> lib/seq_buf.c, since tracing reads seq.len and seq.size directly
-> (trace_seq treats a zero size as "not yet initialized", for one). I'm
-> not saying that's a good thing to bypass the API, but rather that such
-> a change should be its own series.
-
-Agree.  I was just mentioning as an idea to keep for the long term.
-
-
-Have a lovely day!
-Alex
-
->=20
-> -Kees
->=20
-> --=20
-> Kees Cook
-
---=20
-<https://www.alejandro-colomar.es>
-
---j57xlliim47wxj7u
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEES7Jt9u9GbmlWADAi64mZXMKQwqkFAmrMpTUACgkQ64mZXMKQ
-wqmKKQ/+IUju4v7dG+hkUEBJrKJ5n4nq9IotpO+uHWDqtRhvFizqNIkQyTz4OEtR
-YgKwo2cKL6kofiJKTMGBBldjXFFiCg7b+7kUg6wAV9E+86Ot801bmAh/OV4B2rEN
-px81p+fJHLcVo3zqLs4M1PHaMP360L55Qv6YKJT7ZOpcheH/J0Z5AdDV0lxSamn+
-NIXLfOTeDyo/Xs3BKslEKlSj3mzn9/mWAeKhr77fwDeRMD5w63mw3GZp/ai6QQMY
-dwwo2ZOuFrfGZfnkqhbKxt0IyHPx2Vh5o6bxDWBFT9XYR0V/ENLJOxG9PvvtinZ5
-EOt+S2erq7A9ShZchVCDsrHrx+CskREubVno6D3cLh3sGfQp6dP+f8j7VG1pInsK
-D12+Fjibzz8JSNVNKlvkXTj9WufaoQX5Jqy5HU/ly1C64yFa0Cijq0jm2JlVyTB1
-/jyYXfCDECCcyzTMygd9rEFwoAm9f2wO4cN4KZNWflAOfJudJ+Qbkt7Q77YYaxfo
-d9+FUb5tqbWCzeuGTfTgL/ALDBbXJpremH0jWr3F18SEsYUWCbZYEgzl/KWG0NSD
-gcJhuZHt4/9ZrXBmSqmI5ud/iPJ/JQ8l3vqeLNt+XZgG3E5H3AN9N1aE4ATAZ5kI
-5bpoml/6Uim7ljbxOPFn7JLwYh+UPaCQ3zlZvA1wE/uBnkNr8Q0=
-=dcL8
------END PGP SIGNATURE-----
-
---j57xlliim47wxj7u--
+> ---
+>  fs/dax.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 6ba50142eeb2..1f6a4fbb97bd 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -2261,7 +2261,7 @@ int dax_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
+>  		status = dax_range_compare_iter(&src_iter, &dst_iter,
+>  				min(src_iter.len, dst_iter.len), same);
+>  		if (status < 0)
+> -			return ret;
+> +			return status;
+>  		src_iter.status = dst_iter.status = status;
+>  	}
+>  	return ret;
+> -- 
+> 2.34.1
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
