@@ -1,180 +1,160 @@
-Received: from mail-yx2-f7.google.com (mail-yx2-f7.google.com [74.125.224.135])
+Received: from mail-yx2-f2.google.com (mail-yx2-f2.google.com [74.125.224.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DD4736F8EB
-	for <nvdimm@lists.linux.dev>; Tue, 13 Oct 2026 01:03:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.135
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAD3D427FA0
+	for <nvdimm@lists.linux.dev>; Tue, 13 Oct 2026 01:55:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.130
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791853389; cv=pass; b=DFo9sQ5lPgZa7sbq2bWDO5vENZP5IzSinjMjay6OTa+GEovSymNNabG2/S0I/aUqoaoDwqL+lZplgY15kiAvs+RrPHoyNQYcQ0po8uHbd4CNyjmmkivyEiQMCMzFMw7Uot2YJ9g0WTRTnuAdU33faWbzlsvkufKbSL1BgpJKOcs=
+	t=1791856517; cv=pass; b=FYcMhT3FYP28fez1u9yHRwoRBcu5+qDmmNI4KlS2zdoGyHjEEYZxwJuSJFdMviN96ASA8HvlKeObnbkKGXRqKAgKbTxaXaqLoGj12p7Bn2D/pDIbXRabeXGFOEstyBraaFiV/rfEjJrmPY64GPr8BrypBGLfpdqZkzA4XgvS58Q=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791853389; c=relaxed/simple;
-	bh=lowpFmrvsNjlgMHo2szT6XZJz28KEXOM+3vhDqNGI3s=;
+	s=arc-20240116; t=1791856517; c=relaxed/simple;
+	bh=mG265DhJNejB3aQoWJ6qVy75eCz04BYxxJNwPeHfTj4=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=AX+JOS/eJTdrkCr40Y8SJV5LFx3T68EOyfKMvPDm/q8nFsLUvWhSVmBAZwkaUGiy9vn9bF9UJETs5uIOdx15UkCJJYiye8kuGULhHOZzuWTxDozERkWd+reMY3PEgsVDsdmLZ4PH7I1sajoGejyHBGFbHm+QXkPf/ni9Zz9QVak=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=iYwkwrNA; arc=pass smtp.client-ip=74.125.224.135
+	 To:Cc:Content-Type; b=kWghe6w/G8YqLRIHKq1K0GqQEUXN5yUHo45rQMKdlNh5Vl/kXcEn6329qDnfhOgU/frs7C6gYmmcYMSihCSVCL/anGo76dVjLbAQGA+ehdAizv4RxhO+J4cmbghC3JH3gePpKL+H6f9lMsrJhZ7JnIFjbx02lUweGgGF53j4a6o=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=RbHiszqo; arc=pass smtp.client-ip=74.125.224.130
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="iYwkwrNA"
-Received: by mail-yx2-f7.google.com with SMTP id 956f58d0204a3-6755dd402fbso1024144d50.1
-        for <nvdimm@lists.linux.dev>; Mon, 12 Oct 2026 18:03:08 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791853387; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RbHiszqo"
+Received: by mail-yx2-f2.google.com with SMTP id 956f58d0204a3-67569b8cbf8so728469d50.1
+        for <nvdimm@lists.linux.dev>; Mon, 12 Oct 2026 18:55:16 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1791856515; cv=none;
         d=google.com; s=arc-20260327;
-        b=gpDIZ7X4ju/IoMMqG/3W9BvbPuTS1kjVG9NcEtk43FApeMTkiv62wU2H+ilfz+8c0R
-         9JhdmB3jf1qWXBTnuLQFZNhxqFo8gBwGc7d9EalxkzM+DlOImTNQ7e5oI/TjSnS9NUl3
-         iNWTpDg3b59UyUgnalfBcT0h2VKiu9G0kgKbQGYG9vcY37Y1NGoVgLznhNOnIgP7BI0W
-         6Lwj1Rx3nKCoMJDJXbPhHTSYWHUR3U1dolkdsUSMZ9NKNm/xLruPl7fZWj5B7hkt6Byk
-         v048vJUxmfFJWPym2/eOoZroJ5KkkGNA6AvWplP+nH8lrpd/UIPvp0n2IcYtAxDdWnkH
-         j1rw==
+        b=WTIgYMVIvuy3JYN4Y39DrtwRwxErtDV3G5HSQpWIm3kEowEDS/e+Vi5o+ZHrAGQpps
+         fXAf0fqLJpq+h8sE5WWbZlXN+j6kSqdMSVIgMMWNFOEXS6IYBf1yLcEeq9tZLg+aUnB1
+         DOvqSYEf0mSHZIuRrLkUizROqG/y+GdwxgJtgjpP1EtJcOxqyrnMbL3iSwuMBdJzvHwm
+         QLp19j+aUsqxIaa/DSfdtzBYsoVPrgJR/HP4gHD2CGQRV1+qFK9dHuzZv+rsCjsATsFw
+         0CzGSGA/JtQ0lMRMbmDmS0KNZnU3/Dd6XPRdkar8m2f7Lwqex013OrTuxefOFgE8JJKv
+         WVCA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=UTuAYK18jDYjig15mU1GjIAjcvhGQddvH30uBR7Fy04=;
-        fh=q6dky5wIErAMF0uUVqaNvWIVpHkBMUiBspt1YE7Qjf0=;
-        b=ZG2EIc+vWN58d5twSR1ZF35he2SiKdFrfUEE8zPcgWhDJ/KMQkxKjIp2X4SuF2yuXy
-         lb7pNXPjJ2jkAwh7uaKCjLYOaBCfacO2KqOVf2Skj+CIwx8CfAqAotqkxgnogWnZAW1z
-         ykbPEfF/u8QVCnB8tu1olD4ny5NjQKh5JvdxT/lUdWz2KME+CiFc5ppvh5MKU0P7I1ET
-         IcXn/iaLq43p1PXxT8JyHtQ03iJyPtDZKOx1rQw4tpZE+Ru/nwhvQlKlPH4thckhaFNV
-         BXTwAQfP4qpDC8hYEL4gOAegea0jN0EP5srC1RfcwRW1Nf2PFZy4OzT/8aZhZVLV+S7P
-         D9LA==;
+        bh=PZWY1+3DvZQ0StiNShQCtdQAyPVbWkBMdlv0s3OdV3Y=;
+        fh=9zKbJ1B2vSjLEmMVEJDTDa7umgMn0Ur3EdsrgGbLwxo=;
+        b=qJX+nQEX4juIaOhwlIIQEY8vM6be7ddbNwQmAeZhMAU9Hxr1YNsq1mrMTqEqETwe5q
+         umeC97Y820R8SMRLq8YlLSwk5690dUP02q73fCfp0Ib1RfK9BOnRcpuYKhwBqLGq+gTd
+         4HMM3yimavTo3toBBmDALoI5oTD0/jI+vPThRCmzVfnHZ0WoxNa4EGgOW3ydzdgI3zg6
+         04g/nh0BYfKHymre8jTkSPRMK4pdp7LNPH1QX/hTdufF7HOVRx1aeHHxC84bbr5dbUvT
+         2Yoo5kTKNLtGIJk86A95LRS4ldL7RL6DD86p1SKbMb2XTw3QM7lcrfSKa21p3btiA4kf
+         Y0LQ==;
         darn=lists.linux.dev
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791853387; x=1792458187; darn=lists.linux.dev;
+        d=gmail.com; s=20251104; t=1791856515; x=1792461315; darn=lists.linux.dev;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=UTuAYK18jDYjig15mU1GjIAjcvhGQddvH30uBR7Fy04=;
-        b=iYwkwrNAftnfehhE2lIgK3YV0ti+dXbkmwyIZ69kRJB5FqZ2MLxQU81KdPBzUuWhaO
-         xMpPxOEpUB+unPw07wWoo5skIUYLb/aWS8GkCbIL7oa0t67ch8ybgK0hjqZbeR3VumLa
-         Qd3F9iuXTt2ytoMpdzhsch4c0tHLX3YB5cof5Aj/TnmlWUQa2ffpd6mrI0DUWLZo/7kC
-         CC1d2qfLUGqm1iEjChEDyWU/Y1B3T8CpyCi4YiQnW7iOkx2alfTbAFqrzbl729xBxspK
-         VaTyimIvOehROio/mOlXmaCap0eWrnNTPlk6MVMvtXRZnXziX2TqQ5i0qJ1tH9/tmGy7
-         XZ2A==
+        bh=PZWY1+3DvZQ0StiNShQCtdQAyPVbWkBMdlv0s3OdV3Y=;
+        b=RbHiszqoPCPS9Pn/FMjn+/tk9nL+1pajq7KfS8p+2YI0GUYYQUtCCKq1e7Uo7m2+tF
+         bE/D+PpCX6ZTCOJaFDGOlqjSAy2Kib5L5iZQewdELsOHaYTj+2yZuSeqmNiOsyWJDgx1
+         dJpOHuYweYInnapW1V6WApOQwqS3Ei7qKbs8P4bCvCwpRJ8OAhwlgEY/fnejECid02Xj
+         20VarVaqZmxSSMLLNtg+gj640qAUXSkCruisjMinJRuPTFZUXw6ksqrPwMxFFVjXvnVw
+         8LGZii70He7z+7ujkOWQU+/GWt9UYHZiXurW8pCoUM5f214zZwFRMydIM4Y0rzeAeDDF
+         Genw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791853387; x=1792458187;
+        d=1e100.net; s=20260707; t=1791856515; x=1792461315;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=UTuAYK18jDYjig15mU1GjIAjcvhGQddvH30uBR7Fy04=;
-        b=lfZuu0oQ+CO4jZ8ddZfFhG3NtNlPPegOUDfAQaIx333wks/6Bvnd8MxEoP1iJ0ooin
-         mMD/VT6fcBF4Qeuj0xrJDs0VG7rEhMKNS4UW/iwwqfZtGn1Uaktx821CHEJYtgFcra1J
-         PHTI1mtE6KfxkoRGFt+PrttuqZIU/eXaL4cSlLPKQu1q4mzEEjg9kr5580t/yl8ela9y
-         XlTRIVPt6xIAswboY/m/TRNF97hEmE8KydnZ94niBrhtanD3rl1wgPusIe76Pjw3CkFN
-         sAgX6aAhCo0omzctXF75TH+gYy/XGJJzyCF9LXlrudl6WQuTXOBLNnqIvgjibRGr5m81
-         7HpQ==
-X-Forwarded-Encrypted: i=1; AKwUvBx6zslVHgoUt8GbEbI5qm85px+ZdVGtI6n+T2LMaAAcafeu0m2E7L9FME5nfyZlpyYUsmSSMBM=@lists.linux.dev
-X-Gm-Message-State: AFq9FYLQst00GniFjNySwf7wFnDitNMYwtBQg01qRlwplEq4BOyhPpN/
-	zpYuL8HJ6OKTpRPGNAgryyqIrqmij8pGCvLivLxdDq7OXUbEk7DYIJs8g1eFrEiQdVRB2MjX1GE
-	xdGoy6V6pkya6A+/V5YP9n6VaJdFlBfA=
-X-Gm-Gg: AYBFou3EuxtKZpMp0V0amiTqdpRSUz76AZSYXEvxCLp73cIEpzjvP4RldeDvwUe2lC0
-	5fdSbRuXf5MinyLi+EKoUWejjxrNCR3tL1RHhWSpaQhdj/NtXPT9Bwh2zY/826Mlgq9XYFoUK9l
-	/0DGOOOuTUDZXwjVDOTKH1Kzpr5xScwT732Mph3mzOv+6yEkClEB6PjYuAC3KPc4Sd/BiBmnxcb
-	TIbN7Z7bsoePSW1pHmGXdnUkeZs885AvccSimMSdt46ifjtGdya/Z+dpAzvs9CloQGcuuyakz4K
-	zT6UqrTIy/nfZ2J7O9+e3eRjlYnwelQnwYCqagqCNXNXCTMbRYX0kUA=
-X-Received: by 2002:a05:690e:1688:b0:679:42c1:d156 with SMTP id
- 956f58d0204a3-67942c1d3e2mr2820147d50.137.1791853387325; Mon, 12 Oct 2026
- 18:03:07 -0700 (PDT)
+        bh=PZWY1+3DvZQ0StiNShQCtdQAyPVbWkBMdlv0s3OdV3Y=;
+        b=ZLLNLB6mwBjxqkuxBVKUgN26gb3tw+mh3fIK4mE+eivpeDO+EXmB1eg3G9h9Vts5i/
+         dnmWDW5Zk/sbZCe+JNB7CIV6s+FAcMJzidfFcbpI6egxr2xxzgb9kxO7XcHTH2AXEq+n
+         +VTTz+38iGQu96sqB1w7+jvfNjYwDIgV5ogKXCsOxQtapJ77R5fg7TyiLE4M1j+cedbS
+         jKILd8h7J4CZIKSmcpxRGt9lf15R3QtuZ2KoW39XMg4zcXP33dkAGbfefwr/4izQyDNY
+         p7u0JGPC/IF6jnhumAaSck5TIJ/h/9PM7xEo/LsDOtErXrW2ud0QtwXzvhcRRMrLpKvX
+         Nm0g==
+X-Forwarded-Encrypted: i=1; AKwUvBzEayLLg6bdiUpNa+kY5d09j3sUFOubERjJlTL/nNsSnq2uSUudXzVMgOi84lUsA5SN9WrOFX0=@lists.linux.dev
+X-Gm-Message-State: AFq9FYJNN3yytWPBEcHzdoWCMaDNPbC25ECtzFQeDqq70QyADXq051Bm
+	XoiadROXef2CdeWsZq8jPAbhK0gqO93+aCDQJd6sVeuff8Qn5FctsZSg4lAUFqdqaPaSstr3awa
+	VTIQcQJRX/Uogp2kqotJ0lylvYQ2tQRc=
+X-Gm-Gg: AYBFou2uX4NAP+wiaee0luK5wpjrQ0gB8VD0NF80n6Ta5MnLzjWcMCovD5Q1H59TahU
+	IVt25YNety6PszpsT8T1rky7jpaXN+s70nmITLmqF/BSxp/oDm+kEfeH9hlxKjhuZaiMsMXM9XB
+	li77evxT/MFwdEZwDxB2N7edQLVls6VEzHq1348FrDShE8/zfBtJmtUKuCxcRTTvD1bxS2CZ/tl
+	3yTkZjDq9NVLqzGGvo2a92NyJxHG0GX5gZSPsfXOdu2i+VUkcl1H8Cj2uiZd0Jxl2yL/sgibVwZ
+	gPZ2CgYstxf/rh+qyh20ur4Z0j9aUa6mjjME15MJH/74/hIoaHiRj+iDrmvFwDUuVjUjss8LJc0
+	t/5pzHOrSPhqHeiGaWCDL8k2t/VQANgTjPyat
+X-Received: by 2002:a05:690e:d0f:b0:677:c1c9:8cad with SMTP id
+ 956f58d0204a3-6793630857bmr4065688d50.101.1791856515453; Mon, 12 Oct 2026
+ 18:55:15 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20261012151857.22534-1-jianyungao89@gmail.com> <as1nmV342j-eUOYm@aschofie-mobl2.lan>
-In-Reply-To: <as1nmV342j-eUOYm@aschofie-mobl2.lan>
+References: <20261011131857.30481-1-jianyungao89@gmail.com> <as1riZMcDaX5niW9@aschofie-mobl2.lan>
+In-Reply-To: <as1riZMcDaX5niW9@aschofie-mobl2.lan>
 From: Jianyun Gao <jianyungao89@gmail.com>
-Date: Tue, 13 Oct 2026 09:02:56 +0800
-X-Gm-Features: AclHuK9sFgO33rPYLTn8ixdiEhdZBta4PDJKOZxl9dlxJLJscw0iQpyhSfFl2bw
-Message-ID: <CAHP3+4Dr-XsZggVSf=THU7NBb8RANc5MCREHORkXV5shcgk22w@mail.gmail.com>
-Subject: Re: [PATCH v2] dax: fix dax_core_init error return code
+Date: Tue, 13 Oct 2026 09:55:05 +0800
+X-Gm-Features: AclHuK-qPrcKDhDkwZ2-LoYX7aqLa6VHDfxw6GQjUohnMboPcDsPQB2ik2549xw
+Message-ID: <CAHP3+4DCsJ4vJWFWfswGj70p+it+KJ2fLA1G8p5iKYJ7fi4TGw@mail.gmail.com>
+Subject: Re: [PATCH] dax: fix mapping_store() returning 0 instead of error code
 To: Alison Schofield <alison.schofield@intel.com>
-Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org, 
-	Dan Williams <djbw@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, 
+Cc: linux-kernel@vger.kernel.org, Dan Williams <djbw@kernel.org>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
 	"open list:DEVICE DIRECT ACCESS (DAX)" <nvdimm@lists.linux.dev>, 
 	"open list:DEVICE DIRECT ACCESS (DAX)" <linux-cxl@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Hi Dan,
+Hi Alison,
 
-Thank you for reviewing the patch! The revised commit message looks
-great to me. I'm OK with it.
+Thank you for pointing this out! I'll drop my patch since Muchun's
+version covers both cases. I'll review Muchun's patch and add my
+Reviewed-by if it looks good.
 
 Best regards,
 Jianyun
 
-On Tue, Oct 13, 2026 at 7:05=E2=80=AFAM Alison Schofield
+On Tue, Oct 13, 2026 at 7:21=E2=80=AFAM Alison Schofield
 <alison.schofield@intel.com> wrote:
 >
-> On Mon, Oct 12, 2026 at 11:18:57PM +0800, jianyungao89@gmail.com wrote:
+> On Sun, Oct 11, 2026 at 09:18:57PM +0800, jianyungao89@gmail.com wrote:
 > > From: Jianyun Gao <jianyungao89@gmail.com>
 > >
-> > dax_core_init() mistakenly returns 0 on error paths. Change the
-> > error return to use rc so the actual error code is propagated
-> > to the caller.
+> > When the region driver is not loaded, mapping_store() returns rc
+> > which is 0 at that point, instead of an error code. Set it to
+> > -ENXIO to match the equivalent check in size_store().
 >
 >
 > Hi Jianyun,
 >
-> Thanks for the patch. The change looks good to me.
+> The change looks correct, but there is another path in mapping_store() wi=
+th
+> the same problem. When alloc_is_aligned() fails, rc is still zero, so the
+> sysfs write reports success without allocating the requested range.
 >
-> I'd like to expand the commit message to explain the impact of the bug,
-> not just describe the correction. I've proposed a revised message below.
+> Muchun Song already posted a patch addressing both cases.
+> https://lore.kernel.org/nvdimm/20260924025035.1265035-1-songmuchun@byteda=
+nce.com/
 >
->         dax: Return errors from dax_core_init()
->
->         dax_core_init() returns success when either the character device
->         number allocation or DAX bus registration fails, even though the
->         error paths have already released the initialized resources.
->
->         For modular DAX, this allows the module to remain loaded despite
->         failed initialization, leaving subsequent users and module remova=
-l
->         to access resources that have already been released.
->
->         Return the error code from the failed operation so that module
->         loading fails rather than reporting successful initialization
->         after the resources have been released.
->
-> Please let me know if you're OK with the above, and I'll amend the commit
-> message and merge the patch.
+> Please take a look and add your reviewed-by tag to Muchun's patchset
+> or comment if it doesn't meet your needs.
 >
 > -- Alison
 >
->
 > >
 > > Fixes: 9567da0b408a ("device-dax: Introduce bus + driver model")
-> > Cc: stable@vger.kernel.org
 > > Signed-off-by: Jianyun Gao <jianyungao89@gmail.com>
 > > ---
-> >
-> > Changes in v2:
-> > - Drop unnecessary goto label, keep direct return for dax_fs_init() err=
-or
-> > - Add Fixes tag and Cc stable
-> >
-> > Link: https://lore.kernel.org/lkml/20261011132017.31131-1-jianyungao89@=
-gmail.com/ # v1
-> >
-> >  drivers/dax/super.c | 2 +-
+> >  drivers/dax/bus.c | 2 +-
 > >  1 file changed, 1 insertion(+), 1 deletion(-)
 > >
-> > diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-> > index 45f84b0eb909..210f4af479f0 100644
-> > --- a/drivers/dax/super.c
-> > +++ b/drivers/dax/super.c
-> > @@ -738,7 +738,7 @@ static int __init dax_core_init(void)
-> >       unregister_chrdev_region(dax_devt, MINORMASK+1);
-> >  err_chrdev:
-> >       dax_fs_exit();
-> > -     return 0;
-> > +     return rc;
-> >  }
-> >
-> >  static void __exit dax_core_exit(void)
+> > diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> > index b809e1a264af..262f97b5e7aa 100644
+> > --- a/drivers/dax/bus.c
+> > +++ b/drivers/dax/bus.c
+> > @@ -1192,7 +1192,7 @@ static ssize_t mapping_store(struct device *dev, =
+struct device_attribute *attr,
+> >               return rc;
+> >       if (!dax_region->dev->driver) {
+> >               up_write(&dax_region_rwsem);
+> > -             return rc;
+> > +             return -ENXIO;
+> >       }
+> >       rc =3D down_write_killable(&dax_dev_rwsem);
+> >       if (rc) {
 > > --
 > > 2.34.1
 > >
