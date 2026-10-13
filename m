@@ -1,84 +1,55 @@
-Received: from mail-pj2-f1.google.com (mail-pj2-f1.google.com [74.125.227.129])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26B1541837E
-	for <nvdimm@lists.linux.dev>; Tue, 13 Oct 2026 02:31:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.129
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D10613957E
+	for <nvdimm@lists.linux.dev>; Tue, 13 Oct 2026 04:14:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791858688; cv=none; b=KlJu+V4W25BGy4TiRsOyhSpWheedovhTvm3i9+J1VPFSyZLHqJdFBPS1fcmrHm6sEzwyoeh8qoOPtRoIXR61x7FvgoaUuVKZCJkZWQ5nzGWnjFt756lnuyiSBUfzPh2JbAjrlOpJDkWdB05QVhx0HdXR0Ibz6LRb3M5uqdYKvq4=
+	t=1791864883; cv=none; b=a3r9FkomUr1SFxZ9FBB3xMdQuoemiNClY0uzXwYqJ9RTG41dQBRl9IEznOtvBnuweET4cwQsAKjCKpvV8LMIvtcrHxDmH5PS33KjzqGYy3TO8jM830mGKTFtlvOO9on1kVeUAGlmjbvm55TldJE+23YcDmfFit9+YqoEEWkTqUE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791858688; c=relaxed/simple;
-	bh=v5tONA2LxrOLSUjqd88pbtiKH2gaZjORspEuhh6aOns=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=oyIteaUimHNC+jkChFWmNlgRpZjWyRAtZttElgjHbtwFf+MTHz730veSV47LMqUvYRhgaBTLnqmwHzI8n4PL/mMm2f+zcpJXOhTT+Onp0ub1TedA4wpX/iRy+hiyN7g7+s8fDSGG7nv/Op9/JbzQHgVNI16FRKXytMN17iAUe54=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=pGf/Af0V; arc=none smtp.client-ip=74.125.227.129
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1791864883; c=relaxed/simple;
+	bh=S8cxel6X6Yq6iuz94Fu5jjzj8UhGTkl9CDSP2dDr4Ko=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=jXizeaCsjrPmotNcyZdSez3XAZs+3vUqemRIeZoZHCLQ/0Owk4hRhK3Q+LQ8aALh+EmJV5U8erxSk61J67W4ZqO0VzMQxM4tN8dqEoLMtRBD8uhhrksuP4svsFx3oR9NUFJ/2h/27LVVsS6+wW02EimtHo+bK46Prge0r74BMBY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Y1rjZBK6; arc=none smtp.client-ip=198.175.65.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="pGf/Af0V"
-Received: by mail-pj2-f1.google.com with SMTP id 98e67ed59e1d1-3ab86ae9b80so984109a91.1
-        for <nvdimm@lists.linux.dev>; Mon, 12 Oct 2026 19:31:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791858686; x=1792463486; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=v5tONA2LxrOLSUjqd88pbtiKH2gaZjORspEuhh6aOns=;
-        b=pGf/Af0VKYaeRlLmvRuD+4HM2ZJYwQbOi9E/UWgoDJxAwa/yBk6XdysbGPzqsNbTjR
-         5+XnMOv/YSmQK2OkhZcp5DRAwx0yAcF+PX6jpP9Rzp+iCDaItPuqQkKEK2cF7mom7I1q
-         jdBykPmVMNmmr8mMqyb145wau73k+I9J/+asKK3jd2Ps7TngnEBlbRjOvPU210omCO5i
-         sTRUiuLfmJ55emCClM+KPKpajCrnqjYLYnm61Wh8/nM0DXLc1h/8yqRVuBNfBqBGEIPJ
-         gv68iJ0X8rAFI0jjJXoiFnKxxH2jFi4GxRhg0bjzv1ZM7Pi39WDTAvBwFv22EFnBDXH5
-         RoKQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791858686; x=1792463486;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=v5tONA2LxrOLSUjqd88pbtiKH2gaZjORspEuhh6aOns=;
-        b=G87HMIOPMgOk4a042+bsOLzHvGvjSzyikA4oZeNf0E/GR0q7Lm0Ga4CkiMsVkVus3C
-         HN0CKEk4BkGey2kneq3KEdisOmMY/ZWrUyFCwWwNEuusHJaUrVJ6qMAZNXlL1KH6igPe
-         XK1OOuwJidnr3OnH5XISdiktD5V2JEAlpvSU/ZX/kJvISTslJMr05sk2hsSTeDYOaqvj
-         26N35CV6dl7GEqI4MCc6+aL+z7JORNiJs2D5baLSAIQVmm4Ycxl1pc7qzU7l1ydeUExs
-         LjEcUcvkwNEj5WEjVCwpEMiL/bIKufetVNZYuBDS4/yZ+KrDq1QBWKiGnaNTqzR0Ab47
-         fs/w==
-X-Forwarded-Encrypted: i=1; AKwUvBzOS5smLzDRTYd23p9hF/db0c8O5eUrw8izfKGIoV1VXtgKSKBTuj4X4QOTP+SuLY/4JIqf9hw=@lists.linux.dev
-X-Gm-Message-State: AFq9FYLaEwdcoaImDsXC3K9TYKHi4QYKSNUFOtCu/77DAffSAZBN2LwG
-	k21MrEVuEZOnzh5iLdDxwxJL5qH8exKzEzCIv61NKQ9UYQ4X7neNCIva
-X-Gm-Gg: AYBFou1UwBl+cMWy3mRdkvXXfX7mmRUQkYgYIb5A8ithn2tbbpJj9FeEkQ1ubqxUIZE
-	W5Eqn3zHbmi/eejenMtdMwTp/dwyH5wOdZeHAfXWCXoXFfmJh0CvmXygL0hD/PNGVMq5ewlnafR
-	L5BFr2mDWSiOS/4Fy1WPogt7jZiyqd5ALA07FXSrFRV2BWNkT769oQhOhnXwkmp1hei4QR6EBcx
-	yCa0Sw8N8B5QqqLo5rtNmusdwJDHYTZ5x4yy/tXXR1xyJz+dqPZvd8L5XokGJez+0tTsQMtohdT
-	2oB64xA71opDIeZPZt5y1djclhyzN31ObXu8f8xyeRv5mL5XIr73Rzr9fK8s7cEywPeoVRgqZuf
-	qgorb/y6CdDIOJdqoxAZknnpYeiJQfiKvg0qbVnYoRX5CELBMByS7FFc00ALSEu9X2+FN3baE3d
-	IaUrbxLKGEcFLMU6J7FltCxKXD4UyQK4gNXo983IYmcc/hUaPZLZqvK0f203f+IG7z25LVnhwfI
-	KYcrz8kubymTi37BRcsDINF4KMfijpe9XnEAsGOvQ4dFOMX3NnavvZiLl6jS83/OwDZABxv5tjo
-	sz3uF2N6hRRaqoRnX01DGzM+5hyPs+Ys1jb84ppd
-X-Received: by 2002:a05:6a00:8019:b0:886:84c7:72b3 with SMTP id d2e1a72fcca58-897c78d79d0mr9188887b3a.26.1791858686286;
-        Mon, 12 Oct 2026 19:31:26 -0700 (PDT)
-Received: from localhost (ec2-13-231-150-91.ap-northeast-1.compute.amazonaws.com. [13.231.150.91])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-896c310738dsm4513065b3a.16.2026.10.12.19.31.25
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 12 Oct 2026 19:31:25 -0700 (PDT)
-From: jianyungao89@gmail.com
-To: songmuchun@bytedance.com
-Cc: akpm@linux-foundation.org,
-	alison.schofield@intel.com,
-	dave.jiang@intel.com,
-	djbw@kernel.org,
-	joao.m.martins@oracle.com,
-	linux-cxl@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	muchun.song@linux.dev,
-	nvdimm@lists.linux.dev,
-	vishal.l.verma@intel.com,
-	Jianyun Gao <jianyungao89@gmail.com>
-Subject: Re: [PATCH v3 1/2] dax/bus: fix mapping attribute error reporting
-Date: Tue, 13 Oct 2026 10:31:21 +0800
-Message-Id: <20261013023121.11036-1-jianyungao89@gmail.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20260924025035.1265035-2-songmuchun@bytedance.com>
-References: <20260924025035.1265035-2-songmuchun@bytedance.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Y1rjZBK6"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1791864882; x=1823400882;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=S8cxel6X6Yq6iuz94Fu5jjzj8UhGTkl9CDSP2dDr4Ko=;
+  b=Y1rjZBK6yZP/cP3StsXXA8UCgICvNGRxKZHeyd9+4A8fa1QKWUOnGxFX
+   Qj9XdxSYc3/xqsbm50iRBG7VJsJ4vu2Xp9G3X2CfPKtrvXvJTwFsgCIe9
+   16uibO5VxbFIqHHn555Q1inESFlv+SnxFerrtdPj/6ecS+qAvIAYSdENa
+   kDRqUIabl1EaBUhyEa91S9PyuGZyj4yy8/Thc00NZ4U5LjX2S2fpfJvUu
+   Tg2RUsWOnmEbNpxTrrdyiQ5IKdUE1cQQKU9u/qidJqvTWgqi15qExlRpy
+   yO04vsSI2Uw2eEwwStQxf9I0IUyO5b+ix+5SzkDlURQLzi9H1liggDf9r
+   g==;
+X-CSE-ConnectionGUID: 6Di9Y3y8QoKS959n1tGF6Q==
+X-CSE-MsgGUID: nRPuZBUsTHigEZi0wN74qA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11933"; a="468512"
+X-IronPort-AV: E=Sophos;i="6.27,155,1787036400"; 
+   d="scan'208";a="468512"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Oct 2026 21:14:42 -0700
+X-CSE-ConnectionGUID: mnC+yj5uRIGslPnfLYf2xQ==
+X-CSE-MsgGUID: 1gcUm0jhTj2zJgSbxHC57Q==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,155,1787036400"; 
+   d="scan'208";a="1388983"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.124.222.102])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Oct 2026 21:14:41 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org
+Cc: Alison Schofield <alison.schofield@intel.com>
+Subject: [ndctl PATCH v3 0/3] cxl: support region granularities finer than the root
+Date: Mon, 12 Oct 2026 21:14:32 -0700
+Message-ID: <cover.1791863817.git.alison.schofield@intel.com>
+X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -87,9 +58,50 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Jianyun Gao <jianyungao89@gmail.com>
+*** Use to be cxl: Support mixed-granularity region interleaves *** 
 
-This patch also fixes the mapping_store() error return issue I reported.
-The fix looks correct to me.
+Changes in v3:
+- Reframe series to match kernel series which now describes the feature as
+  region granularity finer than the root, refining monotonically toward the
+  endpoints. Drop the term "mixed-granularity" from the patch subjects,
+  commit messages, code comment, and man page
+- Rename test/cxl-region-mixed.sh to test/cxl-region-finer-gran.sh and load
+  cxl_test with the renamed finer_gran_regions module param.
+- cxl-create-region man page: describe the levels below the root as refining
+  monotonically toward the region granularity, rather than interleaving at it
+- Patch 1 is unchanged
+v2: https://lore.kernel.org/nvdimm/cover.1788469004.git.alison.schofield@intel.com/
 
-Reviewed-by: Jianyun Gao <jianyungao89@gmail.com>
+Changes in v2:
+Patch 1: cxl/region: round default region size within root decoder extent
+- New patch to fixup the ALIGN_DOWN usage that doesn't always work
+Patch 2: cxl/region: allow mixed-granularity regions
+- Reject a granularity that is not power of 2
+- Update man page -g section
+Patch 3: test/cxl-region-mixed.sh: test mixed-granularity region creation
+- Cover the third pmem window, a 3-way at 1KB across 3 HBs
+- Add two test cases, a 6-way and 12-way, for more spec defined coverage
+- Select endpoints by walking hierarchy instead of handbuilding lists per case
+- Assert 2 switches below each HB and 2 EP below each switch
+- Require negative test cases to fail at first target write
+- Skip rather than fail when kernel has no registry
+- Drop selector walk language to align with kernel language
+v1: https://lore.kernel.org/all/fa5c109f08824180f58341ebd9055545a2ff3142.1780099216.git.alison.schofield@intel.com/
+
+
+Alison Schofield (3):
+  cxl/region: round default region size within root decoder extent
+  cxl/region: allow region granularity finer than the root
+  test/cxl-region-finer-gran.sh: test region granularity finer than the
+    root
+
+ Documentation/cxl/cxl-create-region.txt |  21 +-
+ cxl/region.c                            |  39 ++-
+ test/cxl-region-finer-gran.sh           | 413 ++++++++++++++++++++++++
+ test/meson.build                        |   2 +
+ 4 files changed, 462 insertions(+), 13 deletions(-)
+ create mode 100644 test/cxl-region-finer-gran.sh
+
+-- 
+2.37.3
+
