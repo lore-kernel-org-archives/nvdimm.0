@@ -1,50 +1,50 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A1385158B8
-	for <nvdimm@lists.linux.dev>; Tue, 13 Oct 2026 16:18:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B660451C331
+	for <nvdimm@lists.linux.dev>; Tue, 13 Oct 2026 17:10:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791908285; cv=none; b=U5jIQq51J4KyICNWLGMQ+BZ/TiL6Ti8fruOA/9xQ2KcIw3y++7aP5e2oklQQjSvdah5RZDuFU9y70yY37+SsHA07Eol6rwMePbr9ifAjhajjE7NxB7t9OrkpmsyqLL5N729Lj6Bkxb3JY9YGS0cZwm0IR+pRFfmb4MUqq1qzrOA=
+	t=1791911416; cv=none; b=MTU7jJ7m8gE4MppEeW4yEOtZnyM6hRHKpK+b4Lj0ZyB5olU+zKZJQFDGhzJpB/fvT0etdruK1H3Usp3R/nNim0ZCFFnRUXN32nT4kFrsrQQgP1tpzDSk/SP/NpFNaq9lwGWpnZEwSruMzpQIM4NWKJOw2eB2T/nMPl0l8/3Tgvg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791908285; c=relaxed/simple;
-	bh=kwmzLEgEOyg6PcRq33bprrnPinvbL4+6gfEHwfl9+i0=;
+	s=arc-20240116; t=1791911416; c=relaxed/simple;
+	bh=31wSxNICfkmal3vU/eprJthAv0OgifKabJQZRPNxV7k=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=OzRZc8Mo1JPxjbbXx1OW4f/yOcS1EDDRxrot+EnngIbqlYUXY9FGV1cIMbmdmNv9kh5NhRSm60do/0AV52A3eQk9myvoVHC+ZjdB9xdBocjIvQQOxb0LP3zR1byRgF1qmEpW1dqXs3KBqRUOPfQulZ3BNMr92EKSskkgoKMfPuo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Zhpo/Yfi; arc=none smtp.client-ip=198.175.65.20
+	 In-Reply-To:Content-Type; b=Jk2T28pEE7btCu0TH9kynzaIIC+ktSJe7N9kjqlmO4PeMf0sDwjlKUUYCAbCIOrPCp/o/GSF8E9HA3DYh1y9vdkImBpjuLagnJdZE8NQP5Vs76OMBFDp84gXGNyUcv709iEtyg396S1t6apdNVX50mSshStg0xTk0qM+VjlryM0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=OIW2VPXQ; arc=none smtp.client-ip=198.175.65.21
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Zhpo/Yfi"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="OIW2VPXQ"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1791908283; x=1823444283;
+  t=1791911416; x=1823447416;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
-  bh=kwmzLEgEOyg6PcRq33bprrnPinvbL4+6gfEHwfl9+i0=;
-  b=Zhpo/YfiM+irR5I0Q86opA3sHns/aRY5+tegTmtm18NVNOQvmIcZ3M0i
-   TG0DqvSvkukDswjMwmpdQht/oHK+vvTJo4UA1QFvxbVOYVFvmfr4fo2+b
-   d47+U2quQ+I/4/puYcVHZIoxtEbrOIeMJk0seoNTqaL+PH2E6707bCR52
-   RFcDpfqiv5HQxBYIujD+J4CrsY6dXj6f/5AZVt/lVqReICNVW53melSMg
-   2sbMSH9IWbzR17HmK8bjjMm+qckhPb2lnlP1YEbljKRapIpOt9ORF30Bn
-   72fj4vbMss7ydn+rwjVHJ85OtjkEnM+YMnzgj0XhcunUG+DNEv1Alk5+6
-   w==;
-X-CSE-ConnectionGUID: KAaQBN4ZR5iXjM6dBCxuPQ==
-X-CSE-MsgGUID: zgY69olfSie/fdgjjP90Bw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11934"; a="643877"
+  bh=31wSxNICfkmal3vU/eprJthAv0OgifKabJQZRPNxV7k=;
+  b=OIW2VPXQwRv0rlDyNyDJNswUyLSy7pd7Q9roc+QyRDCrjSdahYKVD0jN
+   i5lNx8zlq+duIDgVqu/Lx3tvKO+XGaPH1OcBgnqOv0fe6iPmzErs7AfHC
+   PhHv3Y+a4bNLtkZGu1cWk08rnNnPFpxIxr4ohObhKfezia23LMYujb+Pa
+   yr7hsSbLKzCnFkW8nMi/YRVTuXFai3VuX+qD7Q+9JS7xetb7Lef6aPq2+
+   vNFhwKFaioWonVElnSlob5Um6cLNKVvCEPaq0kbh8lfyjx6z/RfD/sNDu
+   Qr4J4s/e6CVw+mcj8W+nydT2/uvG4MAygI6GZpBWR9TvNeEzuRrQRMyAW
+   A==;
+X-CSE-ConnectionGUID: 1ShVv6f7R8yaIpKC2Vgedg==
+X-CSE-MsgGUID: 8pdYCyjXRlCe0pcDVozDkw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11934"; a="739436"
 X-IronPort-AV: E=Sophos;i="6.27,156,1787036400"; 
-   d="scan'208";a="643877"
-Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Oct 2026 09:18:03 -0700
-X-CSE-ConnectionGUID: 3m4woNyYQL+NYMiOpLIn3Q==
-X-CSE-MsgGUID: JBOJ20rJQ9e+KOPFoCnAVw==
+   d="scan'208";a="739436"
+Received: from orviesa007.jf.intel.com ([10.64.159.147])
+  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Oct 2026 10:10:15 -0700
+X-CSE-ConnectionGUID: +uj1hekMSVmlGCrwEtJFgA==
+X-CSE-MsgGUID: cIZRl4ylRMqq5Fv/h+mL0Q==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.27,156,1787036400"; 
-   d="scan'208";a="1270460"
+   d="scan'208";a="1105737"
 Received: from sghuge-mobl2.amr.corp.intel.com (HELO [10.125.109.235]) ([10.125.109.235])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Oct 2026 09:18:01 -0700
-Message-ID: <38cd2c79-00a9-477d-8595-18e1805a49fe@intel.com>
-Date: Tue, 13 Oct 2026 09:18:00 -0700
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Oct 2026 10:10:15 -0700
+Message-ID: <e6d4933a-f448-450f-a85f-16d2bb459a50@intel.com>
+Date: Tue, 13 Oct 2026 10:10:13 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -52,137 +52,57 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v16 0/8] DCD Prep Series
-To: Anisa Su <anisa.su887@gmail.com>, linux-cxl@vger.kernel.org
-Cc: nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
+Subject: Re: [PATCH v2] dax: fix dax_core_init error return code
+To: jianyungao89@gmail.com, linux-kernel@vger.kernel.org
+Cc: stable@vger.kernel.org, Dan Williams <djbw@kernel.org>,
+ Vishal Verma <vishal.l.verma@intel.com>,
  Alison Schofield <alison.schofield@intel.com>,
- Jonathan Cameron <jic23@kernel.org>, Davidlohr Bueso <dave@stgolabs.net>,
- Ira Weiny <iweiny@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>,
- Fan Ni <nifan.cxl@gmail.com>, Li Ming <ming.li@zohomail.com>,
- Benjamin Cheatham <benjamin.cheatham@amd.com>,
- Gregory Price <gourry@gourry.net>, Richard Cheng <icheng@nvidia.com>,
- Anisa Su <anisa.su@samsung.com>
-References: <20261010225852.10727-1-anisa.su@samsung.com>
+ "open list:DEVICE DIRECT ACCESS (DAX)" <nvdimm@lists.linux.dev>,
+ "open list:DEVICE DIRECT ACCESS (DAX)" <linux-cxl@vger.kernel.org>
+References: <20261012151857.22534-1-jianyungao89@gmail.com>
 From: Dave Jiang <dave.jiang@intel.com>
 Content-Language: en-US
-In-Reply-To: <20261010225852.10727-1-anisa.su@samsung.com>
+In-Reply-To: <20261012151857.22534-1-jianyungao89@gmail.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 
 
-On 10/10/26 3:54 PM, Anisa Su wrote:
-> These are the first eight patches of the Dynamic Capacity Device (DCD)
-> series. They set up: DCD enumeration, CDAT handling for DC partitions,
-> the event interrupt plumbing, a preparatory refactor, and
-> documentation of the DPA partition layout. They stand alone and keep DCD
-> disabled. They are not dependent on the rest of the series.
-> Patch 1 detects the 48h command set and then leaves mds->dcd_supported
-> false. The flag is only turned on by the series that adds DCD event
-> handling, so every DCD specific path added here is shut off at runtime:
-> cxl_configure_dcd() never runs, no DC partition is created, no DCD
-> interrupt is armed, and the CXL_PARTMODE_DYNAMIC_RAM paths are
-> unreachable. The intent is to land the enumeration and plumbing while
-> the extent to DAX pipeline is still under review.
+On 10/12/26 8:18 AM, jianyungao89@gmail.com wrote:
+> From: Jianyun Gao <jianyungao89@gmail.com>
 > 
-> Based on v7.3-rc6
-> v15: https://lore.kernel.org/linux-cxl/20261007201828.952-1-anisa.su@samsung.com/
+> dax_core_init() mistakenly returns 0 on error paths. Change the
+> error return to use rc so the actual error code is propagated
+> to the caller.
 > 
-> v15 -> v16 Changes:
-> ===================
-> A quick respin:
-> 
->  - Patch 2: cxl_configure_dcd() took Identify Total Capacity as the end
->    of static capacity, but Total Capacity is only required to be >=
->    ram + pmem. The static end now comes from the last static partition's end dpa
->    +1 instead of info->size. Check that DC starts from there. (Richard).
-> 
->  - Patch 3: dsmas_entry.qos_class initialized as CXL_QOS_CLASS_INVALID, so a
->    DSMAS entry that is skipped for lack of DSLBIS, or whose QTG lookup
->    fails, no longer reaches update_perf_entry() with qos_class 0, which
->    is a valid class. (Sashiko).
->    
->    The DSMAD handle check now checks handle > U8_MAX instead of
->    handle & ~0xFF (Dave).
-> 
->  - Patch 6: when the DCD vector cannot be requested, tell the device
->    not to use the vector: dcd_settings is cleared with
->    Set Event Interrupt Policy, so a device does not keep signalling a
->    vector with no handler while the
->    host considers DCD off.  The Set command is re-factored into a new helper
->    cxl_event_set_int_policy() (Richard).
->    
-> All other patches are unchanged.
-> I kept the review tags on patch 3, since the changes are minimal and
-> dropped tags from 2 and 6.
-> 
-> Patch organization
-> ==================
->  1-3: enumerate DCD command support, read the DC configuration, and pick
->       up DSMAS data for DC partitions.
->  4-6: split event msgnum configuration from irq setup, factor out the
->       interrupt policy check, then configure the DCD event interrupt.
->    7: preparatory refactor -- enforce partition order while collapsing
->       the ram/pmem specific partition helpers into one.
->    8: document the DPA partition layout the previous patches enforce,
->       and where Linux is stricter than the specification.
-> 
-> Testing
-> =======
-> This series leaves mds->dcd_supported false on purpose, so
-> cxl_configure_dcd(), cxl_dev_dc_identify() and cxl_dc_check() are
-> unreachable at runtime as posted. The tests below are done with the rest
-> of the series on top, otherwise testing would not yield any meaningful
-> results.
-> 
-> HW:
-> Tested add and release of one 2G tagged extent on a DCD with a sharable
-> partition, driven from the system's BMC with FM-API Initiate Dynamic
-> Capacity Add / Release over MCTP, to confirm the DCD interrupt
-> configuration and the DSMAS attributes are read properly. The device
-> is sharable, so an add without a tag and sequence number is refused.
-> 
-> 
-> cxl_test:
-> ndctl cxl test suite
-> 16 of 17 pass, cxl-features.sh skips for lack of FWCTL
-> 
-> Anisa Su (1):
->   Documentation/cxl: Document DPA partition layout and ordering rules
-> 
-> Ira Weiny (7):
->   cxl/mbox: Flag support for Dynamic Capacity Devices (DCD)
->   cxl/mem: Read dynamic capacity configuration from the device
->   cxl/cdat: Gather DSMAS data for DCD partitions
->   cxl/events: Split event msgnum configuration from irq setup
->   cxl/pci: Factor out interrupt policy check
->   cxl/mem: Configure dynamic capacity interrupts
->   cxl/core: Enforce partition order/simplify partition calls
-> 
->  .../driver-api/cxl/linux/cxl-driver.rst       |  35 +++
->  Documentation/driver-api/cxl/maturity-map.rst |   4 +
->  drivers/cxl/core/cdat.c                       |  99 +++++-
->  drivers/cxl/core/hdm.c                        |  24 +-
->  drivers/cxl/core/mbox.c                       | 285 ++++++++++++++++++
->  drivers/cxl/core/memdev.c                     | 100 ++++--
->  drivers/cxl/cxl.h                             |  14 +-
->  drivers/cxl/cxlmem.h                          |  88 +++++-
->  drivers/cxl/mem.c                             |   2 +-
->  drivers/cxl/pci.c                             | 207 ++++++++++---
->  include/cxl/cxl.h                             |  29 +-
->  tools/testing/cxl/test/mem.c                  |   2 +-
->  12 files changed, 792 insertions(+), 97 deletions(-)
-> 
-> 
-> base-commit: a90ee4305c4a5df72c11b31dacfdc76e00fcf78a
+> Fixes: 9567da0b408a ("device-dax: Introduce bus + driver model")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Jianyun Gao <jianyungao89@gmail.com>
 
-Applied to cxl/next
-e4478834aa09
-c801107605f3
-9c45dd3684a5
-726ac97330a4
-f9c672229ca8
-a7d2b5e9c4f5
-b5d93fa1b7ac
-13797539ae78
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+
+> ---
+> 
+> Changes in v2:
+> - Drop unnecessary goto label, keep direct return for dax_fs_init() error
+> - Add Fixes tag and Cc stable
+> 
+> Link: https://lore.kernel.org/lkml/20261011132017.31131-1-jianyungao89@gmail.com/ # v1
+> 
+>  drivers/dax/super.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+> index 45f84b0eb909..210f4af479f0 100644
+> --- a/drivers/dax/super.c
+> +++ b/drivers/dax/super.c
+> @@ -738,7 +738,7 @@ static int __init dax_core_init(void)
+>  	unregister_chrdev_region(dax_devt, MINORMASK+1);
+>  err_chrdev:
+>  	dax_fs_exit();
+> -	return 0;
+> +	return rc;
+>  }
+>  
+>  static void __exit dax_core_exit(void)
 
