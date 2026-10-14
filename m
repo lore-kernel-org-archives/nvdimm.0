@@ -1,112 +1,212 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C7D41FF1DA
-	for <nvdimm@lists.linux.dev>; Wed, 14 Oct 2026 02:21:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 497802D9796
+	for <nvdimm@lists.linux.dev>; Wed, 14 Oct 2026 04:38:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791944470; cv=none; b=WSnZXxhf5GJmRwWpWWnM6EnxWxHBffwgXOku23Z6bZEybEpYEPPyFCVhz413pP36FnKM6KUQtmAfQoV8jIzCulPpiAWMIg0ZOcftwQ7KquDOlnet722UjMNjyBQ7dzg7J2zCOEwwQ2jOnGWLPBj/t9DqoPngmm+hnR2IR8ZpThk=
+	t=1791952710; cv=none; b=hKSrCO46B0+OBtDtnCHiDy+2YaNZmajn8jx8P18YNVUHZdggVi8cSKwK3Uqcn5cccVdMjLy6gQpYcW8MYAjLQj78uhoJerLANaJBcHLa6BogBHndgNQ/Psib8p3xrINelQfv7PbrBg03Zg0dhFWLSp3lnIgASJKBGaRY7KeWIcQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791944470; c=relaxed/simple;
-	bh=b3dyevacl/cbCp0uCWiC6GHkpQpmGiBcssV4giNKLj4=;
-	h=Message-ID:From:Subject:To:In-Reply-To:References:Content-Type:
-	 Date; b=NswYOL2VekJew2p+PeEceRsoJCDaaRvvsb8NbM4zTxIJ0gop4i+uxm/uEy1H0dW4yCJ14fmXYGcZo1N2S4KQndVET9ZITRrcXnfioLW2jhRyx2PuulplBByBjO5WkuNBwNNaL2VXRhzVsPEOZ7I74zfJj+G0sr95rimiTPNVI7o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VkNsYBhz; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791952710; c=relaxed/simple;
+	bh=WgO2z21qiQifReUdyWhyJhpNkxL3VqsKvzN87nSwryU=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=SjonPttVIXyVpm69Mngr3cBYKa5caDSAA+lwvDLBQg+VeFom/8mqECwim9hkeAw5aDJHDds/2nutJ8eKdN53D2stOOj1VatLndQweWIBB8cPm1hBQ9gSaP/oz8/WM0uKmD+yKCAO5ZO4Ha2WPeIVjMsZ2m0rKJAntF+jM4KvZSQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=IQQTvHWf; arc=none smtp.client-ip=198.175.65.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VkNsYBhz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC2681F000FF;
-	Wed, 14 Oct 2026 02:21:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791944468;
-	bh=vfwTErDtGqbEWnYiaXYBDva3rTKZjeDHF7LUsBXF7Vo=;
-	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
-	b=VkNsYBhznSKZe+c7iMGJzHTmGf0Kj3hykGtagL+eICcsT8yL1BZ+NAalaU+npM6tJ
-	 4rWDm+gn8XUgRbLZFPqw7XYqOQUw8w6TL7oFqN/fochtQuMPkJGGyXmwhozJUWEwo4
-	 gOTlV0LuFJ0Q8L9lzTnP7wTFT87YRa5kSuyuUL1aDY+SU4FV2vJ71Hk02XpVG997sP
-	 Gt2XFyiMmfCALt2Nely3oWoHFptFPANunIDw78YY8k243j88hc+7kCEBfGya5kmm9h
-	 HWz+uQf9hV8MjqskojBUgKNGZG/dMS+mBT+EiiLCcsh1/jDxyY2GO5eivDwz2E6Zqt
-	 5CkWLfjce5w/g==
-Message-ID: <sashiko-outbox-170688@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [RFC PATCH] drivers: nvdimm: validate dataoffset
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Shyam Saini" <shyamsaini@linux.microsoft.com>, nvdimm@lists.linux.dev
-In-Reply-To: <20261014020430.295282-1-shyamsaini@linux.microsoft.com>
-References: <20261014020430.295282-1-shyamsaini@linux.microsoft.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Wed, 14 Oct 2026 02:21:08 +0000
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="IQQTvHWf"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1791952706; x=1823488706;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=WgO2z21qiQifReUdyWhyJhpNkxL3VqsKvzN87nSwryU=;
+  b=IQQTvHWf5nd6JLh34sNQSDIrSDmWEkfMIlicKsTKpqdaR+V4A2KAmnYP
+   77qxgW/JHeQtg0v7jsamKQXAcfGuDex7M+0OBdD/3I68bR5jNT8u0AyNm
+   RRozlm50xVSMm8/+mHf3w4DnQS38xxSyUtqp1Heg9BcHCZbYtV1HAl5C7
+   zUApIDX/5+zf9nTFR8pcxrs/moCcwlwxUyrG07Wnm7eDaktkc1pmwA9Ib
+   1EzM+0DM4kb4YfW9b4ibMuuVbkqRAALHFh8ESUafC9XtdrP70nIwCKtEk
+   7NEZc+QSPFoiKP/pEYu44vfER7spX7QNXvEMcJenXh4BecAUFOy3xSuOx
+   A==;
+X-CSE-ConnectionGUID: vwYwtuLYRzKRHpeidrRLpA==
+X-CSE-MsgGUID: 4ERIAghwRdmjc52VtkE/2A==
+X-IronPort-AV: E=McAfee;i="6800,10657,11934"; a="574096"
+X-IronPort-AV: E=Sophos;i="6.27,157,1787036400"; 
+   d="scan'208";a="574096"
+Received: from fmviesa003.fm.intel.com ([10.60.135.143])
+  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Oct 2026 21:38:25 -0700
+X-CSE-ConnectionGUID: PouncQQ3TRK59G2lciQCZw==
+X-CSE-MsgGUID: 8iRqJD9ZQK+FWCyVisrvPA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,157,1787036400"; 
+   d="scan'208";a="1411164"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.124.222.192])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Oct 2026 21:38:25 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org
+Cc: Alison Schofield <alison.schofield@intel.com>
+Subject: [ndctl PATCH] test/cxl-kunit.sh: enable running the CXL KUnit tests
+Date: Tue, 13 Oct 2026 21:38:22 -0700
+Message-ID: <20261014043823.295243-1-alison.schofield@intel.com>
+X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Thank you for your contribution! Sashiko AI review found 2 potential issue(=
-s) to consider:
-- [High] nvdimm: false rejection of valid PMEM namespaces due to hardcoded =
-MAX_STRUCT_PAGE_SIZE
-- [High] nvdimm: offset validation ignores memremap_compat_align()
---
+CXL KUnit suites run when their modules are loaded, but the ndctl CXL
+test suite does not load them. As a result, they are not exercised by
+the existing ndctl tests.
 
-commit eb5279626b7f080ae471e489ece4609d9d792c1b
-Author: Shyam Saini <shyamsaini@linux.microsoft.com>
+Add cxl-kunit.sh to discover and load installed CXL KUnit modules, check
+their KTAP results in debugfs, and unload the modules on exit. Test
+failures are reported individually without preventing the remaining suites
+from running.
 
-drivers: nvdimm: validate dataoffset
+Discover modules by the cxl_*_kunit naming convention so newly added suites
+are included automatically.
 
-This commit adds a dataoffset validation to prevent probing failures caused
-by stale superblocks after a cold reboot where DRAM is not zeroed. It checks
-for a mismatch between the preserved superblock dataoffset and the resource=
-'s
-dataoffset, rejecting mismatched ones.
+Add CONFIG_KUNIT, CONFIG_KUNIT_DEBUGFS, and CONFIG_CXL_KUNIT_TEST=m to the
+README kernel configuration.
 
-> diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-> index 8fa9c16aba7ea..667115ce88e40 100644
-> --- a/drivers/nvdimm/pfn_devs.c
-> +++ b/drivers/nvdimm/pfn_devs.c
-[ ... ]
-> @@ -577,6 +577,12 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const cha=
-r *sig)
->  	nsio =3D to_nd_namespace_io(&ndns->dev);
->  	res =3D &nsio->res;
->  	res_size =3D resource_size(res);
-> +	res_start =3D res->start;
-> +	npfns =3D PHYS_PFN(res_size - SZ_8K);
-> +	offset_res =3D ALIGN(res_start + SZ_8K + (MAX_STRUCT_PAGE_SIZE * npfns)=
-, align) - res_start;
-> +	if ((mode =3D=3D PFN_MODE_PMEM) && offset_res !=3D offset)
-> +		return -ENODEV;
-> +
+Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+---
+ README.md         |  3 ++
+ test/cxl-kunit.sh | 86 +++++++++++++++++++++++++++++++++++++++++++++++
+ test/meson.build  |  2 ++
+ 3 files changed, 91 insertions(+)
+ create mode 100755 test/cxl-kunit.sh
 
-[Severity: High]
-Does this code falsely reject valid PMEM namespaces that were created with a
-custom struct page size or on architectures with a larger alignment?
+diff --git a/README.md b/README.md
+index a71db28f62fb..83e809a2b325 100644
+--- a/README.md
++++ b/README.md
+@@ -130,6 +130,9 @@ loaded.  To build and install nfit_test.ko:
+    CONFIG_NVDIMM_SECURITY_TEST=y
+    CONFIG_ENCRYPTED_KEYS=y
+    CONFIG_NVDIMM_KEYS=y
++   CONFIG_KUNIT=y
++   CONFIG_KUNIT_DEBUGFS=y
++   CONFIG_CXL_KUNIT_TEST=m
+    ```
+ 1. Install cxl_test and related mock modules.
+    ```
+diff --git a/test/cxl-kunit.sh b/test/cxl-kunit.sh
+new file mode 100755
+index 000000000000..12e94e417cac
+--- /dev/null
++++ b/test/cxl-kunit.sh
+@@ -0,0 +1,86 @@
++#!/bin/bash
++# SPDX-License-Identifier: GPL-2.0
++# Copyright (C) 2026 Intel Corporation. All rights reserved.
++
++# Run CXL KUnit suites through the ndctl test harness.
++# Discover test modules by name and check their KTAP results in debugfs.
++# See Documentation/driver-api/cxl/testing.rst in the kernel.
++
++# shellcheck disable=SC1091 # common is sourced from the test directory
++. "$(dirname "$0")"/common
++
++kunit_debugfs=/sys/kernel/debug/kunit
++
++mapfile -t modules < <(find /lib/modules/"$(uname -r)" \
++	-name 'cxl_*_kunit.ko*' -printf '%f\n' | sed 's/\.ko.*$//' | sort)
++
++[ ${#modules[@]} -gt 0 ] ||
++	do_skip "test requires CONFIG_CXL_KUNIT_TEST=m"
++
++unload_modules() {
++	local mod
++
++	for mod in "${modules[@]}"; do
++		modprobe -r "$mod" 2>/dev/null || true
++	done
++}
++
++trap unload_modules EXIT
++trap 'err $LINENO' ERR
++set -ex
++# shellcheck disable=SC2034 # rc is the exit status used by err()
++rc=1
++
++# Force test suites to rerun on module load
++unload_modules
++
++loaded=()
++summary=()
++nr_failed=0
++
++for mod in "${modules[@]}"; do
++	if modprobe "$mod"; then
++		loaded+=("$mod")
++	else
++		summary+=("$mod: FAIL, module did not load")
++		nr_failed=$((nr_failed + 1))
++	fi
++done
++
++[ -d "$kunit_debugfs" ] ||
++	do_skip "test requires CONFIG_KUNIT_DEBUGFS=y"
++
++for mod in "${loaded[@]}"; do
++	nr_suites=0
++
++	for results in "$kunit_debugfs"/cxl_*/results; do
++		[ -f "$results" ] || continue
++		grep -qE "^[[:space:]]*# module: $mod\$" "$results" || continue
++
++		suite=$(basename "$(dirname "$results")")
++		nr_suites=$((nr_suites + 1))
++		cat "$results"
++
++		# Match the suite result, not individual test cases
++		if grep -qE "^ok [0-9]+ $suite\$" "$results"; then
++			summary+=("$mod: suite $suite PASS")
++		else
++			summary+=("$mod: suite $suite FAIL")
++			nr_failed=$((nr_failed + 1))
++		fi
++	done
++
++	if [ "$nr_suites" -eq 0 ]; then
++		summary+=("$mod: FAIL, no suite results in $kunit_debugfs")
++		nr_failed=$((nr_failed + 1))
++	fi
++done
++
++set +x
++echo "CXL KUnit summary:"
++printf '  %s\n' "${summary[@]}"
++set -x
++
++[ "$nr_failed" -eq 0 ] || err "$LINENO"
++
++echo "CXL KUnit: all suites from ${#modules[@]} modules passed"
+diff --git a/test/meson.build b/test/meson.build
+index 07c8618cbc6e..3b3a634ef25d 100644
+--- a/test/meson.build
++++ b/test/meson.build
+@@ -173,6 +173,7 @@ cxl_elc = find_program('cxl-elc.sh')
+ cxl_dax_hmem = find_program('cxl-dax-hmem.sh')
+ cxl_region_replay = find_program('cxl-region-replay.sh')
+ cxl_type2 = find_program('cxl-type2.sh')
++cxl_kunit = find_program('cxl-kunit.sh')
+ 
+ tests = [
+   [ 'libndctl',               libndctl,		  'ndctl' ],
+@@ -211,6 +212,7 @@ tests = [
+   [ 'cxl-dax-hmem.sh',        cxl_dax_hmem,       'cxl'   ],
+   [ 'cxl-region-replay.sh',   cxl_region_replay,  'cxl'   ],
+   [ 'cxl-type2.sh',           cxl_type2,          'cxl'   ],
++  [ 'cxl-kunit.sh',           cxl_kunit,          'cxl'   ],
+ ]
+ 
+ if get_option('destructive').enabled()
+-- 
+2.37.3
 
-The offset_res calculation hardcodes MAX_STRUCT_PAGE_SIZE instead of using
-the superblock's recorded page_struct_size.
-
-If the namespace was initialized with a larger struct page size (for exampl=
-e,
-with KMSAN where sizeof(struct page) > 64), offset_res will be calculated as
-smaller than the actual stored offset.
-
-Additionally, the original offset calculation during namespace creation in
-nd_pfn_init() uses max(nd_pfn->align, memremap_compat_align()):
-
-drivers/nvdimm/pfn_devs.c:nd_pfn_init() {
-    ...
-    align =3D max(nd_pfn->align, memremap_compat_align());
-    ...
-}
-
-Because the recalculation here uses only 'align' without considering
-memremap_compat_align(), could it cause a mismatch on architectures where
-memremap_compat_align() is larger than nd_pfn->align (like PowerPC with 64K
-pages, where memremap_compat_align() is 16MB)?
-
-Will this mismatch check incorrectly evaluate to true for these valid PMEM
-namespaces and fail to probe them?
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261014020430.2952=
-82-1-shyamsaini@linux.microsoft.com?part=3D1
