@@ -1,77 +1,42 @@
-Received: from mail-pj2-f2.google.com (mail-pj2-f2.google.com [74.125.227.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5351318BA8
-	for <nvdimm@lists.linux.dev>; Wed, 14 Oct 2026 01:28:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.130
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D6AB12D7DD4
+	for <nvdimm@lists.linux.dev>; Wed, 14 Oct 2026 02:04:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791941315; cv=none; b=UB0rRXUqLtIeAj/SUFyGlR0YaVqPbRttIQv1UK2bE22wTtC5rlMcs8fx9aUYKoLyVeX2wakQOhfaVJJLgYTpTe12XFSw1nDRYWkw2n9xRRGD+Ww115mqQSw8zyQy6ZLgN18Ukyfwa96EZ79zV34Q7iD2tD/hMTJu+5CSXp90e6U=
+	t=1791943491; cv=none; b=jSrYI43ZB1WXcHw5cqHJpO4jvnwl3WtH7zbM2VCNVRCW6+Wgm7VUz/fjT2UPRrJgAuWPJAJCn81gWb8NIKcv5Ru4j3Il5U5Xc3xYd6vakZVnjBe7hGBQ/8YKSuDeKVoOvv545E1d3Mx2xdnhsgVE4eSz7Ey8RKBVD5zTeo2aPoY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791941315; c=relaxed/simple;
-	bh=gmVQW4zvgK1RdCMOSrjGY3Z/g11AJJIEJYvUSmj2svQ=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=HGgEI7LYxTGg3Hw4XO7OeORUOy9d0ztNMJXs/f6z7dikbVtyMbLP3pmeJltdEHhyx/RB7DDypE4foGeTEXVWJbgh31MieL0zn+nzo9hpFws6i++keqRvZtmSZ4o0zsFduJf/FRGbRIDliumHJevOage3tjcmSG7cdN1btRja24I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Dh4pnbB6; arc=none smtp.client-ip=74.125.227.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1791943491; c=relaxed/simple;
+	bh=sn6HwpxnbG9Lp5ytnNeizauo3pC/1sm15AlIxGPdkEY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=orcA9CnU4S4iolR6Zt0tiKoBG4d/VSpsHS8KrULsWWiVL1zJu7p66gJIbshXWK5Q3uusjtaQ2ZcDfQyzwSjDxz0LB0vYU1Vkmr/r6PDq+heBKsk1b6CfgNLY0yd1F6HOsutK6PTK1pF5atICuY15k2s4+EgkcZbLNpwuamnekrI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=Gf72OYwY; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Dh4pnbB6"
-Received: by mail-pj2-f2.google.com with SMTP id 98e67ed59e1d1-3a8c118e711so2029130a91.0
-        for <nvdimm@lists.linux.dev>; Tue, 13 Oct 2026 18:28:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791941313; x=1792546113; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=xF4abej4dYzWW64tGMfNwkdoR9vBgU7tCntIFYf9jb8=;
-        b=Dh4pnbB6h+1zjC1KHC8Opp+tYFsQQ4evCRH7Z4CICKi8RxQksw+wSXFEAMmdInwWH8
-         cTmxxfAa27idp6qtf2oOlej6NkhU7dzDUpY6nFzeneRx7zHJcIeCfokbyIMiaExqEaCm
-         zrNrO7jokuxRU/cVjF0h9TAwDPV8axmt+n+pbjhoiXs6RQVftwAgO/4GH9y+brCPMd97
-         2qg1LQgiUOBb06zPOpbqo4wjTI69C7D/EYtPoRIrau4uN0SS8mfyCsdI4p6lwNkJPena
-         Dk5zuvzkbQjFh5nA2/U8RhT0gO3V8u1yhsehTXGdoBJN1sztWhEgsezoBmJg2wTWvLo1
-         zIGg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791941313; x=1792546113;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=xF4abej4dYzWW64tGMfNwkdoR9vBgU7tCntIFYf9jb8=;
-        b=dMI0Spn96/mzpau+4+3f58SaZGjG7P2kLG2M4axG5cpzDl83Ce1CN9o6JiN5W1+fAa
-         wMlsLC8A+hyb3ctD2+ED3DxSDh5EpPU/HUkPINwpx2k8CIiJH+AsZaLi38wjRwCgQj0j
-         IllkwD+qPcaywRpTGsYfCfBl6F9eYuiWDtDr/69NqQ97WvJhrwxn4W8pD2Z1By6Xp9Je
-         7lyo3uJIPU7YdgU7ymX2ceTibnvTINXUGurxFo8BgFI8WtIDssSIHMP7xf7uVFlE969p
-         z4pAWg2w++hu2ph2l3EElF2cqKWVsqmSCFwzrceiZ9cE6SHojbV5zClx4DbHLrTiFjpB
-         1Kyg==
-X-Forwarded-Encrypted: i=1; AKwUvBz9vCKiXPAVwNKrvJ29rzdsCYehj1kLJwOoBCh0K9nkOsbnXtAL/02N3cLG1jEVfnkbHeRrBNo=@lists.linux.dev
-X-Gm-Message-State: AFq9FYIUXsAWf9LchWUzouoOohyxYn/ZDkGMpIGT9L0AgDxYfSw5CR45
-	0H/sSXJQOEw2d7+u6dn4Dex+wspiTUelB2JcY21ae9uxADRMIgGXOxa7
-X-Gm-Gg: AYBFou0sAU2PY03os8mtiiGYrsrnmxIrU1dfYXwEEXC/oY22sTICrcEe16nC5Vhb3YJ
-	hV/RnW+P/XrHt+xUG5zRYh7XwIeMceN1cK2OuqUSsDBNbLUgHqkyMkzxLgeYvbgkyQDLgChjE3j
-	ZzBZmyU+f3++uA5q4VYJF2LeW6nmQIuJODs3iSZGRu/3NcRfkWK6uOCFCxmENOsaNnabL21Aftm
-	8pgdrzz36rwEPhhuxpAbWLvH+e6zmkl3HbOOjlMeVxD1QVXvAhHXdH8l1H1ydwqFjCqxW6FBFi6
-	7GoMsSMle9ClDpuyYiC1ws/PkJx48aFA7lgWMo0c2wpRcHHVBkMf5lybRLNX3xRB0deMBmL+47h
-	mgr/0EluPseTa/BiNpmVDNjhB39thfkvOkMP3QwgbkWvYFlXn4kuvX+aXU66a66OrODIctIvHK+
-	ksZqI269OlDJe3a6pqo7ostTkvc72id7Qb0rmdCrO8x0mxOAgmqtMQSCx7oa6S2Fij8xkUw8KKh
-	YO4HD9uguzw/Njm+mK0/M6A5avFSljMLxvUH+bN6DmmSpnOzi/i3DCQMjp4YqiCAPBwXNAyPV43
-	DiWQrdeqdKPxaBBQfXWPAbL8BRuNGme6pP0=
-X-Received: by 2002:a17:90a:1601:b0:3ab:884b:65b7 with SMTP id 98e67ed59e1d1-3ab884b6b8cmr5867485a91.25.1791941313156;
-        Tue, 13 Oct 2026 18:28:33 -0700 (PDT)
-Received: from localhost (ec2-35-77-45-43.ap-northeast-1.compute.amazonaws.com. [35.77.45.43])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3ac5f1fb257sm1953670a91.0.2026.10.13.18.28.31
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 13 Oct 2026 18:28:32 -0700 (PDT)
-From: jianyungao89@gmail.com
-To: linux-kernel@vger.kernel.org
-Cc: Jianyun Gao <jianyungao89@gmail.com>,
-	stable@vger.kernel.org,
-	Dan Williams <djbw@kernel.org>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	nvdimm@lists.linux.dev (open list:DEVICE DIRECT ACCESS (DAX)),
-	linux-cxl@vger.kernel.org (open list:DEVICE DIRECT ACCESS (DAX))
-Subject: [PATCH] dax/bus: fix dev_dax->ranges leak on device_add() failure
-Date: Wed, 14 Oct 2026 09:28:23 +0800
-Message-Id: <20261014012824.31468-1-jianyungao89@gmail.com>
-X-Mailer: git-send-email 2.34.1
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="Gf72OYwY"
+Received: from thinkpad-p16sg1.. (unknown [154.20.139.108])
+	by linux.microsoft.com (Postfix) with ESMTPSA id 0CE6220B7168;
+	Tue, 13 Oct 2026 19:04:45 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 0CE6220B7168
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1791943485;
+	bh=FGJmm0D8CfbG8q4cdnHz8yqPp2hg+xNZFZP2H/avS60=;
+	h=From:To:Cc:Subject:Date:From;
+	b=Gf72OYwYtuYmR+dm6ABzh/0u+jthVEmW2lkxFeU1iz//F2zu8bWCwnq+sN//PqLFd
+	 Yd1rtZ8kni+jnvZW3J1aO6xe3vA7Svirr2qmCLDNAS2/q8HEQYL9Qv8GcTXNzt3bgX
+	 etJ3xkRwGWX4/dNPeofCJ2GGTsXPc8gzMKm5cnVM=
+From: Shyam Saini <shyamsaini@linux.microsoft.com>
+To: nvdimm@lists.linux.dev
+Cc: vishal.l.verma@intel.com,
+	dave.jiang@intel.com,
+	alison.schofield@intel.com,
+	iweiny@kernel.org,
+	tgopinath@linux.microsoft.com,
+	bboscaccy@linux.microsoft.com,
+	srivatsa@csail.mit.edu
+Subject: [RFC PATCH] drivers: nvdimm: validate dataoffset
+Date: Tue, 13 Oct 2026 19:04:30 -0700
+Message-ID: <20261014020430.295282-1-shyamsaini@linux.microsoft.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -80,39 +45,85 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Jianyun Gao <jianyungao89@gmail.com>
+On some platforms cold reboot may not zero out DRAM and
+as a consequence, the next kernel boot with a new pmem layout
+change may end up using stale superblocks. This can cause
+altmap to run out of memory and consequently the pmem drivers
+may fail to probe.
 
-In __devm_create_dev_dax(), when device_add() fails, the function calls
-kill_dev_dax() and put_device() but does not free dev_dax->ranges.
-At this point devm_add_action_or_reset() has not been registered yet,
-so unregister_dev_dax() (which calls free_dev_dax_ranges()) will never
-run.  put_device() triggers dev_dax_release() which frees pgmap and
-dev_dax, but not ranges -- leaking the krealloc'd array and also
-leaking the regions reserved via __request_region() in
-alloc_dev_dax_range().
+    failed to free all reserved pages
+   [trimmed]
+    Call trace:
+     memunmap_pages+0x2f8/0x358
+     memremap_pages+0x590/0x728
+     devm_memremap_pages+0x30/0x88
+     pmem_attach_disk+0x178/0x488
+     nd_pmem_probe+0x60/0xe0
+     nvdimm_bus_probe+0xec/0x208
+     really_probe+0xc0/0x2e8
+     __driver_probe_device+0xc4/0x168
+     driver_probe_device+0x48/0x218
+     __device_attach_driver+0x130/0x160
+     bus_for_each_drv+0x94/0xf0
+     __device_attach+0xfc/0x1a0
+     device_initial_probe+0x18/0x28
+     bus_probe_device+0x40/0xa0
+     device_add+0x270/0x498
+     nd_async_device_register+0x20/0x70
+     async_run_entry_fn+0x30/0x158
+     process_scheduled_works+0x248/0x4b0
+     worker_thread+0x284/0x3a0
+     kthread+0xe0/0x180
+     ret_from_fork+0x10/0x20
+    ---[ end trace 0000000000000000 ]---
+    nd_pmem: probe of pfnX.1 failed with error -12
 
-Add free_dev_dax_ranges() to the device_add() failure path, matching
-the cleanup already done in the err_pgmap error path.
+Fix this by discarding superblock if there is a mismatch b/w
+dataoffset value from the preserved superblock and the
+dataoffset from the resource.
 
-Fixes: 9567da0b408a2 ("device-dax: Introduce bus + driver model")
-Cc: stable@vger.kernel.org
-Signed-off-by: Jianyun Gao <jianyungao89@gmail.com>
+While this fix is not robust but it can be combined with userspace
+namespace destruction and recreation to remove all the stale pmems
+metadata and reconfigure the fresh data using ndctl
+
+Signed-off-by: Shyam Saini <shyamsaini@linux.microsoft.com>
 ---
- drivers/dax/bus.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/nvdimm/pfn_devs.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index b809e1a264af..83442430dc01 100644
---- a/drivers/dax/bus.c
-+++ b/drivers/dax/bus.c
-@@ -1536,6 +1536,7 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
- 	rc = device_add(dev);
- 	if (rc) {
- 		kill_dev_dax(dev_dax);
-+		free_dev_dax_ranges(dev_dax);
- 		put_device(dev);
- 		return ERR_PTR(rc);
- 	}
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index 8fa9c16aba7ea..667115ce88e40 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -439,12 +439,12 @@ static bool nd_supported_alignment(unsigned long align)
+  */
+ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ {
+-	u64 checksum, offset;
++	u64 checksum, offset, offset_res;
+ 	struct resource *res;
+ 	enum nd_pfn_mode mode;
+-	resource_size_t res_size;
++	resource_size_t res_start, res_size;
+ 	struct nd_namespace_io *nsio;
+-	unsigned long align, start_pad, end_trunc;
++	unsigned long align, start_pad, end_trunc, npfns;
+ 	struct nd_pfn_sb *pfn_sb = nd_pfn->pfn_sb;
+ 	struct nd_namespace_common *ndns = nd_pfn->ndns;
+ 	const uuid_t *parent_uuid = nd_dev_to_uuid(&ndns->dev);
+@@ -577,6 +577,12 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ 	nsio = to_nd_namespace_io(&ndns->dev);
+ 	res = &nsio->res;
+ 	res_size = resource_size(res);
++	res_start = res->start;
++	npfns = PHYS_PFN(res_size - SZ_8K);
++	offset_res = ALIGN(res_start + SZ_8K + (MAX_STRUCT_PAGE_SIZE * npfns), align) - res_start;
++	if ((mode == PFN_MODE_PMEM) && offset_res != offset)
++		return -ENODEV;
++
+ 	if (offset >= res_size) {
+ 		dev_err(&nd_pfn->dev, "pfn array size exceeds capacity of %s\n",
+ 				dev_name(&ndns->dev));
 -- 
-2.34.1
+2.43.0
 
