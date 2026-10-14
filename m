@@ -1,212 +1,152 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 497802D9796
-	for <nvdimm@lists.linux.dev>; Wed, 14 Oct 2026 04:38:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA4814D6C29
+	for <nvdimm@lists.linux.dev>; Wed, 14 Oct 2026 09:26:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791952710; cv=none; b=hKSrCO46B0+OBtDtnCHiDy+2YaNZmajn8jx8P18YNVUHZdggVi8cSKwK3Uqcn5cccVdMjLy6gQpYcW8MYAjLQj78uhoJerLANaJBcHLa6BogBHndgNQ/Psib8p3xrINelQfv7PbrBg03Zg0dhFWLSp3lnIgASJKBGaRY7KeWIcQ=
+	t=1791970004; cv=none; b=tgANgmC5etXC8DxZYc5XvSxujZwnBLIAH1HQAYIzDRjh6VPYle5efK3APNNgQ7r7B2SMzteeMBe9V8H8ROUnT3HtptdOupzgckoD4DrAoOJ+aJAjgOXAAPzlmzuX0+Mz2U60qylXnHzEiKqqjKdptERBRzaEKwFS/qd0qjoYGyc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791952710; c=relaxed/simple;
-	bh=WgO2z21qiQifReUdyWhyJhpNkxL3VqsKvzN87nSwryU=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=SjonPttVIXyVpm69Mngr3cBYKa5caDSAA+lwvDLBQg+VeFom/8mqECwim9hkeAw5aDJHDds/2nutJ8eKdN53D2stOOj1VatLndQweWIBB8cPm1hBQ9gSaP/oz8/WM0uKmD+yKCAO5ZO4Ha2WPeIVjMsZ2m0rKJAntF+jM4KvZSQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=IQQTvHWf; arc=none smtp.client-ip=198.175.65.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1791970004; c=relaxed/simple;
+	bh=42HZk7Eqx7sOIWk8sWRefK14hjH25QPd21VNFE4YkZs=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=DggsWO4LnIUwhSmglA6qd4tiHDmSBxRtbW0SIMv2VvxCRjeW30tLTvk3jjJYlzbPDKDwHvRR8iHMP4iXeO4Vl54Jzp+1eU6wFcInLqw5kMQnYXlSt70x+UgqhLOcUlGjP6XLw6xBiAqGeUM4lPLgLtCNpFbtIvYBhl75VxcwyBc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=G1bwBU7k; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="IQQTvHWf"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1791952706; x=1823488706;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=WgO2z21qiQifReUdyWhyJhpNkxL3VqsKvzN87nSwryU=;
-  b=IQQTvHWf5nd6JLh34sNQSDIrSDmWEkfMIlicKsTKpqdaR+V4A2KAmnYP
-   77qxgW/JHeQtg0v7jsamKQXAcfGuDex7M+0OBdD/3I68bR5jNT8u0AyNm
-   RRozlm50xVSMm8/+mHf3w4DnQS38xxSyUtqp1Heg9BcHCZbYtV1HAl5C7
-   zUApIDX/5+zf9nTFR8pcxrs/moCcwlwxUyrG07Wnm7eDaktkc1pmwA9Ib
-   1EzM+0DM4kb4YfW9b4ibMuuVbkqRAALHFh8ESUafC9XtdrP70nIwCKtEk
-   7NEZc+QSPFoiKP/pEYu44vfER7spX7QNXvEMcJenXh4BecAUFOy3xSuOx
-   A==;
-X-CSE-ConnectionGUID: vwYwtuLYRzKRHpeidrRLpA==
-X-CSE-MsgGUID: 4ERIAghwRdmjc52VtkE/2A==
-X-IronPort-AV: E=McAfee;i="6800,10657,11934"; a="574096"
-X-IronPort-AV: E=Sophos;i="6.27,157,1787036400"; 
-   d="scan'208";a="574096"
-Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Oct 2026 21:38:25 -0700
-X-CSE-ConnectionGUID: PouncQQ3TRK59G2lciQCZw==
-X-CSE-MsgGUID: 8iRqJD9ZQK+FWCyVisrvPA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,157,1787036400"; 
-   d="scan'208";a="1411164"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.124.222.192])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Oct 2026 21:38:25 -0700
-From: Alison Schofield <alison.schofield@intel.com>
-To: nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org
-Cc: Alison Schofield <alison.schofield@intel.com>
-Subject: [ndctl PATCH] test/cxl-kunit.sh: enable running the CXL KUnit tests
-Date: Tue, 13 Oct 2026 21:38:22 -0700
-Message-ID: <20261014043823.295243-1-alison.schofield@intel.com>
-X-Mailer: git-send-email 2.47.0
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="G1bwBU7k"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1791969999;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=jRwUw3pnIFIx4Z4YHezup2l4Uf0vq02fpJ9Jm9KmqLw=;
+	b=G1bwBU7kBR1icyV6CIZ1ZEycVgAAHQwQv1T2DO8+7gUJgK0UgtqBTgl799qla9gakxFe6x
+	15RotWObwDO9VZUhqyjgyaaYfmbQK+VHB/NXxYWTcstGk1oDJmIAIVjZnY+hm2jsGHXe2V
+	31Ef868PNr81HJmvzUzpnCrwnbNSNIw=
+Received: from mail-yx1-f72.google.com (mail-yx1-f72.google.com
+ [74.125.224.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-312-MdM3UgXhOvmvQkAzmqmbKA-1; Wed, 14 Oct 2026 09:26:38 +0000
+X-MC-Unique: MdM3UgXhOvmvQkAzmqmbKA-1
+X-Mimecast-MFC-AGG-ID: MdM3UgXhOvmvQkAzmqmbKA_1791969998
+Received: by mail-yx1-f72.google.com with SMTP id 956f58d0204a3-66cdb701595so5272093d50.1
+        for <nvdimm@lists.linux.dev>; Wed, 14 Oct 2026 02:26:38 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791969998; x=1792574798;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=jRwUw3pnIFIx4Z4YHezup2l4Uf0vq02fpJ9Jm9KmqLw=;
+        b=Pk8Atl4nVy3QRrk5cp/eyzDq/9yWoGZd7mHNI5fcQH5XYmUZ9PfwOkUW2baal8g8yr
+         F8rgPnJShoYS9n+t1qRFQDdImr2kbO1PbiMDOU01lSr6DLvM31fsYFVC1Zck+9CzCtzy
+         yygRG5EmsgCaDcmPnQAIQ75T9d3IQo8mQ4mil1uABgywQvvR/bWhUXa556DnSntwAFB0
+         492KBIrMt07e+IJAmGeIHsuaAeq3YbmEe0k2V8DnRcu+3d6cTata0DgMNqX0kKwhYamM
+         Uzpy0TdmKyoP0rdhA5y0PmK7BH5xL8gDLKymfITUqKXUZvG1SctFyG+5pK1YhJA6Fx3Y
+         S4Xg==
+X-Forwarded-Encrypted: i=1; AKwUvBzrXSC8onqbTrr3vudN0u+8qCBjfZ957hCjiIyOXzdM8Xfqu2lXnwqyOHedpkbHT/Tcn2zfxPY=@lists.linux.dev
+X-Gm-Message-State: AFq9FYIP8I4VnBtWW+wlDIHnc4UO0IAqvjB585iUShyxcuLVnl41FYcb
+	ufAD3Uvp4rkPvj/iXv3baQZ2hybLY73qacKd82H199ILk5uH0PZ0vIuHzElYbOGKTMPY143SFMv
+	Iy4ZF7Yzo7kqZM7ziMXCA84zt4UqW6S8cr/DWKziEUUXRdz1n7DRxvE4mIgvvWVm1GKDZqH9cYE
+	eTjfM2tfKT68q6Wxq82x7MjKs42a7UmRsX
+X-Gm-Gg: AYBFou0oD6APdt57RKoH9MSDjs0cSTwbXDVnmg5qstzZ4cr+6vXWA/b20F2r2hFkIPu
+	gMxlEycBvOpogH9mJUJ86pciWAfZgXp3tAgMxaXj2cVnVm1yzi9488Kx4th45rD0LbLMtE+ZzmV
+	4DIoHvVlT9SCfkoagQjrE/p4UvyWpi/JPpiPft/VoUnOZ4uM7BeNTq
+X-Received: by 2002:a05:690e:bc5:b0:679:8da6:28cf with SMTP id 956f58d0204a3-6798da62973mr409274d50.98.1791969997682;
+        Wed, 14 Oct 2026 02:26:37 -0700 (PDT)
+X-Received: by 2002:a05:690e:bc5:b0:679:8da6:28cf with SMTP id
+ 956f58d0204a3-6798da62973mr409254d50.98.1791969997182; Wed, 14 Oct 2026
+ 02:26:37 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20261008112004.1899560-1-mszeredi@redhat.com> <20261008112004.1899560-9-mszeredi@redhat.com>
+ <sashiko-outbox-164097@kernel.org>
+In-Reply-To: <sashiko-outbox-164097@kernel.org>
+From: Miklos Szeredi <mszeredi@redhat.com>
+Date: Wed, 14 Oct 2026 11:26:23 +0200
+X-Gm-Features: AclHuK9abSLUZzeKyaaWw37ep03femUMbxNrvpPPWXy4b5nrfVP7AH_KbA-fZNQ
+Message-ID: <CAOssrKeEOMUHz_Esfi6L0tu0rbd+aMbb9+fi9fzFYu5NWczOZA@mail.gmail.com>
+Subject: Re: [PATCH v4 8/9] fuse: add extent map I/O support
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: fuse-devel@lists.linux.dev, John Groves <john@groves.net>, 
+	sashiko-reviews@lists.linux.dev, "Darrick J . Wong" <djwong@kernel.org>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Alison Schofield <alison.schofield@intel.com>, linux-cxl@vger.kernel.org, 
+	nvdimm@lists.linux.dev
+X-Mimecast-Spam-Score: 0
+X-Mimecast-MFC-PROC-ID: Xt8xoeKtM-lmaGzUZ4p-TLMa_dGby8Uz7FCe4YJspQA_1791969998
+X-Mimecast-Originator: redhat.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-CXL KUnit suites run when their modules are loaded, but the ndctl CXL
-test suite does not load them. As a result, they are not exercised by
-the existing ndctl tests.
+[Restored Cc list]
 
-Add cxl-kunit.sh to discover and load installed CXL KUnit modules, check
-their KTAP results in debugfs, and unload the modules on exit. Test
-failures are reported individually without preventing the remaining suites
-from running.
+On Thu, Oct 8, 2026 at 1:36=E2=80=AFPM <sashiko-bot@kernel.org> wrote:
 
-Discover modules by the cxl_*_kunit naming convention so newly added suites
-are included automatically.
+> > diff --git a/fs/fuse/passthrough.c b/fs/fuse/passthrough.c
+> > index e9ab1aea34e27..040817ad76e94 100644
+> > --- a/fs/fuse/passthrough.c
+> > +++ b/fs/fuse/passthrough.c
+> [ ... ]
+> > @@ -74,10 +73,13 @@ ssize_t fuse_passthrough_write_iter(struct kiocb *i=
+ocb,
+> >       if (!count)
+> >               return 0;
+> >
+> > -     inode_lock(inode);
+> > +     guard(rwsem_write)(&inode->i_rwsem);
+> > +
+> > +     if (!backing_file)
+> > +             return fuse_ext_map_write_iter(iocb, iter);
+>
+> [Severity: High]
+> Does this introduce an ABBA deadlock between pipe_lock and the inode lock=
+?
+>
+> For normal passthrough, fuse_passthrough_splice_write() acquires the inod=
+e
+> lock first, and then calls backing_file_splice_write(), which ultimately
+> acquires pipe_lock() via the backing file's splice_write callback.
+>
+> However, the EXTMAP DAX path added below for splice_write() directly call=
+s
+> iter_file_splice_write(), which acquires pipe_lock() first. That function=
+ then
+> invokes fuse_passthrough_write_iter() where the inode lock is acquired he=
+re
+> via guard(rwsem_write).
 
-Add CONFIG_KUNIT, CONFIG_KUNIT_DEBUGFS, and CONFIG_CXL_KUNIT_TEST=m to the
-README kernel configuration.
+Brute force fix would be to prevent mixing plain and ext-map
+passthrough.   Might be a good idea anyway.
 
-Signed-off-by: Alison Schofield <alison.schofield@intel.com>
----
- README.md         |  3 ++
- test/cxl-kunit.sh | 86 +++++++++++++++++++++++++++++++++++++++++++++++
- test/meson.build  |  2 ++
- 3 files changed, 91 insertions(+)
- create mode 100755 test/cxl-kunit.sh
+However I'm thinking about why fuse_passthrough_splice_write() needs
+to lock the fuse inode.
 
-diff --git a/README.md b/README.md
-index a71db28f62fb..83e809a2b325 100644
---- a/README.md
-+++ b/README.md
-@@ -130,6 +130,9 @@ loaded.  To build and install nfit_test.ko:
-    CONFIG_NVDIMM_SECURITY_TEST=y
-    CONFIG_ENCRYPTED_KEYS=y
-    CONFIG_NVDIMM_KEYS=y
-+   CONFIG_KUNIT=y
-+   CONFIG_KUNIT_DEBUGFS=y
-+   CONFIG_CXL_KUNIT_TEST=m
-    ```
- 1. Install cxl_test and related mock modules.
-    ```
-diff --git a/test/cxl-kunit.sh b/test/cxl-kunit.sh
-new file mode 100755
-index 000000000000..12e94e417cac
---- /dev/null
-+++ b/test/cxl-kunit.sh
-@@ -0,0 +1,86 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (C) 2026 Intel Corporation. All rights reserved.
-+
-+# Run CXL KUnit suites through the ndctl test harness.
-+# Discover test modules by name and check their KTAP results in debugfs.
-+# See Documentation/driver-api/cxl/testing.rst in the kernel.
-+
-+# shellcheck disable=SC1091 # common is sourced from the test directory
-+. "$(dirname "$0")"/common
-+
-+kunit_debugfs=/sys/kernel/debug/kunit
-+
-+mapfile -t modules < <(find /lib/modules/"$(uname -r)" \
-+	-name 'cxl_*_kunit.ko*' -printf '%f\n' | sed 's/\.ko.*$//' | sort)
-+
-+[ ${#modules[@]} -gt 0 ] ||
-+	do_skip "test requires CONFIG_CXL_KUNIT_TEST=m"
-+
-+unload_modules() {
-+	local mod
-+
-+	for mod in "${modules[@]}"; do
-+		modprobe -r "$mod" 2>/dev/null || true
-+	done
-+}
-+
-+trap unload_modules EXIT
-+trap 'err $LINENO' ERR
-+set -ex
-+# shellcheck disable=SC2034 # rc is the exit status used by err()
-+rc=1
-+
-+# Force test suites to rerun on module load
-+unload_modules
-+
-+loaded=()
-+summary=()
-+nr_failed=0
-+
-+for mod in "${modules[@]}"; do
-+	if modprobe "$mod"; then
-+		loaded+=("$mod")
-+	else
-+		summary+=("$mod: FAIL, module did not load")
-+		nr_failed=$((nr_failed + 1))
-+	fi
-+done
-+
-+[ -d "$kunit_debugfs" ] ||
-+	do_skip "test requires CONFIG_KUNIT_DEBUGFS=y"
-+
-+for mod in "${loaded[@]}"; do
-+	nr_suites=0
-+
-+	for results in "$kunit_debugfs"/cxl_*/results; do
-+		[ -f "$results" ] || continue
-+		grep -qE "^[[:space:]]*# module: $mod\$" "$results" || continue
-+
-+		suite=$(basename "$(dirname "$results")")
-+		nr_suites=$((nr_suites + 1))
-+		cat "$results"
-+
-+		# Match the suite result, not individual test cases
-+		if grep -qE "^ok [0-9]+ $suite\$" "$results"; then
-+			summary+=("$mod: suite $suite PASS")
-+		else
-+			summary+=("$mod: suite $suite FAIL")
-+			nr_failed=$((nr_failed + 1))
-+		fi
-+	done
-+
-+	if [ "$nr_suites" -eq 0 ]; then
-+		summary+=("$mod: FAIL, no suite results in $kunit_debugfs")
-+		nr_failed=$((nr_failed + 1))
-+	fi
-+done
-+
-+set +x
-+echo "CXL KUnit summary:"
-+printf '  %s\n' "${summary[@]}"
-+set -x
-+
-+[ "$nr_failed" -eq 0 ] || err "$LINENO"
-+
-+echo "CXL KUnit: all suites from ${#modules[@]} modules passed"
-diff --git a/test/meson.build b/test/meson.build
-index 07c8618cbc6e..3b3a634ef25d 100644
---- a/test/meson.build
-+++ b/test/meson.build
-@@ -173,6 +173,7 @@ cxl_elc = find_program('cxl-elc.sh')
- cxl_dax_hmem = find_program('cxl-dax-hmem.sh')
- cxl_region_replay = find_program('cxl-region-replay.sh')
- cxl_type2 = find_program('cxl-type2.sh')
-+cxl_kunit = find_program('cxl-kunit.sh')
- 
- tests = [
-   [ 'libndctl',               libndctl,		  'ndctl' ],
-@@ -211,6 +212,7 @@ tests = [
-   [ 'cxl-dax-hmem.sh',        cxl_dax_hmem,       'cxl'   ],
-   [ 'cxl-region-replay.sh',   cxl_region_replay,  'cxl'   ],
-   [ 'cxl-type2.sh',           cxl_type2,          'cxl'   ],
-+  [ 'cxl-kunit.sh',           cxl_kunit,          'cxl'   ],
- ]
- 
- if get_option('destructive').enabled()
--- 
-2.37.3
+Tracing back through git history that inode lock really originates
+from commit 2a92e07edc5e ("ovl: add ovl_write_iter()"), which added
+stacked writes.  That was copied into ovl_splice_write() by commit
+9b91b6b019fd ("ovl: fix deadlock in splice write").   Which was then
+added to fuse_passthrough_splice_write() by commit 5ca73468612d
+("fuse: implement splice read/write passthrough").
+
+Even for the original ovl code, I don't see an explanation for the
+inode lock, but I'm probably missing something.
+
+Amir, any thoughts about why that inode_lock() could be necessary?
+
+Getting rid of it would restore the pipe lock/inode lock order to
+what's normal (pipe lock being the outer one) in fuse and overlayfs.
+
+Thanks,
+Miklos
+
+Thanks,
+Miklos
 
