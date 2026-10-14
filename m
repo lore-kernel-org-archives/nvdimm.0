@@ -1,110 +1,128 @@
-Received: from mail-qt1-f171.google.com (mail-qt1-f171.google.com [209.85.160.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2A9C4DDB56
-	for <nvdimm@lists.linux.dev>; Wed, 14 Oct 2026 09:40:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.171
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791970850; cv=pass; b=oLhyXOz6+4D3tsi4nu6/6nwMq61rN7VOa2SpHsKvRVbWty2/34qYyqBBvNjJynpAEWAgXYgj/WQms8tBE0rdh2+lXFzvQyucpS/108wlmGryIiP+dnBsPtU5iEKHPnwDX9VEXT0atU7L+Ols2JfWV55Tu7DCY43PH/MPetZqeX4=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791970850; c=relaxed/simple;
-	bh=9/reRJ/j1yO6b6rjpq4fLoYRPvxibxm3mLaZMWghcMU=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=B3xfK9c4X5CvTv0u/gcsGU2PHbMZKfMzbvtKkMR0c5dB84A2Xk2aR1It5Dg3uggC+VIqBR7JvbFsVTu8JG9VSOoynJjlgaIbLnwdRYDvlLCAnU5TLpvB/SzePyajlFrNUyn+2jCDXkBHw5VUkGgz+zBc2U/vqMCz/hfMk1U9EWw=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=cDjmFgQl; arc=pass smtp.client-ip=209.85.160.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9529F3DAC13
+	for <nvdimm@lists.linux.dev>; Wed, 14 Oct 2026 12:45:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791981962; cv=none; b=ZaQnr9A3p6NNXqu5ob7P8Q9GCzTUjDGsOKjSFRkTqeSCtbTkHiI1Kyy794RJ6pSwzqroh5JGM3DW0c35VCLKsUqM+gSu4EEUbMZkUFhoeg6e2YKUktDXxckLp4nT47D7PyeAJ859jkvtoZkmvTaJcRhVE43VRD/iD/D4glEx0pE=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791981962; c=relaxed/simple;
+	bh=j9MUTwqFk696YLuYmKyKYHrHXmQBfhqUQLDsULixeQY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 In-Reply-To:Content-Type:Content-Disposition; b=QoX4Srvysku3rzUk7kQcb+jTFjT9x2nR4Qth7pyOgonPhTvj6L+nZ2f5TKGha+PHzAOc8pp/0dKyqVzyKTPZtX4vWoYZWkzgaJgOIzyxFqW/LugO2+5/HB3ye7hSRg2seUy4JeVr7Om54ZOSfP7kbbG3UhNZZxIctdpDI8abUfo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=OxADcsFx; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="cDjmFgQl"
-Received: by mail-qt1-f171.google.com with SMTP id d75a77b69052e-53394bffe0fso9015321cf.1
-        for <nvdimm@lists.linux.dev>; Wed, 14 Oct 2026 02:40:48 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791970847; cv=none;
-        d=google.com; s=arc-20260327;
-        b=WtQjrQGhcyNFAl8fvbTRNa0sJQ+JHzL1HjHi0/uv3uQX/SrFV1ymQan79WanS1vLgH
-         x3dRtqI9LlFS3m/0+T8d6EGLhQCtjLaoMYs0623YJHLGZvplVq+auf3C8GcwIM0ld+bG
-         Z1l159jzvcaxSQtjXmCV9DKtQXkhlqmm0Js71DPrRoSFwC8j51UjLshwR0qG57zMso9W
-         m/pzwPUHJZyCwCy9XJAjR7Ctc2yKeBRNURm9tmlDsifTjPUC+12pzfUKc0Q4H5O2ySBc
-         bbxyhhDxWw6+XD88F1YcFB51oHTD7suY/FVc+2Vr3swou88gKXP2ip4EyvbEMhhmb5zZ
-         V4Hg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature;
-        bh=83H04bxF6YUdzZlLQRh4TGz7SNPkoIlEwePAKgXPMOI=;
-        fh=JyngvijtTfNthJZ8zOTwjlE97XMrUyecYSV1XX/BihA=;
-        b=EWEWGS/isrYj0/q34L2dwmv8TlNpZd6nuCDlktj/Uaxn8bOcM1WwWjbBJDG4+7oZHA
-         dmy3dEknapRw+KnhAF7H1HfyvDvnTgYisZoPbvSP5ZvLhWZOhTEv9XJoflC1NsP7CNaa
-         LD39lb3tmcWV5le9X0gyWcqzkqMGu7osJXGwfHmgOiGhlld2RSOXl22Aj66kjapRiGCW
-         oriZ6tALIJgFYdYfxvlj2IAhxLXsafzeqrzNVVNBiRnHuqYI4fzmxR5K70P7Rb1ulp+W
-         ry1fcOe7q5KfJ/gKgN55jFRT//CRY0LuICkKuBh4AmDhZwk52Iqb9S75PQmYHzlj08eE
-         N49g==;
-        darn=lists.linux.dev
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1791970847; x=1792575647; darn=lists.linux.dev;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=83H04bxF6YUdzZlLQRh4TGz7SNPkoIlEwePAKgXPMOI=;
-        b=cDjmFgQlMljB1thiwDLfsvb0Jn5WJHHkwY535jaC4wY3oMIdQvOvVwULzfPFL4Spfw
-         poCtT3cJGFZtTpkiml6lPHdHOZlebxASGGfdNYJ4BdYLgXRwXkq1pNM4QaoraXTOzyV7
-         C6JIwqzTkH8Sy9qLoxjtnpJ8Su6TJSS2X/AQU=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791970847; x=1792575647;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=83H04bxF6YUdzZlLQRh4TGz7SNPkoIlEwePAKgXPMOI=;
-        b=c157Z9UjvznRvwrjor4hbPpTUFZ9o/hj76HDuwEvEdsG1LTqYJn9F5qaHtWvyyBrCV
-         2pQH/9rpMpNZIapqWPuLwunGf/ivJiFq7rBuUWhFHaWCTF4HLu+Irf9/RI/en6B7XGMP
-         sVxmLcbfHYcTk2Dv99BK9uUy8X8aJU81hRA9Uf21O389yknd/6/4ols2pnGSDFqoRRUs
-         gZ4oyZjYx7lkky+Qr4WHJQcuWb3WrJorr0bOdLboeY92xYl0HaciGtpnABE1bxOLDmzO
-         3FpbCHk9JoJ7cpANXfFwpHef25G0IUUSOmMVqkd1UNnaBA+n8DQPcfE3cOo8lXcqJFf6
-         FiTA==
-X-Forwarded-Encrypted: i=1; AKwUvBzZWDb+3zXDEhn68ByD38HWmZ72XUzZEJ99pbfLGbjo6IySbx5L0E2klIxG9t+9bB824DC8Rc0=@lists.linux.dev
-X-Gm-Message-State: AFq9FYIXbRtgo+iQm20Cm9LgoTpU15dYWtLGIlOe14oTGvCQVMhiKOXO
-	7M55MTWJ6b5eWUkbmFRuRXrVBvlm4jfoP3Oy0SuiJZiU+EogaffARRFLVRnvtxmQa8k4YvoK1CC
-	jUl5/gIcwOWYqjMbbtUSIY55/AuSabizCAECwIqIT3A==
-X-Gm-Gg: AYBFou01iAW97GU3cukmKGxoQJL6/f+Hd8jX6wFN9Xyr/cB+aCBxFIYT0OslpMJ0qKo
-	I9tjY2qb6A7xw7F18as8QSwdV2RV2f82uZbsodhMDeMQzom3T6uoshqYOWAhhkxF71HxT9RQhQb
-	Zfst9R5a/xerV2uk/3EWcWGOkOupqUnu0kOFoik7ukdda+/q+Af2+gVeuAWldU+mcucLbgQ/uxo
-	sqhUq5WGJW++IMofZUC4/oiyzxm0DS01kvfgu4Xr5BsLPI1PJ1lbunh28EERZjGBdExekODKpSI
-	0Zv9I5PFglXiTleA626d6aNgKRTDH/ErcmmF9y5j4B439ID9Syh2wFfjakfQPtnR8htt03iWSZR
-	LjzMhna9HqepF4cmqow==
-X-Received: by 2002:a05:622a:305:b0:535:f20:a051 with SMTP id
- d75a77b69052e-535a62041b3mr204309621cf.26.1791970847591; Wed, 14 Oct 2026
- 02:40:47 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="OxADcsFx"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1791981945;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=yl2rD0Yy4BRKtnCRp+987lNfML7qiSxkvQz9gYi0hCQ=;
+	b=OxADcsFxz4sRrwmV1l3a0N/nb/LTpApXWAUcQJXCRP9KIC8j0cmHBojT8mdQKpkIY5zbZi
+	4/s2LxbIhI8OJ/2h7OVTG1cbVZJ9mTM3iPnNGbrhUC2LGT//0T3AezBgexsNzVxzh36oII
+	OAJ00W5byNbo3n6HwoFedsT2HRKO7aY=
+Received: from mx-prod-mc-03.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-426-P4L6LNQbMS2xXUcim6x-xg-1; Wed,
+ 14 Oct 2026 12:45:41 +0000
+X-MC-Unique: P4L6LNQbMS2xXUcim6x-xg-1
+X-Mimecast-MFC-AGG-ID: P4L6LNQbMS2xXUcim6x-xg_1791981940
+Received: from mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.4])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx-prod-mc-03.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 1C2D0195604B;
+	Wed, 14 Oct 2026 12:45:39 +0000 (UTC)
+Received: from bfoster (headnet03.pony-001.prod.iad2.dc.redhat.com [10.2.32.114])
+	by mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 0645630000E7;
+	Wed, 14 Oct 2026 12:45:35 +0000 (UTC)
+Date: Wed, 14 Oct 2026 08:45:33 -0400
+From: Brian Foster <bfoster@redhat.com>
+To: jianyungao89@gmail.com
+Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org,
+	Jan Kara <jack@suse.cz>, Dan Williams <djbw@kernel.org>,
+	Matthew Wilcox <willy@infradead.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>,
+	"Darrick J. Wong" <djwong@kernel.org>,
+	"open list:FILESYSTEM DIRECT ACCESS (DAX)" <linux-fsdevel@vger.kernel.org>,
+	"open list:FILESYSTEM DIRECT ACCESS (DAX)" <nvdimm@lists.linux.dev>
+Subject: Re: [PATCH v2] dax: fix wrong error code returned from
+ dax_dedupe_file_range_compare()
+Message-ID: <as95bXy1IfqNUCFo@bfoster>
+References: <20261012144925.6728-1-jianyungao89@gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20261008112004.1899560-1-mszeredi@redhat.com> <aswN-UprZHx9wU9y@groves.net>
-In-Reply-To: <aswN-UprZHx9wU9y@groves.net>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Wed, 14 Oct 2026 11:40:35 +0200
-X-Gm-Features: AclHuK-4wYzbPDth2dwaMOE-UcJ9Mlv56Q3DJCgmQBZqmD9Im9s183TZ-SA1hxA
-Message-ID: <CAJfpegvDbGaoH5Er78M=XYwA6a7zj6DRqY0+F0cgiD7TfRK_Mg@mail.gmail.com>
-Subject: Re: [PATCH v4 0/9] fuse: resolve extent maps in O(1) when possible
-To: John Groves <john@groves.net>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, fuse-devel@lists.linux.dev, 
-	Amir Goldstein <amir73il@gmail.com>, "Darrick J . Wong" <djwong@kernel.org>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Alison Schofield <alison.schofield@intel.com>, nvdimm@lists.linux.dev, 
-	linux-cxl@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20261012144925.6728-1-jianyungao89@gmail.com>
+X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.4
+X-Mimecast-MFC-PROC-ID: QmY9YYXIlUJVBI2ETKmPvTlyoe_MCP087WHQwH-NzEA_1791981940
+X-Mimecast-Originator: redhat.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On Mon, 12 Oct 2026 at 00:33, John Groves <john@groves.net> wrote:
+On Mon, Oct 12, 2026 at 10:49:24PM +0800, jianyungao89@gmail.com wrote:
+> From: Jianyun Gao <jianyungao89@gmail.com>
+> 
+> When dax_range_compare_iter() returns a negative error code (e.g. -EIO),
+> dax_dedupe_file_range_compare() incorrectly returns 'ret' which holds the
+> positive return value from iomap_iter() indicating more iterations remain.
+> This positive value leaks to the caller, where vfs_dedupe_file_range()
+> interprets it as success (bytes_deduped = len), causing userspace to
+> incorrectly believe deduplication completed.
+> 
+> Return 'status' instead to propagate the actual error code.
+> 
+> Fixes: 39eb05112987 ("dax: advance the iomap_iter on dedupe range")
 
-> With this patch on top of v4 the famfs test suite passes; that tree is
-> at [2].  The famfs userspace master branch [1] now works with v4.  If
-> the next revision needs further userspace changes, please base them on
-> that branch or send them my way so the two don't diverge.
+Hmm.. the patch looks fine to me, but the above commit basically just
+renamed compared to status in this function. I.e. before that commit we
+did:
 
-Applied, thanks.
+	if (compared < 0)
+		return ret;
 
-Please next time use a new mail thread, because linking to the old one
-confuses b4.
+... which seems to me has the same problem. So I'm a little curious if
+either the Fixes: is wrong, or I'm just missing something..?
 
-Thanks,
-Miklos
+Brian
+
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Jianyun Gao <jianyungao89@gmail.com>
+> Reviewed-by: Jan Kara <jack@suse.cz>
+> ---
+> 
+> Changes in v2:
+> - Add Fixes tag and Cc stable
+> - Add Reviewed-by tag from Jan Kara
+> 
+> v1: Link: https://lore.kernel.org/lkml/20261010021010.19575-1-jianyungao89@gmail.com/
+> 
+>  fs/dax.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 6ba50142eeb2..1f6a4fbb97bd 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -2261,7 +2261,7 @@ int dax_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
+>  		status = dax_range_compare_iter(&src_iter, &dst_iter,
+>  				min(src_iter.len, dst_iter.len), same);
+>  		if (status < 0)
+> -			return ret;
+> +			return status;
+>  		src_iter.status = dst_iter.status = status;
+>  	}
+>  	return ret;
+> -- 
+> 2.34.1
+> 
+
