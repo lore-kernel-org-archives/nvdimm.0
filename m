@@ -1,128 +1,119 @@
-Received: from mail-dy2-f6.google.com (mail-dy2-f6.google.com [74.125.229.6])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74C773D171F
-	for <nvdimm@lists.linux.dev>; Thu, 15 Oct 2026 14:34:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.229.6
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44D103CB8E9
+	for <nvdimm@lists.linux.dev>; Thu, 15 Oct 2026 14:53:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792074873; cv=none; b=HnmBlvdgWwRPnZs9cJ2YapQcDqeSxEcg3qwk6O6/P3Jnmfg2gfmGIGl90TBOJru3413We5BA98h5ZoA+U9cOYuVcAwOfbQ8MnsXycRrnbSdkqpMw4hkpVT5c+BXMIQOfeMpI4n295nN8Io19N20R0e8V7eu5oBTzREi+SxJE4jw=
+	t=1792075986; cv=none; b=SVtqe9HgXqTC4Ml+XZ9w8y5yWh80ZEssRSUP061mfC6zjutZph2jSydZX4ZAr3KPQOYbZ2gao1jjrBGGu7A7rxHMvFfNk1KMseToO82uYfKCEItCo/ElSWZK69ozlzGpLxC2nWQx++2xFAaK2dPIGKvrFYqvd6yNc8kQ+ruhJ2g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792074873; c=relaxed/simple;
-	bh=CQ4xayDEoFvr1jT9OHWxpjAmKzgZYc3hdWOA8DdGpNs=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Ux9XBNcJxfnw0FOx2Xj2s3HLp7sYPI3ZGE9F4fWUzY5T1Ge+RARelaEnr7dfzfoTj+SpsZPajt5RmWdgMepeJZ8NP1ViSDhAC8DFJPsvqYhH8XBWLzfCIXO2JpcOjhRfT9psZy3rnSqkC0nFj1zhrigzHUqcZTIHvik0vQ+uObY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=GAtD2Z2O; arc=none smtp.client-ip=74.125.229.6
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1792075986; c=relaxed/simple;
+	bh=+y5oqsfBENvs7sW9Am8tScxjKqjlgi/PpVXdGuDeIqI=;
+	h=Message-ID:From:Subject:To:Cc:In-Reply-To:References:Content-Type:
+	 Date; b=IAn1O2OfW9VEI+XvY/QlRPjOyFSciiXbuG2mClWzUWYOniwIwqBd0+Xvzjeus8JpvkpFcGE1Lsxsqd13CqV2qdCGEcnavDXseE79YqVy1zYGdeYcQB5hTHZiCeo1inpcnoQPAfHnj9M7oO1A3lpQMwxE1Y0g4J6NzOz6xlO9fxM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mzy3K0Ui; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GAtD2Z2O"
-Received: by mail-dy2-f6.google.com with SMTP id 5a478bee46e88-35adc681e1aso1630599eec.0
-        for <nvdimm@lists.linux.dev>; Thu, 15 Oct 2026 07:34:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792074871; x=1792679671; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=8neBvXrJ3PxtaBrYkVCU0EsbaYcYW7zqj6dnSnPhyTE=;
-        b=GAtD2Z2OVjWQNJGjNasUlTIv5Hbph/MvEw0UWU6UJH6CWLzlnmuSWWJ2JvLJabo33N
-         M7dVbTqv0xtkqn2TX0JBa+49Cif6vphafdD9X4AyxORnE1nBLzPv/1VoYk6yHSleIcqk
-         FZZni/f7KTtOJ4dIRgw+63ATnVvZJa380ZnaXwcm6PZ4siOr/D9Nl+h/djhoikmIzb4C
-         J/esGjf1TUhFjNd+qGSJREr0Z5eeNp9aSe7DhbJoXDQKPww2uG4MUP+ID/LGXJE5feiQ
-         uUn1kiSmtJP/FkD6rO8FkOkTYdaaVhnFR6AXD5mNdO8QyBrmqkfE+7x7XHUin8X54zQV
-         S2mQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792074871; x=1792679671;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=8neBvXrJ3PxtaBrYkVCU0EsbaYcYW7zqj6dnSnPhyTE=;
-        b=wcmyozOcRgB+XKNz7SkXS1FFMDfhqqtmAnZZ1L2iWDsoEtoslLnIFPzUU/zVQDckhS
-         xYRwUNnRBqZPel4SKk1tJ6hf+9y9YKmCsyPhWH7C9I2oTTxS5DfTSz6OO84b4b+pYDH8
-         3G/C8dDpnhc/a+6+dZrz9REdFTY8UjaJHOi9Ug4jFUWx6p8KGMbw/VginUng6u2yBZov
-         yMeM/OzzXjzX+Fdei9KcSr9wN2l+3LQ7KkJtgBOkzSbTuJEZW17AXDYdDU8rtLCLBSUF
-         ocNh3A05UCDv5tjMKg8zUIsov4ztA864xML5JVqKWtiZ2CxzP+FbcxvlXMBMzAH/w9c5
-         droQ==
-X-Forwarded-Encrypted: i=1; AKwUvBxMDQ3sJK8d1zGBYNMBOH9hNrY16Gt1f1AuB0hIq8LCHuA+810Wf5nqYewTiwLCz3FFTr7j/pc=@lists.linux.dev
-X-Gm-Message-State: AFq9FYLqSu7/eLUYpUuZ060LC/t1g0o7J4Ps5oXBZeTa8Yk+NbpNHwYL
-	QeuA2H2SW5NSSF8YaxXngJSP04Cv7gjRxtuTLkp9ThjUQsrCwOOpoiFJ
-X-Gm-Gg: AYBFou3J0+rfktnW9a5XiqGXO6Q+Qeyq9mRq4Pz9EuYz5ji5iDTHQdne3rWrHOmROeH
-	MRZq1Rvg2pxTjZietQ24qIyz4Tiju4Tvl4jbKBI9RRT1m7MuIcP/MqDpfYVYreS5d4l30nZ5Ioy
-	qW7P+cyrtgHZ7PQTsoiR/fhkFR/FbPMNoi4MO/zAhADrSZZxVW9DsUBt2M+SULeBQVxUQrfYIup
-	kFmZx0YyMw8NrkMjWS/N9OtbmTTyldrrfZ+vYKkDRGAO5t6/2ravWKKp0l/MakkDuROTkf1xJpg
-	4V5fHfEJFxZ/foOO4G/U9xQfCfrtOINdabKZe7a0dJfI4WyKVyQb6+RE15InJWAF9c+gnCSnVlL
-	XYZSsVMEVBC/eDorcIUjVvE2T4sAHJ95NaiEFjLvxPfBrl9xebu60iRIbpwB3DW5LPER13jKe//
-	MUkWbNzZH5Ec+WsstrL4mhdXoFWodYUELHAdgiCIAzOF+yb+6AFWoHIvf4f3k9pd0g84CnMaAgK
-	apVjcmGxVZHYjFHZa0TFzStKXPxVLrsXsvua000kfxuuigPjbBlGi5Ta52eYzAeSstfXrdkObGb
-	Hg3SysJDMtuCdM4JFaIHcHQ/uscLCGjG2w==
-X-Received: by 2002:a05:7301:1a05:b0:358:eccb:af7c with SMTP id 5a478bee46e88-358eccbc89dmr21550282eec.33.1792074871413;
-        Thu, 15 Oct 2026 07:34:31 -0700 (PDT)
-Received: from localhost (ec2-18-163-127-16.ap-east-1.compute.amazonaws.com. [18.163.127.16])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3537ca6d202sm61569751eec.13.2026.10.15.07.34.30
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 15 Oct 2026 07:34:31 -0700 (PDT)
-From: jianyungao89@gmail.com
-To: linux-kernel@vger.kernel.org
-Cc: Jianyun Gao <jianyungao89@gmail.com>,
-	stable@vger.kernel.org,
-	Jan Kara <jack@suse.cz>,
-	"Darrick J. Wong" <djwong@kernel.org>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>,
-	Dan Williams <djbw@kernel.org>,
-	Matthew Wilcox <willy@infradead.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Shiyang Ruan <ruansy.fnst@fujitsu.com>,
-	linux-fsdevel@vger.kernel.org (open list:FILESYSTEMS (VFS and infrastructure)),
-	nvdimm@lists.linux.dev (open list:FILESYSTEM DIRECT ACCESS (DAX))
-Subject: [PATCH v3] dax: fix wrong error code returned from dax_dedupe_file_range_compare()
-Date: Thu, 15 Oct 2026 22:34:25 +0800
-Message-Id: <20261015143426.17620-1-jianyungao89@gmail.com>
-X-Mailer: git-send-email 2.34.1
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mzy3K0Ui"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2E151F000C5;
+	Thu, 15 Oct 2026 14:53:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792075985;
+	bh=HWZK0V23t9iCaT+SKTwfGa0hheoXemXSvI3AUtbQ04E=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=mzy3K0UiKytTwKWH6HLYfDvHETzNMTCinYRTS5eJiaIqS4MB6JE2s554wpFfbhDBh
+	 6tf/u7dEUo0N+oo3mRxkFvdPBJtg/s3knw44hI39X6o5/ZO8F+akmj8Kl3xg1LeQXt
+	 8fawe242F8u37QvjtSAwQOFDTYHeddux7Y68fFklKkjKGZA7+QkQ2+r27dKuBhKNkT
+	 Yuw6tiDfeQ3a644uQ6rDnTl2Q/IAJ3Xcf2R0oFo0InVkUrC89T37fgTJNQVOAfQxrP
+	 PJdSxuJ83Cz9IQhZ0AturrDoJLlP8k0cA1+4OAQsj1yAW0PyZSd5+4aTPBPPw+nKVl
+	 uUQ5O6gzZyoTQ==
+Message-ID: <sashiko-outbox-173003@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH v3] dax: fix wrong error code returned from
+ dax_dedupe_file_range_compare()
+Reply-To: sashiko-reviews@lists.linux.dev
+To: jianyungao89@gmail.com
+Cc: =?utf-8?b?b3BlbiBsaXN0OkZJTEVTWVNURU0gRElSRUNUIEFDQ0VTUyAoREFYKQ==?= <nvdimm@lists.linux.dev>
+In-Reply-To: <20261015143426.17620-1-jianyungao89@gmail.com>
+References: <20261015143426.17620-1-jianyungao89@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Thu, 15 Oct 2026 14:53:04 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-From: Jianyun Gao <jianyungao89@gmail.com>
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+s) to consider:
+- [High] fsdax: incorrect size parameter in dax_range_compare_iter causes m=
+assive direct access requests
+--
 
-When dax_range_compare_iter() returns a negative error code (e.g. -EIO),
-dax_dedupe_file_range_compare() incorrectly returns 'ret' which holds the
-positive return value from iomap_iter() indicating more iterations remain.
-This positive value leaks to the caller, where vfs_dedupe_file_range()
-interprets it as success (bytes_deduped = len), causing userspace to
-incorrectly believe deduplication completed.
+commit 65ff21563702a9036c338f4961a061d5c576d038
+Author: Jianyun Gao <jianyungao89@gmail.com>
 
-Return 'status' instead to propagate the actual error code.
+dax: fix wrong error code returned from dax_dedupe_file_range_compare()
 
-Fixes: 0e79e3736d54 ("fsdax: dedupe: iter two files at the same time")
-Cc: stable@vger.kernel.org
-Signed-off-by: Jianyun Gao <jianyungao89@gmail.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: "Darrick J. Wong" <djwong@kernel.org>
----
-Changes in v3:
-- Fix the Fixes tag to point to the commit that actually introduced
-  the bug (0e79e3736d54), not the one that renamed the variable
-- Add Reviewed-by from Darrick J. Wong
+This commit fixes a bug in dax_dedupe_file_range_compare() where a positive
+return value was incorrectly propagated on failure. It now correctly returns
+the negative error code from dax_range_compare_iter().
 
-Link: https://lore.kernel.org/lkml/20261012144925.6728-1-jianyungao89@gmail.com/ # v2
- fs/dax.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Link: https://lore.kernel.org/lkml/20261012144925.6728-1-jianyungao89@gmail=
+.com/
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 6ba50142eeb2..1f6a4fbb97bd 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -2261,7 +2261,7 @@ int dax_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
- 		status = dax_range_compare_iter(&src_iter, &dst_iter,
- 				min(src_iter.len, dst_iter.len), same);
- 		if (status < 0)
--			return ret;
-+			return status;
- 		src_iter.status = dst_iter.status = status;
- 	}
- 	return ret;
--- 
-2.34.1
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 08adeaed2baf1..97b6212bfa898 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -2254,7 +2254,7 @@ int dax_dedupe_file_range_compare(struct inode *src=
+, loff_t srcoff,
+>  		status =3D dax_range_compare_iter(&src_iter, &dst_iter,
+>  				min(src_iter.len, dst_iter.len), same);
+>  		if (status < 0)
+> -			return ret;
+> +			return status;
 
+[Severity: High]
+By correctly propagating the error code here, does this patch now expose a
+bug in dax_range_compare_iter() that will break dedupe for large offsets?
+
+Looking at dax_range_compare_iter() in fs/dax.c, it appears to pass an
+absolute end offset instead of a length as the size parameter to
+dax_iomap_direct_access():
+
+static int dax_range_compare_iter(...)
+{
+	...
+	ret =3D dax_iomap_direct_access(smap, pos1, ALIGN(pos1 + len, PAGE_SIZE),
+				      &saddr, NULL);
+	...
+}
+
+When dax_iomap_direct_access() receives this size parameter, it converts it
+via PHYS_PFN() and interprets the massive absolute offset as a relative
+length:
+
+fs/dax.c:dax_iomap_direct_access() {
+	...
+	length =3D dax_direct_access(iomap->dax_dev, pgoff, PHYS_PFN(size),
+				   DAX_ACCESS, kaddr, pfnp);
+	...
+}
+
+This requests an out-of-bounds mapping length from the underlying block
+driver (up to pos1 + len instead of just len), which typically fails with
+-EINVAL or -EIO for offsets that exceed device bounds.
+
+Since this patch changes the behavior from a silent pseudo-success to an
+explicit failure, will standard deduplication at non-zero offsets now
+consistently fail when dax_range_compare_iter() erroneously asks for an
+enormous number of pages?
+
+>  		src_iter.status =3D dst_iter.status =3D status;
+>  	}
+>  	return ret;
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261015143426.1762=
+0-1-jianyungao89@gmail.com?part=3D1
