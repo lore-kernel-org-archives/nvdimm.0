@@ -1,177 +1,128 @@
-Received: from mail-yx2-f11.google.com (mail-yx2-f11.google.com [74.125.224.139])
+Received: from mail-dy2-f6.google.com (mail-dy2-f6.google.com [74.125.229.6])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA42049B5C3
-	for <nvdimm@lists.linux.dev>; Thu, 15 Oct 2026 14:18:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.139
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792073941; cv=pass; b=JRt0LiO3EySszXxxpD/swqFSyV4X/PvOBMh3fz/u1wBNWx+5//EzhhQI1bEoJRBBE3QrbGSUgMCdojSeKEwp8c+f3LTJS6vZEMS5FTBxCLqlCjCk3EqdiR3fuxYb0stYUjWsTh7DX0osDsveRiHOKaZ/VzIdbjhta5IYEPZb9DI=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792073941; c=relaxed/simple;
-	bh=GE0mUrsglv7uryn8BI9Nl070Uq5d0Ou2kQcEz9yCTF4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=kBEkgN/RBEpuzX3vKk7JrksQ7U7zyGiUFky6/0s8nrGrxgHAbPgsRMskW5jFe/wCgGfdV+gRYG+r7GA60tMxob7tMsbR60q8VxPWreZ/FVoJtCtTJ6fafQwJ7hCQULh+vrHqKADiTCJqkgJjZ0xt2+C5pNnAhaZUu0hsXjKoyDI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=T7PQTnpj; arc=pass smtp.client-ip=74.125.224.139
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74C773D171F
+	for <nvdimm@lists.linux.dev>; Thu, 15 Oct 2026 14:34:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.229.6
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1792074873; cv=none; b=HnmBlvdgWwRPnZs9cJ2YapQcDqeSxEcg3qwk6O6/P3Jnmfg2gfmGIGl90TBOJru3413We5BA98h5ZoA+U9cOYuVcAwOfbQ8MnsXycRrnbSdkqpMw4hkpVT5c+BXMIQOfeMpI4n295nN8Io19N20R0e8V7eu5oBTzREi+SxJE4jw=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1792074873; c=relaxed/simple;
+	bh=CQ4xayDEoFvr1jT9OHWxpjAmKzgZYc3hdWOA8DdGpNs=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Ux9XBNcJxfnw0FOx2Xj2s3HLp7sYPI3ZGE9F4fWUzY5T1Ge+RARelaEnr7dfzfoTj+SpsZPajt5RmWdgMepeJZ8NP1ViSDhAC8DFJPsvqYhH8XBWLzfCIXO2JpcOjhRfT9psZy3rnSqkC0nFj1zhrigzHUqcZTIHvik0vQ+uObY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=GAtD2Z2O; arc=none smtp.client-ip=74.125.229.6
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="T7PQTnpj"
-Received: by mail-yx2-f11.google.com with SMTP id 956f58d0204a3-66c70f9ad8aso1852173d50.1
-        for <nvdimm@lists.linux.dev>; Thu, 15 Oct 2026 07:18:59 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1792073939; cv=none;
-        d=google.com; s=arc-20260327;
-        b=V2BlpQb9bwWAAijeEk4Jh6CfQDbxe4wl/zfiZgybYCO+IVO+NeP37Pn3rPJ3wZM3+C
-         B9mRvASO2kpl26vRNtVgPkFeG1NBXrpUz1Qv+rn/GFZmRJglLvuyoNFVDbHxnn5cbxnY
-         RM8K4GSaEVC8BKP9PI6hcRiAGyoUH1XjQcaVkKJNqbkchMyqoY7/gf/b+6VZ33S+3xk3
-         QwbZZVyyy82EQMDW+pSvdl+hw0A6TUjDWexEMuoQpUaR3wnqHLlRxIq2hYvrrfafSre4
-         cGmFuiouSxZvSpbb6DrQhbVXuPxLsIF+YZtcFFxPuCghC8vTbzHQr/pFjMei3BtJuqu8
-         HXOQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=xSN1yQdp8zpcfJuoyWCP9n5+uPspbmcoGBxcmTAtR1M=;
-        fh=GVC301w3xeN/jMo0bjMJ6+qBUB3V3Ah2j2Kz5SF7v8w=;
-        b=GQaqRMpnbxabURwFMJZYUF0NcOOEoRJcE8XXFKsUSSKjJc8LeFb8FlRVVHGjP3Mg0I
-         H9uPAgoCUSZBYhX8L5Jr61mKUqPvRSNT2HoaoXZ2qg0Oq57RnpHH4y6SDbUlECgYynEX
-         r0nc2DgxjoTfKcTHpmV1l3y2gGaJgQwl6Dxkx7PNFcjiMXbViuYSW2S8HLnEKXLnSXTC
-         IQOyhU/RNaf0nrLXeIQo6686xzQqgbiPkCn3aV/7crY8bSr7WSsj4b+8aHxc5BQmEzIi
-         qq36GHJ6KEJXbGRQrYn2j4xjOBOLrNBAC5s/GJ/7eNpjkJ71bgPMuFiTNXpJ3oRWPm0q
-         sksA==;
-        darn=lists.linux.dev
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GAtD2Z2O"
+Received: by mail-dy2-f6.google.com with SMTP id 5a478bee46e88-35adc681e1aso1630599eec.0
+        for <nvdimm@lists.linux.dev>; Thu, 15 Oct 2026 07:34:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792073939; x=1792678739; darn=lists.linux.dev;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=xSN1yQdp8zpcfJuoyWCP9n5+uPspbmcoGBxcmTAtR1M=;
-        b=T7PQTnpjjv9QUfVe2zjhBospFQY2FZeNxVc+U6FQfhR2TFEQp4iqolcWnA8DZNMKXh
-         1H6NNSI9sIRbJKsb914coWiLr4Y1JXyYDWnysAr7etkvLGsq5kC+N9FHBbjzxk+IFh8L
-         h/NZpu54XmXkP3J/wTdpIpIGkvaH6J1NmbydzPFlVVxHVlGd8oRp5oSNfxv40lPPen5q
-         rFf2To8e4yVOhenbnEL0PD5Ve1YmKjItCY7ZR3EGLwydli+SNjgb9Rlrxzs8lzW7A5yK
-         wwYMmxcReysrENpUFZR1JBXqBWy5Zl2O0MGVdrBl966h8DeYyVg+IiH66plOoD8uSpuO
-         6+Wg==
+        d=gmail.com; s=20251104; t=1792074871; x=1792679671; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=8neBvXrJ3PxtaBrYkVCU0EsbaYcYW7zqj6dnSnPhyTE=;
+        b=GAtD2Z2OVjWQNJGjNasUlTIv5Hbph/MvEw0UWU6UJH6CWLzlnmuSWWJ2JvLJabo33N
+         M7dVbTqv0xtkqn2TX0JBa+49Cif6vphafdD9X4AyxORnE1nBLzPv/1VoYk6yHSleIcqk
+         FZZni/f7KTtOJ4dIRgw+63ATnVvZJa380ZnaXwcm6PZ4siOr/D9Nl+h/djhoikmIzb4C
+         J/esGjf1TUhFjNd+qGSJREr0Z5eeNp9aSe7DhbJoXDQKPww2uG4MUP+ID/LGXJE5feiQ
+         uUn1kiSmtJP/FkD6rO8FkOkTYdaaVhnFR6AXD5mNdO8QyBrmqkfE+7x7XHUin8X54zQV
+         S2mQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792073939; x=1792678739;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=xSN1yQdp8zpcfJuoyWCP9n5+uPspbmcoGBxcmTAtR1M=;
-        b=tMYhDfjA7/0MsgEvIzStJv9JoKW16urGxZ9Gvi3wbBP4xloMIGTh6r4qBaZVLsPTy1
-         OtE1xVURBSWgvAZYo5eANb/iTggLAxJpgzSgs7rVgPebpJPCEJrEuOzFGa4ggsDiAt87
-         OsgiV/8wxJZickoZMHEZi+NrUZR5OtGmtBEccSBvWDxxXhhM4rK0p0Ye+G2POGKgTG3o
-         EpiZao128aZJjkai6xqzh6qQ8sK6UAAgkhLhs/+BEJNqqW8QW/pHgu9Au/ylxLZAL5Q1
-         HYn4BAYS2D+KdU+Yioecrr5tOmWsOkczFMf36KlFCTmz8Xeak7VDeViDbSPQUY5QbSk+
-         RxdQ==
-X-Forwarded-Encrypted: i=1; AKwUvBz2gXF96yzkQ4JRz0IGb8m9rwRWwtKbfxvetrXQ5S9eGbPJb4RpO2JnLKvdaMwJ8jobkhPbzUs=@lists.linux.dev
-X-Gm-Message-State: AFq9FYLjTMDutxHZQw53RFZ9rMnQ1Rj2HTuAbZzMV9aFtX3hh4y/uwrj
-	jSPkcPogiUXAZq13LPOJ/IqY2MPzWDpuqshsTm/YcQfzv7ofgMXf44Y+UEhGV/LczOKguBpMOcU
-	VaGkBpNNcTlQP4IvIuOFHjALp173JGNI=
-X-Gm-Gg: AYBFou0g1zQJLE3li7POb4ortijoWW9Pbj30QZ8HaPh96DZsIFOrF0hSuhqi5m0mOpx
-	39nivfvbX3OXI9oNKzu21aY6tDzOaZx+WBttwLgd7ocov0oVjbOFH2QnJrV7t2YLLIJ9mj68O0k
-	Xb4xtEQAb80a1h7nqYmKkSxTL7UNgdLTIvRZfPFPW8zYozD2xMVE61Jzh4A+zJLOcD2HX7X5Ls9
-	2v4qbVivmVmLb4r9skzIRmjIAyy4g0Pb4zXOmHkS6D6s3BenVf1JWdAk7NrnXj1yU/oOrDbd9z4
-	lHH260rmC6JMwCovUpLzrTWhDvexocQ3A2ahlXUZXpHzFylZKaCkaa/LVoeKW7ayCFmD3Gj20we
-	6/YALlRieQBgVnPy3OdGWS1PAweT/r/vXVPxYM8zo4BDe9mU=
-X-Received: by 2002:a05:690e:1685:b0:672:f58f:b9c9 with SMTP id
- 956f58d0204a3-67936a1faf5mr8821758d50.59.1792073937854; Thu, 15 Oct 2026
- 07:18:57 -0700 (PDT)
+        d=1e100.net; s=20260707; t=1792074871; x=1792679671;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=8neBvXrJ3PxtaBrYkVCU0EsbaYcYW7zqj6dnSnPhyTE=;
+        b=wcmyozOcRgB+XKNz7SkXS1FFMDfhqqtmAnZZ1L2iWDsoEtoslLnIFPzUU/zVQDckhS
+         xYRwUNnRBqZPel4SKk1tJ6hf+9y9YKmCsyPhWH7C9I2oTTxS5DfTSz6OO84b4b+pYDH8
+         3G/C8dDpnhc/a+6+dZrz9REdFTY8UjaJHOi9Ug4jFUWx6p8KGMbw/VginUng6u2yBZov
+         yMeM/OzzXjzX+Fdei9KcSr9wN2l+3LQ7KkJtgBOkzSbTuJEZW17AXDYdDU8rtLCLBSUF
+         ocNh3A05UCDv5tjMKg8zUIsov4ztA864xML5JVqKWtiZ2CxzP+FbcxvlXMBMzAH/w9c5
+         droQ==
+X-Forwarded-Encrypted: i=1; AKwUvBxMDQ3sJK8d1zGBYNMBOH9hNrY16Gt1f1AuB0hIq8LCHuA+810Wf5nqYewTiwLCz3FFTr7j/pc=@lists.linux.dev
+X-Gm-Message-State: AFq9FYLqSu7/eLUYpUuZ060LC/t1g0o7J4Ps5oXBZeTa8Yk+NbpNHwYL
+	QeuA2H2SW5NSSF8YaxXngJSP04Cv7gjRxtuTLkp9ThjUQsrCwOOpoiFJ
+X-Gm-Gg: AYBFou3J0+rfktnW9a5XiqGXO6Q+Qeyq9mRq4Pz9EuYz5ji5iDTHQdne3rWrHOmROeH
+	MRZq1Rvg2pxTjZietQ24qIyz4Tiju4Tvl4jbKBI9RRT1m7MuIcP/MqDpfYVYreS5d4l30nZ5Ioy
+	qW7P+cyrtgHZ7PQTsoiR/fhkFR/FbPMNoi4MO/zAhADrSZZxVW9DsUBt2M+SULeBQVxUQrfYIup
+	kFmZx0YyMw8NrkMjWS/N9OtbmTTyldrrfZ+vYKkDRGAO5t6/2ravWKKp0l/MakkDuROTkf1xJpg
+	4V5fHfEJFxZ/foOO4G/U9xQfCfrtOINdabKZe7a0dJfI4WyKVyQb6+RE15InJWAF9c+gnCSnVlL
+	XYZSsVMEVBC/eDorcIUjVvE2T4sAHJ95NaiEFjLvxPfBrl9xebu60iRIbpwB3DW5LPER13jKe//
+	MUkWbNzZH5Ec+WsstrL4mhdXoFWodYUELHAdgiCIAzOF+yb+6AFWoHIvf4f3k9pd0g84CnMaAgK
+	apVjcmGxVZHYjFHZa0TFzStKXPxVLrsXsvua000kfxuuigPjbBlGi5Ta52eYzAeSstfXrdkObGb
+	Hg3SysJDMtuCdM4JFaIHcHQ/uscLCGjG2w==
+X-Received: by 2002:a05:7301:1a05:b0:358:eccb:af7c with SMTP id 5a478bee46e88-358eccbc89dmr21550282eec.33.1792074871413;
+        Thu, 15 Oct 2026 07:34:31 -0700 (PDT)
+Received: from localhost (ec2-18-163-127-16.ap-east-1.compute.amazonaws.com. [18.163.127.16])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3537ca6d202sm61569751eec.13.2026.10.15.07.34.30
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 15 Oct 2026 07:34:31 -0700 (PDT)
+From: jianyungao89@gmail.com
+To: linux-kernel@vger.kernel.org
+Cc: Jianyun Gao <jianyungao89@gmail.com>,
+	stable@vger.kernel.org,
+	Jan Kara <jack@suse.cz>,
+	"Darrick J. Wong" <djwong@kernel.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>,
+	Dan Williams <djbw@kernel.org>,
+	Matthew Wilcox <willy@infradead.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Shiyang Ruan <ruansy.fnst@fujitsu.com>,
+	linux-fsdevel@vger.kernel.org (open list:FILESYSTEMS (VFS and infrastructure)),
+	nvdimm@lists.linux.dev (open list:FILESYSTEM DIRECT ACCESS (DAX))
+Subject: [PATCH v3] dax: fix wrong error code returned from dax_dedupe_file_range_compare()
+Date: Thu, 15 Oct 2026 22:34:25 +0800
+Message-Id: <20261015143426.17620-1-jianyungao89@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20261012144925.6728-1-jianyungao89@gmail.com> <as95bXy1IfqNUCFo@bfoster>
-In-Reply-To: <as95bXy1IfqNUCFo@bfoster>
+Content-Transfer-Encoding: 8bit
+
 From: Jianyun Gao <jianyungao89@gmail.com>
-Date: Thu, 15 Oct 2026 22:18:46 +0800
-X-Gm-Features: AclHuK8aytQ7H4Nncmnmre9ei3UMhClX2_Eg7b6Gz9NoVPwY9-qoKaBctsbcYj0
-Message-ID: <CAHP3+4Aea8kfmh5SqTp-dvCBrXEpAS-tUMwmm8aNkgiL4oYuWQ@mail.gmail.com>
-Subject: Re: [PATCH v2] dax: fix wrong error code returned from dax_dedupe_file_range_compare()
-To: Brian Foster <bfoster@redhat.com>
-Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org, 
-	Jan Kara <jack@suse.cz>, Dan Williams <djbw@kernel.org>, Matthew Wilcox <willy@infradead.org>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
-	"Darrick J. Wong" <djwong@kernel.org>, 
-	"open list:FILESYSTEM DIRECT ACCESS (DAX)" <linux-fsdevel@vger.kernel.org>, 
-	"open list:FILESYSTEM DIRECT ACCESS (DAX)" <nvdimm@lists.linux.dev>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-Hi Brian,
+When dax_range_compare_iter() returns a negative error code (e.g. -EIO),
+dax_dedupe_file_range_compare() incorrectly returns 'ret' which holds the
+positive return value from iomap_iter() indicating more iterations remain.
+This positive value leaks to the caller, where vfs_dedupe_file_range()
+interprets it as success (bytes_deduped = len), causing userspace to
+incorrectly believe deduplication completed.
 
-You're right, the bug was actually introduced in 0e79e3736d54("fsdax:
-dedupe: iter two files at the same time"), not the rename commit. I
-will fix the Fixes tag in the next version.
-Thanks for catching this!
+Return 'status' instead to propagate the actual error code.
 
-Best regards,
-Jianyun
+Fixes: 0e79e3736d54 ("fsdax: dedupe: iter two files at the same time")
+Cc: stable@vger.kernel.org
+Signed-off-by: Jianyun Gao <jianyungao89@gmail.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: "Darrick J. Wong" <djwong@kernel.org>
+---
+Changes in v3:
+- Fix the Fixes tag to point to the commit that actually introduced
+  the bug (0e79e3736d54), not the one that renamed the variable
+- Add Reviewed-by from Darrick J. Wong
 
-On Wed, Oct 14, 2026 at 8:45=E2=80=AFPM Brian Foster <bfoster@redhat.com> w=
-rote:
->
-> On Mon, Oct 12, 2026 at 10:49:24PM +0800, jianyungao89@gmail.com wrote:
-> > From: Jianyun Gao <jianyungao89@gmail.com>
-> >
-> > When dax_range_compare_iter() returns a negative error code (e.g. -EIO)=
-,
-> > dax_dedupe_file_range_compare() incorrectly returns 'ret' which holds t=
-he
-> > positive return value from iomap_iter() indicating more iterations rema=
-in.
-> > This positive value leaks to the caller, where vfs_dedupe_file_range()
-> > interprets it as success (bytes_deduped =3D len), causing userspace to
-> > incorrectly believe deduplication completed.
-> >
-> > Return 'status' instead to propagate the actual error code.
-> >
-> > Fixes: 39eb05112987 ("dax: advance the iomap_iter on dedupe range")
->
-> Hmm.. the patch looks fine to me, but the above commit basically just
-> renamed compared to status in this function. I.e. before that commit we
-> did:
->
->         if (compared < 0)
->                 return ret;
->
-> ... which seems to me has the same problem. So I'm a little curious if
-> either the Fixes: is wrong, or I'm just missing something..?
->
-> Brian
->
-> > Cc: stable@vger.kernel.org
-> > Signed-off-by: Jianyun Gao <jianyungao89@gmail.com>
-> > Reviewed-by: Jan Kara <jack@suse.cz>
-> > ---
-> >
-> > Changes in v2:
-> > - Add Fixes tag and Cc stable
-> > - Add Reviewed-by tag from Jan Kara
-> >
-> > v1: Link: https://lore.kernel.org/lkml/20261010021010.19575-1-jianyunga=
-o89@gmail.com/
-> >
-> >  fs/dax.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/fs/dax.c b/fs/dax.c
-> > index 6ba50142eeb2..1f6a4fbb97bd 100644
-> > --- a/fs/dax.c
-> > +++ b/fs/dax.c
-> > @@ -2261,7 +2261,7 @@ int dax_dedupe_file_range_compare(struct inode *s=
-rc, loff_t srcoff,
-> >               status =3D dax_range_compare_iter(&src_iter, &dst_iter,
-> >                               min(src_iter.len, dst_iter.len), same);
-> >               if (status < 0)
-> > -                     return ret;
-> > +                     return status;
-> >               src_iter.status =3D dst_iter.status =3D status;
-> >       }
-> >       return ret;
-> > --
-> > 2.34.1
-> >
->
+Link: https://lore.kernel.org/lkml/20261012144925.6728-1-jianyungao89@gmail.com/ # v2
+ fs/dax.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/fs/dax.c b/fs/dax.c
+index 6ba50142eeb2..1f6a4fbb97bd 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -2261,7 +2261,7 @@ int dax_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
+ 		status = dax_range_compare_iter(&src_iter, &dst_iter,
+ 				min(src_iter.len, dst_iter.len), same);
+ 		if (status < 0)
+-			return ret;
++			return status;
+ 		src_iter.status = dst_iter.status = status;
+ 	}
+ 	return ret;
+-- 
+2.34.1
+
