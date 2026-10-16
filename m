@@ -1,104 +1,178 @@
-Received: from mail-qt1-f176.google.com (mail-qt1-f176.google.com [209.85.160.176])
+Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DB574DF4B4
-	for <nvdimm@lists.linux.dev>; Fri, 16 Oct 2026 15:28:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.176
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792164516; cv=none; b=o+a1nI8BwFHy23pDOXPHyrhlyLpLmwy0hCxHhgG5DWZK1bbLOCLQxiOJVahPJt41YxCdW7a3HLv+uThBZqViTIYRjFUT8ge9kgbBolnLdBDTV5B36ssKZ1ZNQR1YEiiuFQocDJFZAWJJG1nqLmYY01ivd+2hU1nCmWcOm8zk4qE=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792164516; c=relaxed/simple;
-	bh=45LS1UdziFdH9/L28pE18LpNfUOLryxMUFQxNA+kup4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=TyfRQxkaooM513WMxmgx5kQBZd8yk/6a4fsm/eW5xB+pCOhTwW0GcwseUE4Q2JdXfEzo2YQ63UlOte/hQINW0ngFgiru/bOJDl9CbwiP9LqaCN+B1I946pQx8eUtSEBzTdcPx8cPm18mEzaHl2hcinUZ4SCyCXXxGiKd5Is85zI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=m4II8lO2; arc=none smtp.client-ip=209.85.160.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E41F4E3EE6
+	for <nvdimm@lists.linux.dev>; Fri, 16 Oct 2026 16:04:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.42
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1792166659; cv=pass; b=CH3VzDiPBDS7LL+5DyT1+RBtCWnUiR1Snmxyl1Ep0WKOIBJy0c0KgrzE8/6w1dl8X4WLn3TOksIvpgqErjRMIieYSr0XhYb9XXeLnNcec/AB2Li/QE8GEtgvpWYTZ4/KKVX90mDl0wfJrwVVreg6RVu68+l1/OalPZMhB5QlbZw=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1792166659; c=relaxed/simple;
+	bh=9lv8y/8boJJYeoN6PZYJjxSqtNYDKsLSBds0Xi+bxrQ=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=aMmRRsWdqzOPFM9iyjs8qJWopoDWgqWIQJ6S6H6UUsrh/GkBUX+AQR5nD1N6Fd4O3Nomcqk54y8458yH0mUhFpXyKgq8yCFmhw35ZjHunmwZccHuGsizSaIXcKn9QwT8QlhQlmjbBi0E/Sc9WYoNYvhM1BaFDH2+aH51c4NSL7c=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=pTk0g8EL; arc=pass smtp.client-ip=209.85.208.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="m4II8lO2"
-Received: by mail-qt1-f176.google.com with SMTP id d75a77b69052e-5352a876d5aso171921cf.1
-        for <nvdimm@lists.linux.dev>; Fri, 16 Oct 2026 08:28:35 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="pTk0g8EL"
+Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-6b21cf1a580so5922a12.1
+        for <nvdimm@lists.linux.dev>; Fri, 16 Oct 2026 09:04:14 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1792166652; cv=none;
+        d=google.com; s=arc-20260327;
+        b=shvH8fd/I88544jmR773m0W0X6qPbFQEOruZZdqshrA/WxHf44lMk/nBKA+QD6/61x
+         RSTnLFrCBzglQZAphCmpJrtTfh8ohPnMb0IMPanaJPZ/VYrMPrks1wNL8ot5oylG44CJ
+         ZH+z7NS9C28B3KoJ/K/j7gd6tRB5I5iPGCSIA7aY/fHAKPUUPhqbWUGOxn+2/dWy335x
+         YrL/g8a4uVqKP4PoxEwuaKQQM8lIkbgwoTkqit465ArjtaeFu3GDuR1YB+l+TQCZ6kZQ
+         iGCCbySpF6ZjdsBs2ypK/m7kszqf1zClfGsROWlY0NAK3PFqX686mgMD0xRB99UH81vK
+         Jlag==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=0XT9gf6Lc+1fX8Xrkj2lJ0FO4HQTQ65QLq9M5IgaTRo=;
+        fh=0VHaWGxXDbcwx/LfpMlICeMbVnTRfP9l7EMHNIgELQk=;
+        b=AHswryohaBwK2zyUWf0Yvb1HRqIM94F7oeiNu0dHbJ0KMnXu29z8cWXw/BYBq7H4mZ
+         AvXFfGPkoH7XsHUfxC+qDVuuMqwLj5wj7FHZellu4u7rXF1WIQRSa/sZQyFnmQfMUofO
+         mztdgY7cOu7cnlIZGJn2bt/x4OCUQODO49olPSRkWum4J5YuHfCW8KJ1hy7d+j1kpokr
+         URkiEW5bHDW8NJAH0bDh3arek0JkatDDPhPKbmF9PB7G/5mDx3cPtL1CJPusuDw7ijAQ
+         oytI+AK7emR9Hbw7m5YButn+50Tw9I0Su95hegxPiFx293WIXOYuA2FP1eToUSqCnnjM
+         bUlQ==;
+        darn=lists.linux.dev
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1792164514; x=1792769314; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+        d=gmail.com; s=20251104; t=1792166652; x=1792771452; darn=lists.linux.dev;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=P2YR4vuawodUu/XM3aGdAaeSVvyprcEIWQFxlPCqAas=;
-        b=m4II8lO2G9o2ufniDyOFkhVJLvpCbN3URn7QxKrV4HTnI+o5jWK3OuA75GNOlz9iQ4
-         F6LcgVwAVMjwyBLvAn8o1zhHyPHQJl7ls88YUcmijBRY2xGFsBlpP8ssXIyLwk4ocoDt
-         y5LAcWJBot7XEAqfHaed02TfBgshSQ6Jy/M+r6LCs0wzQD88DYsRnpLgIWXMFlxZ6MFh
-         hl4pCnbkkaHgkhoS+6iK+CKFF4knFnJPQwaeSiQMUGfLlFfxSlVgagD1Ge/6fkyjkKlj
-         orw76TLpIJ4iVP8DTS1044479R3AJv+Gao+wvqpb+Yqy3VMf/2K3f/J4x/XgptGcf/tp
-         T8Xw==
+        bh=0XT9gf6Lc+1fX8Xrkj2lJ0FO4HQTQ65QLq9M5IgaTRo=;
+        b=pTk0g8ELftlQCkPZNhI+EIq+kzIHNB8LxG0WUhlatxLimO4E1G9yGAFi6IeC4hAFUV
+         Xu5C2JslqKr5900s1SjPrpJxOLRDt1gztPI9Lria8UyIZxiHwb01KjhRuKdaIZPGJscY
+         xOhqgL6kCVM54ZNTnByO+dmoK/UJ0S3IaUb65843bOySeodP8B4KODbo+doYplZ9zgpd
+         2Oh6xJZ/BcKHylhNTI/qgYBucgMLAjSqZQyaSsHEy10hDJIEG6fpBRJeGr+NZAOU2i2a
+         5t9xzz/FGDIysuULJedeN81tg6paZBN+z1SHNQcUTVn9ljhuwA8m1uhkQXOJ45SDKxtg
+         nghw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792164514; x=1792769314;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
+        d=1e100.net; s=20260707; t=1792166652; x=1792771452;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=P2YR4vuawodUu/XM3aGdAaeSVvyprcEIWQFxlPCqAas=;
-        b=V05gDmR4aFyevnGzLNktPq6oWkTAMXl0fd9TBOaNOIt3LtFKb6Vnmld4U2Vz11c5Oq
-         IdM5T07ZM2v10/ROkg1Tybu04cjM93RIw7blTRd/HQsjqijy51zCOt/zydgHt6ZJzuA1
-         4WNMEbk9yCsMKCN6cL62J8z3M6hE3yUPHnoAsfcWmoKR7uczNWTCn71cbvRrc35VfHCj
-         eNcXyIxMrVzcXYKJHM69YYTimJ5Pqx1abhL+4hvUsXmS2N4qFqM9zGo/q7UeoFvKhOIT
-         ffppEnDyMP1PHnaOtzUVA1PMPCkE+jA6jMM1dK83Gf4P1OgC7H0LjGDDhxPiSW/5J12B
-         tZsw==
-X-Forwarded-Encrypted: i=1; AKwUvBxLP0LXDrbLGijG4V5Q1sNPdsQkYBF7z/f9/caDIz8dwh7k+rH65xdXg0PMupUPbB0uH5CA1i4=@lists.linux.dev
-X-Gm-Message-State: AFq9FYLHzUZr4NRWX+bVf7fb7ECmYTWnGqyWV09XaR0CzYkug69gSclb
-	m7x7/F2gSlj61kgH3J9MdYLMimX+YWAhcbEJpWh97xguosioFmO+nWeXcNhOVUV2p6s=
-X-Gm-Gg: AYBFou3lhgOJYdg7byeYR2owep1pce4oOl7hw7D5w5DAkZ6drIqwlZ7wLkMpd6fWPOs
-	iLYMI00Z2jZrDfkQ8Y8qYfYB9kletj97TKsJyhqTEi9BNl4R2k31ARyCEdPlbKZOVadFufoXrIl
-	jdivUFYRyVkeQHVaRolo44QVk8GSwgqPh0a8WOLfDT8HynGAEXuRCw8KbN3zuz1tU4ZdtaCLIey
-	GWZPz6U5YeCEdmoE+1wPSZcTLupImV0Ehh4JFB+KcUmsik/mA4QBujPpj4VJoG2Nvi88hNq/jc/
-	5Ks04C+0cbwy5WrCt0UCh9DqFjd1mYvgmH5xA6AIQyt7tXUbe4YMTm5tfDuEPnUSmf6Q7TWIUWH
-	Xu602FPHYzi3+V4nDTyW72TcYv6q+IYmKsvHthTDVeLifLR5FTiCyVIc8lX76QyoZ5MKjj2dyGL
-	FTqONEx6lhj8GzYUQckeFPrfFlHv9cYnjW2YTu6ugOyzNRjXwLtOzMHpDSdLZzJWPlvXcfI5qql
-	ILdd1f4CJLYWbCJNu+aLMBq0FcmTDbFRk4mxJx2UvG8jWnnOZcaWrU=
-X-Received: by 2002:ac8:5ad4:0:b0:534:b7b2:6353 with SMTP id d75a77b69052e-53629a699c9mr49329901cf.56.1792164514309;
-        Fri, 16 Oct 2026 08:28:34 -0700 (PDT)
-Received: from gourry-fedora-PF4VCD3F (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-5362aa19fefsm25018821cf.23.2026.10.16.08.28.31
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 16 Oct 2026 08:28:31 -0700 (PDT)
-Date: Fri, 16 Oct 2026 11:28:29 -0400
-From: Gregory Price <gourry@gourry.net>
-To: Miklos Szeredi <mszeredi@redhat.com>
-Cc: fuse-devel@lists.linux.dev, John Groves <John@groves.net>, 
-	Amir Goldstein <amir73il@gmail.com>, "Darrick J . Wong" <djwong@kernel.org>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Alison Schofield <alison.schofield@intel.com>, nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
-Subject: Re: [PATCH v5 01/10] dax: add fsdev_dax_from_file()
-Message-ID: <atJCherUxpYkRFa7@gourry-fedora-PF4VCD3F>
-References: <20261016151638.2962413-1-mszeredi@redhat.com>
- <20261016151638.2962413-2-mszeredi@redhat.com>
+        bh=0XT9gf6Lc+1fX8Xrkj2lJ0FO4HQTQ65QLq9M5IgaTRo=;
+        b=ih5N6fgoyBhXKH4FEv9LsHlOrn1nztDTUf7myICu8GrOFAnLfKiUmzhSU6w88hTTNA
+         lwE/ywlkYRMh+rx5F4/+tvDvutPU8cCS23MJIODsq+h4AXUkxwsK6cqH/dH5YJKSP7FI
+         qpFLn/bZeMkvqX518yoj0CtyYYj8bgg8q9hoYqy6hHjnhlivNMwFdGIcJgaBtkB+EMML
+         ooGLBR98H151sQRN4OpkST38sO6ta0Yg/LJlAxBtOxR7jqZgePp+Qg62Q7PBnCLtUF8/
+         26q3zZOJ+HQLQjxUxwkJD+D7jm92K6amaxG8j5IVzyO89xSuQ33hv5kF1IJUow6OOwsJ
+         CsOw==
+X-Forwarded-Encrypted: i=1; AKwUvBxe2rH05v9ABDD8BWDBK+5MUMBiLLU6g2yihPVy/3ne+joq/WlQpFe8vVZmO1R7GEXN5thOTvU=@lists.linux.dev
+X-Gm-Message-State: AFq9FYLTJPHfp9TnQbHXn/+jN0jQpB/won9qU5gjd46A+7UMU7E9Giuf
+	45DQ1+1W2KCRvgj9VTRSjkLh6IWjQx8HH1zp29CeBOMTxQvcfZ5BJxK2hVu3CXue65Hd421J0HN
+	Ai9ngdbVyJHems8HuV7MPumGN5AzECfc=
+X-Gm-Gg: AYBFou3ImZqJzMacnZsdCm+uRbo52nozrjbqKSbvBiRMMOIDg+ug2Wzj0QJKPXK3zBe
+	5O4cIxEPJbeVDYsql9Dp0CkIp5EamJSCBpQRPQvTgb/TRv+qRmIPb0VV04YQT33xom6winBNHuY
+	P0R+62Fre7ZA6aN2YzsXMy8sCViofnhzbnkkXPbE4jpH9teiJgKvR2i5mI14b11ysSZ2b5wPFRH
+	+BFmg7vl4S9OFdIBgVAGyalijP4l8Y0atrB4ERdwC3nF+rYfWy/DkD8SKn7rZICFOueCR0IKhY4
+	tBVt9z2weIp4b9ic5zeEfO7mzKVXc5OdUfUYXnXU+EsfTZQ/+JtiJDGq
+X-Received: by 2002:a05:6402:4402:b0:6b1:c299:b3f8 with SMTP id
+ 4fb4d7f45d1cf-6b1c299b53dmr13158335a12.33.1792166651834; Fri, 16 Oct 2026
+ 09:04:11 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261016151638.2962413-2-mszeredi@redhat.com>
+References: <20261008112004.1899560-1-mszeredi@redhat.com> <20261008112004.1899560-9-mszeredi@redhat.com>
+ <sashiko-outbox-164097@kernel.org> <CAOssrKeEOMUHz_Esfi6L0tu0rbd+aMbb9+fi9fzFYu5NWczOZA@mail.gmail.com>
+In-Reply-To: <CAOssrKeEOMUHz_Esfi6L0tu0rbd+aMbb9+fi9fzFYu5NWczOZA@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Fri, 16 Oct 2026 18:03:59 +0200
+X-Gm-Features: AclHuK-Evug5KGDMq7YW7UlXb9Ln9FrCYT22ooxxec4w9tRZ6QLvbe-ThSbMDYI
+Message-ID: <CAOQ4uxhgFM=SN_WKGp8PXGpHJhk=vr9ADS0OU-UeEv8Mrba-XQ@mail.gmail.com>
+Subject: Re: [PATCH v4 8/9] fuse: add extent map I/O support
+To: Miklos Szeredi <mszeredi@redhat.com>
+Cc: fuse-devel@lists.linux.dev, John Groves <john@groves.net>, 
+	sashiko-reviews@lists.linux.dev, "Darrick J . Wong" <djwong@kernel.org>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Alison Schofield <alison.schofield@intel.com>, linux-cxl@vger.kernel.org, 
+	nvdimm@lists.linux.dev
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, Oct 16, 2026 at 05:16:28PM +0200, Miklos Szeredi wrote:
-> From: John Groves <John@Groves.net>
-> 
-> If the file is a fsdev_dax open, take the dax_dev from the device inode's
-> i_cdev.  Return with a reference grabbed on the private dax inode.
-> 
-> Make dax_dev_get() static again (internal to super.c for alloc_dax), export
-> fsdev_dax_from_file() instead.
-> 
-> This fix is in response to a Sashiko review, and some subsequent analysis.
-> 
-> About the 'fixes' tag: this removes the export of dax_dev_get(), which was
-> flawed, and replaces it with fsdev_dax_from_file(). It feels like the fixes
-> tag makes sense for correcting an ABI error.
-> 
-> Fixes: 2ae624d5a555d ("dax: export dax_dev_get()")
-> Originally-by: John Groves <john@groves.net>
-> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+On Wed, Oct 14, 2026 at 11:26=E2=80=AFAM Miklos Szeredi <mszeredi@redhat.co=
+m> wrote:
+>
+> [Restored Cc list]
+>
+> On Thu, Oct 8, 2026 at 1:36=E2=80=AFPM <sashiko-bot@kernel.org> wrote:
+>
+> > > diff --git a/fs/fuse/passthrough.c b/fs/fuse/passthrough.c
+> > > index e9ab1aea34e27..040817ad76e94 100644
+> > > --- a/fs/fuse/passthrough.c
+> > > +++ b/fs/fuse/passthrough.c
+> > [ ... ]
+> > > @@ -74,10 +73,13 @@ ssize_t fuse_passthrough_write_iter(struct kiocb =
+*iocb,
+> > >       if (!count)
+> > >               return 0;
+> > >
+> > > -     inode_lock(inode);
+> > > +     guard(rwsem_write)(&inode->i_rwsem);
+> > > +
+> > > +     if (!backing_file)
+> > > +             return fuse_ext_map_write_iter(iocb, iter);
+> >
+> > [Severity: High]
+> > Does this introduce an ABBA deadlock between pipe_lock and the inode lo=
+ck?
+> >
+> > For normal passthrough, fuse_passthrough_splice_write() acquires the in=
+ode
+> > lock first, and then calls backing_file_splice_write(), which ultimatel=
+y
+> > acquires pipe_lock() via the backing file's splice_write callback.
+> >
+> > However, the EXTMAP DAX path added below for splice_write() directly ca=
+lls
+> > iter_file_splice_write(), which acquires pipe_lock() first. That functi=
+on then
+> > invokes fuse_passthrough_write_iter() where the inode lock is acquired =
+here
+> > via guard(rwsem_write).
+>
+> Brute force fix would be to prevent mixing plain and ext-map
+> passthrough.   Might be a good idea anyway.
 
-Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
+You mean not mix on the same fs?
+Make sense. So another init flag?
 
+>
+> However I'm thinking about why fuse_passthrough_splice_write() needs
+> to lock the fuse inode.
+>
+> Tracing back through git history that inode lock really originates
+> from commit 2a92e07edc5e ("ovl: add ovl_write_iter()"), which added
+> stacked writes.  That was copied into ovl_splice_write() by commit
+> 9b91b6b019fd ("ovl: fix deadlock in splice write").   Which was then
+> added to fuse_passthrough_splice_write() by commit 5ca73468612d
+> ("fuse: implement splice read/write passthrough").
+>
+> Even for the original ovl code, I don't see an explanation for the
+> inode lock, but I'm probably missing something.
+>
+> Amir, any thoughts about why that inode_lock() could be necessary?
+>
+
+It is my understanding that the inode lock is used to synchronize the
+copy of size/mtime from the backing inode to the ovl inode by
+ovl_file_end_write().
+
+We don't have this model in fuse passthrough (yet).
+I think that fuse_passthrough_end_write() do not need to be synchronized
+so could probably lose the inode lock in fuse passthrough.
+If we even implement the inode passthrough mode where the
+backing inode attributes are the source of truth, it will surely be
+a mode that does not mix ext-map.
+
+Thanks,
+Amir.
