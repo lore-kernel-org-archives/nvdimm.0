@@ -1,70 +1,73 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBF074C9DEA
-	for <nvdimm@lists.linux.dev>; Fri, 16 Oct 2026 15:17:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DFDE4D7D36
+	for <nvdimm@lists.linux.dev>; Fri, 16 Oct 2026 15:17:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792163847; cv=none; b=ah91OoKq76hkdIw2nZ4XymEaJdN+/F6xbvWuNrhMqNzOCMy2wpwlwA6SFDtGRuXSV7EoQhc7VNFtOKZFZupmPfvbHafAZFOiwuZAlLfmFuxvdVhrNjLybcUXBx15ViiDAPGmy2z/dVM3HQ9OdyyGVFhp3z3Dl4mcW2CgWA6HlI0=
+	t=1792163851; cv=none; b=PkXUgaAbsSUXTPxzVs7IigD3HfdJge8CgkpxvHqtPBdXwqqYfNCFRfe5CyDi1hvkhn7E35e9ANSkTVw25WyAJ811YStaSm8IgJ/2/U9LgEch4KeyIFu1DMTOKxL5T433e9qqFYlXQW3/U/jdQwszk5Q8Q25wtFXS0OnaDxDPN44=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792163847; c=relaxed/simple;
-	bh=YxnZvwd57GKZBvpC2GbbHw9D3LkU97A3oVoH0EYOGNo=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:content-type; b=faznusLIZwbsu8nvY3cC+LkPHfgdMfeIeFw6yQnSHxacBjpNyTItbRsqvQFWRidEbyu+VAq9j/y/0A0MTM2NQJeRciOTaUR2AewE+YAXYRTSaq6SraYynwbIgQPADL63eBMdjCE/ZjqCnp3XO5e6RHFHB1zyDroVP+wJ+jf/IyM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Gg4KoFCd; arc=none smtp.client-ip=170.10.129.124
+	s=arc-20240116; t=1792163851; c=relaxed/simple;
+	bh=YUkw+dai85UeClnTY/cNJI38d36WxPxX1F8i1DhNk+o=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:content-type; b=fsyqd09FVDovljIfriScgJEwMUEl+JlvRnIQcyAV0bCyMJSVD47bJFh75oOCSoPDGR0QpgZZi+UXl4MKhpTfE2M6KWEpPmNECg2Im/4tC6JYfOs3kK8REPT0gYJSfDTXctIMA1Cj6iDx5L9Lzfdzk6qgIgfInr8G6svvhNqU5kY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=YgJIOWgu; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Gg4KoFCd"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="YgJIOWgu"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1792163843;
+	s=mimecast20190719; t=1792163847;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=8E4HluxTqTz4GH5KzcjRySdZqvF11U4sB58FTslbo0s=;
-	b=Gg4KoFCdC9Gd9f//HwcSU3bu2lzgYbXRexF2A8S7xynl3TBoG1HqR6kL8t+pu78rM7k/a0
-	t1YBuUIGT7iGZ2xC4jqryhx8x1SugIbN9wQJ4/W2fszMqBq0HWgFp7dDtcZljERhTs8Fbz
-	XGXLrLi8Ma8jqS3VFfnvd7ir+vxHTW8=
-Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
- [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=+TROMxDl8UrJYxG0M+aHIDtSYaFMtjE8ArsPy1R4PO0=;
+	b=YgJIOWguC/0Tg9Arzi/aW7+90nVakWbSAOL1iHHiDTIe9MvaXBgXm/Fli731jf/rM7/bGz
+	TG3hhQfWmhiCLSqwRfv4IAziXy0DQxC/3yreI5pNCuDnxOKU0zkvzVkraO+/aer1ISRgbT
+	6WwWGilcPl2U27QjXnlNxUZHtHD8V64=
+Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
+ [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-207-8TivB8vYNsucUagpd7nupA-1; Fri, 16 Oct 2026 15:17:22 +0000
-X-MC-Unique: 8TivB8vYNsucUagpd7nupA-1
-X-Mimecast-MFC-AGG-ID: 8TivB8vYNsucUagpd7nupA_1792163841
-Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-4a01b112fa2so613955e9.1
-        for <nvdimm@lists.linux.dev>; Fri, 16 Oct 2026 08:17:21 -0700 (PDT)
+ us-mta-508-AjVm4m2GMme9_XJkI0-SJQ-1; Fri, 16 Oct 2026 15:17:24 +0000
+X-MC-Unique: AjVm4m2GMme9_XJkI0-SJQ-1
+X-Mimecast-MFC-AGG-ID: AjVm4m2GMme9_XJkI0-SJQ_1792163843
+Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-4a0761224e1so810845e9.0
+        for <nvdimm@lists.linux.dev>; Fri, 16 Oct 2026 08:17:23 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792163841; x=1792768641;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=8E4HluxTqTz4GH5KzcjRySdZqvF11U4sB58FTslbo0s=;
-        b=ob2sTNQyJSooGAHU5e7X++ckrKCnxZp6cjtzQJ0Xuz6vNGd3BwNibl3h9vYY6eu7KK
-         /9t4eoSvH6V8Fnlx9sV320a/IZ8rOofC2XhvNcxzL8UR5djyXqFSaV6ESkj/VAqkajNV
-         vI6ntuOmG3e72jmpII1Nkc9ZNLYZ2FDgZpUjcndDUesLhwUv8h8hbXCjutczf2LlUqtA
-         YAMytSlBpZmS6eLf+ijVU2jYdKUlT3+yJ5Pk54/nCM1eqovWYluK5Nux5hhgm7661r/D
-         /mMAeEabqwsFmGu5k9z3cOtc6JqL4hKtC3V9hm9ti9jxmDaOrpPoIrF56OvdS9/i3LEc
-         195Q==
-X-Forwarded-Encrypted: i=1; AKwUvByZOUoJwyZnCnjiRprmDU6dO90sCfEXyn+5lhIdx3bZjIWzwE/TMILNZMWUjbXkxTVgKNwEsQQ=@lists.linux.dev
-X-Gm-Message-State: AFq9FYJ1HX7YOqHfL8fXIJN4blpIbK5yL1DPYG3ioa1wxjm2sPXkJbVh
-	rxZo/tjiKNLdqJttnjFUx+Y9f3pfBIphS6SJEjTTF4f9LKhuPCYv8euN5tQlGVkcWDvizeTufiv
-	+0ek/zI6Ui02tbGKjN7XpCGye1J9GvegxVUGpnc/sPgn7zRyLZ1vzvW8huA==
-X-Gm-Gg: AYBFou0QjMAeaTKzPupd113Tkg6XkLKB2fFBAaUHpOkXRIt2NTWrZ3a85g+dKta/nZh
-	d/LjXCUIsIaaKll1euuI+fASCKY1BUWhXyKEWbTbbdYBOw02tTC3zL2eNqY/lq0G7FQHNARz05a
-	jWcMQvlu7glML3XMRIBpJnrkBQl2QViAIed35Ot4al/dh7dLhFMFQDI41FQ4PCIcTu9486wDN4t
-	sNIDdMz6tf079YJ19BgELZnbvx8DC1g8OpFPQxZyYK3n5FOUYeUTihOHGZLIkn/m/8xZfbOPdZL
-	8L/+VOm+lu5jPI/BAX+3qJ2kTkWl5HokQRzURNBgZKK79dPmyvAfsJk/wFku5QqrDd7AwJ4IFkz
-	KJsQH8ITikysupHL3+aPqPQ==
-X-Received: by 2002:a05:600c:4fc8:b0:4a0:23f:8b0d with SMTP id 5b1f17b1804b1-4a1d75acc6amr3391675e9.2.1792163840838;
-        Fri, 16 Oct 2026 08:17:20 -0700 (PDT)
-X-Received: by 2002:a05:600c:4fc8:b0:4a0:23f:8b0d with SMTP id 5b1f17b1804b1-4a1d75acc6amr3390515e9.2.1792163840004;
-        Fri, 16 Oct 2026 08:17:20 -0700 (PDT)
+        d=1e100.net; s=20260707; t=1792163843; x=1792768643;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=+TROMxDl8UrJYxG0M+aHIDtSYaFMtjE8ArsPy1R4PO0=;
+        b=FID1UcVbZ5elgKjaKzz3qevGzKWW5qUQbZUsTAnanARdeMJsuSG/NtAWK7WfxLZHYk
+         ZzSHAYVsxnvG2vuMAMBZH6UcofyG50ZtSEOYUUBnkaRs2tMSR5TfQvMaLZ5X6l2DNUd1
+         DspJH746kDaI7aIv+ATS07MneozukZecx6xOSzTXNKHjZ+m+/68OLaEOjNlLd6jAQlYz
+         nixSCXcM88B20nkjpT9k+1UWW3hf30E78hPcdnutZ+yYGj/BeNEhFhva2qcobryTra6h
+         PE+5suQUAx9F0O8JISPJQLNoglkK3PxrGuC4jLkgS2ITE16xiCZUtyuYpUvm1QzgdEHF
+         gaMA==
+X-Forwarded-Encrypted: i=1; AKwUvByy/CahG32htqihByZFGKrZ44DAX2qqPFsqKE9QsNWEc+IsJx12S/vSf71K+YYy7/e3ocpXSCg=@lists.linux.dev
+X-Gm-Message-State: AFq9FYLxQ2SJVAaxjczkLmYUnPBRz+4rMPwNxP5JijduKg82Lqcii2dv
+	fIX2eDIwqfswhcj/jIFycpyKRaTMgGXiyZa9vdbw4nn8vMeJ6pcLHfuU985xGS7GCDd03xI1k5E
+	Qw/G0O5pP1pIFgosC9NdQA9QEC8UKpR8eD4hdvi3IVBJ4SH8akQYYynQQJw==
+X-Gm-Gg: AYBFou2alWzPrL5Z7Vtx6g5u3ns9iudooyGFgtTEfk3oaUEVF8LhBi8BMhjz8+owo1V
+	/pAPBK25C/5UEimN1njlw+H/2WIwg9finfCMmA1VATzSX0dP0LSct8ixPL62VYx5JT2Dlk0Xpmd
+	RA6xHmF3VyBHgq+8TTepcgg4qfUWLAj72cNEbgkc6TOVeHENYkNhLuqze58XFPaB9ZHA17mNUJ+
+	7gqYcygtBwU9iaw0dtWeQwqFp8tlP2stzZygdzWcfB+4N9C6FmQj5f6xe5ovYkb2jzEPDyJ7UD8
+	siTNh/aTun9d6m3YLh+xlOrZ83BCtjSdfv6vgAu5SiGSW80ARoOW6GThT5RKyNedVt6y/o4S61c
+	1VY2ka6dA75P6chFBhKHXsw==
+X-Received: by 2002:a05:600c:1393:b0:4a1:d248:25b5 with SMTP id 5b1f17b1804b1-4a1d760e327mr2401095e9.24.1792163842794;
+        Fri, 16 Oct 2026 08:17:22 -0700 (PDT)
+X-Received: by 2002:a05:600c:1393:b0:4a1:d248:25b5 with SMTP id 5b1f17b1804b1-4a1d760e327mr2399225e9.24.1792163841216;
+        Fri, 16 Oct 2026 08:17:21 -0700 (PDT)
 Received: from maszat.com (85-67-2-18.pool.digikabel.hu. [85.67.2.18])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a1c8de7230sm64621665e9.14.2026.10.16.08.17.18
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a1c8de7230sm64621665e9.14.2026.10.16.08.17.20
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 16 Oct 2026 08:17:19 -0700 (PDT)
+        Fri, 16 Oct 2026 08:17:20 -0700 (PDT)
 From: Miklos Szeredi <mszeredi@redhat.com>
 To: fuse-devel@lists.linux.dev
-Cc: John Groves <john@groves.net>,
+Cc: John Groves <John@Groves.net>,
+	John Groves <john@groves.net>,
 	Amir Goldstein <amir73il@gmail.com>,
 	"Darrick J . Wong" <djwong@kernel.org>,
 	Vishal Verma <vishal.l.verma@intel.com>,
@@ -72,10 +75,12 @@ Cc: John Groves <john@groves.net>,
 	Alison Schofield <alison.schofield@intel.com>,
 	nvdimm@lists.linux.dev,
 	linux-cxl@vger.kernel.org
-Subject: [PATCH v5 00/10] fuse: DAX device based extent maps (famfs)
-Date: Fri, 16 Oct 2026 17:16:27 +0200
-Message-ID: <20261016151638.2962413-1-mszeredi@redhat.com>
+Subject: [PATCH v5 01/10] dax: add fsdev_dax_from_file()
+Date: Fri, 16 Oct 2026 17:16:28 +0200
+Message-ID: <20261016151638.2962413-2-mszeredi@redhat.com>
 X-Mailer: git-send-email 2.54.0
+In-Reply-To: <20261016151638.2962413-1-mszeredi@redhat.com>
+References: <20261016151638.2962413-1-mszeredi@redhat.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -83,98 +88,107 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-Mimecast-Spam-Score: 0
-X-Mimecast-MFC-PROC-ID: uOBr6po_61N2oFtgtWMpiKk6s8btWGpd8qlDP450J9A_1792163841
+X-Mimecast-MFC-PROC-ID: yqRpK4JMzQ4zbKamTNwMke1pmsUfRcahvUWBK10-Mmw_1792163843
 X-Mimecast-Originator: redhat.com
 Content-Transfer-Encoding: 8bit
 content-type: text/plain; charset="US-ASCII"; x-default=true
 
-This is the FUSIfication of the famfs-fuse patchset.
+From: John Groves <John@Groves.net>
 
- - extent maps are assigned to a backing ID
+If the file is a fsdev_dax open, take the dax_dev from the device inode's
+i_cdev.  Return with a reference grabbed on the private dax inode.
 
- - 64 bit backing ID's managed by server
+Make dax_dev_get() static again (internal to super.c for alloc_dax), export
+fsdev_dax_from_file() instead.
 
- - maps can be linear or cyclic (striped)
+This fix is in response to a Sashiko review, and some subsequent analysis.
 
- - API supports nesting, but not implemented yet (i.e. multiple striped
-   extents per inode, a-la famfs)
+About the 'fixes' tag: this removes the export of dax_dev_get(), which was
+flawed, and replaces it with fsdev_dax_from_file(). It feels like the fixes
+tag makes sense for correcting an ABI error.
 
-libfuse/famfs trees for testing:
-
- https://github.com/szmi/libfuse.git#extent-map-v3
- https://github.com/jagalactic/famfs.git#master
-
-This patchset:
-
- git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/fuse.git#for-next
-
-Passes famfs smoke test on emulated dax device.
-
-Comments are welcome.
-
-Thanks,
-Miklos
-
+Fixes: 2ae624d5a555d ("dax: export dax_dev_get()")
+Originally-by: John Groves <john@groves.net>
+Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
-Changes since v4:
+ drivers/dax/fsdev.c | 23 +++++++++++++++++++++++
+ drivers/dax/super.c |  3 +--
+ include/linux/dax.h |  3 ++-
+ 3 files changed, 26 insertions(+), 3 deletions(-)
 
- - extent array (John)
- - error out on truncate/hole punch on a dax backed file (Sashiko)
- - small fix (Sashiko)
-
-Changes since v3:
-
- - redid the first patch (prompted by sashiko: passing dev_t is racy)
- - more fixes (John, Amir Sashiko)
-
-Changes since v2:
-
- - add a trivial prep patch modifying drivers/dax/super.c
- - reserve zero value for 64 bit backing ID (Amir)
- - add Originally-by: tag to acknowledge John's work
- - more fixes and cleanups (Amir, Sashiko)
-
-Changes since v1:
-
- - moved 3 prep patches to fuse.git#for-next
- - introduce FUSE_PASSTHROUGH_V2 (Amir)
- - lots of small fixes and cleanups (Amir, Sashiko)
-
----
-John Groves (2):
-  dax: add fsdev_dax_from_file()
-  fuse: resolve extent maps in O(1) when possible
-
-Miklos Szeredi (8):
-  dax: use READ_ONCE() in dax_holder()
-  fuse: add helpers for EIO return value with kernel message
-  fuse: support 64 bit, server allocated backing ID
-  fuse: support opening 64 bit backing ID
-  fuse: add support for opening dax device as backing
-  fuse: add extent map data structure
-  fuse: add extent map I/O support
-  fuse: add support for striped backing
-
- drivers/dax/fsdev.c       |  23 +++
- drivers/dax/super.c       |   5 +-
- fs/file.c                 |   1 +
- fs/fuse/Makefile          |   2 +-
- fs/fuse/backing.c         | 302 ++++++++++++++++++++++++------
- fs/fuse/dev.c             |  54 ++++--
- fs/fuse/dev.h             |   3 +
- fs/fuse/dir.c             |   6 +-
- fs/fuse/ext_map.c         | 376 ++++++++++++++++++++++++++++++++++++++
- fs/fuse/file.c            |  33 +++-
- fs/fuse/fuse_i.h          |  79 +++++++-
- fs/fuse/inode.c           |  25 ++-
- fs/fuse/iomode.c          | 116 ++++++------
- fs/fuse/notify.c          |  75 ++++++++
- fs/fuse/passthrough.c     |  66 +++----
- include/linux/dax.h       |   3 +-
- include/uapi/linux/fuse.h |  53 +++++-
- 17 files changed, 1044 insertions(+), 178 deletions(-)
- create mode 100644 fs/fuse/ext_map.c
-
+diff --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c
+index 598604bf5ac5..910665c1f492 100644
+--- a/drivers/dax/fsdev.c
++++ b/drivers/dax/fsdev.c
+@@ -234,6 +234,29 @@ static const struct file_operations fsdev_fops = {
+ 	.release = fsdev_release,
+ };
+ 
++/**
++ * fsdev_dax_from_file - get dax_device from an open file
++ * @file: open device file
++ *
++ * Returns a dax_device pointer if @file refers to a fsdev_dax device.
++ * Otherwise return NULL.
++ *
++ * Caller must put_dax() the returned device when done.
++ */
++struct dax_device *fsdev_dax_from_file(struct file *file)
++{
++	struct dax_device *dax_dev;
++
++	if (file->f_op != &fsdev_fops)
++		return NULL;
++
++	dax_dev = inode_dax(file_inode(file));
++	ihold(dax_inode(dax_dev));
++
++	return dax_dev;
++}
++EXPORT_SYMBOL_GPL(fsdev_dax_from_file);
++
+ /*
+  * Acquire the dev_pagemap for probe: the static (pre-populated) one if
+  * present, or a devm-allocated one for the dynamic case. Note that
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index 45f84b0eb909..25836f389bde 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -565,7 +565,7 @@ static int dax_set(struct inode *inode, void *data)
+ 	return 0;
+ }
+ 
+-struct dax_device *dax_dev_get(dev_t devt)
++static struct dax_device *dax_dev_get(dev_t devt)
+ {
+ 	struct dax_device *dax_dev;
+ 	struct inode *inode;
+@@ -588,7 +588,6 @@ struct dax_device *dax_dev_get(dev_t devt)
+ 
+ 	return dax_dev;
+ }
+-EXPORT_SYMBOL_GPL(dax_dev_get);
+ 
+ struct dax_device *alloc_dax(void *private, const struct dax_operations *ops)
+ {
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index fe6c3ded1b50..2c9fc81f031b 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -54,7 +54,6 @@ struct dax_device *alloc_dax(void *private, const struct dax_operations *ops);
+ void *dax_holder(struct dax_device *dax_dev);
+ void put_dax(struct dax_device *dax_dev);
+ void kill_dax(struct dax_device *dax_dev);
+-struct dax_device *dax_dev_get(dev_t devt);
+ void dax_write_cache(struct dax_device *dax_dev, bool wc);
+ bool dax_write_cache_enabled(struct dax_device *dax_dev);
+ bool dax_synchronous(struct dax_device *dax_dev);
+@@ -323,3 +322,5 @@ typedef int (*walk_hmem_fn)(struct device *dev, int target_nid,
+ 			    const struct resource *res);
+ int walk_hmem_resources(struct device *dev, walk_hmem_fn fn);
+ #endif
++
++struct dax_device *fsdev_dax_from_file(struct file *file);
 -- 
 2.54.0
 
