@@ -1,735 +1,172 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 818EF4DDB27
-	for <nvdimm@lists.linux.dev>; Fri, 16 Oct 2026 15:17:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5837D34C130;
+	Fri, 16 Oct 2026 15:20:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792163867; cv=none; b=qNDdeaDRrMt8fQ1bvxm8cTLPCFOp0QpGmI4tz3FTM8R7wt25VeAGcDdJN9j/T4Go/yDH6PpzDBiY/dwckPMQ2PJA7dLk+jedQcv7apDZXMUmuKk1MVMDfJr6c9ZJ5yLw4+o/z5bQeT0UL6D3OZaeM2bSe5VH/VqOg3hzs8lDsvQ=
+	t=1792164049; cv=none; b=fUaRrc3vK0wOjMhPJ4vOIZ3oclsdHjey0hLSV3rK4FmBz2wygQdwO0olvrq5HDnrt5PnKCsVjYXVB8Dw9jipmCnNaHIfG9pThadcpHeoM9vMqq53HkrDVGXAZuwQeGSbjppexx2zZ4hXPFxoxh3bHCozKcgRorDPiqTobXjMMo8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792163867; c=relaxed/simple;
-	bh=sQ/CXriCMC23I6zBFWtNZk1IeHlVagRix5Zi1DGASTI=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:content-type; b=Es1vmetJEeq3BpBvhFSGqkUn6u2KQgxsBJ1W46LSVR+CkaXB3Ovo2WyHAcTcnYZ0IkiR+BpaQNj/Qbmu6BKEsKp2WXCcnDBgisXo0UAU33KmrAHzOeA7tljE5yqSQFQGBr4FU8k00sMIGxj9CTwZVtUlXFgNiEAjQB8Ny3R+pD0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=d4XnPUVW; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1792164049; c=relaxed/simple;
+	bh=jwuPtwSPRxLLgLs4Bw1aoujtu2qP7pCGzt/oQIflePM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=cisd47pGKsHy2IPVMxowPcQuCzThjY7KAvwqoZog8MwmlWMM4oWT+CD6jk55B8dtcm2x3XNilcknNwKyNWzFSBH94S+rGrSu0wplQuRFCcaPpds1LTC7ycSZ/NAt1yMao1U8kMjopJT9SO5DnRU2tlkFvCBQEWp7pn3NXGkFSDU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=GuO4Eppu; arc=none smtp.client-ip=192.198.163.8
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="d4XnPUVW"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1792163852;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=HcQxqJZ8QNPwzGVMTT9ByOsqAD4H8Bd94xdDdeMenoI=;
-	b=d4XnPUVWkCLFOY9hwQEuoFbS9VsyuwHM5jHpH8uF3ZWgQXOIZ6oJhaM7tqhC+jepxvU9b+
-	mp1dp7jxlfmGpDBmpMZ8JwnReBMRMdOwQc9XwoG1R5s2fTp5f8EEDwuKRtmtwSDjV34Pma
-	6rtx+Qq9AMPQQzFQYqVmsHlO+1QCfiM=
-Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
- [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-561-iW2bGAWXO1iByt5pIFH_5w-1; Fri, 16 Oct 2026 15:17:28 +0000
-X-MC-Unique: iW2bGAWXO1iByt5pIFH_5w-1
-X-Mimecast-MFC-AGG-ID: iW2bGAWXO1iByt5pIFH_5w_1792163847
-Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-4a01c621dc2so396685e9.2
-        for <nvdimm@lists.linux.dev>; Fri, 16 Oct 2026 08:17:28 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792163847; x=1792768647;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=HcQxqJZ8QNPwzGVMTT9ByOsqAD4H8Bd94xdDdeMenoI=;
-        b=yOn/WH3cKm+RkMROfnenHRoT7LstzBhWyw18/eODNsfTUGbB1MVptipsdUmwQRh2cs
-         8KubGNHzTDYaKy5ku8BX0b3/5+BTioJzn18lwSqS1O0rACN7JoQ90y3s9ibczXiNXBx1
-         6B90AaaAkU9u3RfPuYbr6qfl4U2/sPqNh6iklLftfcyfwH/98tW0WOA99m/GgFkggZIA
-         OGoTKdp5KLp2RiTi98fK9jCSaLW4ByJArzZg/wNsY7Wc9JeXXzwUy0Dr9G+zxTQMDoxl
-         byrBkklIY1NqLuHGI5MwLT2axWNf6M6MQUAxF3VWbgBWdYx+ew7m8U33hrngVy3lAkhf
-         fUKw==
-X-Forwarded-Encrypted: i=1; AKwUvBxnrjnCXxNpRFCZHVw051WzayVw7Zog05v1lUL0E3/5ECxNdNC0Gb+IGJqb2toArOkEwpgKAUs=@lists.linux.dev
-X-Gm-Message-State: AFq9FYIjg+Qjl5J24sqOT4ZNDrXl4Bcn94xQZjP9+522CbaCLUUDYfxo
-	A9zcxz4ES7Weqwe0EszqIdnM2d9oyrJ7U25qe/Aw56AL7RjIe+dmRu9ipfhtZ3OGzOWWeTSpNdq
-	mQ2k6fKBdrNWsMFIwYoQnZCAL2ikoZJ5fXMB6cBI9HrknTd6MpcRaSJkPTQ==
-X-Gm-Gg: AYBFou2V6SaXFXZYw+1k65niJFo9G+UfiDlDmu/zQM/LcnbdbdOEeVzcKp0XE+IO22z
-	Pnv4Lk9yU6NlMnNvsJUhhaFaBJjAcj3Txn4j+L1Xe3dLHxWegadRqiHX6aEA2mHEETzU2ledcci
-	q4DUDGJHz5Jbj2fppMUq2wez+jpCDNz3lHwNPigjYtMhecg/4UTjqSj9sgw6VHKT77v+xP2cLxD
-	Y9dm140H4cO1oeSCHy7B2EWcE91Nv83nNLgM5yhwEjd5K1vrc8TMlexl/S0QmLQ0iFi0QxBR1Qu
-	hd1KtMKAtfUWM93DeRpqo/1nhbe0it5bhc4Z+2pQv9LFBJkVqgh0Mdf4uu5RZRYOE7SyPfsjfHb
-	CB21zlwQwk1aKFD+kpKAQvw==
-X-Received: by 2002:a05:600c:6217:b0:49e:7c8c:361d with SMTP id 5b1f17b1804b1-4a1d7600654mr2716605e9.22.1792163847168;
-        Fri, 16 Oct 2026 08:17:27 -0700 (PDT)
-X-Received: by 2002:a05:600c:6217:b0:49e:7c8c:361d with SMTP id 5b1f17b1804b1-4a1d7600654mr2715985e9.22.1792163846702;
-        Fri, 16 Oct 2026 08:17:26 -0700 (PDT)
-Received: from maszat.com (85-67-2-18.pool.digikabel.hu. [85.67.2.18])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a1c8de7230sm64621665e9.14.2026.10.16.08.17.25
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 16 Oct 2026 08:17:25 -0700 (PDT)
-From: Miklos Szeredi <mszeredi@redhat.com>
-To: fuse-devel@lists.linux.dev
-Cc: John Groves <john@groves.net>,
-	Amir Goldstein <amir73il@gmail.com>,
-	"Darrick J . Wong" <djwong@kernel.org>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org
-Subject: [PATCH v5 04/10] fuse: support 64 bit, server allocated backing ID
-Date: Fri, 16 Oct 2026 17:16:31 +0200
-Message-ID: <20261016151638.2962413-5-mszeredi@redhat.com>
-X-Mailer: git-send-email 2.54.0
-In-Reply-To: <20261016151638.2962413-1-mszeredi@redhat.com>
-References: <20261016151638.2962413-1-mszeredi@redhat.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="GuO4Eppu"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1792164047; x=1823700047;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=jwuPtwSPRxLLgLs4Bw1aoujtu2qP7pCGzt/oQIflePM=;
+  b=GuO4Eppue2ZaaS0Z3nQymdWhv91DeWgoqLlMX3dl//wMfqwvjzdMEhvp
+   MjE3UVfy4qEQaUxNB1HCLbW+WjAEZoEab6j6gyPhJD3Bhy4QRtFjqVzZ7
+   tPkCHNGiXDcRk9/Z1BFR44HdshuCMYUBZKlEdk/tpKyA1yO1P2dSGBqGd
+   q63FVjsmxQCJkoTL8IyzedaqQbHEE9uDZp9OkmFu5TdOvxLpt+6KeB8Su
+   zNZELmwXzqL0qCi4OUfXMNBGv6hU3hFSZzXKSRpahpNElBoXXvrwkgxvu
+   /UIgxpbPhL+8fWH4UbSV2iFgOWOzI5MuQT3asTGTMO4YXfqw/I0zwp1JT
+   g==;
+X-CSE-ConnectionGUID: s7oAbzcgR2SEi0SiNNLLaw==
+X-CSE-MsgGUID: VP8jWtUUQYO3rTtNs8+r0g==
+X-IronPort-AV: E=McAfee;i="6800,10657,11937"; a="839769"
+X-IronPort-AV: E=Sophos;i="6.27,162,1787036400"; 
+   d="scan'208";a="839769"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Oct 2026 08:20:46 -0700
+X-CSE-ConnectionGUID: 21Jy+rSIS8S7dEGejQRUvw==
+X-CSE-MsgGUID: e8HfQWk5QTis1PQra48oAw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,162,1787036400"; 
+   d="scan'208";a="1885372"
+Received: from rchatre-mobl4.amr.corp.intel.com (HELO [10.125.110.167]) ([10.125.110.167])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Oct 2026 08:20:44 -0700
+Message-ID: <61841d94-a4ff-448b-8699-381c23b18dc2@intel.com>
+Date: Fri, 16 Oct 2026 08:20:43 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Mimecast-Spam-Score: 0
-X-Mimecast-MFC-PROC-ID: DrmL58ESr1kajK3Aqsi5V8TmCbtSEeEHHmdnPIedDTI_1792163847
-X-Mimecast-Originator: redhat.com
-Content-Transfer-Encoding: 8bit
-content-type: text/plain; charset="US-ASCII"; x-default=true
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v5 01/10] dax: add fsdev_dax_from_file()
+To: Miklos Szeredi <mszeredi@redhat.com>, fuse-devel@lists.linux.dev
+Cc: John Groves <John@Groves.net>, Amir Goldstein <amir73il@gmail.com>,
+ "Darrick J . Wong" <djwong@kernel.org>,
+ Vishal Verma <vishal.l.verma@intel.com>,
+ Alison Schofield <alison.schofield@intel.com>, nvdimm@lists.linux.dev,
+ linux-cxl@vger.kernel.org
+References: <20261016151638.2962413-1-mszeredi@redhat.com>
+ <20261016151638.2962413-2-mszeredi@redhat.com>
+From: Dave Jiang <dave.jiang@intel.com>
+Content-Language: en-US
+In-Reply-To: <20261016151638.2962413-2-mszeredi@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Add support for server allocated 64-bit backing IDs alongside the
-existing kernel allocated 32-bit IDs.
 
-Opened with FUSE_DEV_IOC_BACKING_CREATE, the backing ID sent via
-fuse_backing_create_in.backing_id.
 
-Closed with FUSE_NOTIFY_BACKING_REMOVE.  Since close only provides the
-backing ID, not the file descriptor, it doesn't have to be done with an
-ioctl.
+On 10/16/26 8:16 AM, Miklos Szeredi wrote:
+> From: John Groves <John@Groves.net>
+> 
+> If the file is a fsdev_dax open, take the dax_dev from the device inode's
+> i_cdev.  Return with a reference grabbed on the private dax inode.
+> 
+> Make dax_dev_get() static again (internal to super.c for alloc_dax), export
+> fsdev_dax_from_file() instead.
+> 
+> This fix is in response to a Sashiko review, and some subsequent analysis.
+> 
+> About the 'fixes' tag: this removes the export of dax_dev_get(), which was
+> flawed, and replaces it with fsdev_dax_from_file(). It feels like the fixes
+> tag makes sense for correcting an ABI error.
+> 
+> Fixes: 2ae624d5a555d ("dax: export dax_dev_get()")
+> Originally-by: John Groves <john@groves.net>
+> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 
-Backing ID can take any 64 bit value other than zero.
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 
-Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
----
- fs/file.c                 |   1 +
- fs/fuse/backing.c         | 178 ++++++++++++++++++++++++++++----------
- fs/fuse/dev.c             |  54 +++++++++---
- fs/fuse/dev.h             |   3 +
- fs/fuse/fuse_i.h          |  21 ++++-
- fs/fuse/inode.c           |   8 +-
- fs/fuse/notify.c          |  28 ++++++
- fs/fuse/passthrough.c     |   3 +
- include/uapi/linux/fuse.h |  22 ++++-
- 9 files changed, 252 insertions(+), 66 deletions(-)
-
-diff --git a/fs/file.c b/fs/file.c
-index 628ca07dc4b1..7a9593297463 100644
---- a/fs/file.c
-+++ b/fs/file.c
-@@ -1213,6 +1213,7 @@ struct fd fdget_raw(unsigned int fd)
- {
- 	return __fget_light(fd, 0);
- }
-+EXPORT_SYMBOL(fdget_raw);
- 
- /*
-  * Try to avoid f_pos locking. We only need it if the
-diff --git a/fs/fuse/backing.c b/fs/fuse/backing.c
-index 433fa3098d71..15132150535a 100644
---- a/fs/fuse/backing.c
-+++ b/fs/fuse/backing.c
-@@ -9,6 +9,7 @@
- #include "fuse_i.h"
- 
- #include <linux/file.h>
-+#include <linux/rhashtable.h>
- 
- static struct fuse_backing *fuse_backing_get(struct fuse_backing *fb)
- {
-@@ -48,6 +49,8 @@ static int fuse_backing_id_alloc(struct fuse_conn *fc, struct fuse_backing *fb)
- 	id = idr_alloc_cyclic(&fc->backing_files_map, fb, 1, 0, GFP_ATOMIC);
- 	spin_unlock(&fc->lock);
- 	idr_preload_end();
-+	if (id > 0)
-+		fb->backing_id = id;
- 
- 	WARN_ON_ONCE(id == 0);
- 	return id;
-@@ -61,81 +64,130 @@ static struct fuse_backing *fuse_backing_id_remove(struct fuse_conn *fc,
- 	spin_lock(&fc->lock);
- 	fb = idr_remove(&fc->backing_files_map, id);
- 	spin_unlock(&fc->lock);
-+	if (fb)
-+		fb->backing_id = 0;
- 
- 	return fb;
- }
- 
--static int fuse_backing_id_free(int id, void *p, void *data)
--{
--	struct fuse_backing *fb = p;
-+static const struct rhashtable_params fuse_backing_prm = {
-+	.head_offset = offsetof(struct fuse_backing, hash_node),
-+	.key_offset = offsetof(struct fuse_backing, backing_id),
-+	.key_len = sizeof_field(struct fuse_backing, backing_id),
-+};
- 
--	WARN_ON_ONCE(refcount_read(&fb->count) != 1);
--	fuse_backing_free(fb);
--	return 0;
-+static int fuse_backing_add_64(struct fuse_conn *fc, struct fuse_backing *fb)
-+{
-+	return rhashtable_lookup_insert_fast(&fc->backing_64_ht, &fb->hash_node, fuse_backing_prm);
- }
- 
--void fuse_backing_files_free(struct fuse_conn *fc)
-+int fuse_backing_close_64(struct fuse_conn *fc, u64 backing_id)
- {
--	idr_for_each(&fc->backing_files_map, fuse_backing_id_free, NULL);
--	idr_destroy(&fc->backing_files_map);
-+	struct fuse_backing *fb;
-+	int err;
-+
-+	if (!fc->backing_id_64)
-+		return -EINVAL;
-+
-+	scoped_guard(spinlock, &fc->lock) {
-+		fb = rhashtable_lookup_fast(&fc->backing_64_ht, &backing_id, fuse_backing_prm);
-+		if (!fb)
-+			return -ENOENT;
-+
-+		err = rhashtable_remove_fast(&fc->backing_64_ht, &fb->hash_node, fuse_backing_prm);
-+		WARN_ON(err);
-+	}
-+	fb->backing_id = 0;
-+	fuse_backing_put(fb);
-+
-+	return 0;
- }
- 
--int fuse_backing_open(struct fuse_conn *fc, struct fuse_backing_map *map)
-+static struct fuse_backing *fuse_backing_new(struct fuse_conn *fc, int fd)
- {
--	struct file *file;
-+	struct fuse_backing *fb;
- 	struct super_block *backing_sb;
--	struct fuse_backing *fb = NULL;
--	int res;
--
--	pr_debug("%s: fd=%d flags=0x%x\n", __func__, map->fd, map->flags);
-+	struct file *file;
- 
- 	/* TODO: relax CAP_SYS_ADMIN once backing files are visible to lsof */
--	res = -EPERM;
- 	if (!fc->passthrough || !capable(CAP_SYS_ADMIN))
--		goto out;
-+		return ERR_PTR(-EPERM);
- 
--	res = -EINVAL;
--	if (map->flags || map->padding)
--		goto out;
-+	CLASS(fd_raw, f)(fd);
-+	if (fd_empty(f))
-+		return ERR_PTR(-EBADF);
- 
--	file = fget_raw(map->fd);
--	res = -EBADF;
--	if (!file)
--		goto out;
-+	file = fd_file(f);
- 
- 	/* read/write/splice/mmap passthrough only relevant for regular files */
--	res = d_is_dir(file->f_path.dentry) ? -EISDIR : -EINVAL;
- 	if (!d_is_reg(file->f_path.dentry))
--		goto out_fput;
-+		return d_is_dir(file->f_path.dentry) ? ERR_PTR(-EISDIR) : ERR_PTR(-EINVAL);
- 
- 	backing_sb = file_inode(file)->i_sb;
--	res = -ELOOP;
- 	if (backing_sb->s_stack_depth >= fc->max_stack_depth)
--		goto out_fput;
-+		return ERR_PTR(-ELOOP);
- 
- 	fb = kmalloc_obj(struct fuse_backing);
--	res = -ENOMEM;
- 	if (!fb)
--		goto out_fput;
-+		return ERR_PTR(-ENOMEM);
- 
--	fb->file = file;
-+	fb->file = get_file(file);
- 	fb->cred = get_current_cred();
- 	refcount_set(&fb->count, 1);
- 
--	res = fuse_backing_id_alloc(fc, fb);
--	if (res < 0) {
-+	return fb;
-+}
-+
-+int fuse_backing_open_64(struct fuse_conn *fc, struct fuse_backing_create_in *map)
-+{
-+	struct fuse_backing *fb;
-+	int res;
-+
-+	if (map->padding || map->spare[0] || map->spare[1] || !map->backing_id)
-+		return -EINVAL;
-+
-+	if (!fc->backing_id_64)
-+		return -EINVAL;
-+
-+	fb = fuse_backing_new(fc, map->fd);
-+	if (IS_ERR(fb))
-+		return PTR_ERR(fb);
-+
-+	fb->backing_id = map->backing_id;
-+	res = fuse_backing_add_64(fc, fb);
-+	if (res < 0)
- 		fuse_backing_free(fb);
--		fb = NULL;
--	}
- 
-+	return res;
-+}
-+
-+int fuse_backing_open(struct fuse_conn *fc, struct fuse_backing_map *map)
-+{
-+	struct fuse_backing *fb = NULL;
-+	int res;
-+
-+	pr_debug("%s: fd=%d flags=0x%x\n", __func__, map->fd, map->flags);
-+
-+	res = -EINVAL;
-+	if (map->flags || map->padding)
-+		goto out;
-+
-+	if (fc->backing_id_64)
-+		goto out;
-+
-+	fb = fuse_backing_new(fc, map->fd);
-+	res = PTR_ERR(fb);
-+	if (!IS_ERR(fb)) {
-+		res = fuse_backing_id_alloc(fc, fb);
-+		if (res < 0) {
-+			fuse_backing_free(fb);
-+			fb = NULL;
-+		}
-+	}
- out:
- 	pr_debug("%s: fb=0x%p, ret=%i\n", __func__, fb, res);
- 
- 	return res;
--
--out_fput:
--	fput(file);
--	goto out;
- }
- 
- int fuse_backing_close(struct fuse_conn *fc, int backing_id)
-@@ -145,6 +197,9 @@ int fuse_backing_close(struct fuse_conn *fc, int backing_id)
- 
- 	pr_debug("%s: backing_id=%d\n", __func__, backing_id);
- 
-+	if (fc->backing_id_64)
-+		return -EINVAL;
-+
- 	/* TODO: relax CAP_SYS_ADMIN once backing files are visible to lsof */
- 	err = -EPERM;
- 	if (!fc->passthrough || !capable(CAP_SYS_ADMIN))
-@@ -167,14 +222,47 @@ int fuse_backing_close(struct fuse_conn *fc, int backing_id)
- 	return err;
- }
- 
--struct fuse_backing *fuse_backing_lookup(struct fuse_conn *fc, int backing_id)
-+struct fuse_backing *fuse_backing_lookup(struct fuse_conn *fc, u64 backing_id)
- {
- 	struct fuse_backing *fb;
- 
--	rcu_read_lock();
--	fb = idr_find(&fc->backing_files_map, backing_id);
--	fb = fuse_backing_get(fb);
--	rcu_read_unlock();
-+	guard(rcu)();
-+	if (!fc->backing_id_64)
-+		fb = idr_find(&fc->backing_files_map, backing_id);
-+	else
-+		fb = rhashtable_lookup(&fc->backing_64_ht, &backing_id, fuse_backing_prm);
- 
--	return fb;
-+	return fuse_backing_get(fb);
-+}
-+
-+static void fuse_backing_check_free(struct fuse_backing *fb)
-+{
-+	WARN_ON_ONCE(refcount_read(&fb->count) != 1);
-+	fuse_backing_free(fb);
-+}
-+
-+static int fuse_backing_idr_free(int id, void *p, void *data)
-+{
-+	fuse_backing_check_free(p);
-+	return 0;
-+}
-+
-+static void fuse_backing_rht_free(void *p, void *data)
-+{
-+	fuse_backing_check_free(p);
-+}
-+
-+void fuse_backing_files_free(struct fuse_conn *fc)
-+{
-+	if (fc->backing_id_64) {
-+		rhashtable_free_and_destroy(&fc->backing_64_ht, fuse_backing_rht_free, NULL);
-+	} else {
-+		idr_for_each(&fc->backing_files_map, fuse_backing_idr_free, NULL);
-+		idr_destroy(&fc->backing_files_map);
-+	}
-+}
-+
-+void fuse_backing_files_init_64(struct fuse_conn *fc)
-+{
-+	rhashtable_init(&fc->backing_64_ht, &fuse_backing_prm);
- }
-diff --git a/fs/fuse/dev.c b/fs/fuse/dev.c
-index 8bde348c2ca2..1a40b60afb98 100644
---- a/fs/fuse/dev.c
-+++ b/fs/fuse/dev.c
-@@ -2324,39 +2324,64 @@ static long fuse_dev_ioctl_clone(struct file *file, __u32 __user *argp)
- 	return 0;
- }
- 
--static long fuse_dev_ioctl_backing_open(struct file *file,
--					struct fuse_backing_map __user *argp)
-+static struct fuse_conn *fuse_get_conn_for_passthrough(struct file *file)
- {
- 	struct fuse_dev *fud = fuse_get_dev(file);
--	struct fuse_backing_map map;
- 
- 	if (IS_ERR(fud))
--		return PTR_ERR(fud);
-+		return ERR_CAST(fud);
-+
-+	if (!smp_load_acquire(&fud->chan->initialized))
-+		return ERR_PTR(-ENOTCONN);
- 
- 	if (!IS_ENABLED(CONFIG_FUSE_PASSTHROUGH))
--		return -EOPNOTSUPP;
-+		return ERR_PTR(-EOPNOTSUPP);
-+
-+	return fud->chan->conn;
-+}
-+
-+static long fuse_dev_ioctl_backing_open(struct file *file,
-+					struct fuse_backing_map __user *argp)
-+{
-+	struct fuse_conn *fc = fuse_get_conn_for_passthrough(file);
-+	struct fuse_backing_map map;
-+
-+	if (IS_ERR(fc))
-+		return PTR_ERR(fc);
- 
- 	if (copy_from_user(&map, argp, sizeof(map)))
- 		return -EFAULT;
- 
--	return fuse_backing_open(fud->chan->conn, &map);
-+	return fuse_backing_open(fc, &map);
-+}
-+
-+static long fuse_dev_ioctl_backing_create(struct file *file,
-+					  struct fuse_backing_create_in __user *argp)
-+{
-+	struct fuse_conn *fc = fuse_get_conn_for_passthrough(file);
-+	struct fuse_backing_create_in map;
-+
-+	if (IS_ERR(fc))
-+		return PTR_ERR(fc);
-+
-+	if (copy_from_user(&map, argp, sizeof(map)))
-+		return -EFAULT;
-+
-+	return fuse_backing_open_64(fc, &map);
- }
- 
- static long fuse_dev_ioctl_backing_close(struct file *file, __u32 __user *argp)
- {
--	struct fuse_dev *fud = fuse_get_dev(file);
-+	struct fuse_conn *fc = fuse_get_conn_for_passthrough(file);
- 	int backing_id;
- 
--	if (IS_ERR(fud))
--		return PTR_ERR(fud);
--
--	if (!IS_ENABLED(CONFIG_FUSE_PASSTHROUGH))
--		return -EOPNOTSUPP;
-+	if (IS_ERR(fc))
-+		return PTR_ERR(fc);
- 
- 	if (get_user(backing_id, argp))
- 		return -EFAULT;
- 
--	return fuse_backing_close(fud->chan->conn, backing_id);
-+	return fuse_backing_close(fc, backing_id);
- }
- 
- static long fuse_dev_ioctl_sync_init(struct file *file)
-@@ -2382,6 +2407,9 @@ static long fuse_dev_ioctl(struct file *file, unsigned int cmd,
- 	case FUSE_DEV_IOC_BACKING_OPEN:
- 		return fuse_dev_ioctl_backing_open(file, argp);
- 
-+	case FUSE_DEV_IOC_BACKING_CREATE:
-+		return fuse_dev_ioctl_backing_create(file, argp);
-+
- 	case FUSE_DEV_IOC_BACKING_CLOSE:
- 		return fuse_dev_ioctl_backing_close(file, argp);
- 
-diff --git a/fs/fuse/dev.h b/fs/fuse/dev.h
-index f6c47ae0395b..dbffd5bed2f5 100644
---- a/fs/fuse/dev.h
-+++ b/fs/fuse/dev.h
-@@ -14,6 +14,7 @@ struct fuse_dev;
- struct fuse_args;
- struct fuse_copy_state;
- struct fuse_backing_map;
-+struct fuse_backing_create_in;
- struct file;
- struct folio;
- enum fuse_notify_code;
-@@ -87,6 +88,8 @@ int fuse_notify(struct fuse_conn *fc, enum fuse_notify_code code,
- 
- int fuse_backing_open(struct fuse_conn *fc, struct fuse_backing_map *map);
- int fuse_backing_close(struct fuse_conn *fc, int backing_id);
-+int fuse_backing_open_64(struct fuse_conn *fc, struct fuse_backing_create_in *map);
-+int fuse_backing_close_64(struct fuse_conn *fc, u64 backing_id);
- 
- int fuse_copy_one(struct fuse_copy_state *cs, void *val, unsigned size);
- int fuse_copy_folio(struct fuse_copy_state *cs, struct folio **foliop,
-diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-index 950242b59709..c1cc79bf6ea2 100644
---- a/fs/fuse/fuse_i.h
-+++ b/fs/fuse/fuse_i.h
-@@ -32,6 +32,7 @@
- #include <linux/pid_namespace.h>
- #include <linux/refcount.h>
- #include <linux/user_namespace.h>
-+#include <linux/rhashtable-types.h>
- 
- /** Default max number of pages that can be used in a single read request */
- #define FUSE_DEFAULT_MAX_PAGES_PER_REQ 32
-@@ -92,7 +93,8 @@ struct fuse_submount_lookup {
- struct fuse_backing {
- 	struct file *file;
- 	const struct cred *cred;
--
-+	u64 backing_id;
-+	struct rhash_head hash_node;
- 	/* refcount */
- 	refcount_t count;
- 	struct rcu_head rcu;
-@@ -713,6 +715,9 @@ struct fuse_conn {
- 	/** @passthrough: Passthrough support for read/write IO */
- 	unsigned int passthrough:1;
- 
-+	/** @backing_id_64: Backing ID is 64 bit and allocated by the server */
-+	bool backing_id_64:1;
-+
- 	/** @use_pages_for_kvec_io: Use pages instead of pointer for kernel I/O */
- 	unsigned int use_pages_for_kvec_io:1;
- 
-@@ -770,8 +775,14 @@ struct fuse_conn {
- 	struct fuse_sync_bucket __rcu *curr_bucket;
- 
- #ifdef CONFIG_FUSE_PASSTHROUGH
--	/** @backing_files_map: IDR for backing files ids */
--	struct idr backing_files_map;
-+	/* Selected by backing_id_64 */
-+	union {
-+		/** @backing_files_map: IDR for backing files ids */
-+		struct idr backing_files_map;
-+
-+		/** @backing_64_ht: 64 bit ID lookup hash table */
-+		struct rhashtable backing_64_ht;
-+	};
- #endif
- };
- 
-@@ -1270,7 +1281,7 @@ void fuse_file_release(struct inode *inode, struct fuse_file *ff,
- /* backing.c */
- #ifdef CONFIG_FUSE_PASSTHROUGH
- void fuse_backing_put(struct fuse_backing *fb);
--struct fuse_backing *fuse_backing_lookup(struct fuse_conn *fc, int backing_id);
-+
- #else
- 
- static inline void fuse_backing_put(struct fuse_backing *fb)
-@@ -1278,7 +1289,9 @@ static inline void fuse_backing_put(struct fuse_backing *fb)
- }
- #endif
- 
-+struct fuse_backing *fuse_backing_lookup(struct fuse_conn *fc, u64 backing_id);
- void fuse_backing_files_init(struct fuse_conn *fc);
-+void fuse_backing_files_init_64(struct fuse_conn *fc);
- void fuse_backing_files_free(struct fuse_conn *fc);
- 
- /* passthrough.c */
-diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
-index 494b7457d340..1b6cad0dd2d8 100644
---- a/fs/fuse/inode.c
-+++ b/fs/fuse/inode.c
-@@ -1408,13 +1408,17 @@ static void process_init_reply(struct fuse_args *args, int error)
- 			 * them together.
- 			 */
- 			if (IS_ENABLED(CONFIG_FUSE_PASSTHROUGH) &&
--			    (flags & FUSE_PASSTHROUGH) &&
-+			    (flags & (FUSE_PASSTHROUGH | FUSE_PASSTHROUGH_V2)) &&
- 			    arg->max_stack_depth > 0 &&
- 			    arg->max_stack_depth <= FILESYSTEM_MAX_STACK_DEPTH &&
- 			    !(flags & FUSE_WRITEBACK_CACHE))  {
- 				fc->passthrough = 1;
- 				fc->max_stack_depth = arg->max_stack_depth;
- 				fm->sb->s_stack_depth = arg->max_stack_depth;
-+				if (flags & FUSE_PASSTHROUGH_V2) {
-+					fc->backing_id_64 = true;
-+					fuse_backing_files_init_64(fc);
-+				}
- 			}
- 			if (flags & FUSE_NO_EXPORT_SUPPORT)
- 				fm->sb->s_export_op = &fuse_export_fid_operations;
-@@ -1500,7 +1504,7 @@ static struct fuse_init_args *fuse_new_init(struct fuse_mount *fm)
- 	if (fm->fc->auto_submounts)
- 		flags |= FUSE_SUBMOUNTS;
- 	if (IS_ENABLED(CONFIG_FUSE_PASSTHROUGH))
--		flags |= FUSE_PASSTHROUGH;
-+		flags |= FUSE_PASSTHROUGH | FUSE_PASSTHROUGH_V2;
- 	/* Only offered to sufficiently privileged servers; see
- 	 * fuse_syncfs_enable().
- 	 */
-diff --git a/fs/fuse/notify.c b/fs/fuse/notify.c
-index c0428e03d138..cc0afffc2c00 100644
---- a/fs/fuse/notify.c
-+++ b/fs/fuse/notify.c
-@@ -409,6 +409,31 @@ static int fuse_notify_prune(struct fuse_conn *fc, unsigned int size,
- 	return 0;
- }
- 
-+static int fuse_notify_backing_remove(struct fuse_conn *fc, unsigned int size,
-+				     struct fuse_copy_state *cs)
-+{
-+	struct fuse_notify_backing_remove_out outarg;
-+	int err;
-+
-+	if (!IS_ENABLED(CONFIG_FUSE_PASSTHROUGH))
-+		return -EOPNOTSUPP;
-+
-+	if (size != sizeof(outarg))
-+		return -EINVAL;
-+
-+	err = fuse_copy_one(cs, &outarg, sizeof(outarg));
-+	if (err)
-+		return err;
-+
-+	if (outarg.reserved)
-+		return -EINVAL;
-+
-+	if (!fc->backing_id_64)
-+		return -EINVAL;
-+
-+	return fuse_backing_close_64(fc, outarg.backing_id);
-+}
-+
- int fuse_notify(struct fuse_conn *fc, enum fuse_notify_code code,
- 		unsigned int size, struct fuse_copy_state *cs)
- {
-@@ -440,6 +465,9 @@ int fuse_notify(struct fuse_conn *fc, enum fuse_notify_code code,
- 	case FUSE_NOTIFY_PRUNE:
- 		return fuse_notify_prune(fc, size, cs);
- 
-+	case FUSE_NOTIFY_BACKING_REMOVE:
-+		return fuse_notify_backing_remove(fc, size, cs);
-+
- 	default:
- 		return -EINVAL;
- 	}
-diff --git a/fs/fuse/passthrough.c b/fs/fuse/passthrough.c
-index a0eb52d1b743..8f53ef8945d2 100644
---- a/fs/fuse/passthrough.c
-+++ b/fs/fuse/passthrough.c
-@@ -173,6 +173,9 @@ struct fuse_backing *fuse_passthrough_open(struct file *file, int backing_id)
- 	struct fuse_backing *fb = NULL;
- 	struct file *backing_file;
- 
-+	if (fc->backing_id_64)
-+		return ERR_PTR(fuse_EIO("incompatible backing version"));
-+
- 	if (backing_id <= 0)
- 		return ERR_PTR(fuse_EIO("invalid backing_id"));
- 
-diff --git a/include/uapi/linux/fuse.h b/include/uapi/linux/fuse.h
-index ed45bad67ec7..37c83c54d960 100644
---- a/include/uapi/linux/fuse.h
-+++ b/include/uapi/linux/fuse.h
-@@ -251,6 +251,9 @@
-  *
-  *  7.47
-  *  - add FUSE_HAS_SYNCFS opt-in flag for privileged userspace servers
-+ *  - add FUSE_PASSTHROUGH_V2
-+ *  - add FUSE_DEV_IOC_BACKING_CREATE, struct fuse_backing_create_in
-+ *  - add FUSE_NOTIFY_BACKING_REMOVE, struct fuse_notify_backing_remove_out
-  */
- 
- #ifndef _LINUX_FUSE_H
-@@ -473,6 +476,7 @@ struct fuse_file_lock {
-  *		with CAP_SYS_ADMIN in the initial user namespace (the same
-  *		privilege that mounting virtiofs or fuseblk requires).
-  *		Insufficiently privileged servers ignore it.
-+ * FUSE_PASSTHROUGH_V2: use 64 bit server allocated backing ID
-  */
- #define FUSE_ASYNC_READ		(1 << 0)
- #define FUSE_POSIX_LOCKS	(1 << 1)
-@@ -522,6 +526,7 @@ struct fuse_file_lock {
- #define FUSE_REQUEST_TIMEOUT	(1ULL << 42)
- #define FUSE_HAS_IO_URING_BUFPOOL (1ULL << 43)
- #define FUSE_HAS_SYNCFS		(1ULL << 44)
-+#define FUSE_PASSTHROUGH_V2	(1ULL << 45)
- 
- /*
-  * CUSE INIT request/reply flags
-@@ -709,6 +714,7 @@ enum fuse_notify_code {
- 	FUSE_NOTIFY_RESEND = 7,
- 	FUSE_NOTIFY_INC_EPOCH = 8,
- 	FUSE_NOTIFY_PRUNE = 9,
-+	FUSE_NOTIFY_BACKING_REMOVE = 10,
- };
- 
- /* The read buffer is required to be at least 8k, but may be much larger */
-@@ -1159,13 +1165,20 @@ struct fuse_backing_map {
- 	uint64_t	padding;
- };
- 
-+struct fuse_backing_create_in {
-+	int32_t		fd;
-+	uint32_t	padding;
-+	uint64_t	backing_id;	/* Zero value is reserved */
-+	uint64_t	spare[2];
-+};
-+
- /* Device ioctls: */
- #define FUSE_DEV_IOC_MAGIC		229
- #define FUSE_DEV_IOC_CLONE		_IOR(FUSE_DEV_IOC_MAGIC, 0, uint32_t)
--#define FUSE_DEV_IOC_BACKING_OPEN	_IOW(FUSE_DEV_IOC_MAGIC, 1, \
--					     struct fuse_backing_map)
-+#define FUSE_DEV_IOC_BACKING_OPEN	_IOW(FUSE_DEV_IOC_MAGIC, 1, struct fuse_backing_map)
- #define FUSE_DEV_IOC_BACKING_CLOSE	_IOW(FUSE_DEV_IOC_MAGIC, 2, uint32_t)
- #define FUSE_DEV_IOC_SYNC_INIT		_IO(FUSE_DEV_IOC_MAGIC, 3)
-+#define FUSE_DEV_IOC_BACKING_CREATE	_IOW(FUSE_DEV_IOC_MAGIC, 4, struct fuse_backing_create_in)
- 
- struct fuse_lseek_in {
- 	uint64_t	fh;
-@@ -1193,6 +1206,11 @@ struct fuse_copy_file_range_out {
- 	uint64_t	bytes_copied;
- };
- 
-+struct fuse_notify_backing_remove_out {
-+	uint64_t	backing_id;
-+	uint64_t	reserved;
-+};
-+
- #define FUSE_SETUPMAPPING_FLAG_WRITE (1ull << 0)
- #define FUSE_SETUPMAPPING_FLAG_READ (1ull << 1)
- struct fuse_setupmapping_in {
--- 
-2.54.0
+> ---
+>  drivers/dax/fsdev.c | 23 +++++++++++++++++++++++
+>  drivers/dax/super.c |  3 +--
+>  include/linux/dax.h |  3 ++-
+>  3 files changed, 26 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/dax/fsdev.c b/drivers/dax/fsdev.c
+> index 598604bf5ac5..910665c1f492 100644
+> --- a/drivers/dax/fsdev.c
+> +++ b/drivers/dax/fsdev.c
+> @@ -234,6 +234,29 @@ static const struct file_operations fsdev_fops = {
+>  	.release = fsdev_release,
+>  };
+>  
+> +/**
+> + * fsdev_dax_from_file - get dax_device from an open file
+> + * @file: open device file
+> + *
+> + * Returns a dax_device pointer if @file refers to a fsdev_dax device.
+> + * Otherwise return NULL.
+> + *
+> + * Caller must put_dax() the returned device when done.
+> + */
+> +struct dax_device *fsdev_dax_from_file(struct file *file)
+> +{
+> +	struct dax_device *dax_dev;
+> +
+> +	if (file->f_op != &fsdev_fops)
+> +		return NULL;
+> +
+> +	dax_dev = inode_dax(file_inode(file));
+> +	ihold(dax_inode(dax_dev));
+> +
+> +	return dax_dev;
+> +}
+> +EXPORT_SYMBOL_GPL(fsdev_dax_from_file);
+> +
+>  /*
+>   * Acquire the dev_pagemap for probe: the static (pre-populated) one if
+>   * present, or a devm-allocated one for the dynamic case. Note that
+> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+> index 45f84b0eb909..25836f389bde 100644
+> --- a/drivers/dax/super.c
+> +++ b/drivers/dax/super.c
+> @@ -565,7 +565,7 @@ static int dax_set(struct inode *inode, void *data)
+>  	return 0;
+>  }
+>  
+> -struct dax_device *dax_dev_get(dev_t devt)
+> +static struct dax_device *dax_dev_get(dev_t devt)
+>  {
+>  	struct dax_device *dax_dev;
+>  	struct inode *inode;
+> @@ -588,7 +588,6 @@ struct dax_device *dax_dev_get(dev_t devt)
+>  
+>  	return dax_dev;
+>  }
+> -EXPORT_SYMBOL_GPL(dax_dev_get);
+>  
+>  struct dax_device *alloc_dax(void *private, const struct dax_operations *ops)
+>  {
+> diff --git a/include/linux/dax.h b/include/linux/dax.h
+> index fe6c3ded1b50..2c9fc81f031b 100644
+> --- a/include/linux/dax.h
+> +++ b/include/linux/dax.h
+> @@ -54,7 +54,6 @@ struct dax_device *alloc_dax(void *private, const struct dax_operations *ops);
+>  void *dax_holder(struct dax_device *dax_dev);
+>  void put_dax(struct dax_device *dax_dev);
+>  void kill_dax(struct dax_device *dax_dev);
+> -struct dax_device *dax_dev_get(dev_t devt);
+>  void dax_write_cache(struct dax_device *dax_dev, bool wc);
+>  bool dax_write_cache_enabled(struct dax_device *dax_dev);
+>  bool dax_synchronous(struct dax_device *dax_dev);
+> @@ -323,3 +322,5 @@ typedef int (*walk_hmem_fn)(struct device *dev, int target_nid,
+>  			    const struct resource *res);
+>  int walk_hmem_resources(struct device *dev, walk_hmem_fn fn);
+>  #endif
+> +
+> +struct dax_device *fsdev_dax_from_file(struct file *file);
 
