@@ -1,191 +1,404 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6536B1C5D59
-	for <nvdimm@lists.linux.dev>; Fri, 16 Oct 2026 01:29:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.14
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792114179; cv=fail; b=Zu76xS5L7OO6gOrB0RNAaOaH/TbrohjSsqZKSwtjT3SyaGXXsbGmMxAq08xOvxuiB7ldRpg3KM9nG3N7ezhRBY9eUP0M0ugS2tRn6q/hryAG12K92e9glAJxdXr0+Vt+ewvO8aD5eIcHk2+gwETQ6adVTqu4xo7Ahg8AxvfVuR4=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792114179; c=relaxed/simple;
-	bh=j3xQ6vcvdSEiHze2agfrwxskH7s+3aYB3sYv2dRel80=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=DCMDtaordnevYnooD4F72f38fN3PE0Xd+x6aK5ZTnF2uGVUgiLGmxswqwU3dNgVSlUdlwQ64DbvrB1Gr06Z8vdiSHQTgQofXaNPyg8GWf7DVGnnaBU+o8sugBUIdY0GVM08u1Nw3g8K3Unc49voy/U4S3ekwxX2etSbLATnWwBQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=MAtFEEdD; arc=fail smtp.client-ip=192.198.163.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C608B33469C
+	for <nvdimm@lists.linux.dev>; Fri, 16 Oct 2026 05:39:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.52
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1792129198; cv=none; b=fGJOQqG7gIP2r+z1Pwnq4i932yVLfZizNMHmOXKfeMpM9pT8BfSyhly8gqmbF1yMwyeVJNS9ZWEO40nlMq2ozrMFhgE/lPiywJ+CuHeAtMSLHO/XFSE93EODgq/PowPW0rh9nyZTWTK7vP7xQ81SAM95dzfrl/bC8cGojg32eB8=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1792129198; c=relaxed/simple;
+	bh=2LIrUwpNUkkU4dudMq0Fjr/UIH04OXmByla0vhmIHfY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=PgRFVP737orHJLehopo1SXoejtiafkjXM+Rvp8Y3ccovrwDH6Ay9lTt5Dkk6xeSIrrpraC4MEiGEqGccl0bniFWafUjR4lg4MQ7LCD6kqXqXzvgKrwSIOt9uqwJ16j3GiuHvF2cS2IFlzvE1GykjIMpwlpLxtUNYQ+2IB+tc6Ek=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=M3mPGOGF; arc=none smtp.client-ip=209.85.216.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="MAtFEEdD"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1792114178; x=1823650178;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=j3xQ6vcvdSEiHze2agfrwxskH7s+3aYB3sYv2dRel80=;
-  b=MAtFEEdDqhPnrJWGEmbroFW7/dBkSlwH3T+A3v+p6MD0+yZrhKn60xoA
-   i1e/kxmE6qng5d65L8ZmVisphGCAyBT6ckharaqmZbEScXEu3tI31GnCG
-   3zPOWVBoNcL1fRBAuYr7nG6chhgo1LNR0WNvEu3gfuMwOToMEh1MCJpzl
-   DJuG/UizU8qTedIymTXhMId2OBSCGONGrQygXVuXRSR0vfvjtVt5eGG/W
-   W7tnkPPuJstY01rVZBICep9eUiYF5AyTNNXWw+FQsSsw26KcBwmSLfD5N
-   90qzQ9vhzcAFQqBIF6zHJ+7T9y8E/9+Omsw/E17gJu3dPn7qjpOAkTfTC
-   w==;
-X-CSE-ConnectionGUID: mqB23cypQdG7X5f+5NEKvw==
-X-CSE-MsgGUID: OuX1ORGlQH23tQ/syqw30w==
-X-IronPort-AV: E=McAfee;i="6800,10657,11936"; a="910748"
-X-IronPort-AV: E=Sophos;i="6.27,160,1787036400"; 
-   d="scan'208";a="910748"
-Received: from fmviesa013.fm.intel.com ([10.60.135.153])
-  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Oct 2026 18:29:38 -0700
-X-CSE-ConnectionGUID: QcZE2wTsRPypdY3+oFpCDw==
-X-CSE-MsgGUID: YomViFZGTyaiQZyWOdgdgA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,160,1787036400"; 
-   d="scan'208";a="3608877"
-Received: from orsmsx903.amr.corp.intel.com ([10.22.229.25])
-  by fmviesa013.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Oct 2026 18:29:38 -0700
-Received: from ORSMSX903.amr.corp.intel.com (10.22.229.25) by
- ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.49; Thu, 15 Oct 2026 18:29:37 -0700
-Received: from ORSEDG902.ED.cps.intel.com (10.7.248.12) by
- ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.49 via Frontend Transport; Thu, 15 Oct 2026 18:29:37 -0700
-Received: from CH5PR02CU005.outbound.protection.outlook.com (40.107.200.9) by
- edgegateway.intel.com (134.134.137.112) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.49; Thu, 15 Oct 2026 18:29:36 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=ZxUvT0M2Ff/q14j9CAWSxJ7YUJVwC/WZmeooJTT6mkadqaIFQ5yARZsOejm6tNmauUA6V/oVWLaah1Yib9rsPe2mKsk4/6Rac0EuFCz0hl9XrYtfeciadwRpmFSyuCwnnbOBGa6NUD7moKsI7nPVOIPEmt2YCa2VEFGuJgT+uYwqmcO44hnbSKbWiC8F4479zJZO8eBdvfBBXYiImagk0Iny0FdLPQdR0oYJhdqK6eVNMs1+OwVWXWCtdIDvc1muGupWaYZ2Q7OFeOU7RRpKEwLB4L8+DTOeHEPCJyi3mkZlEwKvuswp8nxOCUZDNGc795dTWkRhP0wbacphcHeWxg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=71UPvDasy3Fkt+TMI9My/1voJTchEMCCv/yBgdlsd+M=;
- b=v+P7935M7CeCfEdoI7LOX5htYsuEwM8IO7+Cu69YXRJvwEJTWPMxmMHxQ+5T/aH3XyBZRabMW4Fju0wEceADB2HUUgS4Se6dcFC/gPrY18oMbT5gLHcoaxZiZVmrycy5iqskbEj3oDRqNz4YO2XjGs0eVup8ybHW1hPA/rDS/8TVZnRtTgWlF4qZulNtdZsMNLhum1yvsl090E6ValiQIrG7+6+0fP1BBgFgZ35pWjmvDl9V4PlxmtozWObPfKbJJweRHJsf6OxETlfTkON5cK2sDV1Rsxgyck11/xhbKsweJj9DrzyzAtym8yfjDbs81FVc7HU4GoHt9h9gUp2Bqw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com (2603:10b6:f:fc02::9)
- by PH3PPF2B89F77E0.namprd11.prod.outlook.com (2603:10b6:518:1::d11) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.522.14; Fri, 16 Oct
- 2026 01:29:34 +0000
-Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com
- ([fe80::6fbf:c112:d0a8:f1a8]) by DS4PPF0BAC23327.namprd11.prod.outlook.com
- ([fe80::6fbf:c112:d0a8:f1a8%5]) with mapi id 15.21.0522.013; Fri, 16 Oct 2026
- 01:29:34 +0000
-Date: Thu, 15 Oct 2026 18:29:31 -0700
-From: Alison Schofield <alison.schofield@intel.com>
-To: Hemanth Selam <hemanth.selam@gmail.com>
-CC: Dan Williams <djbw@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <iweiny@kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH 0/2] nvdimm: fix typos and repeated words in comments
-Message-ID: <atF9-7CD_XRiUH4v@aschofie-mobl2.lan>
-References: <20260907063434.23060-1-hemanth.selam@gmail.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20260907063434.23060-1-hemanth.selam@gmail.com>
-X-ClientProxiedBy: MW4P221CA0021.NAMP221.PROD.OUTLOOK.COM
- (2603:10b6:303:8b::26) To DS4PPF0BAC23327.namprd11.prod.outlook.com
- (2603:10b6:f:fc02::9)
+	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="M3mPGOGF"
+Received: by mail-pj1-f52.google.com with SMTP id 98e67ed59e1d1-3a4b9732d5aso4835771a91.3
+        for <nvdimm@lists.linux.dev>; Thu, 15 Oct 2026 22:39:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bytedance.com; s=google; t=1792129195; x=1792733995; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=lytsDBTst1exhQP76NkuNPJwTPpZJBfjpgNGjRlsaMM=;
+        b=M3mPGOGFVecccmj1OXjtJTAjtAhUrJNB+izIzRRBYdsfX3n4jrR+V+vPMbxpCA9efy
+         LER3WQFqvbibuym6OHhtvWN3Dn3FfG1DSPORGoLV466G4e6N0+OibJMVS+k2LhUXvZzk
+         Uv/RBvuNfl2APpSTdsuqfBzpWmcgQ0BRCrDysLHkIS2aAEwxBnC592LWR+vZO7h2p6vY
+         Hsw1nCal1VR/EMt0RMJfyUFg+V2Y+1c12tAzxYeaIGqmBVRH36lz6Y9cwH/j3qWsbcGj
+         F36bZWJcbQiLhKp4HR6rnkUX99RhbpWG6QaDa6VzoQQ3j1HxrItkcii5A+swTmRDk4z9
+         X1jw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792129195; x=1792733995;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=lytsDBTst1exhQP76NkuNPJwTPpZJBfjpgNGjRlsaMM=;
+        b=ERrDquRVGjnPOYTW1g+YlAqy2wlG4TLhLd1nyt787IfSju6fiTp93QhqpIWjqe+Pld
+         SMk6EL9c/WIJIk6iYuw1bTu513elEY9XE9RStqUc5KbJ9NVviRGnPmJakE28SMuQIZa6
+         eksUJPY50x8B7aHeE/U0NUiOl8cvcA7J5wZnOev4nP6yMYNBmpbR2qn8KMsBsL+PsTwI
+         kcHV7OqC2xCrRX1uWpZ1XyhupX53XnEkRZ7O6+x8ArwXvT+zcIVKb7vYvQkwZTRj0ZlN
+         Xu9zvYcvLJUO1kUL1XXfLo68I3qb0EjfwEZOsIdqLWLLHvvgHDYjZH4v87vpFjVuuL9E
+         nHww==
+X-Forwarded-Encrypted: i=1; AKwUvBzUizONQCzjxYbSdbDKsqqWRp1ow2+hOPrxDk/hrvrRFGh9zsDAPUkSuNpuT1VGP/EEwajI8Qw=@lists.linux.dev
+X-Gm-Message-State: AFq9FYJiA1YGZ5p5dueZbXz+/SSIiFuz5Z68xccSn1pQtMXhvWaTip1o
+	cn2CkVWBs+of/L69za2G/Ebz1LoUDByfrQAA3JajOAES8Z4cC0Rv3gk7E6S5h+BvEvU=
+X-Gm-Gg: AYBFou1zxeNXCgaCpIOsPfjB3KnVpMkm08xibsrKAq61N4ARMeGPwlyHJUXEz2FaBfz
+	OmdImQPFkmhtX/pid1RifdnWzFzeIw2/BngWJmGDb/xzyf6Z2/Qdk0g/UfVFwxiUq3Sq2CnircD
+	Q4J/OqbN/ksi6GwayDQERtf2I7h/OgPpQJLqPocYGupnGi+lUMeyh1qWI4GFupnbPuPLFw5BiFo
+	xc1ZvYt2pkJeEEIuw1HoM39nva9+aM17L21TzRIdOw7Z5oZBTcsucQMFmXcsWuITiQElgndv52e
+	PHJd/dLfeGnPW+mhBQbpV2P3aEyjH5oC+Eb6iZ4aMn1UmdCGCssInhPblWXU2gyH2EjX8JXU+Ga
+	Tvn+s+UlB7+eRa+M7VHGZdh3KpTxf5ZTHstr2o1LN0qgN7fJXnwYkeULnZYUPOpg+EIkQKk2xYj
+	QN5XxysSA4HUpN/Z7oF3fI+X0/usOYyzR9YN0wovSAVPLvDZfZhXRMeUwspsthIN4Yv4DqJDZmM
+	QHMp6QkernZttqZl07xBIGlYBCurjEv
+X-Received: by 2002:a17:90a:d00f:b0:3ac:7556:8ee0 with SMTP id 98e67ed59e1d1-3ac7556a4ccmr6625530a91.19.1792129194897;
+        Thu, 15 Oct 2026 22:39:54 -0700 (PDT)
+Received: from n232-176-004.byted.org ([36.110.163.103])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3acd3b16c2asm600703a91.2.2026.10.15.22.39.50
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 15 Oct 2026 22:39:53 -0700 (PDT)
+From: Muchun Song <songmuchun@bytedance.com>
+To: Dan Williams <djbw@kernel.org>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Alison Schofield <alison.schofield@intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Joao Martins <joao.m.martins@oracle.com>,
+	nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Muchun Song <songmuchun@bytedance.com>,
+	muchun.song@linux.dev
+Subject: [PATCH v4] dax/bus: fix Device DAX range alignment validation
+Date: Fri, 16 Oct 2026 13:39:44 +0800
+Message-ID: <20261016053944.2579541-1-songmuchun@bytedance.com>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|PH3PPF2B89F77E0:EE_
-X-MS-Office365-Filtering-Correlation-Id: f5bac114-65f0-4b96-f01c-08df2b24ef39
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|23010399003|1800799024|376014|366016|6133799003|10067099003|18002099003|22082099003|11063799006|5023799004|261009223027099003|56012099006;
-X-Microsoft-Antispam-Message-Info: hDbwF6O2o4zwJegKLC3T8qDkd6LRMNuZqMMTdwOPEBIUXWBjK3wjzQxFkRM2HC8v/P/P8AT1XcqvxAf9x6A9qMjcBfIGSwUOScqrcwNARR3XwGKWypI0ekvIGPZ/WEBDVott47921RMTqAiDSM2LeLX/oc6LqIYreaZ1T6UfSVHSX1NVlqKCiSWd+fFFyxFOzPUuP1wNqSOBiYCBz7TsCwgRWPoA2nbTZQvI8ULq4EpMRklYe242cQiAXRenOM2+l95FVLHhSmH/UwFJrvPkTdO1twuNboNZ4mYrlEWyTuDTCqLpp7r/aHQ+LcyXICHHHqPh6HQ34IJH6K7kkuGI7owxdIPio/IGuJA8l32hV1ILDuV4WUMfJrfiRx0sQ5K2DN5bdF8WBkcWGuRbKUJXA6iIti2eC8Z885Q/f9NbEtfDmToh2du51EMdJeCKlA37j4xhuSqcRB7dXVspRePrNNeIqpkgGbS9MnEbeEAPwoDQIdKoG/uyKWWKKgoM++7P27WaLdzrZqJGsMfC7Su086yAQ4gnmPKS5VJWEFBfnK2D/MP8C27Pbo7WjegBFemDvEDk/3hwapoOKymQ3+srScG1MbA1ZpmITV+KGmXuqLIs/qOccB52gdDdDF7R7tRCbOGcmXDx0YFcxMYPhYKcpYo8UQQOIOTwJ096v2OJcbA=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(1800799024)(376014)(366016)(6133799003)(10067099003)(18002099003)(22082099003)(11063799006)(5023799004)(261009223027099003)(56012099006);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?dGAsoEcqr3vwvFelIPkBjSwpr40u6m8K+lW1I2yyLuxMuua2naS8BNBlAfXq?=
- =?us-ascii?Q?eeMEcxFgSeEWqSHpDICExGzEM5X41hLc5WJCxZYD7TJCZFNVdTG0GmvEEaNr?=
- =?us-ascii?Q?THg/rOBByoqnerrCJGD89AtzgOoEILuWXIvSBsGKFeO1Mjrn4m+yQ7lYXYSi?=
- =?us-ascii?Q?VImkMhVV8HqRxf6C6Yd9C7vVZOW6uCSquRedOsgNa9dG8uaIIDdAQ99IQoJO?=
- =?us-ascii?Q?pDQHQGt3XAaj2LUymZi/tGgyPwbD/CUNmU4xCLn/v6JkrjM7PzateLhAVAT3?=
- =?us-ascii?Q?mNP0OTvIeAvwdric3isWkE3g4XezQhNAIQHNGKqsQexZpLzBgSCiB+dZSOB/?=
- =?us-ascii?Q?gPyJgwp9J9+Ack3Hnn2uxB1wASJk2K/NunRxnD5yEhIE0lPra+HIatgXwJf5?=
- =?us-ascii?Q?d7Tj6uvUZzH+KRFbnegRc9NgxDTux5DrtHVV7Hax6jey/H039PQHyv7+Lity?=
- =?us-ascii?Q?pVvMwP8vH/zokKzpW22kFphy/JGsD4QIHjmsOAQ6Y1Zh7h3kzRhBTH+ZW8BG?=
- =?us-ascii?Q?i9e1W/M4ct/Y6O4kL9w/DAq9XhiwYIhluyDUKSLCKPzcihbtZkKQ1gM/mSCg?=
- =?us-ascii?Q?gM0yqC43YVugbjsJGcTumxdzcnIOCiwos296KeLTHI/mIbU0IvvOdImfIXS8?=
- =?us-ascii?Q?hXY1zPkEpAykMCsZ5cBfAG2ADx5Z7OcZQDo3syy8aiKKRMEmrNviVxKiJbzW?=
- =?us-ascii?Q?vQUppaKLC9ZVvo2l1y9Rp7Gg8rNGxMBz/MEB5teGsYq0jtTGIczLH6qwleHr?=
- =?us-ascii?Q?zo2bT2HZs+U5e05MCujp2QLTOZJyweiNAf2hX3bSGlieEUavVr20O8mHzBSA?=
- =?us-ascii?Q?W2weIFgSMoWGwWD2zHvgEuMOvkUO7alKJOaZl4pu01IL5Z2ni6l16cY4kA2K?=
- =?us-ascii?Q?GmTTK4wNrNe0n2iOAloOOfBKORo3KURAEYHdZCNI4EVjQA/RVhtwyI6v8qSC?=
- =?us-ascii?Q?9kx3udVva+xSQh6P87I/EkjO07peqc9oRPbw6fnv4ReXqKxuIK/RDwUPqgo/?=
- =?us-ascii?Q?xCqqtTgDMB6LwDUSpiAqW3d+6dwdFiUsMuKrbNzMn9IWEUjzHtc/68hXhHZ9?=
- =?us-ascii?Q?3eIPvQNJnnlqP3j2uRDLLs4FnEh1/ZjgVv1oQvcj/Y5ZDKIxy1iU7L9d48vg?=
- =?us-ascii?Q?4AbmKxR+T0Mb3tpfw3aIeLX3p/wxOM8B38H8rUjH+jEq/Nw9/ML9pv9FnR7X?=
- =?us-ascii?Q?Q4ach6wVSE0XAA7mPSh36+Wv52afaDdln4f05aZcNc5C4LJqOf7J8OQyBFwV?=
- =?us-ascii?Q?eiko2FcqG+JeErJEgVGDYY/HmY23Cv8TZuHeCdw+cG94AlmXsiYeUONUmIRW?=
- =?us-ascii?Q?tRDbb37QYqX6NR5SEoqJeqbdM7uhzKoA69iZliBaIZa6IvbO+1ZinwbFhbVS?=
- =?us-ascii?Q?u1PBCxAYQfKBmlS39lsJ0FPRO66uU8FjWUAXw9o4ynhYWkA82mg/NElT667o?=
- =?us-ascii?Q?4kCgvXxCsbH150KMu6J7467bwDd7KinlZWDq1HHmgGBt9SeSD7SLCd0/QB70?=
- =?us-ascii?Q?zc8cIpx5W3tt9WizEaNkfln4W/h5+/t7l538CPsK6t+EttfuzvEPl+cTf6yw?=
- =?us-ascii?Q?NOmhbTReboLNErXR2nQ7tZxPSZzfbmwCO19528KVy37f/cxGudjSI8buStrZ?=
- =?us-ascii?Q?L/WmLWHO1PifV4J1rL0oilB+xTYsM0jGxA4FHWLhpQPhaKorfbUfWqMtr12d?=
- =?us-ascii?Q?rU46oqzjSrztbL7sXiDaLLJn3BAz+8W3kXzuYJ9l/K0zgwsgTL7CAsx7jU6c?=
- =?us-ascii?Q?LorCqYxpZJt0c4xrWb5urBdjEVM/bPY=3D?=
-X-Exchange-RoutingPolicyChecked: DQxT8aS3j+H72VW2WGunYXrg9dyq5Q2Sj3/s51XpbIb2cB5S5J8ipJEnhXNmAsVOuplHBipq1hXsZ1Lei2hHm81w50FgqZNxrlSCzvhnbEfYhpwMuEYsb2DtBmTL1h9NCYbBqYeryWYw7ntKALMg+TZnm336i8k+T5Gfe/Hg04v5teWcJ5WUhTNa4K8kzSAJP6UDIazIFByutSQHPp1hcsDgjhMiqcm6mZWVQt0heEVUuqADlgp9GP8/8grFPIFhDgl4PMbg1gHEFWmvSrw0ZpeBBwGo++F/ZCXGLboaRWaa/fuySrlBUOx6h/lCj/WMZs1Qo0WCOV2JCKwgOf0uEw==
-X-MS-Exchange-CrossTenant-Network-Message-Id: f5bac114-65f0-4b96-f01c-08df2b24ef39
-X-MS-Exchange-CrossTenant-AuthSource: DS4PPF0BAC23327.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Oct 2026 01:29:34.4433
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 4ujNdC8dvldokJSY31z0nj/pw5ZXAG0yssMZu42ok8UG0+h2RWeH96+JbkggWNdmxvMR27RaN30ClQc5dZ82+KT9Jli0AlBJSl5Cq42MTxk=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH3PPF2B89F77E0
-X-OriginatorOrg: intel.com
+Content-Transfer-Encoding: 8bit
 
-On Mon, Sep 07, 2026 at 12:04:32PM +0530, Hemanth Selam wrote:
-> This corrects 2 misspellings and repeated words in comments.  Each is a
-> separate patch so that any one of them can be dropped without touching
-> the rest.
-> 
-> Nothing outside comments changes.  Every touched C file was checked by
-> dropping its comments, replacing each string literal with a placeholder
-> and collapsing whitespace; what remained was identical before and after,
-> so the compiled code cannot differ.
-> 
-> The mistakes were found with scripts/checkpatch.pl against the list in
-> scripts/spelling.txt.  The scanning, the edits and the changelogs were
-> produced with Cursor running the claude-opus-5 model, from a request to
-> find and fix spelling mistakes across the tree, and every correction was
-> then re-checked by the comparison described above.  Words that name an
-> identifier were left alone deliberately, even when they read as typos,
-> because correcting the prose would make the comment disagree with the
-> code it describes.
-> 
-> Tested by building x86_64 defconfig at v7.3-rc1-269-gbc35965f6940, which
-> is clean.  Nothing else was built, so any patch touching code that
-> x86_64 defconfig does not compile has been read but not compiled.
+Only range sizes are currently validated against dev_dax->align. A
+dynamic device can therefore select a large-page alignment and allocate a
+range whose start is not naturally aligned. The device binds successfully,
+but a later write to a userspace mapping may trigger a kernel panic.
 
-This one is a NAK
+The automatic resize path can also split a size-aligned request across
+arbitrary free gaps. When devices with different alignments fragment a
+region, this can extend a range by less than the device alignment. A later
+allocation then fails, leaving the failed resize partially applied.
 
-Not going to churn for non user visible typos.
+Initialize the device alignment before its first allocation. Validate both
+the start and size of allocated and adjusted ranges, account only for
+aligned free space before changing ranges, skip unusable gaps, and
+serialize size validation with alignment updates.
 
-> 
-> Hemanth Selam (2):
->   nvdimm: fix typos in comments
->   tools/testing: fix repeated word 'from' in comment
-> 
->  drivers/nvdimm/namespace_devs.c  | 2 +-
->  include/linux/libnvdimm.h        | 2 +-
->  tools/testing/nvdimm/test/nfit.c | 2 +-
->  3 files changed, 3 insertions(+), 3 deletions(-)
-> 
-> -- 
-> 2.48.1
-> 
+Static Device DAX already has a pre-populated pgmap whose full range was
+validated against memremap_compat_align(). Its usable data range may begin
+after namespace metadata, so require only dev_dax->align for static
+devices. Dynamic Device DAX builds its pgmap from the allocated ranges and
+must continue to satisfy both alignments.
+
+Fixes: 6d82120f4156 ("device-dax: add an 'align' attribute")
+Assisted-by: LLM
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+---
+v4:
+- Use dev_dax->align alone for static Device DAX ranges to preserve
+  older 4K namespaces (reported by Alison Schofield)
+- Condense the commit message to the failure scenarios and required fixes
+  (suggested by Alison Schofield)
+
+v3:
+- Serialize size alignment validation with alignment updates to avoid a
+  partial shrink after a concurrent alignment change (reported by Sashiko)
+- Document the size validation serialization in the commit message
+
+v2:
+- Keep the alloc_is_aligned() name to avoid unrelated helper renaming
+  (suggested by Dave Jiang)
+- Move this patch after the mapping error reporting fix for independent
+  backports (suggested by Dave Jiang)
+---
+ drivers/dax/bus.c | 152 +++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 117 insertions(+), 35 deletions(-)
+
+diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+index b809e1a264af..b2c83a0e4ec5 100644
+--- a/drivers/dax/bus.c
++++ b/drivers/dax/bus.c
+@@ -848,6 +848,52 @@ static int devm_register_dax_mapping(struct dev_dax *dev_dax, int range_id)
+ 	return 0;
+ }
+ 
++static inline unsigned long dev_dax_min_align(struct dev_dax *dev_dax)
++{
++	/*
++	 * A static device has a pre-populated pgmap whose range already
++	 * satisfies memremap_compat_align(). Its data range may start after
++	 * metadata at dev_dax->align granularity.
++	 */
++	if (static_dev_dax(dev_dax))
++		return dev_dax->align;
++
++	/*
++	 * The minimum mapping granularity for a dynamic device instance is a
++	 * single subsection, unless the arch says otherwise.
++	 */
++	return max_t(unsigned long, dev_dax->align, memremap_compat_align());
++}
++
++static inline bool alloc_is_aligned(struct dev_dax *dev_dax, resource_size_t size)
++{
++	return IS_ALIGNED(size, dev_dax_min_align(dev_dax));
++}
++
++static inline bool range_is_aligned(struct dev_dax *dev_dax, u64 start,
++				    resource_size_t size)
++{
++	return IS_ALIGNED(start | size, dev_dax_min_align(dev_dax));
++}
++
++static resource_size_t
++aligned_gap_size(struct dev_dax *dev_dax, resource_size_t *start,
++		 resource_size_t end)
++{
++	resource_size_t aligned_start = ALIGN(*start, dev_dax_min_align(dev_dax));
++	resource_size_t size;
++
++	if (aligned_start < *start || aligned_start > end)
++		return 0;
++
++	size = ALIGN_DOWN(end - aligned_start + 1, dev_dax_min_align(dev_dax));
++	if (!size)
++		return 0;
++
++	*start = aligned_start;
++	return size;
++}
++
+ static int alloc_dev_dax_range(struct dev_dax *dev_dax, u64 start,
+ 		resource_size_t size)
+ {
+@@ -870,6 +916,9 @@ static int alloc_dev_dax_range(struct dev_dax *dev_dax, u64 start,
+ 		return 0;
+ 	}
+ 
++	if (!range_is_aligned(dev_dax, start, size))
++		return -EINVAL;
++
+ 	alloc = __request_region(res, start, size, dev_name(dev), 0);
+ 	if (!alloc)
+ 		return -ENOMEM;
+@@ -923,6 +972,9 @@ static int adjust_dev_dax_range(struct dev_dax *dev_dax, struct resource *res, r
+ 	if (dev_WARN_ONCE(dev, !size, "deletion is handled by dev_dax_shrink\n"))
+ 		return -EINVAL;
+ 
++	if (!range_is_aligned(dev_dax, range->start, size))
++		return -EINVAL;
++
+ 	rc = adjust_resource(res, range->start, size);
+ 	if (rc)
+ 		return rc;
+@@ -955,15 +1007,6 @@ static ssize_t size_show(struct device *dev,
+ 	return sysfs_emit(buf, "%llu\n", size);
+ }
+ 
+-static bool alloc_is_aligned(struct dev_dax *dev_dax, resource_size_t size)
+-{
+-	/*
+-	 * The minimum mapping granularity for a device instance is a
+-	 * single subsection, unless the arch says otherwise.
+-	 */
+-	return IS_ALIGNED(size, max_t(unsigned long, dev_dax->align, memremap_compat_align()));
+-}
+-
+ static int dev_dax_shrink(struct dev_dax *dev_dax, resource_size_t size)
+ {
+ 	resource_size_t to_shrink = dev_dax_size(dev_dax) - size;
+@@ -1030,23 +1073,46 @@ static bool adjust_ok(struct dev_dax *dev_dax, struct resource *res)
+ 	return true;
+ }
+ 
++static resource_size_t
++dax_region_aligned_avail_size(struct dax_region *dax_region,
++			      struct dev_dax *dev_dax)
++{
++	struct resource *region_res = &dax_region->res;
++	resource_size_t start = region_res->start;
++	resource_size_t avail = 0;
++	struct resource *res;
++
++	lockdep_assert_held_write(&dax_region_rwsem);
++
++	for_each_dax_region_resource(dax_region, res) {
++		if (res->start > start) {
++			resource_size_t gap_start = start;
++
++			avail += aligned_gap_size(dev_dax, &gap_start,
++					res->start - 1);
++		}
++		start = res->end + 1;
++	}
++	if (start <= region_res->end)
++		avail += aligned_gap_size(dev_dax, &start, region_res->end);
++
++	return avail;
++}
++
+ static ssize_t dev_dax_resize(struct dax_region *dax_region,
+ 		struct dev_dax *dev_dax, resource_size_t size)
+ {
+-	resource_size_t avail = dax_region_avail_size(dax_region), to_alloc;
+ 	resource_size_t dev_size = dev_dax_size(dev_dax);
+ 	struct resource *region_res = &dax_region->res;
+ 	struct device *dev = &dev_dax->dev;
+ 	struct resource *res, *first;
+-	resource_size_t alloc = 0;
++	resource_size_t alloc, to_alloc;
+ 	int rc;
+ 
+ 	if (dev->driver)
+ 		return -EBUSY;
+ 	if (size == dev_size)
+ 		return 0;
+-	if (size > dev_size && size - dev_size > avail)
+-		return -ENOSPC;
+ 	if (size < dev_size)
+ 		return dev_dax_shrink(dev_dax, size);
+ 
+@@ -1054,6 +1120,8 @@ static ssize_t dev_dax_resize(struct dax_region *dax_region,
+ 	if (dev_WARN_ONCE(dev, !alloc_is_aligned(dev_dax, to_alloc),
+ 			"resize of %pa misaligned\n", &to_alloc))
+ 		return -ENXIO;
++	if (to_alloc > dax_region_aligned_avail_size(dax_region, dev_dax))
++		return -ENOSPC;
+ 
+ 	/*
+ 	 * Expand the device into the unused portion of the region. This
+@@ -1062,37 +1130,51 @@ static ssize_t dev_dax_resize(struct dax_region *dax_region,
+ 	 */
+ retry:
+ 	first = region_res->child;
+-	if (!first)
+-		return alloc_dev_dax_range(dev_dax, dax_region->res.start, to_alloc);
++	if (!first) {
++		resource_size_t start = region_res->start;
++
++		alloc = aligned_gap_size(dev_dax, &start, region_res->end);
++		return alloc_dev_dax_range(dev_dax, start, min(alloc, to_alloc));
++	}
+ 
+ 	rc = -ENOSPC;
+ 	for (res = first; res; res = res->sibling) {
+ 		struct resource *next = res->sibling;
++		resource_size_t start, end;
+ 
+ 		/* space at the beginning of the region */
+ 		if (res == first && res->start > dax_region->res.start) {
+-			alloc = min(res->start - dax_region->res.start, to_alloc);
+-			rc = alloc_dev_dax_range(dev_dax, dax_region->res.start, alloc);
+-			break;
++			start = dax_region->res.start;
++			end = res->start - 1;
++			alloc = min(aligned_gap_size(dev_dax, &start, end), to_alloc);
++			if (alloc) {
++				rc = alloc_dev_dax_range(dev_dax, start, alloc);
++				break;
++			}
+ 		}
+ 
+-		alloc = 0;
+ 		/* space between allocations */
+-		if (next && next->start > res->end + 1)
+-			alloc = min(next->start - (res->end + 1), to_alloc);
+-
+-		/* space at the end of the region */
+-		if (!alloc && !next && res->end < region_res->end)
+-			alloc = min(region_res->end - res->end, to_alloc);
++		if (next) {
++			if (next->start <= res->end + 1)
++				continue;
++			end = next->start - 1;
++		} else {
++			/* space at the end of the region */
++			if (res->end >= region_res->end)
++				continue;
++			end = region_res->end;
++		}
+ 
++		start = res->end + 1;
++		alloc = min(aligned_gap_size(dev_dax, &start, end), to_alloc);
+ 		if (!alloc)
+ 			continue;
+ 
+-		if (adjust_ok(dev_dax, res)) {
++		if (start == res->end + 1 && adjust_ok(dev_dax, res)) {
+ 			rc = adjust_dev_dax_range(dev_dax, res, resource_size(res) + alloc);
+ 			break;
+ 		}
+-		rc = alloc_dev_dax_range(dev_dax, res->end + 1, alloc);
++		rc = alloc_dev_dax_range(dev_dax, start, alloc);
+ 		break;
+ 	}
+ 	if (rc)
+@@ -1115,11 +1197,6 @@ static ssize_t size_store(struct device *dev, struct device_attribute *attr,
+ 	if (rc)
+ 		return rc;
+ 
+-	if (!alloc_is_aligned(dev_dax, val)) {
+-		dev_dbg(dev, "%s: size: %lld misaligned\n", __func__, val);
+-		return -EINVAL;
+-	}
+-
+ 	rc = down_write_killable(&dax_region_rwsem);
+ 	if (rc)
+ 		return rc;
+@@ -1130,6 +1207,11 @@ static ssize_t size_store(struct device *dev, struct device_attribute *attr,
+ 	rc = down_write_killable(&dax_dev_rwsem);
+ 	if (rc)
+ 		goto err_dev;
++	if (!alloc_is_aligned(dev_dax, val)) {
++		dev_dbg(dev, "%s: size: %lld misaligned\n", __func__, val);
++		rc = -EINVAL;
++		goto err_dev;
++	}
+ 
+ 	rc = dev_dax_resize(dax_region, dev_dax, val);
+ 
+@@ -1224,9 +1306,9 @@ static ssize_t dev_dax_validate_align(struct dev_dax *dev_dax)
+ 	int i;
+ 
+ 	for (i = 0; i < dev_dax->nr_range; i++) {
+-		size_t len = range_len(&dev_dax->ranges[i].range);
++		struct range *range = &dev_dax->ranges[i].range;
+ 
+-		if (!alloc_is_aligned(dev_dax, len)) {
++		if (!range_is_aligned(dev_dax, range->start, range_len(range))) {
+ 			dev_dbg(dev, "%s: align %u invalid for range %d\n",
+ 				__func__, dev_dax->align, i);
+ 			return -EINVAL;
+@@ -1464,6 +1546,7 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	dev_dax->region = dax_region;
++	dev_dax->align = dax_region->align;
+ 	if (is_static(dax_region)) {
+ 		if (dev_WARN_ONCE(parent, data->id < 0,
+ 				"dynamic id specified to static region\n")) {
+@@ -1522,7 +1605,6 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
+ 
+ 	dev_dax->dax_dev = dax_dev;
+ 	dev_dax->target_node = dax_region->target_node;
+-	dev_dax->align = dax_region->align;
+ 	ida_init(&dev_dax->ida);
+ 
+ 	dev_dax->memmap_on_memory = data->memmap_on_memory;
+
+base-commit: 93f51579e7df248780214094418f205253383cc5
+-- 
+2.54.0
+
