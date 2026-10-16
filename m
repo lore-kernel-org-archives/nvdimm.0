@@ -1,62 +1,62 @@
-Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
+Received: from mail-pl1-f177.google.com (mail-pl1-f177.google.com [209.85.214.177])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C608B33469C
-	for <nvdimm@lists.linux.dev>; Fri, 16 Oct 2026 05:39:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2858133939C
+	for <nvdimm@lists.linux.dev>; Fri, 16 Oct 2026 05:49:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792129198; cv=none; b=fGJOQqG7gIP2r+z1Pwnq4i932yVLfZizNMHmOXKfeMpM9pT8BfSyhly8gqmbF1yMwyeVJNS9ZWEO40nlMq2ozrMFhgE/lPiywJ+CuHeAtMSLHO/XFSE93EODgq/PowPW0rh9nyZTWTK7vP7xQ81SAM95dzfrl/bC8cGojg32eB8=
+	t=1792129764; cv=none; b=daP3ycN68jbsPfZ9zEiWG20MKhgA6CqJ6/D0AXRLzvsNAPYZZcK5Ll6akaGrTfjCCNvi/XEDXzQlI97n7EF0S+IKBFhJZTcycWJuWXMXcX2MEypSbNURNj7PZDgCSnQImPuIz5t4T2s1HJW8mtEAOp1MqVYRpxSQ9zqXkL3Lo5g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792129198; c=relaxed/simple;
-	bh=2LIrUwpNUkkU4dudMq0Fjr/UIH04OXmByla0vhmIHfY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=PgRFVP737orHJLehopo1SXoejtiafkjXM+Rvp8Y3ccovrwDH6Ay9lTt5Dkk6xeSIrrpraC4MEiGEqGccl0bniFWafUjR4lg4MQ7LCD6kqXqXzvgKrwSIOt9uqwJ16j3GiuHvF2cS2IFlzvE1GykjIMpwlpLxtUNYQ+2IB+tc6Ek=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=M3mPGOGF; arc=none smtp.client-ip=209.85.216.52
+	s=arc-20240116; t=1792129764; c=relaxed/simple;
+	bh=rCTBXZWsA+DFjYHLb8u5Oa7Bvqyi+ouM5tudHnnjwtA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=foeUxTF/u/z1Nrq8YtaaeAYpJkhvMuzp1y+lPpXiqIIXkxNaaCtHpUGc2NAJOE/N0RhJp/GGaUjauE+WREm2dn8JejQneyQot0G+HBwt2/8nbD6cbMva7X899H5eEtd8RgdM64f1hXQGMViSOlnFcYz6bwUrQ+XPlwzBkn40p2s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=NbZXjMAe; arc=none smtp.client-ip=209.85.214.177
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="M3mPGOGF"
-Received: by mail-pj1-f52.google.com with SMTP id 98e67ed59e1d1-3a4b9732d5aso4835771a91.3
-        for <nvdimm@lists.linux.dev>; Thu, 15 Oct 2026 22:39:55 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="NbZXjMAe"
+Received: by mail-pl1-f177.google.com with SMTP id d9443c01a7336-2e915887d9dso24940085ad.1
+        for <nvdimm@lists.linux.dev>; Thu, 15 Oct 2026 22:49:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance.com; s=google; t=1792129195; x=1792733995; darn=lists.linux.dev;
+        d=bytedance.com; s=google; t=1792129762; x=1792734562; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=lytsDBTst1exhQP76NkuNPJwTPpZJBfjpgNGjRlsaMM=;
-        b=M3mPGOGFVecccmj1OXjtJTAjtAhUrJNB+izIzRRBYdsfX3n4jrR+V+vPMbxpCA9efy
-         LER3WQFqvbibuym6OHhtvWN3Dn3FfG1DSPORGoLV466G4e6N0+OibJMVS+k2LhUXvZzk
-         Uv/RBvuNfl2APpSTdsuqfBzpWmcgQ0BRCrDysLHkIS2aAEwxBnC592LWR+vZO7h2p6vY
-         Hsw1nCal1VR/EMt0RMJfyUFg+V2Y+1c12tAzxYeaIGqmBVRH36lz6Y9cwH/j3qWsbcGj
-         F36bZWJcbQiLhKp4HR6rnkUX99RhbpWG6QaDa6VzoQQ3j1HxrItkcii5A+swTmRDk4z9
-         X1jw==
+        bh=z5sNEdkVrvo7sH9ZJvBOJJZb8XmvxfiMz5rU6UHY+Ek=;
+        b=NbZXjMAenHuBhV5p1wQllPIN8iSMs8eNlkrF/lHylnW5I/5xgAixE9uCGFfMRfG3Du
+         13yFTDtDyH2k3BOA+seOwEdZAMpPPw9ciHNrhK5dTkiU+y03rYda/EQ0pTUeQfw5xuVt
+         AXBmSovQOj0g8ecdKVmpTzYJIGrzemnmiBsu858N2JygPyLOsaF0pUrsSpQw+7qU3muT
+         DLk+AVF2OE1gdwdxCR7yjn86TwZHphSd3369147uER9MFJeuSSWHbNl26H27a1fAcnPx
+         pkT8Dii5jNjwy6pnY3m1Vfu1kuPT0dApfJn+mxOYBnhnVp2+IkGWQwgC4+bYpGn7dXb6
+         lWeg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792129195; x=1792733995;
+        d=1e100.net; s=20260707; t=1792129762; x=1792734562;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=lytsDBTst1exhQP76NkuNPJwTPpZJBfjpgNGjRlsaMM=;
-        b=ERrDquRVGjnPOYTW1g+YlAqy2wlG4TLhLd1nyt787IfSju6fiTp93QhqpIWjqe+Pld
-         SMk6EL9c/WIJIk6iYuw1bTu513elEY9XE9RStqUc5KbJ9NVviRGnPmJakE28SMuQIZa6
-         eksUJPY50x8B7aHeE/U0NUiOl8cvcA7J5wZnOev4nP6yMYNBmpbR2qn8KMsBsL+PsTwI
-         kcHV7OqC2xCrRX1uWpZ1XyhupX53XnEkRZ7O6+x8ArwXvT+zcIVKb7vYvQkwZTRj0ZlN
-         Xu9zvYcvLJUO1kUL1XXfLo68I3qb0EjfwEZOsIdqLWLLHvvgHDYjZH4v87vpFjVuuL9E
-         nHww==
-X-Forwarded-Encrypted: i=1; AKwUvBzUizONQCzjxYbSdbDKsqqWRp1ow2+hOPrxDk/hrvrRFGh9zsDAPUkSuNpuT1VGP/EEwajI8Qw=@lists.linux.dev
-X-Gm-Message-State: AFq9FYJiA1YGZ5p5dueZbXz+/SSIiFuz5Z68xccSn1pQtMXhvWaTip1o
-	cn2CkVWBs+of/L69za2G/Ebz1LoUDByfrQAA3JajOAES8Z4cC0Rv3gk7E6S5h+BvEvU=
-X-Gm-Gg: AYBFou1zxeNXCgaCpIOsPfjB3KnVpMkm08xibsrKAq61N4ARMeGPwlyHJUXEz2FaBfz
-	OmdImQPFkmhtX/pid1RifdnWzFzeIw2/BngWJmGDb/xzyf6Z2/Qdk0g/UfVFwxiUq3Sq2CnircD
-	Q4J/OqbN/ksi6GwayDQERtf2I7h/OgPpQJLqPocYGupnGi+lUMeyh1qWI4GFupnbPuPLFw5BiFo
-	xc1ZvYt2pkJeEEIuw1HoM39nva9+aM17L21TzRIdOw7Z5oZBTcsucQMFmXcsWuITiQElgndv52e
-	PHJd/dLfeGnPW+mhBQbpV2P3aEyjH5oC+Eb6iZ4aMn1UmdCGCssInhPblWXU2gyH2EjX8JXU+Ga
-	Tvn+s+UlB7+eRa+M7VHGZdh3KpTxf5ZTHstr2o1LN0qgN7fJXnwYkeULnZYUPOpg+EIkQKk2xYj
-	QN5XxysSA4HUpN/Z7oF3fI+X0/usOYyzR9YN0wovSAVPLvDZfZhXRMeUwspsthIN4Yv4DqJDZmM
-	QHMp6QkernZttqZl07xBIGlYBCurjEv
-X-Received: by 2002:a17:90a:d00f:b0:3ac:7556:8ee0 with SMTP id 98e67ed59e1d1-3ac7556a4ccmr6625530a91.19.1792129194897;
-        Thu, 15 Oct 2026 22:39:54 -0700 (PDT)
-Received: from n232-176-004.byted.org ([36.110.163.103])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3acd3b16c2asm600703a91.2.2026.10.15.22.39.50
+        bh=z5sNEdkVrvo7sH9ZJvBOJJZb8XmvxfiMz5rU6UHY+Ek=;
+        b=vSK6ScTfEPMay/0P+rbHA1HsxU5Kb4p5nABO5akqiKgBL5FJq5yRuvwfzDgG7Y58IT
+         Jps7DrP771x0m46e7Ppxitsl0Fjw6t+qSOe6UKSzRFHp9/CuY3FNGcl8di0p8P6pUzCD
+         HblNgnsixefww0j4iRmEMlvxq1+YkgKArmRkux88vo1/ME9UALTHNHT4EAfhmJAhqrNU
+         yqhpf0Iv/mv1ydklA4HFI3rQ8p7spkNy0W/vItWRrHy+aI8/7YfPbJ6aGmf22UAEetUV
+         mGKFNeXkypSSJrfp/9PvUx1x4q9nyPDfIo/3zkwLAdxeOSMClDvJf/yVbdr16JonAV0N
+         Pvag==
+X-Forwarded-Encrypted: i=1; AKwUvBxnvVe069KFVmLpdj1wrg1SAX90fa2jsDJQeRBf8OAexmNx27H0bKa452BV/ReieT8hobX/bJ0=@lists.linux.dev
+X-Gm-Message-State: AFq9FYJVaQDFi57NvuS8VIBK97Qg4IHL2CJ48SJvaxEU1GOjWKIj5VGO
+	iS/kVjJyxtpTG2fUPJWuwr7mkmDPNKilPxcNRPgQ9dReDORokNbLAVoduI0ARSPm09w=
+X-Gm-Gg: AYBFou0ITBnbf8o17cE38OwyKKHmoVlb03S8JtZY1OE2QloNP0QeTk7+sQyaWIRGFLq
+	zU6/+kjauYRJdYAjJic8kn8sQFn1/LwIthnKYt/RPGaG9v9bbdQ8ETzzVISYhfFbyly1AvBsdSZ
+	N/3RdB5dkxxquTSMcnQ/A9yyuhLBwSOnTeDk3WQ+GLkK0vAB77Os5zoZcnTkHtFb8WJBUGjcc9t
+	Ocb8PobnRQZQE7cYIGHQo30UZhyUumRmghE1zy//kPNMxKPKegAc1qU2f46cKXlyk1MdojhXyt3
+	XJvFnRl1o1pwIdnHXR98v1stNBfjES+J91xi+chwUSOqXfHB71ddScgU3iqK8fKvH/6t1Xk1YF3
+	L6FEOULfD8VdB4tWCeXjsnkH/9NJpVtWT4LhAjoHkEHehssChvAMDDXU7yH+1/srN6Q4SwSCK0c
+	dg5bY2G7h3vjngFLw4ceNZgarbzd5DfkdjaBDxVzyEN82ko2aEiS+lE/7ul57zo2Rydqhg4ftkY
+	duMAfRj5Q0pNIWX2ws=
+X-Received: by 2002:a17:903:1b4f:b0:2e9:7ff5:544c with SMTP id d9443c01a7336-2e97ff55897mr13235965ad.25.1792129762374;
+        Thu, 15 Oct 2026 22:49:22 -0700 (PDT)
+Received: from n232-176-004.byted.org ([36.110.163.99])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2e97e804d7csm4697445ad.15.2026.10.15.22.49.18
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 15 Oct 2026 22:39:53 -0700 (PDT)
+        Thu, 15 Oct 2026 22:49:21 -0700 (PDT)
 From: Muchun Song <songmuchun@bytedance.com>
 To: Dan Williams <djbw@kernel.org>,
 	Vishal Verma <vishal.l.verma@intel.com>,
@@ -64,14 +64,16 @@ To: Dan Williams <djbw@kernel.org>,
 	Alison Schofield <alison.schofield@intel.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>,
 	Joao Martins <joao.m.martins@oracle.com>,
+	Ritesh Harjani <ritesh.list@gmail.com>,
+	Muchun Song <muchun.song@linux.dev>,
+	stable@vger.kernel.org,
 	nvdimm@lists.linux.dev,
 	linux-cxl@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	Muchun Song <songmuchun@bytedance.com>,
-	muchun.song@linux.dev
-Subject: [PATCH v4] dax/bus: fix Device DAX range alignment validation
-Date: Fri, 16 Oct 2026 13:39:44 +0800
-Message-ID: <20261016053944.2579541-1-songmuchun@bytedance.com>
+	Muchun Song <songmuchun@bytedance.com>
+Subject: [PATCH] dax/pmem: fix unaligned compound devmap initialization
+Date: Fri, 16 Oct 2026 13:49:14 +0800
+Message-ID: <20261016054914.2601510-1-songmuchun@bytedance.com>
 X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -81,324 +83,59 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Only range sizes are currently validated against dev_dax->align. A
-dynamic device can therefore select a large-page alignment and allocate a
-range whose start is not naturally aligned. The device binds successfully,
-but a later write to a userspace mapping may trigger a kernel panic.
+Static pmem Device DAX namespaces reserve space for namespace metadata
+before the user-visible data range, and may also include padding needed
+to satisfy the Device DAX alignment. __dax_pmem_probe() adjusts the
+dax_region range to start at the data range, but the dev_pagemap range
+still starts at the beginning of the namespace.
 
-The automatic resize path can also split a size-aligned request across
-arbitrary free gaps. When devices with different alignments fragment a
-region, this can extend a range by less than the device alignment. A later
-allocation then fails, leaving the failed resize partially applied.
+That is not valid for compound devmap mappings whose memmap is stored in
+system RAM. Compound page initialization requires the start PFN to be
+naturally aligned to the compound page size, because the head and tail
+struct pages are initialized according to that geometry. If the pgmap
+starts before the aligned data range, memmap_init_zone_device() can build
+compound page metadata from an unaligned PFN.
 
-Initialize the device alignment before its first allocation. Validate both
-the start and size of allocated and adjusted ranges, account only for
-aligned free space before changing ranges, skip unusable gaps, and
-serialize size validation with alignment updates.
+The resulting struct page layout is inconsistent with the Device DAX
+mapping. A later mmap fault can then resolve the user-visible PFN through
+invalid compound page metadata and hit a kernel panic while inserting the
+DAX folio.
 
-Static Device DAX already has a pre-populated pgmap whose full range was
-validated against memremap_compat_align(). Its usable data range may begin
-after namespace metadata, so require only dev_dax->align for static
-devices. Dynamic Device DAX builds its pgmap from the allocated ranges and
-must continue to satisfy both alignments.
+Fix this by advancing the pgmap start to the aligned Device DAX data
+range for non-altmap compound mappings. Leave base-page namespaces
+unchanged, and leave the altmap path unchanged because
+memmap_init_zone_device() already skips the altmap reservation itself.
 
-Fixes: 6d82120f4156 ("device-dax: add an 'align' attribute")
+Fixes: 14606001efb4 ("device-dax: compound devmap support")
+Cc: <stable@vger.kernel.org>
+Reported-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Closes: https://lore.kernel.org/r/wlrkqqvg.ritesh.list@gmail.com
 Assisted-by: LLM
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 ---
-v4:
-- Use dev_dax->align alone for static Device DAX ranges to preserve
-  older 4K namespaces (reported by Alison Schofield)
-- Condense the commit message to the failure scenarios and required fixes
-  (suggested by Alison Schofield)
+ drivers/dax/pmem.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-v3:
-- Serialize size alignment validation with alignment updates to avoid a
-  partial shrink after a concurrent alignment change (reported by Sashiko)
-- Document the size validation serialization in the commit message
-
-v2:
-- Keep the alloc_is_aligned() name to avoid unrelated helper renaming
-  (suggested by Dave Jiang)
-- Move this patch after the mapping error reporting fix for independent
-  backports (suggested by Dave Jiang)
----
- drivers/dax/bus.c | 152 +++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 117 insertions(+), 35 deletions(-)
-
-diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index b809e1a264af..b2c83a0e4ec5 100644
---- a/drivers/dax/bus.c
-+++ b/drivers/dax/bus.c
-@@ -848,6 +848,52 @@ static int devm_register_dax_mapping(struct dev_dax *dev_dax, int range_id)
- 	return 0;
- }
- 
-+static inline unsigned long dev_dax_min_align(struct dev_dax *dev_dax)
-+{
+diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
+index bee93066a849..d3a9b85107b0 100644
+--- a/drivers/dax/pmem.c
++++ b/drivers/dax/pmem.c
+@@ -51,6 +51,13 @@ static struct dev_dax *__dax_pmem_probe(struct device *dev)
+ 	/* adjust the dax_region range to the start of data */
+ 	range = pgmap.range;
+ 	range.start += offset;
 +	/*
-+	 * A static device has a pre-populated pgmap whose range already
-+	 * satisfies memremap_compat_align(). Its data range may start after
-+	 * metadata at dev_dax->align granularity.
++	 * When the memmap is stored in RAM, exclude metadata and alignment
++	 * padding from compound page initialization.  Otherwise, the pgmap
++	 * may start before the naturally aligned Device DAX data range.
 +	 */
-+	if (static_dev_dax(dev_dax))
-+		return dev_dax->align;
-+
-+	/*
-+	 * The minimum mapping granularity for a dynamic device instance is a
-+	 * single subsection, unless the arch says otherwise.
-+	 */
-+	return max_t(unsigned long, dev_dax->align, memremap_compat_align());
-+}
-+
-+static inline bool alloc_is_aligned(struct dev_dax *dev_dax, resource_size_t size)
-+{
-+	return IS_ALIGNED(size, dev_dax_min_align(dev_dax));
-+}
-+
-+static inline bool range_is_aligned(struct dev_dax *dev_dax, u64 start,
-+				    resource_size_t size)
-+{
-+	return IS_ALIGNED(start | size, dev_dax_min_align(dev_dax));
-+}
-+
-+static resource_size_t
-+aligned_gap_size(struct dev_dax *dev_dax, resource_size_t *start,
-+		 resource_size_t end)
-+{
-+	resource_size_t aligned_start = ALIGN(*start, dev_dax_min_align(dev_dax));
-+	resource_size_t size;
-+
-+	if (aligned_start < *start || aligned_start > end)
-+		return 0;
-+
-+	size = ALIGN_DOWN(end - aligned_start + 1, dev_dax_min_align(dev_dax));
-+	if (!size)
-+		return 0;
-+
-+	*start = aligned_start;
-+	return size;
-+}
-+
- static int alloc_dev_dax_range(struct dev_dax *dev_dax, u64 start,
- 		resource_size_t size)
- {
-@@ -870,6 +916,9 @@ static int alloc_dev_dax_range(struct dev_dax *dev_dax, u64 start,
- 		return 0;
- 	}
- 
-+	if (!range_is_aligned(dev_dax, start, size))
-+		return -EINVAL;
-+
- 	alloc = __request_region(res, start, size, dev_name(dev), 0);
- 	if (!alloc)
- 		return -ENOMEM;
-@@ -923,6 +972,9 @@ static int adjust_dev_dax_range(struct dev_dax *dev_dax, struct resource *res, r
- 	if (dev_WARN_ONCE(dev, !size, "deletion is handled by dev_dax_shrink\n"))
- 		return -EINVAL;
- 
-+	if (!range_is_aligned(dev_dax, range->start, size))
-+		return -EINVAL;
-+
- 	rc = adjust_resource(res, range->start, size);
- 	if (rc)
- 		return rc;
-@@ -955,15 +1007,6 @@ static ssize_t size_show(struct device *dev,
- 	return sysfs_emit(buf, "%llu\n", size);
- }
- 
--static bool alloc_is_aligned(struct dev_dax *dev_dax, resource_size_t size)
--{
--	/*
--	 * The minimum mapping granularity for a device instance is a
--	 * single subsection, unless the arch says otherwise.
--	 */
--	return IS_ALIGNED(size, max_t(unsigned long, dev_dax->align, memremap_compat_align()));
--}
--
- static int dev_dax_shrink(struct dev_dax *dev_dax, resource_size_t size)
- {
- 	resource_size_t to_shrink = dev_dax_size(dev_dax) - size;
-@@ -1030,23 +1073,46 @@ static bool adjust_ok(struct dev_dax *dev_dax, struct resource *res)
- 	return true;
- }
- 
-+static resource_size_t
-+dax_region_aligned_avail_size(struct dax_region *dax_region,
-+			      struct dev_dax *dev_dax)
-+{
-+	struct resource *region_res = &dax_region->res;
-+	resource_size_t start = region_res->start;
-+	resource_size_t avail = 0;
-+	struct resource *res;
-+
-+	lockdep_assert_held_write(&dax_region_rwsem);
-+
-+	for_each_dax_region_resource(dax_region, res) {
-+		if (res->start > start) {
-+			resource_size_t gap_start = start;
-+
-+			avail += aligned_gap_size(dev_dax, &gap_start,
-+					res->start - 1);
-+		}
-+		start = res->end + 1;
-+	}
-+	if (start <= region_res->end)
-+		avail += aligned_gap_size(dev_dax, &start, region_res->end);
-+
-+	return avail;
-+}
-+
- static ssize_t dev_dax_resize(struct dax_region *dax_region,
- 		struct dev_dax *dev_dax, resource_size_t size)
- {
--	resource_size_t avail = dax_region_avail_size(dax_region), to_alloc;
- 	resource_size_t dev_size = dev_dax_size(dev_dax);
- 	struct resource *region_res = &dax_region->res;
- 	struct device *dev = &dev_dax->dev;
- 	struct resource *res, *first;
--	resource_size_t alloc = 0;
-+	resource_size_t alloc, to_alloc;
- 	int rc;
- 
- 	if (dev->driver)
- 		return -EBUSY;
- 	if (size == dev_size)
- 		return 0;
--	if (size > dev_size && size - dev_size > avail)
--		return -ENOSPC;
- 	if (size < dev_size)
- 		return dev_dax_shrink(dev_dax, size);
- 
-@@ -1054,6 +1120,8 @@ static ssize_t dev_dax_resize(struct dax_region *dax_region,
- 	if (dev_WARN_ONCE(dev, !alloc_is_aligned(dev_dax, to_alloc),
- 			"resize of %pa misaligned\n", &to_alloc))
- 		return -ENXIO;
-+	if (to_alloc > dax_region_aligned_avail_size(dax_region, dev_dax))
-+		return -ENOSPC;
- 
- 	/*
- 	 * Expand the device into the unused portion of the region. This
-@@ -1062,37 +1130,51 @@ static ssize_t dev_dax_resize(struct dax_region *dax_region,
- 	 */
- retry:
- 	first = region_res->child;
--	if (!first)
--		return alloc_dev_dax_range(dev_dax, dax_region->res.start, to_alloc);
-+	if (!first) {
-+		resource_size_t start = region_res->start;
-+
-+		alloc = aligned_gap_size(dev_dax, &start, region_res->end);
-+		return alloc_dev_dax_range(dev_dax, start, min(alloc, to_alloc));
-+	}
- 
- 	rc = -ENOSPC;
- 	for (res = first; res; res = res->sibling) {
- 		struct resource *next = res->sibling;
-+		resource_size_t start, end;
- 
- 		/* space at the beginning of the region */
- 		if (res == first && res->start > dax_region->res.start) {
--			alloc = min(res->start - dax_region->res.start, to_alloc);
--			rc = alloc_dev_dax_range(dev_dax, dax_region->res.start, alloc);
--			break;
-+			start = dax_region->res.start;
-+			end = res->start - 1;
-+			alloc = min(aligned_gap_size(dev_dax, &start, end), to_alloc);
-+			if (alloc) {
-+				rc = alloc_dev_dax_range(dev_dax, start, alloc);
-+				break;
-+			}
- 		}
- 
--		alloc = 0;
- 		/* space between allocations */
--		if (next && next->start > res->end + 1)
--			alloc = min(next->start - (res->end + 1), to_alloc);
--
--		/* space at the end of the region */
--		if (!alloc && !next && res->end < region_res->end)
--			alloc = min(region_res->end - res->end, to_alloc);
-+		if (next) {
-+			if (next->start <= res->end + 1)
-+				continue;
-+			end = next->start - 1;
-+		} else {
-+			/* space at the end of the region */
-+			if (res->end >= region_res->end)
-+				continue;
-+			end = region_res->end;
-+		}
- 
-+		start = res->end + 1;
-+		alloc = min(aligned_gap_size(dev_dax, &start, end), to_alloc);
- 		if (!alloc)
- 			continue;
- 
--		if (adjust_ok(dev_dax, res)) {
-+		if (start == res->end + 1 && adjust_ok(dev_dax, res)) {
- 			rc = adjust_dev_dax_range(dev_dax, res, resource_size(res) + alloc);
- 			break;
- 		}
--		rc = alloc_dev_dax_range(dev_dax, res->end + 1, alloc);
-+		rc = alloc_dev_dax_range(dev_dax, start, alloc);
- 		break;
- 	}
- 	if (rc)
-@@ -1115,11 +1197,6 @@ static ssize_t size_store(struct device *dev, struct device_attribute *attr,
- 	if (rc)
- 		return rc;
- 
--	if (!alloc_is_aligned(dev_dax, val)) {
--		dev_dbg(dev, "%s: size: %lld misaligned\n", __func__, val);
--		return -EINVAL;
--	}
--
- 	rc = down_write_killable(&dax_region_rwsem);
- 	if (rc)
- 		return rc;
-@@ -1130,6 +1207,11 @@ static ssize_t size_store(struct device *dev, struct device_attribute *attr,
- 	rc = down_write_killable(&dax_dev_rwsem);
- 	if (rc)
- 		goto err_dev;
-+	if (!alloc_is_aligned(dev_dax, val)) {
-+		dev_dbg(dev, "%s: size: %lld misaligned\n", __func__, val);
-+		rc = -EINVAL;
-+		goto err_dev;
-+	}
- 
- 	rc = dev_dax_resize(dax_region, dev_dax, val);
- 
-@@ -1224,9 +1306,9 @@ static ssize_t dev_dax_validate_align(struct dev_dax *dev_dax)
- 	int i;
- 
- 	for (i = 0; i < dev_dax->nr_range; i++) {
--		size_t len = range_len(&dev_dax->ranges[i].range);
-+		struct range *range = &dev_dax->ranges[i].range;
- 
--		if (!alloc_is_aligned(dev_dax, len)) {
-+		if (!range_is_aligned(dev_dax, range->start, range_len(range))) {
- 			dev_dbg(dev, "%s: align %u invalid for range %d\n",
- 				__func__, dev_dax->align, i);
- 			return -EINVAL;
-@@ -1464,6 +1546,7 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
- 		return ERR_PTR(-ENOMEM);
- 
- 	dev_dax->region = dax_region;
-+	dev_dax->align = dax_region->align;
- 	if (is_static(dax_region)) {
- 		if (dev_WARN_ONCE(parent, data->id < 0,
- 				"dynamic id specified to static region\n")) {
-@@ -1522,7 +1605,6 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
- 
- 	dev_dax->dax_dev = dax_dev;
- 	dev_dax->target_node = dax_region->target_node;
--	dev_dax->align = dax_region->align;
- 	ida_init(&dev_dax->ida);
- 
- 	dev_dax->memmap_on_memory = data->memmap_on_memory;
++	if (!pgmap_altmap(&pgmap) && le32_to_cpu(pfn_sb->align) > PAGE_SIZE)
++		pgmap.range.start = range.start;
+ 	dax_region = alloc_dax_region(dev, region_id, &range,
+ 			nd_region->target_node, le32_to_cpu(pfn_sb->align),
+ 			IORESOURCE_DAX_STATIC);
 
-base-commit: 93f51579e7df248780214094418f205253383cc5
+base-commit: 0fcb05b72344f40806cbe810de8872f1698bf053
 -- 
 2.54.0
 
