@@ -1,72 +1,72 @@
-Received: from mail-qv1-f48.google.com (mail-qv1-f48.google.com [209.85.219.48])
+Received: from mail-qv1-f54.google.com (mail-qv1-f54.google.com [209.85.219.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF6F8429803
-	for <nvdimm@lists.linux.dev>; Fri, 16 Oct 2026 21:42:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20A7441A4E7
+	for <nvdimm@lists.linux.dev>; Fri, 16 Oct 2026 21:42:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792186979; cv=none; b=sFrn9QEDET0bmEbCSYD+s9Dttdj7/G2HxO/EGN2nptWkRFCpM6LFmNCLrZUe+TH45d6BWV+AFZwCCxiMvmX37ws4KMwzcdZjwuxEVvAmCJ7He/fP/GQTSj2dN/NQlbVPUAqNH5DVww+CKTKojtr/xAR/sKPO0DopIxEq1CMPSuk=
+	t=1792186979; cv=none; b=Mq/Yw6R1MluWsFOE1Fh3M5ACPfoUhXP2qF1gD7cavuL3QH97BRUFlT9lsyP8NddmmEuw53F6pAtvn7DUpnNvnpw/Qb1M3ST897uogjHiRdsbzonuDHHLBQubryx0+1ZvqaqYHRcCBwtTrv6cdd/Y/LKxyvvb784khauPtKgB9og=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1792186979; c=relaxed/simple;
-	bh=OrZefnPbM0hqSNG5LgeRH/CmfOYM38WyetYV8dzfLcQ=;
+	bh=epZ+Tv4twj9omcUdqFjy3579cWwXC1i6LoOmmF+11f4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=mkJYJ3EoVebM3wORJC0GBpqdI6rqToX1PV3yb2pytxMfwruv/LEWUH1CWyNqYaOS6V/bDSMuH1tB2iZB+gMJQHI2ppTjSDghr+xKCE+4Kteam1Q75S7zs9rLnl9yUURAx7TsppL+XEopxto6fTEoSqNv/RP6lCiZlvKb7PqUfzU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=Vo9JemPS; arc=none smtp.client-ip=209.85.219.48
+	 MIME-Version; b=jhCqG6QvpLo4BMu/hQg+EugvzIKzLL2Hx3mgTSc71r4+llUkGsee2Z+qoPj2qkC/7UR+jQ8nrOWLhzt1WNJVNpPyqFj+Fu86OEmOEoZCY26la7Is6lHY6XfeyMCtj+5Z636q4Pydo1L7X+vL6lf6/x7p41QYXsqReQPOv+BuFrs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net; spf=pass smtp.mailfrom=gourry.net; dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b=rPa5qCLr; arc=none smtp.client-ip=209.85.219.54
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="Vo9JemPS"
-Received: by mail-qv1-f48.google.com with SMTP id 6a1803df08f44-917b78dfe30so5719996d6.0
-        for <nvdimm@lists.linux.dev>; Fri, 16 Oct 2026 14:42:56 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.b="rPa5qCLr"
+Received: by mail-qv1-f54.google.com with SMTP id 6a1803df08f44-917aca1aee5so3992366d6.2
+        for <nvdimm@lists.linux.dev>; Fri, 16 Oct 2026 14:42:57 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1792186976; x=1792791776; darn=lists.linux.dev;
+        d=gourry.net; s=google; t=1792186977; x=1792791777; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=Yqel/rUpZMGCjsyhhgtEf+VLt6cd2+9NH+Tz/z60eU8=;
-        b=Vo9JemPS8my//BoEGNAn2fvLqAyTU9SbY/enQumJ3hgodfcPKEnoXTuO5VkbyYUxsb
-         oOO5q2kHY/EzcWr60trRrNe5TBIOsqaD1ygswyuqShasK60ohtAxUgSEtVLkQ32SCio1
-         qA095WJC6eU/+J9a6DXTwyVldpRWD+/xy/dd48CCfhBNE6iexsFEaKf4F7YWdMU/7OlW
-         Ljg9tadjF1UNfUAJuyyXyhuc34BQ6P4n853JiyLgYfmc0hWMo20FTkVFa4wVWP30AnS1
-         pO5I6RUI446s4EWK9QibSi3r2Gf+njSnRx0fL3QZXHwqtizTECdnL8R9znTWE3UCxhDy
-         UPcA==
+        bh=uzNpaewaJctA3/hnc9N3XOje4ftRWEwGxLiESyBnTyo=;
+        b=rPa5qCLrj13PlUErXQDBlGkxXURyYmedInGrxkqNFw8vtWW9WYswhif8mAnosVyQdW
+         rEAai4zNUrLmG7wOZ3VHXrRhPSREeon9xapO9pMEY+LL5Gs6+OWf5mD/xkWU5+nCBDl9
+         KEUwStPx7eogcGGXrLhFxYKmMQus3/TA6M73d53YaPGp1vYSzH8Ba4QQ3wmKFwEk5VMT
+         hZY+/gPG2vYXvX2oDYgu2W0/yAc6Sphi+Dy+74nzIeEb4q3mY+KgFd5Ar3NNYsE7EbX9
+         2QvXYgFzyVNc9CDLr6tikjdmbx81sCSXAZSedpecg1LtPRCqOp8FCLX9fo+7DrzlH7Ks
+         0Gvw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792186976; x=1792791776;
+        d=1e100.net; s=20260707; t=1792186977; x=1792791777;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=Yqel/rUpZMGCjsyhhgtEf+VLt6cd2+9NH+Tz/z60eU8=;
-        b=1l4MuAfVQQ9Yrh2mSsKQJ533PaVaifxGeaDFzbvzXa5E4/eKYoHDsRxXzyzvIN0QUM
-         Svk8TXx270M6ot6nEKTXxNY22OcVqg+dgG18S6iCZBUGMm0Kl620uojf01IZBUsd4l0I
-         wgDu1Wk31idp0LdCRJ5HTOHu2Klm+Y6O8KwyBjNECfBIRkADaJzFfeqIeGfkhWTKp2gJ
-         gVzzBMM+uOW2lZHBX8fFnHbCxIIpR+wzcKk/FWuXayyDJp+GttHbd9njfhPuVinTd0an
-         I3WePHYW3MTpeKDiIbpkJ044Qw6d44GC3YfNcb5XPkPSQzRhgoNrEpgo1P5UZdbFZxEF
-         QbfQ==
-X-Gm-Message-State: AFq9FYKlCF3Vss6f4atz+32tcXjuh8fVWs1YkOZqi6mOFCEmxCry7YfW
-	nRkMGbkWDUfK5SKRC72Z5yOC8czX1Y1Ngeb3LXuILbJhiS4iJRQK8iT4mxtRcdoa2RKc8qEWcsn
-	dGtcdZCE=
-X-Gm-Gg: AYBFou2PXoe+dcsUQ+WIJ3RtJjBJoawpJS8hg/PJt3v+QtNf2joTvji2lBMnb6uZIP7
-	vYcqQNsO2KuJ3+EYUH0RbZpwNgkC2OD1JbZuQI3fJOTg81jWlUOM2wErp5C+fu4nFXJjPvV3pWJ
-	O+jB3dbZC2rKU15OUUmzysO4101ZAMERCS+Vd/6ZJEcYbpJxIIU5r9t8VHlUbQY3JLk0pbibLtQ
-	EVIvAP48sZm4kSXdZwEPpBom0Db+B74BQ7C7tbjnob7y6xTkjS9wRWVuEKjWw5uAHbxBPpUbe89
-	JLflL01/mJh48qNNg6J7qTeCAIFlcv3ylLK08IXomz9Z7wI9KFaPdAa0O0+/O+/tkt2fP1RkOl9
-	zS9FECPFU6q+eX6C91QUHb3xB7EH82LPR/Abd1ldOfI8vlR4jIjB2WykcBPSPraspBSz8GTEs92
-	nB8Qcw+nj7spi0C6kvY07f3razutzz1KGf8FiD/uY0sEvCmUcULrnSVpjMFUsGsTO20TaaGiReV
-	p6PuL9uXVPpvus0J08o5Pz4G6ITYBSFdCk5F18bZCEewHuwURfl5CYi0pnl
-X-Received: by 2002:a05:620a:3728:b0:93e:94a4:a97d with SMTP id af79cd13be357-93f29a03e49mr222662085a.0.1792186975618;
-        Fri, 16 Oct 2026 14:42:55 -0700 (PDT)
+        bh=uzNpaewaJctA3/hnc9N3XOje4ftRWEwGxLiESyBnTyo=;
+        b=utBbRCUt28q83FVJhqkicgnaw/whCraXQweyGULje/5HTI2Wf/CkLZ2xr3Jrjx7wHf
+         fybUaCRpNKJeRm4ttsVvLDIhzdkVvh0BpSCNL8Qh6JrHodJDxlI77zQ3OSnRh0hMEi9+
+         wgdYZv65dWlBQEl3vdY6Py3JaVBIlI8wtsNLd04P2+C6w9YuA0FdDN4qavwkcn0Jd4Ou
+         Qiwo/YWe77mTtrkVpviTWZQLMxKUWjBZGbYdjIs33+erruCUBfWJAOVSuT3ixk2MxpWz
+         onzE/m8a730QhFvXn+TsmeAyyEdJ5OE06tYaw6P6sNopYLVQABBllp13rmr+HTB8xKqK
+         lfug==
+X-Gm-Message-State: AFq9FYJfGW8jXKoji/QvdTKtyusBqqKtJZ/YlJ5fkQ9Y0guauvSOofLN
+	wiJ7EVO5D3rcxgjcFUrOkEFBVAgFwb7QLU4RHDVTPdz1LwZuZ2UK35pfmXzLyHSZIjlfIA0B/V1
+	UKtjDWbc=
+X-Gm-Gg: AYBFou2/B/6vklQtLdoIoik/26G1KlqKXMJ26CV/dbIKMqII8d52NGFenhKIz7KTKwD
+	IqJoWtaAIb/+4ipMWtvI70gyFidrQ2jCMxQRDSusMrKYuUI7d3qSKDslcZ3oTg+4t6Y/x1lA1oG
+	ZyFgXyIvQgqNjSaYQa1OuaWrjOp3/bymW6K/1wMMVTPhJUj7uF05jZLmBZVR7S7dvY2VCOsNSWI
+	5t7ovKiyFeuBW2caXqoEKxV3vxweWERbtErV6m0ShpQ2OZmKipBb8DEFGkYFn5KL5Ms7gDjdb18
+	UTZjS+6PNJITpKt2M2zuFYRR+d8CaXJKWWh4czSm5E7a3sTR6u7k2Ju0ixNhOc+kFJnTneRR0dd
+	zywV1csYq8zh+Ll/Ko0ASNq7FVJTF865TpxUsqEBnHaAWHD4PBxyT5kIT7ao2U/3Tg+9FfRk2KX
+	nWWeWk/8NNAg4pcR0j/9HJR2oVrW4lIsbhrURPwL+0L+yebHAFN8L6V0CGyPJnQv0w+yziwww4a
+	3sCTicP1GM75LVQwgf0QwLZhsiuzyLQrBDOITvAKFjfGP3Q+nHqeWk+Rxkz
+X-Received: by 2002:a05:620a:2715:b0:93e:62a4:be72 with SMTP id af79cd13be357-93f29cc952cmr209031185a.24.1792186977019;
+        Fri, 16 Oct 2026 14:42:57 -0700 (PDT)
 Received: from gourry-fedora-PF4VCD3F.lan (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-93f1a1a8ee1sm312622985a.34.2026.10.16.14.42.52
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-93f1a1a8ee1sm312622985a.34.2026.10.16.14.42.56
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 16 Oct 2026 14:42:53 -0700 (PDT)
+        Fri, 16 Oct 2026 14:42:56 -0700 (PDT)
 From: "Gregory Price (Meta)" <gourry@gourry.net>
 To: nvdimm@lists.linux.dev,
 	linux-cxl@vger.kernel.org
 Cc: alison.schofield@intel.com,
 	Gregory Price <gourry@gourry.net>
-Subject: [PATCH 1/6] libdaxctl: add dax kmem atomic hotplug state accessors
-Date: Fri, 16 Oct 2026 17:42:43 -0400
-Message-ID: <20261016214248.443247-2-gourry@gourry.net>
+Subject: [PATCH 2/6] daxctl: online whole-device memory atomically when available
+Date: Fri, 16 Oct 2026 17:42:44 -0400
+Message-ID: <20261016214248.443247-3-gourry@gourry.net>
 X-Mailer: git-send-email 2.56.0
 In-Reply-To: <20261016214248.443247-1-gourry@gourry.net>
 References: <20261016214248.443247-1-gourry@gourry.net>
@@ -80,153 +80,160 @@ Content-Transfer-Encoding: 8bit
 
 From: Gregory Price <gourry@gourry.net>
 
-Recent kernels add /sys/bus/dax/devices/daxX.Y/state to dax_kmem
-devices for atomic whole-device hotplug. It reads 'unplugged',
-'offline', 'online', 'online_kernel' or 'online_movable', and accepts
-all but 'offline'.
+When the kernel provides daxX.Y/state, online a fully offline device
+by writing the online policy to it rather than onlining each block.
+This avoids racing other agents (udev, auto-online) that online blocks
+as they appear. The kernel only onlines from 'unplugged', so a device
+in 'offline' is unplugged first; if that fails (e.g. no memory
+hotremove support), the device is unchanged and is onlined per-block.
 
-Add an enum and get/set accessors for it. The getter returns
-DAXCTL_KMEM_UNKNOWN when the attribute is absent, so callers can fall
-back to per-block operations.
+Memory onlined by another agent is left alone: the 'offline' case
+re-checks that no block is online before unplugging, and losing a
+racing online falls back to the per-block path. A small window remains
+between that check and the unplug.
+
+The per-block path now fails when the device has no memory blocks,
+rather than reporting zero sections already online.
 
 Signed-off-by: Gregory Price <gourry@gourry.net>
 ---
- daxctl/lib/libdaxctl-private.h |  9 ++++++
- daxctl/lib/libdaxctl.c         | 59 ++++++++++++++++++++++++++++++++++
- daxctl/lib/libdaxctl.sym       |  6 ++++
- daxctl/libdaxctl.h             | 18 +++++++++++
- 4 files changed, 92 insertions(+)
+ daxctl/device.c | 105 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 105 insertions(+)
 
-diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-private.h
-index b902e3d..00e906c 100644
---- a/daxctl/lib/libdaxctl-private.h
-+++ b/daxctl/lib/libdaxctl-private.h
-@@ -58,6 +58,15 @@ static const char *state_strings[] = {
- 	[MEM_ZONE_MOVABLE] = "online_movable",
- };
- 
-+/* dax_kmem daxX.Y/state strings */
-+static const char *kmem_state_strings[] = {
-+	[DAXCTL_KMEM_UNPLUGGED] = "unplugged",
-+	[DAXCTL_KMEM_OFFLINE] = "offline",
-+	[DAXCTL_KMEM_ONLINE] = "online",
-+	[DAXCTL_KMEM_ONLINE_KERNEL] = "online_kernel",
-+	[DAXCTL_KMEM_ONLINE_MOVABLE] = "online_movable",
-+};
-+
- /**
-  * struct daxctl_region - container for dax_devices
-  */
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index 01b1915..cbb42e3 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -1794,3 +1794,62 @@ DAXCTL_EXPORT int daxctl_dev_has_online_memory(struct daxctl_dev *dev)
- 	else
- 		return 0;
+diff --git a/daxctl/device.c b/daxctl/device.c
+index 47942f1..fd84799 100644
+--- a/daxctl/device.c
++++ b/daxctl/device.c
+@@ -510,10 +510,99 @@ static const char *parse_device_options(int argc, const char **argv,
+ 	return device;
  }
-+
-+DAXCTL_EXPORT enum daxctl_kmem_state daxctl_dev_get_kmem_state(
-+		struct daxctl_dev *dev)
+ 
++static int dev_online_memory_atomic(struct daxctl_dev *dev,
++		struct daxctl_memory *mem, enum daxctl_kmem_state state)
 +{
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	char *path = dev->dev_buf;
-+	int len = dev->buf_len;
-+	char buf[SYSFS_ATTR_SIZE];
-+	int i;
++	const char *devname = daxctl_dev_get_devname(dev);
++	enum daxctl_kmem_state target;
++	int num_sections, num_on, rc;
 +
-+	if (snprintf(path, len, "%s/state", dev->dev_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n",
-+				daxctl_dev_get_devname(dev));
-+		return DAXCTL_KMEM_UNKNOWN;
++	if (param.no_movable)
++		target = DAXCTL_KMEM_ONLINE;
++	else
++		target = DAXCTL_KMEM_ONLINE_MOVABLE;
++
++	if (state == DAXCTL_KMEM_OFFLINE) {
++		/*
++		 * Onlining requires 'unplugged'. Don't unplug memory another
++		 * agent onlined meanwhile (a small window remains).
++		 */
++		num_on = daxctl_memory_is_online(mem);
++		if (num_on < 0) {
++			fprintf(stderr, "%s: failed to determine online state: %s\n",
++				devname, strerror(-num_on));
++			return num_on;
++		}
++		if (num_on > 0)
++			return -EAGAIN;
++		rc = daxctl_dev_set_kmem_state(dev, DAXCTL_KMEM_UNPLUGGED);
++		if (rc < 0) {
++			/* unchanged (e.g. no hotremove support); go per-block */
++			if (param.verbose)
++				fprintf(stderr, "%s: unplug failed: %s\n",
++					devname, strerror(-rc));
++			return -EAGAIN;
++		}
 +	}
 +
-+	/* absent on older kernels */
-+	if (sysfs_read_attr(ctx, path, buf) < 0)
-+		return DAXCTL_KMEM_UNKNOWN;
-+
-+	for (i = DAXCTL_KMEM_UNPLUGGED; i <= DAXCTL_KMEM_ONLINE_MOVABLE; i++)
-+		if (strcmp(buf, kmem_state_strings[i]) == 0)
-+			return i;
-+
-+	dbg(ctx, "%s: unrecognized kmem state '%s'\n",
-+			daxctl_dev_get_devname(dev), buf);
-+	return DAXCTL_KMEM_UNKNOWN;
-+}
-+
-+DAXCTL_EXPORT int daxctl_dev_set_kmem_state(struct daxctl_dev *dev,
-+		enum daxctl_kmem_state state)
-+{
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	char *path = dev->dev_buf;
-+	int len = dev->buf_len;
-+
-+	switch (state) {
-+	case DAXCTL_KMEM_UNPLUGGED:
-+	case DAXCTL_KMEM_ONLINE:
-+	case DAXCTL_KMEM_ONLINE_KERNEL:
-+	case DAXCTL_KMEM_ONLINE_MOVABLE:
-+		break;
-+	/* 'offline' is read-only */
-+	case DAXCTL_KMEM_OFFLINE:
-+	case DAXCTL_KMEM_UNKNOWN:
-+	default:
-+		dbg(ctx, "%s: invalid kmem state %d\n",
-+				daxctl_dev_get_devname(dev), state);
-+		return -EINVAL;
++	rc = daxctl_dev_set_kmem_state(dev, target);
++	if (rc == -EBUSY) {
++		/* back off only if another writer onlined it */
++		switch (daxctl_dev_get_kmem_state(dev)) {
++		case DAXCTL_KMEM_ONLINE:
++		case DAXCTL_KMEM_ONLINE_KERNEL:
++		case DAXCTL_KMEM_ONLINE_MOVABLE:
++			return -EAGAIN;
++		default:
++			break;
++		}
++	}
++	if (rc < 0) {
++		fprintf(stderr, "%s: failed to online memory: %s\n",
++			devname, strerror(-rc));
++		if (state == DAXCTL_KMEM_OFFLINE)
++			fprintf(stderr,
++				"%s: device left unplugged; retry to recover\n",
++				devname);
++		return rc;
 +	}
 +
-+	if (snprintf(path, len, "%s/state", dev->dev_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n",
-+				daxctl_dev_get_devname(dev));
++	/* all sections should now be online */
++	num_sections = daxctl_memory_num_sections(mem);
++	if (num_sections < 0) {
++		fprintf(stderr, "%s: failed to get number of memory sections\n",
++			devname);
++		return num_sections;
++	}
++	if (num_sections == 0) {
++		fprintf(stderr, "%s: no memory sections present after online\n",
++			devname);
 +		return -ENXIO;
 +	}
 +
-+	return sysfs_write_attr(ctx, path, kmem_state_strings[state]);
++	num_on = daxctl_memory_is_online(mem);
++	if (num_on < 0) {
++		fprintf(stderr, "%s: failed to determine online state: %s\n",
++			devname, strerror(-num_on));
++		return num_on;
++	}
++	if (num_on < num_sections) {
++		fprintf(stderr, "%s: failed to online %d memory sections\n",
++			devname, num_sections - num_on);
++		return -ENXIO;
++	}
++	if (param.verbose)
++		fprintf(stderr, "%s: %d memory section%s onlined\n", devname,
++			num_on, num_on == 1 ? "" : "s");
++
++	return 0;
 +}
-diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
-index 43dd60b..d247542 100644
---- a/daxctl/lib/libdaxctl.sym
-+++ b/daxctl/lib/libdaxctl.sym
-@@ -113,3 +113,9 @@ global:
- 	daxctl_dev_get_mode;
- 	daxctl_dev_is_system_ram_mode;
- } LIBDAXCTL_10;
 +
-+LIBDAXCTL_12 {
-+global:
-+	daxctl_dev_get_kmem_state;
-+	daxctl_dev_set_kmem_state;
-+} LIBDAXCTL_11;
-diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
-index 7ec159e..e2812cc 100644
---- a/daxctl/libdaxctl.h
-+++ b/daxctl/libdaxctl.h
-@@ -77,6 +77,24 @@ int daxctl_dev_get_target_node(struct daxctl_dev *dev);
- int daxctl_dev_will_auto_online_memory(struct daxctl_dev *dev);
- int daxctl_dev_has_online_memory(struct daxctl_dev *dev);
+ static int dev_online_memory(struct daxctl_dev *dev)
+ {
+ 	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
+ 	const char *devname = daxctl_dev_get_devname(dev);
++	enum daxctl_kmem_state state;
+ 	int num_sections, num_on, rc;
  
-+/*
-+ * dax_kmem whole-device hotplug state (daxX.Y/state). UNKNOWN means the
-+ * attribute is absent (older kernel, or device not bound to kmem) or
-+ * reports a state this library does not recognize.
-+ */
-+enum daxctl_kmem_state {
-+	DAXCTL_KMEM_UNKNOWN = -1,
-+	DAXCTL_KMEM_UNPLUGGED = 0,
-+	DAXCTL_KMEM_OFFLINE,
-+	DAXCTL_KMEM_ONLINE,
-+	DAXCTL_KMEM_ONLINE_KERNEL,
-+	DAXCTL_KMEM_ONLINE_MOVABLE,
-+};
-+
-+enum daxctl_kmem_state daxctl_dev_get_kmem_state(struct daxctl_dev *dev);
-+int daxctl_dev_set_kmem_state(struct daxctl_dev *dev,
-+		enum daxctl_kmem_state state);
-+
- struct daxctl_memory;
+ 	if (!mem) {
+@@ -522,6 +611,18 @@ static int dev_online_memory(struct daxctl_dev *dev)
+ 		return -ENXIO;
+ 	}
  
- enum daxctl_dev_mode {
++	/*
++	 * Online a fully offline device atomically where supported.
++	 * -EAGAIN means another agent onlined memory, or the device
++	 * could not be unplugged first; go per-block.
++	 */
++	state = daxctl_dev_get_kmem_state(dev);
++	if (state == DAXCTL_KMEM_UNPLUGGED || state == DAXCTL_KMEM_OFFLINE) {
++		rc = dev_online_memory_atomic(dev, mem, state);
++		if (rc != -EAGAIN)
++			return rc;
++	}
++
+ 	/* get total number of sections and sections already online */
+ 	num_sections = daxctl_memory_num_sections(mem);
+ 	if (num_sections < 0) {
+@@ -529,6 +630,10 @@ static int dev_online_memory(struct daxctl_dev *dev)
+ 			devname);
+ 		return num_sections;
+ 	}
++	if (num_sections == 0) {
++		fprintf(stderr, "%s: no memory sections present\n", devname);
++		return -ENXIO;
++	}
+ 
+ 	num_on = daxctl_memory_is_online(mem);
+ 	if (num_on < 0) {
 -- 
 2.53.0-Meta
 
