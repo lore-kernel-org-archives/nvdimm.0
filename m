@@ -1,56 +1,54 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=130.117.225.111
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1792606274;
-	b=EfizN+zw7Ig5Jll/YDo5gye2AHfHoYcbeW3HjmCU/r5ISbiuDjhbPLxa2EAV2Azc//4+
-	 nPNazTGlFqs97xMgdX26z6hCgJd2fMlhMK9g38BJSdIKSplQ1y++kuUAODaGQnHHXy9j5
-	 T1rWnRW7kNOOhe6pI0NvUfvAHf/714RwzQj3cltPRjbjXPduG50+lbupriCAXQTT1uO4c
-	 +L5OUI59rvSop98fVB5BIhLDkb/46vs3u360IA7StuZ2dRgnnvzTqzm8GWSCPV4hhb9p4
-	 +5UKnXOQc7ili8a2qPWTMsg1HYetl+R1OP/cuYEVOrM8wJjchK9VunFx5B5IrWofViA==
+	b=DXEvlKCmnl0HuzFBF31gyat+jBLICCivzjShErxrOebQ+eU6b1NPlvEkVjShbfCl15uw
+	 z9seWsic6M3LdV7r4wSuo1K7/qtbG6QoTlGjhG4TY4SaYtQHfnPyIDiCv3JwxOyE9ci5t
+	 n8AfEiTwtgxN5uY7HhmyqBEJxAhololOBanju4Gf61blSkhA6rNEPNPwiK+cMqWkNJb2J
+	 1nZk9BTAaGX79dwFjYKCXjahGLklGkgN2Ele95r8RpuH82yzTDZAyEnW/kADNaJTdvWBe
+	 n5b2qsmF4H2a3+9HwWNpySy0Jde9W58LCc0Qkq09zA2qSaugfRWFFrYl2GRTrOk0bOw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1792606274;
-	h=DMARC-Filter:DKIM-Signature:Received:From:Subject:Date:Message-Id:
-	 MIME-Version:Content-Type:Content-Transfer-Encoding:X-B4-Tracking:
-	 X-Change-ID:To:Cc:X-Mailer:X-Developer-Signature:X-Developer-Key;
-	bh=SBcAfdk1AvTqfXhE/cLVYMH0/26jRBw6wDx068f64L8=;
-	b=VACkkpfC8ac7TrkRvqidGY/oIlozWWyA6EfD1xY4u6jcsYkl+6fPd9DlRJoWxvG9EHwH
-	 jQwmzL8xkQxrK+JKl+VMPycf6QwGnsfwImxuvf2+/RZS9Vt5HzkI+dP4DrD4XzJ9KN+YU
-	 NFsiRPkwJdr3h+jc8L0NgKG5EjPjnGTq7nYzc8HCmFT3F8KUeOWYmr/QN6tlzhW3HRYP5
-	 rKnxl97y3Mj+9jLcLFnPqjlNqY+WbQQGbsEZBzkSgY47YHVlkgLzWvzN598FSqgk7nOQH
-	 TMq4yv//d4pzqp7Kl+wXNdLEozfEewHVY4YnooFTdQZtD4F98geewTTce9qlshXlJ1A==
+	h=DMARC-Filter:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
+	 Content-Type:Content-Transfer-Encoding:Message-Id:References:
+	 In-Reply-To:To:Cc:X-Mailer:X-Developer-Signature:X-Developer-Key;
+	bh=OsbhucexF+rcBAfrmOODWfn/JuMdIRafkiiNr+d0yZw=;
+	b=XvEixtOKgOdxyGgY6Nh1chO0+eHNMSiH4cXoI8B1yFH82GObCjR/DARTK0JDXF2zMdiL
+	 fLbknDJSfqdYu4ASwwPYpWSv8zoilwEPG1R6Lpz42KFeeptbvofXB5Su7aDcLFqOZPArF
+	 R/jp5asLYOuA1LXb5mDVoA0rRL3jWi95PSpeukE2dDLpO90gH1WbCLSbViY4DITqfoOVt
+	 +chl7eX3EyTla065JKBWpvIb0Z7ZB3n9Unybj+niBvIqrCiiy9cpAogGRF63BrvEL+qF1
+	 fotabhUo72xCiLtm5sNLG9gPKh9bxCFxZTVWU0OTfth3J4Og1shTodEg+kID6Edq0qw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=virtuozzo.com;
 	spf=pass smtp.mailfrom=virtuozzo.com;
-	dkim=pass header.d=virtuozzo.com header.i=@virtuozzo.com header.a=rsa-sha256 header.s=relay header.b=Y0nGvAzD;
+	dkim=pass header.d=virtuozzo.com header.i=@virtuozzo.com header.a=rsa-sha256 header.s=relay header.b=bphzNDuF;
 	arc=none smtp.remote-ip=130.117.225.111
 Received: from relay.virtuozzo.com (relay.virtuozzo.com [130.117.225.111])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 636DD606A31D;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63631606A31B;
 	Wed, 21 Oct 2026 18:11:13 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 636DD606A31D
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 63631606A31B
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=virtuozzo.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=virtuozzo.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=virtuozzo.com header.i=@virtuozzo.com header.a=rsa-sha256 header.s=relay header.b=Y0nGvAzD
+	dkim=pass (2048-bit key, unprotected) header.d=virtuozzo.com header.i=@virtuozzo.com header.a=rsa-sha256 header.s=relay header.b=bphzNDuF
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=virtuozzo.com; s=relay; h=Content-Type:MIME-Version:Message-Id:Date:Subject
-	:From; bh=SBcAfdk1AvTqfXhE/cLVYMH0/26jRBw6wDx068f64L8=; b=Y0nGvAzD9q/QlX076wT
-	H2f//OoLXdbANexbqcrmpWSPR9oNkB2XZrtg3dQZ8y6KGI0BdpYPef7z2Ujb2z17R8ODE4V+DSrO5
-	tQUXQC8uEKqI0mFKvHnexfbZdrKcepz4y9BniXxAqTq6ynhhPsZPsDoAtf5/DaxO5Nq0k+R4mZxmL
-	/NZlV5D8yyq+YS+7AxmP2s1/zi0GcK7GDnNGarXWPNCoXA3Fvu0eV6ZXJzSBLXa2TSpJtjVmqS0Ww
-	a1OvwhBIqvdJqudA8D5dJrfDxBEhdgCyvE3slHgCYGHijsAI07Rzk2YdKzYHmvJzKUD84Wn0vPcmL
-	YiDq4MV/zjlikIg==;
+	d=virtuozzo.com; s=relay; h=Message-Id:Content-Type:MIME-Version:Subject:Date
+	:From; bh=OsbhucexF+rcBAfrmOODWfn/JuMdIRafkiiNr+d0yZw=; b=bphzNDuFUs70GthFHdh
+	VBWynZ5FxsGz8H4TEAMcQbU66HWmWkxqvBKaBHRMr5N/qcZVhuXAeMxThsyY+8trgi4n8eVV3KAoF
+	3CRXP4gGNAMAG7UXd86ASLhrnylNtfHdUqGtO2o8L8qDVaZ8xTr56LCsNkqg7KDWkgQuLKQT33DSi
+	Fnkt3VcWjQCQGhRQQTURXt0Pk7vNjujYMY9JM0WFYt06lRNoBZHP2Nz4RKnu820DwqJt8ESeQOHrZ
+	7p8hXfJKPMuubxsW3/0y0V087C8afnPWHHHwXvgh+2q93m22pJZ9hgQWUNpxRv1aj7izo4U5RIesJ
+	8jBspQL3QkZFdbQ==;
 Received: from ch-demo-asa.virtuozzo.com ([130.117.225.8] helo=f0.sw.ru)
 	by relay.virtuozzo.com with esmtp (Exim 4.96)
 	(envelope-from <khorenko@virtuozzo.com>)
-	id 1xJaif-00ANvl-0p;
+	id 1xJaif-00ANvl-3C;
 	Wed, 21 Oct 2026 20:11:04 +0200
 From: Konstantin Khorenko <khorenko@virtuozzo.com>
-Subject: [PATCH 0/2] mm/huge_memory: take a reference on a device DAX PUD
- copied by fork
-Date: Wed, 21 Oct 2026 20:10:52 +0200
-Message-Id: <20261021-vstor-150143-copy_huge_pud-folio-refcount-v1-0-8bd88551f9be@virtuozzo.com>
+Date: Wed, 21 Oct 2026 20:10:54 +0200
+Subject: [PATCH 2/2] selftests/mm: test fork of a device DAX PUD
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -62,98 +60,234 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIACwA2WoC/yXNWwrCMBCF4a2UeXYgiRovWylSajptRyQTcilK6
- d6N+vhx4PwrJIpMCa7NCpEWTiy+Qu8acHPvJ0IeqsEoY7UyGpeUJaI+Kn3Yo5Pw7uYyURfKgKM
- 8WTDS6KT4jNQbeyFrz+akoP6FuvDr12pvf6dyf5DL3wBs2weyRX6cjQAAAA==
-X-Change-ID: 20261021-vstor-150143-copy_huge_pud-folio-refcount-ea269e668270
+Message-Id: <20261021-vstor-150143-copy_huge_pud-folio-refcount-v1-2-8bd88551f9be@virtuozzo.com>
+References: <20261021-vstor-150143-copy_huge_pud-folio-refcount-v1-0-8bd88551f9be@virtuozzo.com>
+In-Reply-To: <20261021-vstor-150143-copy_huge_pud-folio-refcount-v1-0-8bd88551f9be@virtuozzo.com>
 To: Andrew Morton <akpm@linux-foundation.org>, 
  David Hildenbrand <david@kernel.org>, Lorenzo Stoakes <ljs@kernel.org>, 
  Alistair Popple <apopple@nvidia.com>, Dan Williams <djbw@kernel.org>
 Cc: linux-mm@kvack.org, nvdimm@lists.linux.dev, 
  linux-kselftest@vger.kernel.org, linux-kernel@vger.kernel.org, 
- Konstantin Khorenko <khorenko@virtuozzo.com>, stable@vger.kernel.org
+ Konstantin Khorenko <khorenko@virtuozzo.com>
 X-Mailer: b4 0.16.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2640;
+X-Developer-Signature: v=1; a=openpgp-sha256; l=6368;
  i=khorenko@virtuozzo.com; h=from:subject:message-id;
- bh=u9/28GqAiRcjxN3gSB/+og/EEsQKnoWl2BqSCLQbuXw=;
- b=owEBbQKS/ZANAwAKAVGWCkf5YVwqAcsmYgBq2QA38h+Jm/HpSxjoZpvbreseAaPuYo90VD7VG
- Wcb5XtQjcqJAjMEAAEKAB0WIQRWD23IPcXT0GO9CCxRlgpH+WFcKgUCatkANwAKCRBRlgpH+WFc
- Kg4lEADGj9dohxRIf7msa+ab+qR251KQGQWsoZ160OAxzAbbcuxLeuNED8iLrada1ekOGqlIALq
- 9TeT8csTn+1QtEppLfRD3T7G9aM7gSGsdfe7u0qgXj8d37mer0svdAirPkw97VXbAf8nVEtuH2i
- 5+Dj1pBnuIUG3oRyLz7Lvmp7WNGmNFlfjnT8NpSMoAc6b7b+2Ws2EVokRSwghtZ5L0ufxWQ+uzr
- 7Pe7/Lm4sTM6C9EwY6W+8xP7epOz/wm7d/RiMDd6zkAww7CZvU8lPXW3ZRm0FAza0YgWa3oqQE5
- lZ8uPyun37txmrB/e/3kngt3VLlpwnphMBYYWqoSs3LJfGh4JfWsRM7c4lHwP4uvRi3CfXfZTAq
- RaNeTW1IXsIJP7edjxZb2LcadEhXbq7gbmgE+ix9l3kAOPtXdyL+5re75E9o0QF/uAh28AFDNYD
- 0dfO53P/W3BcEsRwCaUP/QoLPHwX+b44oONpstxfEGeN76Ho52xzm9HGVNijxF/sFcPh8zbYUyI
- X1OdK/NYrbs8hRsjwRRS0xdOcW6vZnG0/tJUpH/nGT3cinC88aIuGwV7b3uv6Y9mCmIDu9zTFdQ
- RB96wlBCgdyrUwX0UC7Itu172JsXEcaUXbCkitF71D4WJ1oJDp+G/XYHa3p2lWg6Bq05MRSY9gc
- B7qrnxk3a0hPLUg==
+ bh=BeNA8ETryoYJiw28wyqlB0gBoEmrqSoabqrZQEIon90=;
+ b=owEBbQKS/ZANAwAKAVGWCkf5YVwqAcsmYgBq2QA4NM4cK0BSXBvs719jhs+keVlGRHdHBjcML
+ wTBgkR55mCJAjMEAAEKAB0WIQRWD23IPcXT0GO9CCxRlgpH+WFcKgUCatkAOAAKCRBRlgpH+WFc
+ KtfAD/9QxPEoE+F/QytUzjVMxLm6TvuTIS+leZuqy1dsU6rztem0HhWwd5w4656mYyhJVWZFtPE
+ P84j2qHMDV2/6LfwwCPP6BoVMolw0BAbKKeqVPAPQ+2Fj3lkfttcskPevVlHeqZxvRSV6pcVOf/
+ VSjHJ3bAkiPZrywR9k1B7N0nA6+uvj5WEQf3uno73/RMT5vH/jABaRxfhLQb2EywjclU41G6iYq
+ wLrPPmpToN0oIR0Y2d+OqqZsIyqbgi66kRIiYCFeNXg4Si8LVmfqTs+4DiO1B/l6d/u7Du8R/9d
+ A73Sqicb8snS3pbCF9H2Guw6wR43/Dm9t58PK2WGbB1NssBF8OmKhreg8G2ovYf7pJVE6M8Tatw
+ K7EIlTnl6IqXcFsNWKBdGy25i+kMYUFXQP3c+Xs2Yzwst67zy72nIZ1vy9JUTZUqE/0V4T4JPiX
+ i/AUgo691TA6rzytxstQCYFeuzxYtcnAHSnPxaoVGPTLbYk2t9WhhlBtyUWaL+b1CoBfC571CJC
+ V3TZ9b2frpEy7Yx2bSaLXwPVSMfzyeeoYnHSTNuxgsqbFr0DNy86yyA9+WpF7NZoEuE5qERUB80
+ Woob7YObg2T/Wh5Bpg4MvDMBhFCsP5QYXPHd2E/bV5WVbN/nHVyUUkDtq71wlRVSfNVB/XUsui6
+ zvYyybekvCWG2tw==
 X-Developer-Key: i=khorenko@virtuozzo.com; a=openpgp;
  fpr=560F6DC83DC5D3D063BD082C51960A47F9615C2A
 
-copy_huge_pud() copies a device DAX PUD into the child without the
-reference, rmap and counter that vmf_insert_folio_pud() took, so the
-child's unmap takes them from the parent. fork copies a device DAX VMA
-once it has a guard region, so it takes no more than:
+Fork a process that maps a device DAX instance with a PUD, in a VMA
+whose page tables fork copies because it has a guard region. The child
+must account the copied PUD in its RssFile.
 
-1. map a devdax instance with 1 GiB alignment and fault in a PUD;
-2. MADV_GUARD_INSTALL a page elsewhere in the VMA;
-3. fork, and let the child exit.
+Without a reference, an rmap and a counter for the copied PUD, the
+child's RssFile misses the PUD, and its exit leaves the child's file
+counter negative: "Bad rss-counter state".
 
-Patch 1 is the fix, patch 2 a selftest for it. I found it while
-reworking copy_huge_pmd() for fork after David's review [1]; it is
-independent of that series and applies to v7.3-rc7 on its own.
+It runs only on a device named in argv[1] or $FORK_DAX_PUD_DEVICE: on
+a kernel without the fix it leaves the device folio's mapcount below
+zero.
 
-Testing
-=======
-
- * v7.3-rc7 x86_64 KVM guest with CONFIG_DEBUG_VM
- * pmem from memmap=3G!4G
- * devdax made with "ndctl create-namespace -m devdax -a 1G":
-
-  kernel              fork_dax_pud   log
-  7.3-rc7             not ok         BUG: Bad rss-counter state mm:...
-                                     type:MM_FILEPAGES val:-262144
-  7.3-rc7 + patch 1   ok             clean
-
-A variant that writes to the device and forks three times also hit,
-on 7.3-rc7:
-
-  WARNING: ./include/linux/rmap.h:159 at
-  __folio_large_mapcount_sanity_checks+0x90/0x150
-
-The selftest only runs on a device given in FORK_DAX_PUD_DEVICE or
-argv[1], as on an unfixed kernel it leaves that device's folio with a
-mapcount below zero. On pmem emulated in RAM, with
-CONFIG_X86_PMEM_LEGACY and CONFIG_DEV_DAX_PMEM:
-
-  boot with memmap=3G!4G
-  ndctl create-namespace -f -e namespace0.0 -m devdax -a 1G
-  FORK_DAX_PUD_DEVICE=/dev/dax0.0 ./fork_dax_pud
-
-[1] https://lore.kernel.org/linux-mm/20261014-b4-prep-vstor-149847-copy_huge_pmd-recheck-special-pmd-v3-0-85eaec8417f6@virtuozzo.com/
-
+Assisted-by: LLM
 Signed-off-by: Konstantin Khorenko <khorenko@virtuozzo.com>
 ---
-Konstantin Khorenko (2):
-      mm/huge_memory: take a reference on a folio PUD copied by fork
-      selftests/mm: test fork of a device DAX PUD
-
  MAINTAINERS                               |   1 +
- include/linux/huge_mm.h                   |   2 +-
- include/linux/rmap.h                      |  22 +++++
- mm/huge_memory.c                          |  13 ++-
- mm/memory.c                               |   4 +-
  tools/testing/selftests/mm/Makefile       |   1 +
  tools/testing/selftests/mm/fork_dax_pud.c | 136 ++++++++++++++++++++++++++++++
  tools/testing/selftests/mm/run_vmtests.sh |   1 +
- 8 files changed, 175 insertions(+), 5 deletions(-)
----
-base-commit: a804c5742bff224d4cb4d25dd383554d598be32b
-change-id: 20261021-vstor-150143-copy_huge_pud-folio-refcount-ea269e668270
+ 4 files changed, 139 insertions(+)
 
-Best regards,
---  
-Konstantin Khorenko,
-Virtuozzo Linux Kernel Team
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 7b5cab72d851b..48653704007f3 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -17481,6 +17481,7 @@ F:	include/trace/events/huge_memory.h
+ F:	mm/huge_memory.c
+ F:	mm/khugepaged.c
+ F:	mm/mm_slot.h
++F:	tools/testing/selftests/mm/fork_dax_pud.c
+ F:	tools/testing/selftests/mm/khugepaged.c
+ F:	tools/testing/selftests/mm/split_huge_page_test.c
+ F:	tools/testing/selftests/mm/transhuge-stress.c
+diff --git a/tools/testing/selftests/mm/Makefile b/tools/testing/selftests/mm/Makefile
+index 2d5366196e309..86914aaf8e6ad 100644
+--- a/tools/testing/selftests/mm/Makefile
++++ b/tools/testing/selftests/mm/Makefile
+@@ -104,6 +104,7 @@ TEST_GEN_FILES += guard-regions
+ TEST_GEN_FILES += merge
+ TEST_GEN_FILES += rmap
+ TEST_GEN_FILES += folio_split_race_test
++TEST_GEN_FILES += fork_dax_pud
+ 
+ ifneq ($(ARCH),arm64)
+ TEST_GEN_FILES += soft-dirty
+diff --git a/tools/testing/selftests/mm/fork_dax_pud.c b/tools/testing/selftests/mm/fork_dax_pud.c
+new file mode 100644
+index 0000000000000..1fcf46341ace2
+--- /dev/null
++++ b/tools/testing/selftests/mm/fork_dax_pud.c
+@@ -0,0 +1,136 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * fork() of a process that maps a device DAX instance with a PUD, in a VMA
++ * whose page tables fork copies because it has a guard region. The child
++ * must account the copied PUD in its RssFile.
++ *
++ * Runs only on a device named in argv[1] or $FORK_DAX_PUD_DEVICE that
++ * nothing else maps, with 1 GiB alignment and at least 2 GiB. To make one
++ * on pmem emulated in RAM, with CONFIG_X86_PMEM_LEGACY and
++ * CONFIG_DEV_DAX_PMEM:
++ *
++ *	boot with memmap=3G!4G
++ *	ndctl create-namespace -f -e namespace0.0 -m devdax -a 1G
++ *	FORK_DAX_PUD_DEVICE=/dev/dax0.0 ./fork_dax_pud
++ */
++#define _GNU_SOURCE
++#include <asm-generic/mman.h> /* Force the import of the tools version. */
++#include <errno.h>
++#include <fcntl.h>
++#include <limits.h>
++#include <setjmp.h>
++#include <signal.h>
++#include <stdbool.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <unistd.h>
++#include <sys/mman.h>
++#include <sys/wait.h>
++
++#include "kselftest.h"
++#include "vm_util.h"
++
++#define SZ_1G		(1UL << 30)
++#define DAX_SYSFS	"/sys/bus/dax/devices"
++
++static sigjmp_buf sigbus_jmp;
++
++static void sigbus_handler(int sig)
++{
++	siglongjmp(sigbus_jmp, 1);
++}
++
++static unsigned long sysfs_ul(const char *dev, const char *attr)
++{
++	char path[PATH_MAX], buf[64];
++	unsigned long val = 0;
++	FILE *f;
++
++	snprintf(path, sizeof(path), DAX_SYSFS "/%s/%s", dev, attr);
++	f = fopen(path, "r");
++	if (!f)
++		return 0;
++	if (fgets(buf, sizeof(buf), f))
++		val = strtoul(buf, NULL, 0);
++	fclose(f);
++	return val;
++}
++
++static bool dax_dev_ok(const char *path)
++{
++	const char *name = strrchr(path, '/');
++
++	name = name ? name + 1 : path;
++	return sysfs_ul(name, "align") == SZ_1G &&
++	       sysfs_ul(name, "size") >= 2 * SZ_1G;
++}
++
++static long rss_file_kb(void)
++{
++	char line[256];
++	long kb = -1;
++	FILE *f = fopen("/proc/self/status", "r");
++
++	if (!f)
++		return -1;
++	while (fgets(line, sizeof(line), f))
++		if (sscanf(line, "RssFile: %ld", &kb) == 1)
++			break;
++	fclose(f);
++	return kb;
++}
++
++int main(int argc, char **argv)
++{
++	const char *path = argc > 1 ? argv[1] : getenv("FORK_DAX_PUD_DEVICE");
++	char *area, *mem;
++	int fd, status;
++	pid_t pid;
++
++	ksft_print_header();
++	if (!path)
++		ksft_exit_skip("no devdax device given\n");
++	if (!dax_dev_ok(path))
++		ksft_exit_skip("%s: needs 1 GiB alignment and 2 GiB\n", path);
++
++	fd = open(path, O_RDONLY);
++	if (fd < 0)
++		ksft_exit_skip("%s: %s\n", path, strerror(errno));
++	area = mmap(NULL, 3 * SZ_1G, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++	if (area == MAP_FAILED)
++		ksft_exit_fail_perror("mmap");
++	mem = (char *)(((unsigned long)area + SZ_1G - 1) & ~(SZ_1G - 1));
++	mem = mmap(mem, 2 * SZ_1G, PROT_READ, MAP_SHARED | MAP_FIXED, fd, 0);
++	if (mem == MAP_FAILED)
++		ksft_exit_skip("mmap %s: %s\n", path, strerror(errno));
++
++	/* A PUD in the first GiB, a guard page at the end of the second. */
++	signal(SIGBUS, sigbus_handler);
++	if (sigsetjmp(sigbus_jmp, 1))
++		ksft_exit_skip("%s cannot be mapped with a PUD\n", path);
++	FORCE_READ(mem[0]);
++	signal(SIGBUS, SIG_DFL);
++	if (madvise(mem + 2 * SZ_1G - getpagesize(), getpagesize(),
++		    MADV_GUARD_INSTALL))
++		ksft_exit_skip("MADV_GUARD_INSTALL: %s\n", strerror(errno));
++
++	ksft_set_plan(1);
++	fflush(stdout);
++	pid = fork();
++	if (pid < 0)
++		ksft_exit_fail_perror("fork");
++	if (!pid)
++		_exit(rss_file_kb() < (long)(SZ_1G >> 10) ? 10 : 0);
++	if (waitpid(pid, &status, 0) != pid)
++		ksft_exit_fail_perror("waitpid");
++
++	if (!WIFEXITED(status) || WEXITSTATUS(status))
++		ksft_test_result_fail("child does not account the copied PUD\n");
++	else
++		ksft_test_result_pass("devdax PUD copied by fork\n");
++
++	munmap(area, 3 * SZ_1G);
++	close(fd);
++	ksft_finished();
++}
+diff --git a/tools/testing/selftests/mm/run_vmtests.sh b/tools/testing/selftests/mm/run_vmtests.sh
+index d09f9f6a384ee..7294e1334d1da 100755
+--- a/tools/testing/selftests/mm/run_vmtests.sh
++++ b/tools/testing/selftests/mm/run_vmtests.sh
+@@ -445,6 +445,7 @@ fi
+ CATEGORY="thp" run_test ./transhuge-stress -d 20
+ 
+ CATEGORY="thp" run_test ./folio_split_race_test
++CATEGORY="thp" run_test ./fork_dax_pud
+ 
+ CATEGORY="migration" run_test ./migration
+ 
+
+-- 
+2.43.0
 
