@@ -1,58 +1,74 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.10
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792692685;
-	b=nDIXIh9W90/cuMzZeHtMtKETsi/ugZW4qFl9LB/HW12vvit8d3JkacGyXqpfAWI4spSd
-	 DHIbN51HKoEB3CuZNrgx2sLbkcNsJ/x/+OMRAp51xGWMwsiqeBLKUnEhU+BexgFwdi2q8
-	 AxSUPF3W5ZGDxilZsxloXG7TZ4ysSpEFHc7Y7ShnDZoYxbPu4UXMJYUMEHFFEzR+d7Z49
-	 Gf3QcIYk9Iya9cfaLLxs+5CkAsr5VkSwnYSY3oHjzadRwSCEOD1toVoowq/oDCMnl/pkA
-	 3HlY1Wae9FvLTFlw5/kkr06Ie3e0QIwpYEVGhOse9frRlix4XTvuRr+lqV7YKsmmCeA==
+	t=1792698978;
+	b=XM+tToXGf6aQnu5FKuhjpcG5LnfJpoeLlPl/SxniYnTPjs/Vb6iS5/xqSnxLSTzyB+RM
+	 jRt5/+5uuw5Wn1MO2mOO1KUaOrh9ZbrgOW84ltHSJ3q90jHZDF0IhC4AH0wizyZw9Qc89
+	 W8BCTgf0unA+nEQ32mLiwhae2NHe55YiNg6948tfYmTIOQRxvmVgXrujFdWPvS7gu3q5u
+	 OJgI2XswgLHKqcC1D7fwU7vjXSwn8ijek3yMbAWLvkjHj6GENf31GRfDusfFSHsNYmNz4
+	 Gvh6sUu3JRQPuN91P6OdEDhy3YL58OG/cNHqTCcXbRtgwHiJdftHUsmoo+ODKPp8fdA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792692685;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=VFgWVgLfe7OQeHc3CR1C8glp/R4J3/wE95dB+Ij2ZAc=;
-	b=LRxQLEYhRLoz0ZaUbe5HhhhoC3WTeVmFF3XfG/dIgABaUp2FVxDHZ1uUNmxOctwo+ClV
-	 +fhwm1AETXIoevfITCTfdPJPubPWpk4HsTzGGRysDH780oo3juEec9AvGnITRhuyJOudN
-	 mNfijGrVcxgqEQ6517w+nlhbpf7MfeUZbpo87Ylf+8Fs0F1+3+T3D2JIaNZJ+cCqGGMdj
-	 38NiLCT6qq5T6Anmufqx+WLWIokAgYSdi6Gm6/pXbGr2rrvszy6gtB2rkOSw9fyl4Q54Z
-	 xV3AqlnliqecAJQCsTNVYyTziyqx+HoRComyW1xI6No9fwchiPqXSL2RocpU/3lEHgQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792698978;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
+	bh=bW6SGBruZCR3lFoCKUPNNZpeN8t8YpoHhwwB5NNIjhs=;
+	b=ql3iyPK4bVfIOj67xn1p4HY+l/JqvjbewE0j8x/cn1CmbDu3GEZebr8WFMH7HSa5TXyw
+	 w+kIettZLI+n9bB0qcrfGvCcyuT3LIy1vidrPTsKAchxlATFXJVPcY3Sdtjlxj8wjCoiD
+	 Rs+P74Y8Djsb35XtR2Sp93lLRbxNKBFoof6bYUZpjafE/hBl1r7/h58fkkg9v3wbSx83G
+	 bWlTcvTgTM1FwxC3wRBun/hEOsq4rTrnqjNpkkq2/9rB1gCaNbSVMIMx/arQXoLYes84D
+	 jb0ff8C700wqX5YFa8mmE7yyQ8bNPRQxfoEk0ib7LKjAMbVJlKFh5GShtQspZW8KK2A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OZdNG0Qo;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=intel.com;
+	spf=pass smtp.mailfrom=intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=TZOU62HL;
+	arc=none smtp.remote-ip=192.198.163.10
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0ED8C606A324
-	for <nvdimm@lists.linux.dev>; Thu, 22 Oct 2026 18:11:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6111F606A319
+	for <nvdimm@lists.linux.dev>; Thu, 22 Oct 2026 19:56:17 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6111F606A319
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OZdNG0Qo
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 096D71F01825;
-	Thu, 22 Oct 2026 18:11:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792692684;
-	bh=VFgWVgLfe7OQeHc3CR1C8glp/R4J3/wE95dB+Ij2ZAc=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=OZdNG0Qo4UE3rRN/7HUpzE5O1MrPxMIZXwfae4t+cP20oYdkNfSBi4C9HtR8DdunM
-	 NlncAXufU6v5edZBbnLNHoSDiqBMR/VdwBII3PKHejsiMb+svgEn2VEcG6f5DeMFSW
-	 VaY8Jfd8OFCNJF2fri3Edz98SH2s46xeZSKuflzxQU8NZAvHb0YeEDeVuZwep5oU62
-	 1QwwD/YnvSms43Ec7XTyEjPXwoUUzv6NmoPH0rLofYmY0uHScUnAcgrd0nL2iKNc4V
-	 GbHzoVdFTgPcDQcaVru9iROeUyLBBcTxFP9Bf5DpLNDGYyckK5TsILL2sEREa7X66b
-	 YoCz56qNZ5YbA==
-Message-ID: <sashiko-outbox-181904@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH 2/2] selftests/mm: test fork of a device DAX PUD
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Konstantin Khorenko" <khorenko@virtuozzo.com>, "Andrew Morton" <akpm@linux-foundation.org>, "David
- Hildenbrand" <david@kernel.org>, "Lorenzo Stoakes" <ljs@kernel.org>, "Alistair
- Popple" <apopple@nvidia.com>, "Dan Williams" <djbw@kernel.org>
-Cc: linux-mm@kvack.org, nvdimm@lists.linux.dev
-In-Reply-To: <20261021-vstor-150143-copy_huge_pud-folio-refcount-v1-2-8bd88551f9be@virtuozzo.com>
-References: <20261021-vstor-150143-copy_huge_pud-folio-refcount-v1-0-8bd88551f9be@virtuozzo.com>
- <20261021-vstor-150143-copy_huge_pud-folio-refcount-v1-2-8bd88551f9be@virtuozzo.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Thu, 22 Oct 2026 18:11:23 +0000
+	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=TZOU62HL
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1792698978; x=1824234978;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=sdyfwvYhwGJHYoTfgHwcBcmcI6nG4IM8o6FRNG/rcMM=;
+  b=TZOU62HLq9Jo0uMzXI/kXV2MEIhdvk6Jo6TotrHHg1ETv4ehMt3lkTA6
+   +bkHT+Xoi9trD5NeMXFke2l4JOpVkpiw4WuTklH0DXtG+wwEmA42okivQ
+   mlmMHhf0ZuOGSu6Gw1Z42l4L5IuU8KEwQLuo+OLtTyNKD3bEQsXtBCx9U
+   UzcaSreKwDM6JjhtdUhI0S/duuKh0z/K3/25Drw/yBr/Zzk4Q+I1YURdr
+   23Z6KADJz0anXbGyM/coYZo7oe+8CUswaMlntIJM34o8fTEv9hAgqSgdD
+   FcxwXvgvaX0fqclvZmnlfSXOaLoKkDmAJCI8nd/jj3vnkXZZQ4jpyvQCu
+   Q==;
+X-CSE-ConnectionGUID: Q764jmtNS26oafsskR0LkA==
+X-CSE-MsgGUID: QBdfF3qgRmmlVRHc0uuH6Q==
+X-IronPort-AV: E=McAfee;i="6800,10657,11943"; a="1356727"
+X-IronPort-AV: E=Sophos;i="6.27,172,1787036400"; 
+   d="scan'208";a="1356727"
+Received: from orviesa010.jf.intel.com ([10.64.159.150])
+  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Oct 2026 12:56:17 -0700
+X-CSE-ConnectionGUID: RtEBkGuwQteLk9RTCQkSlw==
+X-CSE-MsgGUID: TNYT9jjmSvS/Sk5HNZ3ZTg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,172,1787036400"; 
+   d="scan'208";a="3839565"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.125.111.215])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Oct 2026 12:56:17 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: nvdimm@lists.linux.dev,
+	Gregory Price <gourry@gourry.net>
+Cc: Alison Schofield <alison.schofield@intel.com>,
+	linux-cxl@vger.kernel.org
+Subject: [ndctl PATCH 0/4] libdaxctl: Fix multi-range memory block handling
+Date: Thu, 22 Oct 2026 12:56:09 -0700
+Message-ID: <cover.1792695259.git.alison.schofield@intel.com>
+X-Mailer: git-send-email 2.47.0
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -61,110 +77,41 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 List-Owner: <mailto:nvdimm+owner@lists.linux.dev>
 Precedence: list
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
-s) to consider:
-- [Medium] selftests/mm: sysfs_ul() and rss_file_kb() duplicate vm_util.h h=
-elpers
---
+[ Gregory: Hoping you can help w reviews here ]
 
-commit d02ba4b69f400c48de47f25c78208f1cfd2fe974
-Author: Konstantin Khorenko <khorenko@virtuozzo.com>
+Review and testing of Gregory's dax kmem atomic whole-device hotplug
+series[1] exposed an existing libdaxctl bug when handling DAX devices with
+multiple physical address ranges.
 
-selftests/mm: test fork of a device DAX PUD
+libdaxctl identifies a device's memory blocks using a single contiguous
+address window, even when the device has separate ranges with gaps between
+them. This can exclude blocks belonging to the device and include blocks
+belonging to another device in the gaps. As a result, daxctl can report
+incorrect memory block counts and potentially online or offline another
+device's memory.
 
-This commit adds the fork_dax_pud selftest to verify that fork() properly
-accounts a copied device DAX PUD mapping in the child's RssFile when page
-tables are copied due to a guard region in the VMA.
+Patches 1-2 address mapping reliability issues discovered while fixing
+the memory block ownership checks.
 
-> diff --git a/tools/testing/selftests/mm/fork_dax_pud.c b/tools/testing/se=
-lftests/mm/fork_dax_pud.c
-> new file mode 100644
-> index 0000000000000..1fcf46341ace2
-> --- /dev/null
-> +++ b/tools/testing/selftests/mm/fork_dax_pud.c
-[ ... ]
-> +#include "kselftest.h"
-> +#include "vm_util.h"
-> +
-> +#define SZ_1G		(1UL << 30)
-> +#define DAX_SYSFS	"/sys/bus/dax/devices"
-> +
-> +static sigjmp_buf sigbus_jmp;
-> +
-> +static void sigbus_handler(int sig)
-> +{
-> +	siglongjmp(sigbus_jmp, 1);
-> +}
-> +
-> +static unsigned long sysfs_ul(const char *dev, const char *attr)
-> +{
-> +	char path[PATH_MAX], buf[64];
-> +	unsigned long val =3D 0;
-> +	FILE *f;
-> +
-> +	snprintf(path, sizeof(path), DAX_SYSFS "/%s/%s", dev, attr);
-> +	f =3D fopen(path, "r");
-> +	if (!f)
-> +		return 0;
-> +	if (fgets(buf, sizeof(buf), f))
-> +		val =3D strtoul(buf, NULL, 0);
-> +	fclose(f);
-> +	return val;
-> +}
-> +
-> +static bool dax_dev_ok(const char *path)
-> +{
-> +	const char *name =3D strrchr(path, '/');
-> +
-> +	name =3D name ? name + 1 : path;
-> +	return sysfs_ul(name, "align") =3D=3D SZ_1G &&
-> +	       sysfs_ul(name, "size") >=3D 2 * SZ_1G;
-> +}
-> +
-> +static long rss_file_kb(void)
-> +{
-> +	char line[256];
-> +	long kb =3D -1;
-> +	FILE *f =3D fopen("/proc/self/status", "r");
-> +
-> +	if (!f)
-> +		return -1;
-> +	while (fgets(line, sizeof(line), f))
-> +		if (sscanf(line, "RssFile: %ld", &kb) =3D=3D 1)
-> +			break;
-> +	fclose(f);
-> +	return kb;
-> +}
+Patch 3 corrects the memory block ownership checks.
 
-[Severity: Medium]
-fork_dax_pud.c includes vm_util.h and links against vm_util.c, which already
-provide shared helpers for reading sysfs attributes and parsing
-/proc/self/status:
+Patch 4 adds regression coverage using a two-range DAX device.
 
-tools/testing/selftests/mm/vm_util.h:
-bool check_for_pattern(FILE *fp, const char *pattern, char *buf, size_t len=
-);
-uint64_t read_pmd_pagesize(void);
-unsigned long rss_anon(void);
-...
-int write_sysfs(const char *file_path, unsigned long val);
-int read_sysfs(const char *file_path, unsigned long *val);
+[1] https://lore.kernel.org/linux-cxl/20261016214248.443247-1-gourry@gourry.net/
 
-In main() -> dax_dev_ok() -> sysfs_ul(), the test hand-rolls sysfs unsigned
-long reading with fopen(), fgets(), strtoul(), and fclose() to read the
-device align and size attributes under /sys/bus/dax/devices/<dev>/.
+Alison Schofield (4):
+  libdaxctl: handle mapping initialization failures
+  libdaxctl: tie mapping cache lifetime to the device
+  libdaxctl: match memory blocks against each dax device mapping
+  test/daxctl-create.sh: count memory blocks across dax mappings
 
-Similarly, in the child path of main() -> rss_file_kb(), the test manually
-scans /proc/self/status for RssFile using fopen(), fgets(), and sscanf().
+ daxctl/lib/libdaxctl.c | 93 ++++++++++++++++++++++++++++++++++--------
+ test/daxctl-create.sh  | 58 ++++++++++++++++++++++++++
+ 2 files changed, 135 insertions(+), 16 deletions(-)
 
-Could sysfs_ul() use read_sysfs() (or read_file()), and could rss_file_kb()
-use check_for_pattern() or be added alongside rss_anon() in vm_util.c inste=
-ad
-of reimplementing these helpers locally?
+-- 
+2.37.3
 
-[ ... ]
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261021-vstor-1501=
-43-copy_huge_pud-folio-refcount-v1-0-8bd88551f9be@virtuozzo.com?part=3D2
