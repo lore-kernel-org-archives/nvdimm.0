@@ -1,55 +1,126 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=130.117.225.111
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792606274;
-	b=yaDsaLHm46G54+3HIiRcofd3NymY5KS1/gaRikZabVhJoxseYBTaFC+4Xsp5dBw0Nbqj
-	 SZg7A5gMw566WqJ5WCETHIt2+Z5o52lalprMLYebiSrCpS+QLkPhEPHgPN/XzORF2vxO3
-	 8zTkn4oUpNamFQILv9gyx0VloFyNv+84l9NVbl+dfgZ8CDSOkUjELbSn0JXnR1txn5u9K
-	 b8AMp45T8SV5uI0M8pWvbH4/oTGgpQB+jWhJ4zXET6Wkfv9ldWQv++N4mRf/2nvas1Au4
-	 IcERPsaCKtYJLYuOwx8QBsfwb6G20DpF93FhtIbLVFFbquoL+xD74v5Ys5fzwGnH5Rw==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792606274;
-	h=DMARC-Filter:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
-	 Content-Type:Content-Transfer-Encoding:Message-Id:References:
-	 In-Reply-To:To:Cc:X-Mailer:X-Developer-Signature:X-Developer-Key;
-	bh=M1dTXl83utElj4WNg2krvHUULoFFNoYTsd5aEDSTt+o=;
-	b=NWL1Trrixo1DaJd0IFTxyws83TBXUpkVzOV6xIKoPhoLuAA4cJ4jVXyeHbQ8gT8VNUeT
-	 d/vCepML3bUz7KUtjpzkyaA3gJqnk2IqWLj/D9ILY/oFfjZ6nR6o3VREnvL7yM61vomEZ
-	 voHl9/y2BeAY9mQ3uzUl6aTe2vBJg6PR32gyc+SQN8WfTOY/XlmwS3JRYjotPVwpCEHg/
-	 oJS1dNB4G61iOB6GMPxl8n6lkRxkkLJggE3iYkwHPYbxQqK3dsyPy+tjlfdwbcIoEUQ8z
-	 9GBsP0XMO2FQRAwVGuyfU384fn4JOYp336yOrIf9t/DQxoqW/9Jq/BePHDZiW+9CxWw==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=virtuozzo.com;
-	spf=pass smtp.mailfrom=virtuozzo.com;
-	dkim=pass header.d=virtuozzo.com header.i=@virtuozzo.com header.a=rsa-sha256 header.s=relay header.b=czntJg33;
-	arc=none smtp.remote-ip=130.117.225.111
-Received: from relay.virtuozzo.com (relay.virtuozzo.com [130.117.225.111])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.remote-ip=198.175.65.16
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=fail;
+	t=1792634395;
+	b=QzdWvo1F4VY6yJcBT3y1bqqDDaHN4A7OxxvEDojLypTwEzZZ2eQ89qDv8h5GD1HAzs86
+	 VAqMmOZSI1pFUr06yd8MU3KtqihzhS+bPt090nZzwSkfWW9M66EkJW1wPuri4FmrQaUiQ
+	 ikL0P0LWrgVPYhbsbIlMVBFGOh0RM99ax0gm9KomrLGpM1Okw0cnoXOLXOMlqkp8WLQ40
+	 bKkPx0g/J/mdGmRU8vv93ykQQrtAJGIhx4JslAIyGq0goLicZqDWPrIX/kLzRT0dlgcAO
+	 QdfF4ezMD76EPLz+zFm25xyGyqGcIoNO4IvHyMZ7lVMPyjGQbsBLnRRkgJwByjH/yHQ==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792634395;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Received:
+	 Received:Received:Received:Date:From:To:CC:Subject:Message-ID:
+	 References:Content-Type:Content-Disposition:In-Reply-To:
+	 X-ClientProxiedBy:MIME-Version:X-MS-PublicTrafficType:
+	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
+	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
+	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
+	 X-Forefront-Antispam-Report:
+	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
+	 X-MS-Exchange-AntiSpam-MessageData-0:X-Exchange-RoutingPolicyChecked:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
+	 X-MS-Exchange-CrossTenant-UserPrincipalName:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped:X-OriginatorOrg;
+	bh=Smx3vBBmXDtKw7m5OoUTA4eBvnmeGgYjEUiQC4xdCBQ=;
+	b=Osmk8ozNFff0HPMSmG9mv+NhtM0PBU3qFye0WVElUNDpoKyNz6zG1fyZPT0CQpLhr4vX
+	 VwnYF25pSR4Wz1wDcvsUWa3g882Q4qSVRAygvs0C2FpTPWlThOV+Sf9fHSD76VZDP1g4B
+	 iLZCMBnKFJF1C60j4tm8I/B2CN8dEib4qkYczJSJYhCoExPTr/BJgfMpWAqprSyNhmwLG
+	 qXpZpy/OejehV4/tzF1KysKqwipPN6uRc7nPQUR0HRAvxpLJB0b96qz02dqZ0Dj6o6qfJ
+	 aN4T8SqQ2QDYn62dn0opxd9CyPZ+5w0cUtmxdXumII3obAy3bkMADjmQRJhtWhgeRyA==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=intel.com;
+	spf=pass smtp.mailfrom=intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b="HJV/89NQ";
+	arc=fail smtp.remote-ip=198.175.65.16
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.16])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63614606A31A;
-	Wed, 21 Oct 2026 18:11:13 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 63614606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=virtuozzo.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=virtuozzo.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD81F606A31A
+	for <nvdimm@lists.linux.dev>; Thu, 22 Oct 2026 01:59:52 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AD81F606A31A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=virtuozzo.com header.i=@virtuozzo.com header.a=rsa-sha256 header.s=relay header.b=czntJg33
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=virtuozzo.com; s=relay; h=Message-Id:Content-Type:MIME-Version:Subject:Date
-	:From; bh=M1dTXl83utElj4WNg2krvHUULoFFNoYTsd5aEDSTt+o=; b=czntJg33/EH3MMahMSC
-	1zvgpqrY+bEcrs6XioefvtHFzDegujHA6tzNNsD0HbCXPAnNe/+NXy+O4EOj+Z8J8i9qBWYYo+Hm3
-	dHja8IcQ9WD1pC1CIYc4YHGZ61dnlw9hjmlQDnS8VlrUGSPRlfJt3KuPpaygqcWsyxe6EUV/3EDo/
-	Mfe8LuQSmd3H5b4Qmi07j33h71BkbvKJe5d1awB5Qs87J2M72l0eJ4d2qu6+jWlKsbGny2ahZ1vES
-	LZdLx4WpW8zCBJkZHWzVCs0cRbyOnmws2fIV0vIMGZugW6Wdnfw+uLrjscLzM/FJ6ZTXQ3DtqI8PM
-	J18dTxWC65XAV9A==;
-Received: from ch-demo-asa.virtuozzo.com ([130.117.225.8] helo=f0.sw.ru)
-	by relay.virtuozzo.com with esmtp (Exim 4.96)
-	(envelope-from <khorenko@virtuozzo.com>)
-	id 1xJaif-00ANvl-23;
-	Wed, 21 Oct 2026 20:11:04 +0200
-From: Konstantin Khorenko <khorenko@virtuozzo.com>
-Date: Wed, 21 Oct 2026 20:10:53 +0200
-Subject: [PATCH 1/2] mm/huge_memory: take a reference on a folio PUD copied
- by fork
+	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=HJV/89NQ
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1792634393; x=1824170393;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=TGrGu5MA5TVmUcKP5aKMjPOPdhxqQWc8btv/bP5JLes=;
+  b=HJV/89NQItXWUp/gi3SqKrBl/ejDWl6z4rknGp7BY3WhVirDEqXr5pOF
+   +hxsgGeUInGgNvBUA7rnE6mr2aHq5IgYkOx5Kzo1HeyIxfHmd+zuU44qI
+   EqBvHYpZ4gIEKS/1fvjgjnosmQjR0cDsBVAv/Coc5phd7clp5jyz7RaTM
+   ltPzplzXt2H+vBP+a/VaCAVrBFemiJ8IOoyatdSx/6KtT6z79g9rDWL+L
+   bkBEIfmqdWpcJ6ZAd2jwej3ylGnRU/kXaPlpdj+Zlm60CLGp2NNfgQnRN
+   pn57r7x44tWaW+JuMNIie+GasdRdQ/lCtpPzYkXRF0kSlGyk0jkJ1cZhW
+   g==;
+X-CSE-ConnectionGUID: kJ7DHnFcT5SrPRO+nvBaZw==
+X-CSE-MsgGUID: DT1AswlJRTG7Z9DNGls8eA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11942"; a="1362244"
+X-IronPort-AV: E=Sophos;i="6.27,171,1787036400"; 
+   d="scan'208";a="1362244"
+Received: from fmviesa002.fm.intel.com ([10.60.135.142])
+  by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Oct 2026 18:59:52 -0700
+X-CSE-ConnectionGUID: sFwrlUjDQNie0Tnjr91lVA==
+X-CSE-MsgGUID: VK+SvItDT0+WQOocJKI7gQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,171,1787036400"; 
+   d="scan'208";a="3362032"
+Received: from fmsmsx903.amr.corp.intel.com ([10.18.126.92])
+  by fmviesa002.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Oct 2026 18:59:52 -0700
+Received: from FMSMSX903.amr.corp.intel.com (10.18.126.92) by
+ fmsmsx903.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.49; Wed, 21 Oct 2026 18:59:51 -0700
+Received: from fmsedg903.ED.cps.intel.com (10.1.192.145) by
+ FMSMSX903.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.49 via Frontend Transport; Wed, 21 Oct 2026 18:59:51 -0700
+Received: from PH8PR06CU001.outbound.protection.outlook.com (40.107.209.42) by
+ edgegateway.intel.com (192.55.55.83) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.49; Wed, 21 Oct 2026 18:59:50 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=D2GGH1GeYEmu386PTKOI7T1IZeS/ggoOBDJiulL46H/PTV0IQBNKEmVj/sHJg8Uw8Q0d0X8IkF4t9loqpsomypFFTiBJcuapAwduwUush29kMJhKwMEAy8/5g2yRfGOfGRa2h2xy7IYX+2dFCTCxlJsQ1Ajgf0tygDkh1Nk8fgSeXengttseE837JiwJaUmcB/oT1wEJ/wuO1PLORu6LkPxFYlO69+6P+vzmWS5yLl2KIailt+9wYvnVjfuZRROkb1v0sVlVO090BxbNt0L7a1O3wDuL5RhEmmNlZPyBsN2nJe6e86gll0c84sn9ORGphh1qtT4tv6xcYF7u4pesMw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=Smx3vBBmXDtKw7m5OoUTA4eBvnmeGgYjEUiQC4xdCBQ=;
+ b=pO+wnb2LeAA5202PZAds1IVOxiGFAL+UHQgaRdLjDkZQtMCR4+G/i4N/ZsSafrIencMlusHUrlRZqae2qfYB52DG2C9d9zPkHEfqNRlDUtT8G9yGmjSxW71DvGEFhjB2f/SOcMBDv0874b0DKzyq77hWZ3kaDdUp4WSI2DPj5+nzjNDVMeZKIl0+qxfCeD5F6AP+xCF6f+d+iqLNmi7qv2EZuDQKePy+MePkVDXPpjxni6R/BB15pvvHuwah7rzuJ+Lr3IVnw8iG5NeKjmc8fcJAXk/09FMnaQAuNdsdAA/ftdPzZ6rHlT4DTfzSNS97zoeAlz+2PFlNHW/pdbHBcQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com (2603:10b6:f:fc02::9)
+ by MW5PR11MB5812.namprd11.prod.outlook.com (2603:10b6:303:193::14) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.522.19; Thu, 22 Oct
+ 2026 01:59:49 +0000
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::6fbf:c112:d0a8:f1a8]) by DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::6fbf:c112:d0a8:f1a8%5]) with mapi id 15.21.0546.012; Thu, 22 Oct 2026
+ 01:59:48 +0000
+Date: Wed, 21 Oct 2026 18:59:45 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: "Gregory Price (Meta)" <gourry@gourry.net>
+CC: <nvdimm@lists.linux.dev>, <linux-cxl@vger.kernel.org>
+Subject: Re: [PATCH 0/6] daxctl: use dax kmem atomic whole-device hotplug
+Message-ID: <atluEdaffcWYOf_0@aschofie-mobl2.lan>
+References: <20261016214248.443247-1-gourry@gourry.net>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20261016214248.443247-1-gourry@gourry.net>
+X-ClientProxiedBy: MW3PR05CA0002.namprd05.prod.outlook.com
+ (2603:10b6:303:2b::7) To DS4PPF0BAC23327.namprd11.prod.outlook.com
+ (2603:10b6:f:fc02::9)
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -59,164 +130,139 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 List-Owner: <mailto:nvdimm+owner@lists.linux.dev>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20261021-vstor-150143-copy_huge_pud-folio-refcount-v1-1-8bd88551f9be@virtuozzo.com>
-References: <20261021-vstor-150143-copy_huge_pud-folio-refcount-v1-0-8bd88551f9be@virtuozzo.com>
-In-Reply-To: <20261021-vstor-150143-copy_huge_pud-folio-refcount-v1-0-8bd88551f9be@virtuozzo.com>
-To: Andrew Morton <akpm@linux-foundation.org>, 
- David Hildenbrand <david@kernel.org>, Lorenzo Stoakes <ljs@kernel.org>, 
- Alistair Popple <apopple@nvidia.com>, Dan Williams <djbw@kernel.org>
-Cc: linux-mm@kvack.org, nvdimm@lists.linux.dev, 
- linux-kselftest@vger.kernel.org, linux-kernel@vger.kernel.org, 
- Konstantin Khorenko <khorenko@virtuozzo.com>, stable@vger.kernel.org
-X-Mailer: b4 0.16.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=5104;
- i=khorenko@virtuozzo.com; h=from:subject:message-id;
- bh=8M/OBpw5Os7GQ5/io4vjGbxC7NEnaAM1Ho77x2Uuv5k=;
- b=owEBbQKS/ZANAwAKAVGWCkf5YVwqAcsmYgBq2QA4FTU+mgpWgG2VBPoT3uxOpKYeA855gQISj
- xeMgsIspaiJAjMEAAEKAB0WIQRWD23IPcXT0GO9CCxRlgpH+WFcKgUCatkAOAAKCRBRlgpH+WFc
- KsgVEACL10FRNeije/yqAfWx2B8jti5tdDDN2wsI0M0g179SDXeDTbLAeu2gHI8pnzThXf40fIs
- VUuSj6BKWmGXdBNyIYC5xVTHgz56FIGFwfTJPlDfqK6JSnwd9PcRdxiaPFkjXBhS45Il028W8TZ
- u+uQEZJfGOD/P9Ip8RKNaK77929JrfrxAPTscCoii/p+axeaTtHXDsuklsRh+7Nh41QZJVeK0CT
- ULwvKwXAZzmLCJY8r2fLHcBCOg0RODrThi7JRKyrHw1om6j3jwHkjH4j0QxfUskRWRWeTC5G8k4
- F22rl0GSDzlnYxl5809cy/qM73ab9NOka42WUbvlc+L1wnAtk1nSHec8qi/rLclP07bHUrXPZCG
- s0NYBcTjHOe52RoPa0n522Oos6+ORwk+D4hFJEo1PTlQKkq143nIpWgSOnyHD31Ss+XRxqszmZJ
- +x1EsjSsYkyW12xcRj4JMKB2e6wQTaihik2IxgH8KquDiYH/dw/UFNUwxMWXSvk5EnCOQznMKAr
- T5Yw+09lK0b+YycYvaswvEkOQTBu5mVY2v1o52T4hHc2do1fCR37HaFUHGr0KTZh1sQ7kwGR+3j
- MH4/Ks+qnauXMCODsdgvEvV797fk1aW612Uql1754xviqlKhmIZhJls9TKrQWyqM+qrLPts4fDC
- q92bVHoAslG6NXA==
-X-Developer-Key: i=khorenko@virtuozzo.com; a=openpgp;
- fpr=560F6DC83DC5D3D063BD082C51960A47F9615C2A
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|MW5PR11MB5812:EE_
+X-MS-Office365-Filtering-Correlation-Id: 254a2581-c8e9-494a-1c05-08df2fe026e6
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|23010399003|1800799024|366016|376014|261021123027099003|11063799006|56012099006|10067099003|261009223027099003|18002099003|22082099003|261021121427099003;
+X-Microsoft-Antispam-Message-Info: TqmVuDJP4iAXHWLc6fEr62tqiHlc0VepP2LkOU+Cf2Ycn+d/mHfy0SPTSKbxJ9SY/GchsdRcuXw2/8oKoVQOI5B7sHcCOTJgp5c3Z0JvfMEN0yI4uBu5b6hhFTwjTXNAZ/RMk4kddjjng3rg+tdNTAzLvHtnp4/Giyt6m/w0qRlRb3XCckGO/ST7L0vLUEV1L0mDVDA1SZu7InnQD5JeLAI+uZtNtJTRIY3G35Xc+RmXBxDMo6oEiNBawPk4RU/xSrYF+lWBN3n0c80iQo2XPcECBNSasdi+6WROcJdgiqdNkbRwawTGgsUz/B4EsczSwaiy5fp9lO6Ny7DkKPg8Voy0a8oTYBB8BLd+eITepGkgnXjHC6amPwc6YJNeiHh3tDkImOMkIcOA9BtyaBawtSNaQ4DuEApPfkqb77NYYPOO0Q+oY+OoytzSg03PWa/L4giggqA2CWAMR5xZazkM/3rvpYrjbd2Qhi6E4bmdcNq8vkz+nrp3SzafnaCGakkTZ9TsQyxDsrD5XGCZGctjfP52C774Clx16DFMs8kq/rQsigEGSQ+Hslj2YjY46//0Tn7uF5Q4lCiy9b0f8ATv01sOVz99rABY5A9TF4rt1IehVgqcogTizSFSUo5tiZzn
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(1800799024)(366016)(376014)(261021123027099003)(11063799006)(56012099006)(10067099003)(261009223027099003)(18002099003)(22082099003)(261021121427099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?vgd30KkTZWmTuRE98yH3KO5kd8WhOLL0QKHNsTF6FsO/TZp96b8RISIEBnr1?=
+ =?us-ascii?Q?j1SHL6LlWW24VC/BUzRFJS3Z56etTHNf+qbpp3hZhZpRQGn+QgVOIGi9T/+2?=
+ =?us-ascii?Q?UQ2G1XD1W4KIvdM+SU+dUptcL1tJt2G2ZE2tDR9vYS3R8nJ0KSrALwmCPNwf?=
+ =?us-ascii?Q?zTRnYXmZ+87fSsmg60Xb3RWWVSJFdaXbxrzZql5cj/df/p2PMaJyrS08+P5H?=
+ =?us-ascii?Q?2uY+Vzqiwk0Ns3vIFCRP4IuWb7tnXbIIt7/IjvIDcIAy4H/BRwE9Q+4Q1y3p?=
+ =?us-ascii?Q?su5CD7RBJJsgB3kwhVdPrlTZIKeQ8vZsU0Hru4POVccZo+h22u6xcaXE5jcm?=
+ =?us-ascii?Q?MijvPpeLYkdQcyzbDHHuiY9MZIJJNuGoBkQvN4CNaPM1VyAgI8RPI9TiEqNJ?=
+ =?us-ascii?Q?QW2N/7d0OXgqO1VmBu4TntLq8zUGV4PRxrdhN8YhKVeBAkW6TBqQlBWJGZOy?=
+ =?us-ascii?Q?PL0L+6E+hMSnT7LuwsUEbNLFXdqeTNGRGQr5QB2zvGv4yHjvX5Gu1eksKlWo?=
+ =?us-ascii?Q?HR7RHF7SOWFqZqtptLehzf1gkEvksc3iBfBF/WvQ6DV2O9MyqapOJFXQudZA?=
+ =?us-ascii?Q?gLXLzZpXWcXHGZhSBYIc/KZ/CAdz4RrR53SNxFpG0MTJUSxwLoiiiSa49a7r?=
+ =?us-ascii?Q?jmiCeS+eOEFL/y8kH/0mp5vazB0LXAO3PlIBBtpYyWsFo6hwYQt1mnFIEyVI?=
+ =?us-ascii?Q?ah1adbLCiiTAoZ9NlTCNfR3kIpbFOBBtkoa2fk4pccZn8A/vK2Kyzd0dJ8XT?=
+ =?us-ascii?Q?aJY2WKvf2S2kMiFr/HxHmhqgH5GznDxLCzrksFSl6ZZ/jWBPbj0rt+GvcLjd?=
+ =?us-ascii?Q?TGI0jMAdFcpVhwxEhAhhRLy8ibHz5csNWzWhr6iCyHtxE+fhgf4Oh+xE7N8T?=
+ =?us-ascii?Q?ZKrwp+ZMNGL3ESDHe9JlsPtO/rYv8Ki4Lo1EIVQt9CLSDHg0I/5uP38FWkKG?=
+ =?us-ascii?Q?t93bDsgQomMQX1ZgtKAQ/YLgK6+kHjlkml6YiOBNP5fDYz9Kg7xO/OTIGPWk?=
+ =?us-ascii?Q?YZ5nX9mDt1SaoGpZaBerPmuPhkaMKb+McvLWLGy6GpInEkS6J14Zmbf+64ei?=
+ =?us-ascii?Q?h1zgW9lOHjkJUC68iBRs+hlg04YuLd/eb289e3XGPk+EPeq7ohVpPTDqNF01?=
+ =?us-ascii?Q?0au2RPeKJDlOxhcucROZd4Ejaj+0ZvcHjBAz7LbeZZsbJTjPTq87l322mbXA?=
+ =?us-ascii?Q?Dn7MTXC+BD0JSN2+ZINQ03TABRjTVJrlc50hQpITt3w86SIQ2zgl0OzdoM+7?=
+ =?us-ascii?Q?3soH6UYR3getJ8zq98EGwSg33WPdP8B1C/G7tcpZajIKnSAOGLwar45KIiju?=
+ =?us-ascii?Q?tlpdXkMk9/X2lu9M2B1I7zvmPz+5JVevVWHoUEFsOF/ORotB4GL9crgYh7mk?=
+ =?us-ascii?Q?LTQcBJUDqJYw9C+9625MhTe8PJQzLDkMSIIOV5gqiTGTIzxFbssqUCy6BKzv?=
+ =?us-ascii?Q?0bmmTx1uR5e9oBpxcSReWuf8KN+NNxK1cHb/tmzN9Dyi15KXz8WJrayrHchp?=
+ =?us-ascii?Q?9Y9gM4ZIUXrDBqb6Rr0iPrfXjRpeCFiNNXoXiIW8Qe5AmplEEPC+C6LcuTzy?=
+ =?us-ascii?Q?JW/m6s80obngoafElrHXcskMemLGmdixjd3WI8/FsOWhxAZMD1xsVMojeN3j?=
+ =?us-ascii?Q?B7ZalM63DguU3JbNEEpuQN8EPR1u9SjL4zh2f0T1G/hKJKKa9fVWe0hNRRVP?=
+ =?us-ascii?Q?fKnKc7OlkDejY54BrnZ3TvNmKPke2qw0TiBUL2aiGQtnYAFifqPtU4nZ+TKv?=
+ =?us-ascii?Q?s59iEC1msANdQZzCNfdSEVKAHmfTyUg=3D?=
+X-Exchange-RoutingPolicyChecked: ajt6BhraEGv5wOD/Up/feMabhqtcEQDuer3A5WFQOpx8DUj1rG1X6RLWclKk85MceC/Qk/KBEy4rpQQrttW7c6TCFCkQ8SXTqCN/xhD8dD8dMITtfK1r5fN1VWxxPG+ngfPmd7W5htV5nEEAAVAN50KxjlOieA+J2DF13JR33VU57iYhignOBeqgCivL7Jd6jzoOPUaIcI+RraH36eGAODJXclSbmuvRzATbDZfJte86Trdw0aMWRXu2x/Tc2n6jfZMR1BEBCyqoKqdXm8ZQNVf09BXfcu4EkcDNRBKHt4GnnsWxE+aIhtO3w8Z6TMMF9GnEBiyN/6enS3EXDN04xQ==
+X-MS-Exchange-CrossTenant-Network-Message-Id: 254a2581-c8e9-494a-1c05-08df2fe026e6
+X-MS-Exchange-CrossTenant-AuthSource: DS4PPF0BAC23327.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Oct 2026 01:59:48.5443
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: AxTkEsY83eb9O2EHe1JhpIF1vUIo8HqcBEkbG4MixIIJSkjFsulSa2gh423L92RJ4Z1vuFuqUP3RGec762M0Hr7aT2La8vh3jKGlFJpG/4A=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW5PR11MB5812
+X-OriginatorOrg: intel.com
 
-Device DAX maps its memory with vmf_insert_folio_pud(), which takes a
-folio reference, adds a PUD rmap and accounts the pages to the mm.
-zap_huge_pud() drops all three, but copy_huge_pud() copies the PUD into
-the child without taking any of them. Each child's unmap then drops
-what the parent took:
+On Fri, Oct 16, 2026 at 05:42:42PM -0400, Gregory Price (Meta) wrote:
+> Kernels with the dax_kmem daxX.Y/state attribute [1] can unplug or
+> plug-and-online a whole device atomically. Use it in daxctl
+> online-memory and offline-memory so other agents (udev, auto-online)
+> can't race daxctl block by block, notably the offline-then-unbind race
+> on teardown.
+> 
+> Kernels without the attribute keep the per-block path.
+> 
+> Behavior change: offline-memory now always unplugs the device (state
+> 'unplugged'), removing its memory blocks, even if they were all
+> offline already. Previously that was a no-op.
+> 
+> 'daxctl list' (and 'ndctl/cxl list -X') gains 'hotplug_state',
+> reporting daxX.Y/state. The kernel only updates that when written, so
+> it goes stale if blocks are toggled individually.
+> 
+> If there is a mismatch between 'dax/state' and the blocks, then
+> 'hotplug_state' reports 'inconsistent' (online state / zones disagree).
+> That is intentional: it flags agents fighting over the device.
+> It only appears when the attribute exists.
+> 
+> Compatibility notes:
+> - Where the unplug fails (e.g. no memory hotremove support),
+>   online-memory falls back to the per-block path and offline-memory
+>   of an already offline device remains a no-op.
+> - Older daxctl/ndctl/cxl binaries don't expect a device with no memory
+>   blocks.  Basically multiple daxctl versions on the same box can cause
+>   older versions to fail when in the unplugged state.  Not a huge issue.
+> - If re-adding fails after an unplug (e.g. region can't be reserved)
+>   the device is left unplugged.
+> - For multi-range devices the kernel succeeds if any range is added.
+>   daxctl can't tell that a range is missing.
+> 
+> [1] https://lore.kernel.org/all/20260712154505.3564379-1-gourry@gourry.net/
 
-- the folio is a reference short, so with two children its refcount
-  drops to zero and free_zone_device_folio() runs while the parent
-  still maps it;
-- the child's file counter goes negative, "Bad rss-counter state" when
-  its mm is freed;
-- the parent's unmap drives the entire mapcount below zero.
+Hi Greg,
 
-fork copies the page tables of a device DAX mapping that has a guard
-region: commit f807123d578d ("mm: allow guard regions in file-backed and
-read-only mappings") allowed MADV_GUARD_INSTALL there, and it makes fork
-copy the VMA.
+Next version, please add the ndctl label, ie [ndctl PATCH v2 0/6]
+(https://github.com/pmem/ndctl?tab=contributing-ov-file)
 
-Take the reference, the rmap and the counter for a PUD that
-vm_normal_page_pud() resolves to a page, as copy_huge_pmd() does for a
-PMD, with a new folio_dup_file_rmap_pud() helper.
+I see this goes with the kernel functionality that arrived in kernel 7.3.
+That took me a bit to realized because the linked kernel series shows
+crickets at v7.
 
-Fixes: aed877c2b425 ("device/dax: properly refcount device dax pages when mapping")
-Cc: stable@vger.kernel.org
-Assisted-by: LLM
-Signed-off-by: Konstantin Khorenko <khorenko@virtuozzo.com>
----
- include/linux/huge_mm.h |  2 +-
- include/linux/rmap.h    | 22 ++++++++++++++++++++++
- mm/huge_memory.c        | 13 +++++++++++--
- mm/memory.c             |  4 ++--
- 4 files changed, 36 insertions(+), 5 deletions(-)
+I'd like to get this into the pending ndctl release, so let's see if we
+can close on a few things.
 
-diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
-index c745f7ad22987..c5094f9d95ba9 100644
---- a/include/linux/huge_mm.h
-+++ b/include/linux/huge_mm.h
-@@ -14,7 +14,7 @@ int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
- bool huge_pmd_set_accessed(struct vm_fault *vmf);
- int copy_huge_pud(struct mm_struct *dst_mm, struct mm_struct *src_mm,
- 		  pud_t *dst_pud, pud_t *src_pud, unsigned long addr,
--		  struct vm_area_struct *vma);
-+		  struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma);
- 
- #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
- void huge_pud_set_accessed(struct vm_fault *vmf, pud_t orig_pud);
-diff --git a/include/linux/rmap.h b/include/linux/rmap.h
-index 0b332770abeed..3c9ed8e27f0e4 100644
---- a/include/linux/rmap.h
-+++ b/include/linux/rmap.h
-@@ -564,6 +564,28 @@ static inline void folio_dup_file_rmap_pmd(struct folio *folio,
- #endif
- }
- 
-+/**
-+ * folio_dup_file_rmap_pud - duplicate a PUD mapping of a page range of a folio
-+ * @folio:	The folio to duplicate the mapping of
-+ * @page:	The first page to duplicate the mapping of
-+ * @dst_vma:	The destination vm area
-+ *
-+ * The page range of the folio is defined by [page, page + HPAGE_PUD_NR)
-+ *
-+ * The caller needs to hold the page table lock.
-+ */
-+static inline void folio_dup_file_rmap_pud(struct folio *folio,
-+		struct page *page, struct vm_area_struct *dst_vma)
-+{
-+#if defined(CONFIG_TRANSPARENT_HUGEPAGE) && \
-+	defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
-+	__folio_dup_file_rmap(folio, page, HPAGE_PUD_NR, dst_vma,
-+			      PGTABLE_LEVEL_PUD);
-+#else
-+	WARN_ON_ONCE(true);
-+#endif
-+}
-+
- static __always_inline int __folio_try_dup_anon_rmap(struct folio *folio,
- 		struct page *page, int nr_pages, struct vm_area_struct *dst_vma,
- 		struct vm_area_struct *src_vma, enum pgtable_level level)
-diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index 1e5d68acf62a5..7e8b41f293a49 100644
---- a/mm/huge_memory.c
-+++ b/mm/huge_memory.c
-@@ -2075,9 +2075,10 @@ void touch_pud(struct vm_area_struct *vma, unsigned long addr,
- 
- int copy_huge_pud(struct mm_struct *dst_mm, struct mm_struct *src_mm,
- 		  pud_t *dst_pud, pud_t *src_pud, unsigned long addr,
--		  struct vm_area_struct *vma)
-+		  struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma)
- {
- 	spinlock_t *dst_ptl, *src_ptl;
-+	struct page *page;
- 	pud_t pud;
- 	int ret;
- 
-@@ -2094,7 +2095,15 @@ int copy_huge_pud(struct mm_struct *dst_mm, struct mm_struct *src_mm,
- 	 * TODO: once we support anonymous pages, use
- 	 * folio_try_dup_anon_rmap_*() and split if duplicating fails.
- 	 */
--	if (vma_is_cow_mapping(vma) && pud_write(pud)) {
-+	page = vm_normal_page_pud(src_vma, addr, pud);
-+	if (page) {
-+		struct folio *folio = page_folio(page);
-+
-+		folio_get(folio);
-+		folio_dup_file_rmap_pud(folio, page, dst_vma);
-+		add_mm_counter(dst_mm, mm_counter_file(folio), HPAGE_PUD_NR);
-+	}
-+	if (vma_is_cow_mapping(src_vma) && pud_write(pud)) {
- 		pudp_set_wrprotect(src_mm, addr, src_pud);
- 		pud = pud_wrprotect(pud);
- 	}
-diff --git a/mm/memory.c b/mm/memory.c
-index 8b0c2c735d3de..8acd4d5bb2310 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -1514,8 +1514,8 @@ copy_pud_range(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma,
- 			int err;
- 
- 			VM_BUG_ON_VMA(next-addr != HPAGE_PUD_SIZE, src_vma);
--			err = copy_huge_pud(dst_mm, src_mm,
--					    dst_pud, src_pud, addr, src_vma);
-+			err = copy_huge_pud(dst_mm, src_mm, dst_pud, src_pud,
-+					    addr, dst_vma, src_vma);
- 			if (err == -ENOMEM)
- 				return -ENOMEM;
- 			if (!err)
+I tested against 7.3, regression and new tests and all is good there.
+I tested against 7.2 because daxctl command functionality itself needs to
+be backward compatible, and it is!
 
--- 
-2.43.0
+Some per patch feedback and tags follow.
 
+-- Alison
+
+> 
+> Gregory Price (6):
+>   libdaxctl: add dax kmem atomic hotplug state accessors
+>   daxctl: online whole-device memory atomically when available
+>   daxctl: offline whole-device memory via atomic unplug when available
+>   daxctl: report whole-device hotplug state in 'daxctl list'
+>   Documentation: describe atomic whole-device hotplug in daxctl man
+>     pages
+>   test/daxctl-devices.sh: cycle offline/online to cover unplug and
+>     replug
+> 
+>  Documentation/daxctl/daxctl-list.txt          |   5 +
+>  .../daxctl/daxctl-offline-memory.txt          |   5 +
+>  Documentation/daxctl/daxctl-online-memory.txt |   5 +
+>  .../daxctl/daxctl-reconfigure-device.txt      |   5 +-
+>  daxctl/device.c                               | 156 +++++++++++++++++-
+>  daxctl/json.c                                 |  53 +++++-
+>  daxctl/lib/libdaxctl-private.h                |   9 +
+>  daxctl/lib/libdaxctl.c                        |  71 +++++++-
+>  daxctl/lib/libdaxctl.sym                      |   6 +
+>  daxctl/libdaxctl.h                            |  18 ++
+>  test/daxctl-devices.sh                        |  53 ++++++
+>  11 files changed, 379 insertions(+), 7 deletions(-)
+> 
+> -- 
+> 2.53.0-Meta
+> 
+> 
