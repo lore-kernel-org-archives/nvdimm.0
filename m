@@ -1,83 +1,70 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.172
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=80.12.242.71
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792777048;
-	b=kyby6pQZGKTH1n2Cx9Ghu5PdTkOvKCdKFxPk93sS33TlOmRNnCfj8IgnNEykScPUFg7d
-	 ifEBqdNMst2oBUg4m5MRMz7J1TrsI38/hWnWyhV554+SCiYHRTaQq4LkbG6n34OjOsjrQ
-	 9/RGO6i6bIPzh98Dff+ZXSHR72YP8s2/ekw4Deir9/i0trqNp60g/4wOEsEfIRj3mFsh5
-	 0dLmiYH5RqUkc9Z/6wBSxjF5Zro2/d87sBH61ssJ2qPg2b8zDz3VoY0CyNKuKBiSYUR5w
-	 CicezkRc7NeQzNLN5roOIU/00cVz9AKR1ykRjs00z0DT+I3weCBoTN2fOhoT7xTkn9Q==
+	t=1792784168;
+	b=23CChiOAVnNzqXjQ4Dygnt6IUraMdAnZglU98mg7eoPHMlaNedPqk/tCDLNXUMphZCJL
+	 FtJCCNZDm3dEhoRjur/Jfho3vYOzgP4M8+5WrxRM5dGIc58rNdiTxLv5+uYg50bhqaKn9
+	 3jpBvSvg2hvrb+GdqXiVn5mVZYO3Z0inBGBbh4k4YHhuTTgpgMiz6PkW6KVUcIWUpUOHJ
+	 zA+25E1K7hZKVmZ8OIqfoFET/RDg6aO2fyl5FUyIBkq2fsVBF6qrYpV3L1LWEJ19P2RBG
+	 wW7qkN+fsa4P6LaeULgXtpX6TWjdBy1DnF6pnj6b/9O5KQiUa4A39qkvbHx1Zw37Afw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792777048;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:MIME-Version:
-	 Content-Type:Content-Transfer-Encoding:Subject:From:To:Cc:In-Reply-To:
-	 References:Date:Message-Id:X-Mailer;
-	bh=hraUT/Vp7Vp58veMWgeGRnI/Rj38Sr/3KoYA2Iypfx0=;
-	b=xUa0D9c/VmYHfbylbXqxwkkvQ0j2veBzRRARyfzUmwtTDuybxOOKsqbLXujrBQKEzMN5
-	 qyK9JK3V/GgF8RSOKcoilwXtrtW6EGwR3VkXxUkcyudzgVlwt/KY3CvS+PfVtEbjxMct+
-	 pNjqZdUB3bFQAEFkaTbr2+X7mVjI1LINBGpUodSoYT8HSrY9fStzRSf2sFuZwtvy4M4Zr
-	 tqDPzb8hoZITYxZHg4Rwj7wZ/PQvt6BoNNzJNj6w58ZXq4YHiQsNsBBv7GwxqVkivmDjC
-	 1HiQWQ96SR/K7ov1VLUrAGBRkIQ+tGQNBSrknlAJrsSGf8kf4mIXYmjQGv7y2oS9Ofw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792784168;
+	h=DMARC-Filter:Received:DKIM-Signature:X-ME-Helo:X-ME-Auth:X-ME-Date:
+	 X-ME-IP:From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=ZiaP4kLv2D8fYMRZcHkWYSetdP0lzkbKmUnNE7xiQqo=;
+	b=3FLJmLgiiU+WExKIROq5efXGlJBi/IVh8YGN3TU8iUCd63U0FImK01yYoqM0kf9/edyK
+	 eayX0j2xLcbcBQ00L0PAGyx9l27wyPUgMaUf8nZkadXFPVKV1Lz6jCI1ovaaz8PdEwlQm
+	 zdZ16uaInmSMAZRKykwdO52b5I2iI6vxFC8u77tpkfeKzTdNdXAkG+L3Oq2K6YownBUQh
+	 qf6T0CLP622cHvsyPNvh/Y0n2AGkDkEIHlLP9zQM04/2WSLp3lvYJF4VGLQI3g/63TStL
+	 XocJaQZnl94vsf80tMOTX9UQ+gawi6xs+Y5FSGXoplGxLoLdKbZYVx0PXB4bgJqCGXQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=gourry.net;
-	spf=pass smtp.mailfrom=gourry.net;
-	dkim=pass header.d=gourry.net header.i=@gourry.net header.a=rsa-sha256 header.s=google header.b=DSS6qlZi;
-	arc=none smtp.remote-ip=209.85.160.172
-Received: from mail-qt1-f172.google.com (mail-qt1-f172.google.com [209.85.160.172])
+	dmarc=pass header.from=wanadoo.fr;
+	spf=pass smtp.mailfrom=wanadoo.fr;
+	dkim=pass header.d=wanadoo.fr header.i=@wanadoo.fr header.a=rsa-sha256 header.s=t20230301 header.b=NEqN9hNb;
+	arc=none smtp.remote-ip=80.12.242.71
+Received: from smtp.smtpout.orange.fr (smtp-71.smtpout.orange.fr [80.12.242.71])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B52C606A31D
-	for <nvdimm@lists.linux.dev>; Fri, 23 Oct 2026 17:37:27 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1B52C606A31D
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10EF8606A31A
+	for <nvdimm@lists.linux.dev>; Fri, 23 Oct 2026 19:36:06 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 10EF8606A31A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=wanadoo.fr
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=wanadoo.fr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gourry.net header.i=@gourry.net header.a=rsa-sha256 header.s=google header.b=DSS6qlZi
-Received: by mail-qt1-f172.google.com with SMTP id d75a77b69052e-5363c8de563so10845911cf.0
-        for <nvdimm@lists.linux.dev>; Fri, 23 Oct 2026 10:37:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1792777047; x=1793381847; darn=lists.linux.dev;
-        h=message-id:date:references:in-reply-to:cc:to:from:subject
-         :content-transfer-encoding:content-type:mime-version:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=hraUT/Vp7Vp58veMWgeGRnI/Rj38Sr/3KoYA2Iypfx0=;
-        b=DSS6qlZiF4rHcbO2W9+J+Wn7OGU2+UZd6WF6/Y3r3ZiKDAZvIeD7eKV+zzmN9/ZLX+
-         2YO2m/gQdpS1TcmmVJTdvUV8JF7RZ7LCcLJL4a3bHJtg1o2r8JS1veDD/Nw3OlzIuuYZ
-         m6OM9cPH9PBVYlke3pSOIpbZeq7n2lCE9lqetK2XO6BqpuNziWUtVnrTNiM5H0/ApGp3
-         xHMWtxypmXtwgbOFG2Z2HxkAHpk1TThDY0WMropjMXjk4GPnOYus11+xddLMZnGyPf2v
-         Z2Sgi2dAk3LYwRLB9vIjR4bjALAN6B3Z9l3QmKfHex0YuEHPs9geFnX743toGAlHRXJd
-         HFBQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792777047; x=1793381847;
-        h=message-id:date:references:in-reply-to:cc:to:from:subject
-         :content-transfer-encoding:content-type:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=hraUT/Vp7Vp58veMWgeGRnI/Rj38Sr/3KoYA2Iypfx0=;
-        b=Gpz/y7EWlZPpgTByEE/HikKaGEFFApoj+z2H/qeCzfvle5S7zGghtZTkrRACQ1ncrp
-         vi+NeE88p2lUTEJWJM62emqhqkEK2mKME1g7Lu84WXbsrMqboY2Cvlp3t8xgGnX0oRLr
-         ggD8cW4dkJPyv3taCaxE3czkWcG7WC6zX6JaG5lTHREZETWGlXBGsjkPNlQGOctg9I9o
-         0rGMDwHnfzamzt4oh0+ieKpqFcA99IMvJ74GtANrMGqTO9yYscWBiXtE1fusV/+jf036
-         eVrXKsUpGlW6ZoLmqFl6B/Z7jEufy6LycEp9s2JKLtDykrp5NAyTr85anxRH9aRFQun5
-         Cn1Q==
-X-Gm-Message-State: AFq9FYJMq2tTKQ9IhNdq5Jf6PMPnx4byBFKwiCFAyDACrIFmpN9oDXDt
-	JUOpsLc74qV6wE8J8dT1QpfGvDkypfYUrtKkPjq3EN5MSvrpcbdErlFu/ZibgyMQFyI=
-X-Gm-Gg: AYBFou1eq2Lx2d1yWFtujxCbx+Au1BEP0DOznybIT9ekCeyb74IMcpNcZl8hN0yH7vr
-	PzPpRj0CCSgVrUwlpbpkbVchEJnXxvwunL1vPpKQl0Fiy7IEtrc5X3IZ9owEkyQRyJMa+4ci1RC
-	iOlGStOPIjzekxshuOxtI22kiFDbY5u0ENJJ8xRhuPtP+p6jId17ory/ZsGg/Sc6B79wnqqSEd/
-	arkBZWsR/pkBMWz2OUEsDOuw0Aw84jc8FC9oSfrwZ0FsICxxpTFMbg403C3pF9Ghi5ncZNfWCjn
-	RxSpIBpPiO8Y0Oe+RgaiP8fThQRZ3sPVHXuBBgK+gT/ZFmSf/II6GSvAgxzfBIhgrKJs1rbpJfb
-	+1mEmJ2FYTfnkpni8o/aXgc5b9co+2uba3BjlYhnjCddVUwxTmhnibWtvwSCuXnD9jIx+qgUDBw
-	NTevM93CqtTNT1kTHPfwvATQBPoPyiPnjRLzWhFwg6g5msDMj9TdRs4H2PpCmlu6RD42CtJKYXg
-	2EBAd4OsIGBDrElfZwbWzDNqmQ+CabC/hu5L/yaQbxXavj1Aex12n680SVl9V29P0yYsdXjvQ28
-	wDVajx5WxUXRmQ9+3+n87v0rU0U=
-X-Received: by 2002:a05:622a:e082:10b0:537:a19d:40e0 with SMTP id d75a77b69052e-537a19d4158mr12656411cf.35.1792777046504;
-        Fri, 23 Oct 2026 10:37:26 -0700 (PDT)
-Received: from [192.168.86.58] (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91c47c96375sm201576d6.33.2026.10.23.10.37.25
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 23 Oct 2026 10:37:26 -0700 (PDT)
+	dkim=pass (2048-bit key, unprotected) header.d=wanadoo.fr header.i=@wanadoo.fr header.a=rsa-sha256 header.s=t20230301 header.b=NEqN9hNb
+Received: from fedora.home ([IPv6:2a01:cb10:785:b00:26fb:aefb:6cd2:db0e])
+	by smtp.orange.fr with ESMTPSA
+	id KL3VxxUqmjxmqKL3Vxa5mL; Fri, 23 Oct 2026 21:35:59 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=wanadoo.fr;
+	s=t20230301; t=1792784159;
+	bh=ZiaP4kLv2D8fYMRZcHkWYSetdP0lzkbKmUnNE7xiQqo=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version;
+	b=NEqN9hNbwOnRdtjgteZxySfTh7zeLIquHO9ADADyhPRHcwlt2xHbVBzrwfAm+aTJJ
+	 l01ci3XzI0OxSnw4e5MswampLIDsSu5zr+5Kiaa9UBgnmho7j9KbKCmAzlU/n3+SDM
+	 CAOKN4R5pr2g/RGStE844pit7/IRp6g0/frgPFjtSpxScIO1VHu/Drguz6NDFF1Bay
+	 NStJMkom6MIM+NX+LZggtIJTT0eMcTVodZLcWf0h2W5fWzWdkG4VXJJjDjHlhaNXDU
+	 IszOscVtioErTAwPGUSTsPtNc7vn2kt60IvfOAFlpPEKdBphgQJOaUvzNmOjeNYnzF
+	 S0Cc5c8q0TkqA==
+X-ME-Helo: fedora.home
+X-ME-Auth: Y2hyaXN0b3BoZS5qYWlsbGV0QHdhbmFkb28uZnI=
+X-ME-Date: Fri, 23 Oct 2026 21:35:59 +0200
+X-ME-IP: 2a01:cb10:785:b00:26fb:aefb:6cd2:db0e
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+To: hemanth.selam@gmail.com,
+	Dan Williams <djbw@kernel.org>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Ira Weiny <iweiny@kernel.org>
+Cc: linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org,
+	Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+	nvdimm@lists.linux.dev
+Subject: [PATCH v2] nvdimm/pmem: Propagate devm_init_badblocks() error code
+Date: Fri, 23 Oct 2026 21:35:40 +0200
+Message-ID: <a24a19c429dd734c83c563f9b3c5fb5514cd7de0.1792784093.git.christophe.jaillet@wanadoo.fr>
+X-Mailer: git-send-email 2.56.0
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -87,26 +74,48 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 List-Owner: <mailto:nvdimm+owner@lists.linux.dev>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Subject: Re: [ndctl PATCH 0/4] libdaxctl: Fix multi-range memory block
- handling
-From: "Gregory Price (Meta)" <gourry@gourry.net>
-To: Alison Schofield <alison.schofield@intel.com>
-Cc: nvdimm@lists.linux.dev, Gregory Price <gourry@gourry.net>, 
- linux-cxl@vger.kernel.org
-In-Reply-To: <cover.1792695259.git.alison.schofield@intel.com>
-References: <cover.1792695259.git.alison.schofield@intel.com>
-Date: Fri, 23 Oct 2026 13:37:25 -0400
-Message-Id: <179277704537.2498233.16797078329348590460.b4-reply@b4>
-X-Mailer: b4 0.17-dev
+Content-Transfer-Encoding: 8bit
 
-On 2026-10-22 12:56 -0700, Alison Schofield wrote:
-> [ Gregory: Hoping you can help w reviews here ]
-> 
+Propagate errors from devm_init_badblocks() instead of hard-coding a
+-ENOMEM.
 
-in my queue, thanks for looking at this.
+This change is a no-op. The sanity check in devm_init_badblocks() can't
+fail, so -EINVAL can't be returned. And __badblocks_init() can only return
+0 or -ENOMEM.
 
+However, propagating the error code is cleaner and more future proof.
+
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+---
+Changes in v2:
+  - rebase with -next-20261023
+  - Update the commit summary and description. It is not a fix anymore,
+    just a clean-up. The Fix itself has already been applied in commit
+    855a46681e0b ("nvdimm/pmem: Release gendisk on probe failure")
+
+v1 (from 2021!):
+  - https://lore.kernel.org/lkml/f1933a01d9cefe24970ee93d741babb8fe9c1b32.1636219557.git.christophe.jaillet@wanadoo.fr/
+---
+ drivers/nvdimm/pmem.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 0766a6949b28..76e80eccc8e7 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -563,10 +563,9 @@ static int pmem_attach_disk(struct device *dev,
+ 	nvdimm_namespace_disk_name(ndns, disk->disk_name);
+ 	set_capacity(disk, (pmem->size - pmem->pfn_pad - pmem->data_offset)
+ 			/ 512);
+-	if (devm_init_badblocks(dev, &pmem->bb)) {
+-		rc = -ENOMEM;
++	rc = devm_init_badblocks(dev, &pmem->bb);
++	if (rc)
+ 		goto out;
+-	}
+ 	nvdimm_badblocks_populate(nd_region, &pmem->bb, &bb_range);
+ 	disk->bb = &pmem->bb;
+ 
 -- 
-~Gregory
+2.56.0
 
