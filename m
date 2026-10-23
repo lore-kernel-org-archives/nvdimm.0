@@ -1,54 +1,95 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.215.58.168
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792727204;
-	b=Z/4tfls3r0EA0y6rEsQLhfXoo201lVL+I5RUX0kx/ViVagOcBXVxPdToQvdUwHchh98+
-	 bvbp5i/kGsg7cvV/ViWZ48NffN9fni4sSEFtug3Xursil7/uvg6b/qUejLR3cDe+TLD3s
-	 IqLG7qRQIVA4iaBHFsuJhsYb8lru3JcVzH07MUEwr59zte94zHi9AFzX6SqXsQPrb6rJ0
-	 dpwCQ4YhBhT3fzEYFCv6k+BscTR9cntRhFCiDeCLxLBTmqg48zRztuMvVbuyz1meDT0Pg
-	 29TGQjpQIZ9VICEmf24tFSCprVtNjW97H2W2x/VMX5fzgb5lmuDc5CdxRtqArKR5vug==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792727204;
-	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
-	 X-Mizu-Trace-ID:X-Migadu-Flow:Message-ID:Date:MIME-Version:User-Agent:
-	 Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding;
-	bh=ttIYp9SKvrIeTjMeme1a7v/1DuKF5crN8WKfQ1/zVqQ=;
-	b=TO938r7MKOQRKnaGp35LRtnlZ0mUd7wzvm5m4dNg0jJitrTePX/7CbBhgTl493IolbtZ
-	 DrRHPuzC0hEiYeqmXfIx+L3lXNtvS2IOJSTrN/uzU6A+n16BXOn6moAlBxeRyBiaGWOA3
-	 ERLjT3tvC849ibZs5ve+Khpsdp5n02B1D7AliKnVhfI5jK74usNKtXLfBFhLYJy570TDn
-	 wx8Pg+ZWhykOlM0UCqawL+HNY7ejoD7eesI1E2HaLGHEdT7f8Oe4EYbPALXd9VMrDM0Ux
-	 XEim3tzog5/7Sgixi8Zkh7VLqaGxLfvVZaJ1fUPkT+RS01Kqv3aZDcp73JpKk3eUxGA==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.dev;
-	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=V9SxOFsb;
-	arc=none smtp.remote-ip=95.215.58.168
-Received: from mta1.migadu.com (out-168.mta1.migadu.com [95.215.58.168])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.56.61
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1792762630;
+	b=3x5fi5MHYox+Pcpn+gdJW2T12A6NzM0tMdviFkQa3m4wUqVkly68CZ5seyFLHETpFCM4
+	 qrDgeVi2eBGAqBsIXc/OQCraqr2l7iPGftjwRn/5gJCbTSgLbU8K/2xdpiDdpz5YrfZ/P
+	 GD6FcQrEnoPluwy3mLu43kiWN8VGUtSyCoyJ6PzRqbYlHNDlkPGomsR8QXlOsoGJLqTFz
+	 2zfxXyv1SAuoYMXiVynW47iB22e0iILrA5fJ4XDxbaaKtsJyvn9f0BN5R4b0tK0Hx6KnK
+	 A3d1CfxdQ1X7vMbyTS9gUIMLG/pHIvLAnla7xHm3HcUyWATMlR3sKMyPizYn5Yr1nmw==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792762630;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:
+	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
+	 Message-ID:Date:MIME-Version:User-Agent:Subject:To:CC:References:
+	 Content-Language:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding:X-Originating-IP:X-ClientProxiedBy:
+	 X-EOPAttributedMessage:X-MS-PublicTrafficType:
+	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
+	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
+	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
+	 X-Forefront-Antispam-Report:
+	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
+	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-Id:
+	 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp:
+	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=eYY72LqcWyDES/89Str2pGYwi8OVgpy+OM4+oC5cNHw=;
+	b=3+Bqcz0REyQvTAlW60NMiPdAJTSzEc50IZoWYtz2RBUcwX7USafAUfHNdWNxGdCeHqNm
+	 OsvVA84YOIqS+m7lkll3Wikof5yQIVdLdafh7HSaXYMgznJnWoJcXFSF3l8tPJRiVhEH1
+	 aM05e1jw8y7UlRhkR1YmdCINmP7T6VP5ZsnYm7Pn8qTjxX0o/GJNPaH56/MNZ5ruaz8tA
+	 6Z40f20nO7kJvcWZqIUQ5vNaKherfH/V8mmvcquLOfLzxhhImtLtlZRkuj2sQhRGCTja+
+	 Gh4+QkdpKzR4bHw2Td/HcJ9eyPRdeSTpYwQEnF2Ozsamz9UpoFG1XwFdi+4/7sIkl5w==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=amd.com;
+	spf=fail smtp.mailfrom=amd.com;
+	dkim=pass header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=DfiGJSD8;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.56.61
+Received: from BN1PR04CU002.outbound.protection.outlook.com (mail-eastus2azon11010061.outbound.protection.outlook.com [52.101.56.61])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 192F2606A319
-	for <nvdimm@lists.linux.dev>; Fri, 23 Oct 2026 03:46:42 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 192F2606A319
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A901606A325
+	for <nvdimm@lists.linux.dev>; Fri, 23 Oct 2026 13:37:09 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5A901606A325
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=V9SxOFsb
-X-Envelope-To: nvdimm@lists.linux.dev
-DKIM-Signature: a=rsa-sha256; bh=Hm72Xfl6pvbKv+hg7yoR4S7LNRVKFxz7eQHzNV7biQo=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1792727201; v=1; x=1793332001;
- b=V9SxOFsbi2u9Uu+fiTkvQf06afGaagMarU08jGszLxPu/I6Na+u6nAq40izPufIN91vd04Dw
- IFzE0t9wZSNARZlpsgISwjRMup02OGVKwqkBP/JkA+CYQ8gjn6ts7vwq/9CNsbcG4MPSrShDpns
- II31xlaPTyn+qGAfS/TnnPc0=
-X-Envelope-To: nvdimm@lists.linux.dev
-Received: by smtp.migadu.com with ESMTPS id c34def1092b89765;
-	Fri, 23 Oct 2026 03:46:41 +0000
-X-Mizu-Trace-ID: c34def1092b89765
-X-Migadu-Flow: FLOW_OUT
-Message-ID: <a3601418-7fac-4f8e-82b1-3aa9e731c822@linux.dev>
-Date: Fri, 23 Oct 2026 11:46:36 +0800
+	dkim=pass (1024-bit key, unprotected) header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=DfiGJSD8
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=XZuvWHuIkQ03PKWzInHEcxIntQ/tQIyUVa5MaA0EVj+XKYO8OWFJXm56u8YFSlJpKOeMR5YQ+EE0ql2UCK+q2BHSLwAuXy6KlF4ncPFuPk2sfFBzYIIhuE5lyf48+Eo7p8Czl80Pp1Yf2tcwPGW+mz6yfLtklYd5CL0DIyH1Wq8R6SNd2+LQAPctivcOnLAB7L+FinUkANqSLtV/7NMckTD+iKZoP3dQflpgSCtsReY0ydyqgDd/vmYks4IdDdW0pvmg5+7t9zrFV3jBbBZhjWVuG7/AQkRNo/SLfe5vlIZdG7nnyLrGtyv1xuKgR6wecukZvK6JXnnTd/UMXoM/9w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=eYY72LqcWyDES/89Str2pGYwi8OVgpy+OM4+oC5cNHw=;
+ b=gEgMBsDeGZ6y7APP2PpmuMBlzpySYbx2mr68jJpAfWDheU2KElU+moaRzzjt+4Edzp0taokRSIhCjpgcJ0BsyYgXHxA0X0rb5iRZeypsmkd0hNcU7XokfcEcpBZlt1TQXWALoLeIJ4IbkInTzg/Cx5DNEnKSlJwZv5urgwld81Qieoe7Km/FpmjScn1hxoU68+iy9rVgWBdbp0H07a9CjigvOlxtNMPRsfii4xBxD8KUhlqUSqgtyLMyEDUSGYYnXPhF7qj0QKEQepg8oHBvuagf+o5SWU5bbVRe5INQsquqTBa8T4bt6wftZUp8njZHF2jWTtEF3VFo33riqxVGOA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=intel.com smtp.mailfrom=amd.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=eYY72LqcWyDES/89Str2pGYwi8OVgpy+OM4+oC5cNHw=;
+ b=DfiGJSD8Bk7izyP9/dWf4ozn4BKOYXalCegsj/Zv+w0FNKY67fygZ1RUnfmoeGKsE/cirehq3sg/iKOW/L8D015aK6kRnKj8PGSg4y3Qg/JjA+vyulljDlV8J7mlXza9SNH+3FAGLWr1WrUwfUHTE8DMXshijHsp0hd1ZzoNeJ0=
+Received: from CH5P222CA0010.NAMP222.PROD.OUTLOOK.COM (2603:10b6:610:1ee::28)
+ by DS4PR12MB508551.namprd12.prod.outlook.com (2603:10b6:8:50e::23) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.546.19; Fri, 23 Oct
+ 2026 13:37:05 +0000
+Received: from CH3PEPF0002457B.namprd04.prod.outlook.com
+ (2603:10b6:610:1ee:cafe::2f) by CH5P222CA0010.outlook.office365.com
+ (2603:10b6:610:1ee::28) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.546.19 via Frontend Transport; Fri,
+ 23 Oct 2026 13:37:05 +0000
+X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
+ is 165.204.84.17) smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
+Received: from satlexmb07.amd.com (165.204.84.17) by
+ CH3PEPF0002457B.mail.protection.outlook.com (10.167.252.21) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.569.4 via Frontend Transport; Fri, 23 Oct 2026 13:37:05 +0000
+Received: from [192.168.86.102] (10.180.168.240) by satlexmb07.amd.com
+ (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.53; Fri, 23 Oct
+ 2026 08:37:04 -0500
+Message-ID: <b4678429-f12b-4cdc-b189-4a1c67e1a93c@amd.com>
+Date: Fri, 23 Oct 2026 08:37:04 -0500
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -59,281 +100,64 @@ List-Owner: <mailto:nvdimm+owner@lists.linux.dev>
 Precedence: list
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4] dax/bus: fix Device DAX range alignment validation
-To: Alison Schofield <alison.schofield@intel.com>,
- Muchun Song <songmuchun@bytedance.com>
-Cc: Dan Williams <djbw@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>,
- Dave Jiang <dave.jiang@intel.com>, Andrew Morton
- <akpm@linux-foundation.org>, Joao Martins <joao.m.martins@oracle.com>,
- nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
- linux-kernel@vger.kernel.org
-References: <20261016053944.2579541-1-songmuchun@bytedance.com>
- <atqk4GgaII0KQQnW@aschofie-mobl2.lan>
+Subject: Re: [ndctl PATCH] cxl/list: handle missing debugfs when reporting
+ protocol injection
+To: Alison Schofield <alison.schofield@intel.com>, <nvdimm@lists.linux.dev>
+CC: <linux-cxl@vger.kernel.org>
+References: <20261023011333.522080-1-alison.schofield@intel.com>
 Content-Language: en-US
-From: Muchun Song <muchun.song@linux.dev>
-In-Reply-To: <atqk4GgaII0KQQnW@aschofie-mobl2.lan>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+From: "Cheatham, Benjamin" <benjamin.cheatham@amd.com>
+In-Reply-To: <20261023011333.522080-1-alison.schofield@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: satlexmb08.amd.com (10.181.42.217) To satlexmb07.amd.com
+ (10.181.42.216)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CH3PEPF0002457B:EE_|DS4PR12MB508551:EE_
+X-MS-Office365-Filtering-Correlation-Id: a4ca0e56-a428-44c5-3f98-08df310aba4c
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|1800799024|82310400026|36860700016|23010399003|56012099006|11063799006|261021121427099003|261022105027099003|261009223027099003|10067099003|18002099003|22082099003|3023799007;
+X-Microsoft-Antispam-Message-Info:
+	kVSq+EshsUd/kRjI+FicJapauMv6hEdaQ5Otm9dBtb9XNY2nOT1xnsOJ8oY+DvqITZEDMBZZc7qT3/FTxdL0H1c8BNag38yOep0Nh5RMb2N2f+b/2UtUsESl+uecz59G5yq+EIOhNXRZ0TJYSfSmABhlq+jMNklnVuZBaFB4wF3nhFeeqL0Ulq+m4nrWIO3z81w6RRfG3uyq1PLdTjOw+1+jT4BNinXLU8EPbWDCFtqT2LTJ9IFbAG++0eopNeG7DiptpOTOk7/vqCZ5MNEb4+oiah6fcYYN/iI1uh1yv1VlAvaXo2dtgCBkkUq40YLV5Hk5unB2c5UES0IvblPXPYRKSujKBrBBsvg2Lfp51XU3tmyCUb6tRqN02+i7zua8Zh7rcTbSzpxGkE7rfiqRLR+8q815HfnGOJNTCj6sDb0jBLPyLVt4+gAbpsW61p/tViuSuG43kIjkDy7eqIJ92NWRHayKj8gTZoBBeOGJ/Qb1IreMwvsA2/U87f42yp6E1YuXQAeeBPVd4DwH4DGK5V8rDdfoITe3ply8tG1vBT1ax4ZeF6e+qII5NUH91C05miKn7x8tMvtLzHCmVeuwhAeaHn+6U89lYJOinsGXKOMLCCf7HX5Fr31ejUXlu3PugWse4A1SAenV8OYfkclQV9lf48H5tPMM1+xwrhXpTXcXi2T8nYCV8mkmdO+ONRwx7wAKN4Dq5Q1vaQ9UQm1jRQ==
+X-Forefront-Antispam-Report:
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(376014)(1800799024)(82310400026)(36860700016)(23010399003)(56012099006)(11063799006)(261021121427099003)(261022105027099003)(261009223027099003)(10067099003)(18002099003)(22082099003)(3023799007);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	lC+3fKuQPFBSX5T/hr1X24DmzkAWlr9AyS/wJ2f9V+YRSRoZ4+DtMjgI2u7Wur1CkOYpHQfruZ+2vrcKCzsPyL88t0GJX1DxsxAYuRIP++CQG6nWeMOARBAyUD4X8SEklTr0sQEWJ4Ko+O5QNOtrW9e6MReiG3Kax5LdJrXu5YoioJRVejwYFKDCg4qnKD8Tfl7fC3tntX6ZG702UgABrGaNJhMi60buajq2lzVH4aODZACM6y77uy9Gi4mMmqnbEChX97Lmn7rov9AQ1IC1ZtPc+Dcw5HmT13Z7Nofwt+0PGIP5l2+LbzEKVzcIGmEzwNraKE6/AxRz+UxY/V21kqnXZ9vzprYAPIrR27BCerbXaPNy905R76/cXiIhQNV6fPXSeZPcCO0QLhGfIkhAdb/NKvXAdMrE3rTzQPUDTVEWh6CPXOMq9DSJLhRIGvZN
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Oct 2026 13:37:05.4439
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: a4ca0e56-a428-44c5-3f98-08df310aba4c
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	CH3PEPF0002457B.namprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS4PR12MB508551
 
+On 10/22/2026 8:13 PM, Alison Schofield wrote:
+> When debugfs is not mounted or CONFIG_DEBUG_FS is disabled, 'cxl list -v'
+> crashes while generating the protocol_injectable attribute for downstream
+> ports.
+> 
+> The crash occurs because cxl_dport_get_einj_path() passes a NULL debugfs
+> path to strlen().
+> 
+> Return NULL from cxl_dport_get_einj_path() when debugfs is unavailable,
+> and omit protocol_injectable from the JSON output, consistent with other
+> debugfs-dependent attributes. Update the documentation to match.
+> 
+> Thanks to Christopher Kim who reported and provided the fixup.
+> 
+> Originally-by: Christopher Kim
+> Fixes: 5d596866f8c5 ("cxl/list: add injectable errors in output")
+> Closes: https://github.com/pmem/ndctl/issues/300
+> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
 
+LGTM,
 
-On 2026/10/23 08:05, Alison Schofield wrote:
-> On Fri, Oct 16, 2026 at 01:39:44PM +0800, Muchun Song wrote:
->> Only range sizes are currently validated against dev_dax->align. A
->> dynamic device can therefore select a large-page alignment and allocate a
->> range whose start is not naturally aligned. The device binds successfully,
->> but a later write to a userspace mapping may trigger a kernel panic.
->>
->> The automatic resize path can also split a size-aligned request across
->> arbitrary free gaps. When devices with different alignments fragment a
->> region, this can extend a range by less than the device alignment. A later
->> allocation then fails, leaving the failed resize partially applied.
->>
->> Initialize the device alignment before its first allocation. Validate both
->> the start and size of allocated and adjusted ranges, account only for
->> aligned free space before changing ranges, skip unusable gaps, and
->> serialize size validation with alignment updates.
->>
->> Static Device DAX already has a pre-populated pgmap whose full range was
->> validated against memremap_compat_align(). Its usable data range may begin
->> after namespace metadata, so require only dev_dax->align for static
->> devices. Dynamic Device DAX builds its pgmap from the allocated ranges and
->> must continue to satisfy both alignments.
-> Hi Muchun,
-
-Hi,
-
->
-> One commit message comment:
->
-> Now that this is a standalone patch, some useful context from the original
-> cover letter would be useful in this commit message.
-
-OK, I'll add those info to commit message.
-
->
-> The cover letter explained that Sashiko identified a path where
-> `memmap_init_zone_device()` could initialize struct pages with a large-page
-> order for a physical range that wasn't naturally aligned. You also mentioned
-> that you reproduced the resulting kernel panic.
->
-> That gives us both the failure mechanism and confirmation that this is a
-> reproduced bug, rather than just a potential problem. Those details are worth
-> keeping in the commit message.
->
-> So I happened to hit this and the mapping_store() issue that was in the
-> original patch 1/2. Both these fixes solved my problems.
->
-> Below I do have some style and simplification feedback, and am also wondering
-> about the gap handling logic.
->
->
->> Fixes: 6d82120f4156 ("device-dax: add an 'align' attribute")
->> Assisted-by: LLM
->> Signed-off-by: Muchun Song <songmuchun@bytedance.com>
->> ---
->> v4:
->> - Use dev_dax->align alone for static Device DAX ranges to preserve
->>    older 4K namespaces (reported by Alison Schofield)
->> - Condense the commit message to the failure scenarios and required fixes
->>    (suggested by Alison Schofield)
->>
->> v3:
->> - Serialize size alignment validation with alignment updates to avoid a
->>    partial shrink after a concurrent alignment change (reported by Sashiko)
->> - Document the size validation serialization in the commit message
->>
->> v2:
->> - Keep the alloc_is_aligned() name to avoid unrelated helper renaming
->>    (suggested by Dave Jiang)
->> - Move this patch after the mapping error reporting fix for independent
->>    backports (suggested by Dave Jiang)
->> ---
->>   drivers/dax/bus.c | 152 +++++++++++++++++++++++++++++++++++-----------
->>   1 file changed, 117 insertions(+), 35 deletions(-)
->>
->> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
->> index b809e1a264af..b2c83a0e4ec5 100644
->> --- a/drivers/dax/bus.c
->> +++ b/drivers/dax/bus.c
->> @@ -848,6 +848,52 @@ static int devm_register_dax_mapping(struct dev_dax *dev_dax, int range_id)
->>   	return 0;
->>   }
->>   
->> +static inline unsigned long dev_dax_min_align(struct dev_dax *dev_dax)
-> Why the static inline here and also why below do you change
-> alloc_is_aligned() to static inline?
-
-I thought it is a one-line code, inline is better, I usually do
-this in MM area.
-
->
-> coding-style.rst is against it in .c files and we don't do it in any
-> other drivers/dax/*.c code.
-
-Seems it is not a convention in DAX. I am not an expert in DAX.
-
->
->> +{
->> +	/*
->> +	 * A static device has a pre-populated pgmap whose range already
->> +	 * satisfies memremap_compat_align(). Its data range may start after
->> +	 * metadata at dev_dax->align granularity.
->> +	 */
->> +	if (static_dev_dax(dev_dax))
->> +		return dev_dax->align;
->> +
->> +	/*
->> +	 * The minimum mapping granularity for a dynamic device instance is a
->> +	 * single subsection, unless the arch says otherwise.
->> +	 */
->> +	return max_t(unsigned long, dev_dax->align, memremap_compat_align());
->> +}
->> +
->> +static inline bool alloc_is_aligned(struct dev_dax *dev_dax, resource_size_t size)
->> +{
->> +	return IS_ALIGNED(size, dev_dax_min_align(dev_dax));
->> +}
->> +
->> +static inline bool range_is_aligned(struct dev_dax *dev_dax, u64 start,
->> +				    resource_size_t size)
->> +{
->> +	return IS_ALIGNED(start | size, dev_dax_min_align(dev_dax));
->> +}
->> +
->> +static resource_size_t
->> +aligned_gap_size(struct dev_dax *dev_dax, resource_size_t *start,
->> +		 resource_size_t end)
->
-> Please keep the return type on the same line as the function name, like
-> rest of this file.
->
-> Also a function comment like:
-> /* Return usable aligned gap size and update *aligned_start */
->
-> and a rename of *start to *aligned_start would make the contract clearer.
-
-Will do.
-
->
->
->> +{
->> +	resource_size_t aligned_start = ALIGN(*start, dev_dax_min_align(dev_dax));
->> +	resource_size_t size;
->
-> How about calculating dev_dax_min_align() once and keep it in a local variable?
-> We use the same value again for ALIGN_DOWN().
-
-Make sense.
-
->
->
->> +
->> +	if (aligned_start < *start || aligned_start > end)
->> +		return 0;
->> +
->> +	size = ALIGN_DOWN(end - aligned_start + 1, dev_dax_min_align(dev_dax));
->> +	if (!size)
->> +		return 0;
-> The above early return looks needless given how callers use the result
-
-Oh, yes.
-
->> +
->> +	*start = aligned_start;
->> +	return size;
->> +}
->> +
-> snip
->
->>   
->> +static resource_size_t
->> +dax_region_aligned_avail_size(struct dax_region *dax_region,
->> +			      struct dev_dax *dev_dax)
-> Same as previous, keep return type on the same line here.
->
-> The dax_region argument looks needless as we can get it from
-> dev-dax->region.
-
-Right. My oversight.
-
->
->
-> snip
->
->
->> @@ -1062,37 +1130,51 @@ static ssize_t dev_dax_resize(struct dax_region *dax_region,
->>   	 */
->>   retry:
->>   	first = region_res->child;
->> -	if (!first)
->> -		return alloc_dev_dax_range(dev_dax, dax_region->res.start, to_alloc);
->> +	if (!first) {
->> +		resource_size_t start = region_res->start;
->> +
->> +		alloc = aligned_gap_size(dev_dax, &start, region_res->end);
->> +		return alloc_dev_dax_range(dev_dax, start, min(alloc, to_alloc));
->> +	}
->>   
->>   	rc = -ENOSPC;
->>   	for (res = first; res; res = res->sibling) {
->>   		struct resource *next = res->sibling;
->> +		resource_size_t start, end;
->>   
->>   		/* space at the beginning of the region */
->>   		if (res == first && res->start > dax_region->res.start) {
->> -			alloc = min(res->start - dax_region->res.start, to_alloc);
->> -			rc = alloc_dev_dax_range(dev_dax, dax_region->res.start, alloc);
->> -			break;
->> +			start = dax_region->res.start;
->> +			end = res->start - 1;
->> +			alloc = min(aligned_gap_size(dev_dax, &start, end), to_alloc);
->> +			if (alloc) {
->> +				rc = alloc_dev_dax_range(dev_dax, start, alloc);
->> +				break;
->> +			}
->>   		}
->>   
->> -		alloc = 0;
->>   		/* space between allocations */
->> -		if (next && next->start > res->end + 1)
->> -			alloc = min(next->start - (res->end + 1), to_alloc);
->> -
->> -		/* space at the end of the region */
->> -		if (!alloc && !next && res->end < region_res->end)
->> -			alloc = min(region_res->end - res->end, to_alloc);
->> +		if (next) {
->> +			if (next->start <= res->end + 1)
->> +				continue;
->> +			end = next->start - 1;
->> +		} else {
->> +			/* space at the end of the region */
->> +			if (res->end >= region_res->end)
->> +				continue;
->> +			end = region_res->end;
->> +		}
->>   
->> +		start = res->end + 1;
->> +		alloc = min(aligned_gap_size(dev_dax, &start, end), to_alloc);
-> We're walking the free gaps twice now. Once in dax_region_aligned_avail_size()
-> and again here. It seems the 2 walks need to agree about which gaps
-> are usable so that the pre check doesn't succeed and then the allocation
-> loop cannot satify the request...which would get us right back to a
-> partially applied resize.
->
-> Please look at sharing the gap traversal.
-
-Good point. I will factor the gap traversal into a common iterator used
-by both the pre-check and the allocation path, so they share the same
-gap selection rules. I will include this in the next revision.
-
-Thanks for your review.
-
-Thanks,
-Muchun
-
->
-> -- Alison
->
-> snip
-
+Reviewed-by: Ben Cheatham <benjamin.cheatham@amd.com>
