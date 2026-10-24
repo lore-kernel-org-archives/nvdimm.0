@@ -1,73 +1,98 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.20
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.214.181
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792816526;
-	b=T/ZNepJyXMz9Tu8nlCHQ1Xufw4KOSzxP5Hx8eCBY1CAtgO7k/iBh3pXI8do1CoQa+19j
-	 FwJP7zhNgskPv6t//KbYP+gzI+MkOhZjSXj6hQTWP4q79RoV5bMdvqh3QEGYR4JsmPnBI
-	 RnWkZuAO14zQzi3/FQ824RfvMsWPEG+lwI/i/ZJoK1/QZIt7xTOThYbL3kBZp1y/2MIVx
-	 23YOSQh6kM4KA9FfJOYG3l1OChiXgp4GeuO8sThvbB/fw+2n9ArOy3J5WPLbjl9Fy26Gt
-	 wvF9LinEvKju0FpumPT8jgDzGbOKPBBq8jQFp5Dxindbl3vR0kzLWIfIlTj4uo0zAuQ==
+	t=1792841165;
+	b=ajx1EE8bIHTMk95KQuNO4nqdIDLkus4xbWojiQg8ThPyKiDTnupuu8IJmsfQF/7j2eF3
+	 hx9t0TcM8ZVhISB1Hsg0oZ0Iyso4cxO1jnjy9jDd8QfXLiU1DGBhkgmpwRi/bGwNGsaCC
+	 oVfWr+O1bZt2IAxNPeBycAxGdlGvQgBxJ5NtXZTsVY2yZYCY/fipWcfUa71YkMzJMuVhv
+	 /YZCh+1qy8+WRyN83RwSeyELeQ37wqXVb3aTIvp5ffvzb+WxiZwfPrNeXD0cB9G/pr/EK
+	 MPfMS4HtPvKNlvY8s8k1ay1bsb76rSMQSBFA9gGIHsr4Vbh5mAVRTWAve1+Wn6gOWdA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792816526;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
-	bh=acZspWQ45Lni5iFUcI4NVyzN82GeHAPcaRBS+SFt96Q=;
-	b=ZHxpD4j4cUhcgfgQVBQ/yFsD0NVrUswZ1WKgV9WwAvkgAMrAJwYtn0NDjaNTa6HeJYGd
-	 hg+8eBYtF/fVotrKLTZCr39Gn8uqfE/+H+Kw1w28ZVXW0yVumjYBDuYtP3tSwdLNgVV7n
-	 aGedw3jxPTwqzPsw3ezQZrKhLDg4u+NQOGx4C/j5kdbotOdUKtBNH6APtnBiujjqRDr1Y
-	 PJnG1TTseeEI3Zxhu9PZlfHPRb/v7+3CKfB1zA4Y4WFDz/P1c2F2b3KECBEW7zmfauklv
-	 77zrrZUSo2/mw5nQLN7F4NAvKJK2c5NyI85d/na1W0LAHA+Bq6pitra6RWKnU5QB+ig==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792841165;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=xY6xx9AzDCW/geo4ye3mUqt+cF8oouoODCvhkTp5flE=;
+	b=ycEqiWN4LAjVrnI+sNfjV7Z9OdTK9rrWbX6uDw2lYBdGe0qN4Ht7xskLIyAo0Alc7X56
+	 A32IvPdbsu1hqF5vhSaC6a5TKTyoGOetJqTEO1CS9UrhAwGBlOp9R/Oyh5xL+wNWRzGrZ
+	 Su5creEofEdApz6lSHQ5yt9ZevEps+y6cZRrrVPlhNB6dTJhlLF38yWOujWEyVA13Tw4P
+	 K8IYogOUw3gCwKF828jTvRaTx7AonHT1XYKSm4e8dYDvzNW7nbtvBBNH5rC2I2EnLZhES
+	 RctLZS0BYZJl6VDzMvctKKJz+UqG7/BsDGB6N9J1MQQO8Zt4P6hYZXDcwBPM0AC1USg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=intel.com;
-	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=mpaxj5TM;
-	arc=none smtp.remote-ip=198.175.65.20
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dmarc=pass header.from=bytedance.com;
+	spf=pass smtp.mailfrom=bytedance.com;
+	dkim=pass header.d=bytedance.com header.i=@bytedance.com header.a=rsa-sha256 header.s=google header.b=ihoOWBRD;
+	arc=none smtp.remote-ip=209.85.214.181
+Received: from mail-pl1-f181.google.com (mail-pl1-f181.google.com [209.85.214.181])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4A4A606A31A
-	for <nvdimm@lists.linux.dev>; Sat, 24 Oct 2026 04:35:23 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C4A4A606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDF4E606A31E
+	for <nvdimm@lists.linux.dev>; Sat, 24 Oct 2026 11:26:04 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EDF4E606A31E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=mpaxj5TM
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1792816524; x=1824352524;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=RP+CvxYzK1Vc7hnZ3Z8fC8dLf7zLR30V5iATXTDKtNU=;
-  b=mpaxj5TMK/VNfmoMwcxqpkRcVYY7WHPlbULHe7FIveXsu5f9xca9zb6w
-   al6N53VNMepGNl+5JKjj/w+cyjHu2qrXs8C/clF7JTrqp3B+wDLMqV5ES
-   /TkItbtiq2SmfwjiWI6lwi/upWv+3ahrczzWLfq7DFjZhzyr5xHimIGjC
-   t5iMHLAUQhOKwA9CPOb5B+HsREdjWE1a47tsFuNJIwG5bAVXtEKqlUvuD
-   hVtzhS6GEossLzrNjuXVIQ/S7fr4sxWYa6Jnc9OY3uXkMsz91EhLnCmEt
-   0S2ADo5Szqzis9hCNqLi+P1eyxGHvCR8nc5fxPAiH39IB2+aP6iXP9bVg
-   Q==;
-X-CSE-ConnectionGUID: cwA8qim8QcCOhz8kVcAgkA==
-X-CSE-MsgGUID: RRodjog7QvSaz9CngI1OWA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11944"; a="1590099"
-X-IronPort-AV: E=Sophos;i="6.27,175,1787036400"; 
-   d="scan'208";a="1590099"
-Received: from orviesa003.jf.intel.com ([10.64.159.143])
-  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Oct 2026 21:35:24 -0700
-X-CSE-ConnectionGUID: Lw36hWHxTcCUMp/HJpKHgA==
-X-CSE-MsgGUID: 0p+1psMhRJahx+ZVm8HuqA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,175,1787036400"; 
-   d="scan'208";a="3722026"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.125.108.51])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Oct 2026 21:35:24 -0700
-From: Alison Schofield <alison.schofield@intel.com>
-To: nvdimm@lists.linux.dev
-Cc: Alison Schofield <alison.schofield@intel.com>,
-	Cristian Rodriguez <yo@cristianrodriguez.net>
-Subject: [ndctl PATCH] ndctl/lib: embed a fixed-size nd_cmd_pkg header in command packages
-Date: Fri, 23 Oct 2026 21:35:19 -0700
-Message-ID: <20261024043521.560745-1-alison.schofield@intel.com>
-X-Mailer: git-send-email 2.47.0
+	dkim=pass (2048-bit key, unprotected) header.d=bytedance.com header.i=@bytedance.com header.a=rsa-sha256 header.s=google header.b=ihoOWBRD
+Received: by mail-pl1-f181.google.com with SMTP id d9443c01a7336-2e8da6ef7ddso8402745ad.3
+        for <nvdimm@lists.linux.dev>; Sat, 24 Oct 2026 04:26:04 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bytedance.com; s=google; t=1792841164; x=1793445964; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=xY6xx9AzDCW/geo4ye3mUqt+cF8oouoODCvhkTp5flE=;
+        b=ihoOWBRDZqIM08vH77pzdT/DKwx4MTDMD2tqhDvsi0N/+00JS3SertbYblM6UBZiw1
+         API00/ACDXfyRbRgjKp0C8S0oSPYGc1iEYWMTyhvfqZnY4gL2v9urcEQMFt18G6AV6MP
+         jRPSgzZPi3SQgGQzU4NjZClkUWu4pCptXrTgJnyNfigeNDiYidu6mhmypklwHfw7MT0M
+         pBB643YLDPgt0nnbwxmFnBp0+SfMqT9k0RzJHlxIaFFAIRYREfnjZpr6wW55Bo8LjPam
+         iHopO/e4MoACKo2pbNmLXxrLNbUsup6UhkBUcAgXACKeEd3Y6Uj7fIfU8fOyo7TszCPZ
+         WUQA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792841164; x=1793445964;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=xY6xx9AzDCW/geo4ye3mUqt+cF8oouoODCvhkTp5flE=;
+        b=NE0mxQAENYW1GX7zXjE4SIQ2HiRbFexru847mO5p/D8KvaFXJOlEZfGCR5En9Eiuqw
+         P1Lmxvggbiqi8vx5XzuRqPmkGxKJ7lnsVmWwxiikG5vqSK7EHgVtjlJAWG0CTw3wWZBG
+         5VeJqAFw4MqzomMeVQfcweN94M8TF5Ti6FDDOc/isBBgXDQlJBSzHXIaeF+TFzsvTbam
+         GrO1Gjm4kfggtt0SUxUzAUT07CbSdprGYX3Is6ubybGaaU+cL8ctOdHbDejD4aV2nyGd
+         SwooIcIt6cGy76OOSFsh5eaZOT3uz8LVNI9ioaZODrV3jJ6FMyu/y7Rb0qFY68Iv3NCd
+         nh4g==
+X-Forwarded-Encrypted: i=1; AKwUvBxXP52e+fLccuiKUzVPG7+QzxhVYeAhJq5H8tWN3sUZ99K6iZ7hzLGmxxFBFRylnbq27iGxMbY=@lists.linux.dev
+X-Gm-Message-State: AFq9FYL+NJN+0UbVhyTrKWLdaIz+AkwQP6pNVhFT3GGce8zo6zEgf4sQ
+	nZA27o0+zeEwSDAN8ZNg2ZK60fs/hTl8eO3lBjKym+Dg66T2j1EsnX9eunTVvtzzcCM=
+X-Gm-Gg: AYBFou0PXlex02OR9u+bF3AfmtoAkfoXp4l9GayZPvr6MJA3q1AGIzNzRScrAOr2PMd
+	h6J/tER1GF++KpWqXXh2+XpxObiDjdVlrFKu7R4rbbvRb4scFixbLL8fCn+VwVy4TWnpXdK8ibD
+	TqUmsiF8ApBo+NxrzbQfpZxFLy93k502g+3/H2PQLHkdZAqQNcVbAsZgMbHe3s1GAJNBVPG2Gt9
+	jL36DayCo+wv+nnzglZxL8tR3ycQ8JjMOg1MeFC6xThttkiZyAL0fg3uSk27GOlG+a8rzT8A6yJ
+	oCRGAEr60vwkoXdTtpQkNWjQj26yOsiMlnQxiG14YAnGg71fqrhEvlMheQpsQnHP1+TU7dzhVti
+	Q5YOgUUO/MfxxlRIh7GZ+0QiSp67H1BJJ/kLUygSCiJTT8EU+Xl2n0FwCgxsobbI+Py7tHKqbQA
+	WCwOT0nDAGTgJrw72GI2lViy2cCe6xWnQi47KPpl/YIQYNFLBZN1LY3A+eZr29kDBnNsYPPHiim
+	4Fmpvo2f6Kynp/JZ2CwgL70nI8ox3ykMfb3PqqPeIspPKbbQYYJx/wQ21WIktvCSmkDc86b/v8w
+X-Received: by 2002:a17:902:dac8:b0:2ea:4c42:573c with SMTP id d9443c01a7336-2ea9c875775mr14472985ad.51.1792841164138;
+        Sat, 24 Oct 2026 04:26:04 -0700 (PDT)
+Received: from n232-176-004.byted.org ([36.110.163.97])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2ea9b11fc1fsm4944875ad.26.2026.10.24.04.25.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 24 Oct 2026 04:26:03 -0700 (PDT)
+From: Muchun Song <songmuchun@bytedance.com>
+To: Dan Williams <djbw@kernel.org>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Alison Schofield <alison.schofield@intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Joao Martins <joao.m.martins@oracle.com>,
+	nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org,
+	Muchun Song <muchun.song@linux.dev>,
+	Muchun Song <songmuchun@bytedance.com>
+Subject: [PATCH v5] dax/bus: Fix Device DAX range alignment validation
+Date: Sat, 24 Oct 2026 19:25:55 +0800
+Message-ID: <20261024112555.2476001-1-songmuchun@bytedance.com>
+X-Mailer: git-send-email 2.54.0
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -79,239 +104,371 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The vendor and NFIT bus command packages embed struct nd_cmd_pkg before
-their payloads. Since struct nd_cmd_pkg ends in a flexible array member,
-Clang reports -Wgnu-variable-sized-type-not-at-end for these definitions.
+Only range sizes are currently validated against dev_dax->align. A
+dynamic device can therefore select a large-page alignment and allocate a
+range whose start is not naturally aligned.
 
-A flexible array member is expected to be at the end of a structure.
-Placing it before another member may cause problems with stricter
-compiler bounds checking or future compiler optimizations. Incorrect
-payload accesses could result in ndctl reporting bad device data or
-sending malformed commands to a device.
+Sashiko found that memmap_init_zone_device() could then initialize the
+struct pages with a large-page order for a physical range that is not
+naturally aligned. A subsequent write to a userspace mapping then
+triggered a kernel panic in testing.
 
-Add struct nd_cmd_pkg_hdr containing only the fixed fields of
-struct nd_cmd_pkg. Use it in the vendor and NFIT bus command packages
-in place of the flexible-array structure, keeping the header at offset
-zero and the existing payload definitions unchanged. Update the few
-call sites that explicitly reference struct nd_cmd_pkg to use the new
-type. Build-time assertions ensure the header's size, alignment, and
-field offsets match the kernel UAPI definition.
+The automatic resize path can also split a size-aligned request across
+arbitrary free gaps. When devices with different alignments fragment a
+region, this can extend a range by less than the device alignment. A later
+allocation then fails, leaving the failed resize partially applied.
 
-Validation confirmed that the package layouts are unchanged, including
-sizes, alignment, payload offsets, variable-length tails, and the
-ndctl_cmd union layout. With the version string held constant, all 153
-compiled objects were byte-identical to the originals under GCC and
-Clang at both -O0 and -O2.
+Initialize the device alignment before its first allocation. Validate both
+the start and size of allocated and adjusted ranges. Use the same
+aligned-gap iterator for free-space accounting and range allocation so the
+pre-check and allocation path cannot diverge. Skip unusable gaps and
+serialize size validation with alignment updates.
 
-Both GCC and Clang builds pass, with all 72 Clang flexible-array warnings
-eliminated. The ndctl unit test suite also passes.
+Static Device DAX already has a pre-populated pgmap whose full range was
+validated against memremap_compat_align(). Its usable data range may begin
+after namespace metadata, so require only dev_dax->align for static
+devices. Dynamic Device DAX builds its pgmap from the allocated ranges and
+must continue to satisfy both alignments.
 
-Reported-by: Cristian Rodriguez <yo@cristianrodriguez.net>
-Closes: https://github.com/pmem/ndctl/issues/296
-Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+Fixes: 6d82120f4156 ("device-dax: add an 'align' attribute")
+Cc: stable@vger.kernel.org
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 ---
- ndctl/nd-cmd-pkg.h    | 48 +++++++++++++++++++++++++++++++++++++++++++
- ndctl/lib/hpe1.h      |  2 +-
- ndctl/lib/hyperv.h    |  2 +-
- ndctl/lib/intel.h     |  2 +-
- ndctl/lib/msft.h      |  2 +-
- ndctl/lib/nfit.c      |  2 +-
- ndctl/lib/papr.c      |  6 +++---
- ndctl/lib/papr.h      |  2 +-
- ndctl/lib/private.h   |  1 +
- ndctl/libndctl-nfit.h |  3 ++-
- 10 files changed, 60 insertions(+), 10 deletions(-)
- create mode 100644 ndctl/nd-cmd-pkg.h
+v5:
+- Describe the reproduced memmap_init_zone_device() failure in the commit
+  message (suggested by Alison Schofield)
+- Share aligned gap traversal between the pre-check and allocation paths
+  (suggested by Alison Schofield)
+- Clean up the alignment helpers and document their contracts (suggested
+  by Alison Schofield)
 
-diff --git a/ndctl/nd-cmd-pkg.h b/ndctl/nd-cmd-pkg.h
-new file mode 100644
-index 000000000000..c945467fbf70
---- /dev/null
-+++ b/ndctl/nd-cmd-pkg.h
-@@ -0,0 +1,48 @@
-+/* SPDX-License-Identifier: LGPL-2.1 */
-+/* Copyright (C) 2026 Intel Corporation. All rights reserved. */
-+#ifndef __NDCTL_ND_CMD_PKG_H__
-+#define __NDCTL_ND_CMD_PKG_H__
+v4:
+- Use dev_dax->align alone for static Device DAX ranges to preserve
+  older 4K namespaces (reported by Alison Schofield)
+- Condense the commit message to the failure scenarios and required fixes
+  (suggested by Alison Schofield)
+
+v3:
+- Serialize size alignment validation with alignment updates to avoid a
+  partial shrink after a concurrent alignment change (reported by Sashiko)
+- Document the size validation serialization in the commit message
+
+v2:
+- Keep the alloc_is_aligned() name to avoid unrelated helper renaming
+  (suggested by Dave Jiang)
+- Move this patch after the mapping error reporting fix for independent
+  backports (suggested by Dave Jiang)
+---
+ drivers/dax/bus.c | 208 +++++++++++++++++++++++++++++++---------------
+ 1 file changed, 140 insertions(+), 68 deletions(-)
+
+diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+index b809e1a264af..83add0037b3d 100644
+--- a/drivers/dax/bus.c
++++ b/drivers/dax/bus.c
+@@ -848,6 +848,95 @@ static int devm_register_dax_mapping(struct dev_dax *dev_dax, int range_id)
+ 	return 0;
+ }
+ 
++static unsigned long dev_dax_min_align(struct dev_dax *dev_dax)
++{
++	/*
++	 * A static device has a pre-populated pgmap whose range already
++	 * satisfies memremap_compat_align(). Its data range may start after
++	 * metadata at dev_dax->align granularity.
++	 */
++	if (static_dev_dax(dev_dax))
++		return dev_dax->align;
 +
-+#include <stddef.h>
-+#include <linux/types.h>
-+#include <ndctl/ndctl.h>
++	/*
++	 * The minimum mapping granularity for a dynamic device instance is a
++	 * single subsection, unless the arch says otherwise.
++	 */
++	return max_t(unsigned long, dev_dax->align, memremap_compat_align());
++}
 +
-+/*
-+ * struct nd_cmd_pkg ends in a flexible array, so it cannot be embedded
-+ * ahead of a typed payload in ISO C. This copy of the fixed header
-+ * can be. It must match the kernel uapi definition of struct nd_cmd_pkg,
-+ * which the assertions below check against ndctl/ndctl.h.
-+ */
-+struct nd_cmd_pkg_hdr {
-+	__u64   nd_family;
-+	__u64   nd_command;
-+	__u32   nd_size_in;
-+	__u32   nd_size_out;
-+	__u32   nd_reserved2[9];
-+	__u32   nd_fw_size;
++static bool alloc_is_aligned(struct dev_dax *dev_dax, resource_size_t size)
++{
++	return IS_ALIGNED(size, dev_dax_min_align(dev_dax));
++}
++
++static bool range_is_aligned(struct dev_dax *dev_dax, u64 start,
++			     resource_size_t size)
++{
++	return IS_ALIGNED(start | size, dev_dax_min_align(dev_dax));
++}
++
++/* Return usable aligned gap size and update *aligned_start. */
++static resource_size_t aligned_gap_size(struct dev_dax *dev_dax,
++		resource_size_t *aligned_start, resource_size_t end)
++{
++	unsigned long min_align = dev_dax_min_align(dev_dax);
++	resource_size_t start = ALIGN(*aligned_start, min_align);
++
++	if (start < *aligned_start || start > end)
++		return 0;
++
++	*aligned_start = start;
++	return ALIGN_DOWN(end - start + 1, min_align);
++}
++
++struct dax_region_gap {
++	struct resource *prev;
++	resource_size_t start;
++	resource_size_t size;
 +};
 +
-+#define ND_CMD_PKG_HDR_ASSERT_OFFSET(m)					\
-+	_Static_assert(offsetof(struct nd_cmd_pkg_hdr, m) ==		\
-+		       offsetof(struct nd_cmd_pkg, m),			\
-+		       "nd_cmd_pkg_hdr." #m " offset mismatch")
++/*
++ * Find the next usable aligned gap. Return the cursor for the next iteration
++ * with @gap describing the gap, or NULL when no gap remains. Pass NULL as
++ * @cursor to start the iteration.
++ */
++static struct resource *dax_region_next_gap(struct dev_dax *dev_dax,
++		struct resource *cursor, struct dax_region_gap *gap)
++{
++	struct resource *region_res = &dev_dax->region->res;
 +
-+ND_CMD_PKG_HDR_ASSERT_OFFSET(nd_family);
-+ND_CMD_PKG_HDR_ASSERT_OFFSET(nd_command);
-+ND_CMD_PKG_HDR_ASSERT_OFFSET(nd_size_in);
-+ND_CMD_PKG_HDR_ASSERT_OFFSET(nd_size_out);
-+ND_CMD_PKG_HDR_ASSERT_OFFSET(nd_reserved2);
-+ND_CMD_PKG_HDR_ASSERT_OFFSET(nd_fw_size);
++	while (cursor != region_res) {
++		struct resource *res = cursor;
++		struct resource *next = res ? res->sibling : region_res->child;
++		resource_size_t end;
 +
-+#undef ND_CMD_PKG_HDR_ASSERT_OFFSET
++		/* Use the region resource as the end-of-iteration sentinel. */
++		cursor = next ? : region_res;
 +
-+_Static_assert(sizeof(struct nd_cmd_pkg_hdr) ==
-+	       offsetof(struct nd_cmd_pkg, nd_payload),
-+	       "nd_cmd_pkg_hdr size mismatch");
-+_Static_assert(sizeof(struct nd_cmd_pkg_hdr) == sizeof(struct nd_cmd_pkg),
-+	       "nd_cmd_pkg_hdr size mismatch");
-+_Static_assert(_Alignof(struct nd_cmd_pkg_hdr) ==
-+	       _Alignof(struct nd_cmd_pkg),
-+	       "nd_cmd_pkg_hdr alignment mismatch");
++		if (res && res->end >= region_res->end)
++			return NULL;
 +
-+#endif /* __NDCTL_ND_CMD_PKG_H__ */
-diff --git a/ndctl/lib/hpe1.h b/ndctl/lib/hpe1.h
-index bc19f72ca8d0..abaf1e5206e4 100644
---- a/ndctl/lib/hpe1.h
-+++ b/ndctl/lib/hpe1.h
-@@ -321,7 +321,7 @@ union ndn_hpe1_cmd {
- };
- 
- struct ndn_pkg_hpe1 {
--	struct nd_cmd_pkg gen;
-+	struct nd_cmd_pkg_hdr gen;
- 	union ndn_hpe1_cmd u;
- } __attribute__((packed));
- 
-diff --git a/ndctl/lib/hyperv.h b/ndctl/lib/hyperv.h
-index 45741c7cdd17..9b7432a1b74b 100644
---- a/ndctl/lib/hyperv.h
-+++ b/ndctl/lib/hyperv.h
-@@ -31,7 +31,7 @@ union nd_hyperv_cmd {
- } __attribute__((packed));
- 
- struct nd_pkg_hyperv {
--	struct nd_cmd_pkg	gen;
-+	struct nd_cmd_pkg_hdr	gen;
- 	union  nd_hyperv_cmd	u;
- } __attribute__((packed));
- 
-diff --git a/ndctl/lib/intel.h b/ndctl/lib/intel.h
-index 5aee98062a84..d59e46851a37 100644
---- a/ndctl/lib/intel.h
-+++ b/ndctl/lib/intel.h
-@@ -141,7 +141,7 @@ struct nd_intel_lss {
- } __attribute__((packed));
- 
- struct nd_pkg_intel {
--	struct nd_cmd_pkg gen;
-+	struct nd_cmd_pkg_hdr gen;
- 	union {
- 		struct nd_intel_smart smart;
- 		struct nd_intel_smart_inject inject;
-diff --git a/ndctl/lib/msft.h b/ndctl/lib/msft.h
-index 8d246a5ed137..f60eb2597c74 100644
---- a/ndctl/lib/msft.h
-+++ b/ndctl/lib/msft.h
-@@ -41,7 +41,7 @@ union ndn_msft_cmd {
- } __attribute__((packed));
- 
- struct ndn_pkg_msft {
--	struct nd_cmd_pkg	gen;
-+	struct nd_cmd_pkg_hdr	gen;
- 	union ndn_msft_cmd	u;
- } __attribute__((packed));
- 
-diff --git a/ndctl/lib/nfit.c b/ndctl/lib/nfit.c
-index d85682f94406..5f8a1098197c 100644
---- a/ndctl/lib/nfit.c
-+++ b/ndctl/lib/nfit.c
-@@ -48,7 +48,7 @@ static int bus_has_translate_spa(struct ndctl_bus *bus)
- static struct ndctl_cmd *ndctl_bus_cmd_new_translate_spa(struct ndctl_bus *bus)
++		gap->start = res ? res->end + 1 : region_res->start;
++		if (next) {
++			if (next->start <= gap->start)
++				continue;
++			end = next->start - 1;
++		} else {
++			end = region_res->end;
++		}
++
++		gap->size = aligned_gap_size(dev_dax, &gap->start, end);
++		if (!gap->size)
++			continue;
++
++		gap->prev = res;
++		return cursor;
++	}
++
++	return NULL;
++}
++
+ static int alloc_dev_dax_range(struct dev_dax *dev_dax, u64 start,
+ 		resource_size_t size)
  {
- 	struct ndctl_cmd *cmd;
--	struct nd_cmd_pkg *pkg;
-+	struct nd_cmd_pkg_hdr *pkg;
- 	struct nd_cmd_translate_spa *translate_spa;
- 	size_t size, spa_length;
+@@ -870,6 +959,9 @@ static int alloc_dev_dax_range(struct dev_dax *dev_dax, u64 start,
+ 		return 0;
+ 	}
  
-diff --git a/ndctl/lib/papr.c b/ndctl/lib/papr.c
-index 7a1d5595b12e..d380e86c7bd7 100644
---- a/ndctl/lib/papr.c
-+++ b/ndctl/lib/papr.c
-@@ -62,7 +62,7 @@ static int papr_xlat_firmware_status(struct ndctl_cmd *cmd)
- /* Verify if the given command is supported and valid */
- static bool cmd_is_valid(struct ndctl_cmd *cmd)
++	if (!range_is_aligned(dev_dax, start, size))
++		return -EINVAL;
++
+ 	alloc = __request_region(res, start, size, dev_name(dev), 0);
+ 	if (!alloc)
+ 		return -ENOMEM;
+@@ -923,6 +1015,9 @@ static int adjust_dev_dax_range(struct dev_dax *dev_dax, struct resource *res, r
+ 	if (dev_WARN_ONCE(dev, !size, "deletion is handled by dev_dax_shrink\n"))
+ 		return -EINVAL;
+ 
++	if (!range_is_aligned(dev_dax, range->start, size))
++		return -EINVAL;
++
+ 	rc = adjust_resource(res, range->start, size);
+ 	if (rc)
+ 		return rc;
+@@ -955,15 +1050,6 @@ static ssize_t size_show(struct device *dev,
+ 	return sysfs_emit(buf, "%llu\n", size);
+ }
+ 
+-static bool alloc_is_aligned(struct dev_dax *dev_dax, resource_size_t size)
+-{
+-	/*
+-	 * The minimum mapping granularity for a device instance is a
+-	 * single subsection, unless the arch says otherwise.
+-	 */
+-	return IS_ALIGNED(size, max_t(unsigned long, dev_dax->align, memremap_compat_align()));
+-}
+-
+ static int dev_dax_shrink(struct dev_dax *dev_dax, resource_size_t size)
  {
--	const struct nd_cmd_pkg  *ncmd = NULL;
-+	const struct nd_cmd_pkg_hdr *ncmd = NULL;
+ 	resource_size_t to_shrink = dev_dax_size(dev_dax) - size;
+@@ -1030,77 +1116,63 @@ static bool adjust_ok(struct dev_dax *dev_dax, struct resource *res)
+ 	return true;
+ }
  
- 	if (cmd == NULL)
- 		return false;
-@@ -111,8 +111,8 @@ static struct ndctl_cmd *allocate_cmd(struct ndctl_dimm *dimm,
- 	cmd->status = 0;
- 	cmd->get_firmware_status = &papr_get_firmware_status;
+-static ssize_t dev_dax_resize(struct dax_region *dax_region,
+-		struct dev_dax *dev_dax, resource_size_t size)
++static resource_size_t dax_region_aligned_avail_size(struct dev_dax *dev_dax)
++{
++	struct resource *cursor = NULL;
++	struct dax_region_gap gap;
++	resource_size_t avail = 0;
++
++	lockdep_assert_held_write(&dax_region_rwsem);
++
++	while ((cursor = dax_region_next_gap(dev_dax, cursor, &gap)))
++		avail += gap.size;
++
++	return avail;
++}
++
++static ssize_t dev_dax_resize(struct dev_dax *dev_dax, resource_size_t size)
+ {
+-	resource_size_t avail = dax_region_avail_size(dax_region), to_alloc;
+ 	resource_size_t dev_size = dev_dax_size(dev_dax);
+-	struct resource *region_res = &dax_region->res;
++	struct resource *cursor = NULL;
++	struct dax_region_gap gap;
+ 	struct device *dev = &dev_dax->dev;
+-	struct resource *res, *first;
+-	resource_size_t alloc = 0;
+-	int rc;
++	resource_size_t to_alloc = size - dev_size;
  
--	/* Populate the nd_cmd_pkg contained in nd_pkg_pdsm */
--	*to_ndcmd(cmd) =  (struct nd_cmd_pkg) {
-+	/* Populate the generic command header */
-+	*to_ndcmd(cmd) = (struct nd_cmd_pkg_hdr) {
- 		.nd_family = NVDIMM_FAMILY_PAPR,
- 		.nd_command = pdsm_cmd,
- 		.nd_size_in = 0,
-diff --git a/ndctl/lib/papr.h b/ndctl/lib/papr.h
-index 77579396a7bd..9e33823ddd47 100644
---- a/ndctl/lib/papr.h
-+++ b/ndctl/lib/papr.h
-@@ -8,7 +8,7 @@
+ 	if (dev->driver)
+ 		return -EBUSY;
+ 	if (size == dev_size)
+ 		return 0;
+-	if (size > dev_size && size - dev_size > avail)
+-		return -ENOSPC;
+ 	if (size < dev_size)
+ 		return dev_dax_shrink(dev_dax, size);
  
- /* Wraps a nd_cmd generic header with pdsm header */
- struct nd_pkg_papr {
--	struct nd_cmd_pkg gen;
-+	struct nd_cmd_pkg_hdr gen;
- 	struct nd_pkg_pdsm pdsm;
- };
+-	to_alloc = size - dev_size;
+ 	if (dev_WARN_ONCE(dev, !alloc_is_aligned(dev_dax, to_alloc),
+ 			"resize of %pa misaligned\n", &to_alloc))
+ 		return -ENXIO;
  
-diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
-index 46bc8908bd90..87e3747cf858 100644
---- a/ndctl/lib/private.h
-+++ b/ndctl/lib/private.h
-@@ -15,6 +15,7 @@
- #include <ccan/array_size/array_size.h>
++	if (to_alloc > dax_region_aligned_avail_size(dev_dax))
++		return -ENOSPC;
++
+ 	/*
+ 	 * Expand the device into the unused portion of the region. This
+ 	 * may involve adjusting the end of an existing resource, or
+ 	 * allocating a new resource.
+ 	 */
+-retry:
+-	first = region_res->child;
+-	if (!first)
+-		return alloc_dev_dax_range(dev_dax, dax_region->res.start, to_alloc);
+-
+-	rc = -ENOSPC;
+-	for (res = first; res; res = res->sibling) {
+-		struct resource *next = res->sibling;
+-
+-		/* space at the beginning of the region */
+-		if (res == first && res->start > dax_region->res.start) {
+-			alloc = min(res->start - dax_region->res.start, to_alloc);
+-			rc = alloc_dev_dax_range(dev_dax, dax_region->res.start, alloc);
+-			break;
+-		}
+-
+-		alloc = 0;
+-		/* space between allocations */
+-		if (next && next->start > res->end + 1)
+-			alloc = min(next->start - (res->end + 1), to_alloc);
+-
+-		/* space at the end of the region */
+-		if (!alloc && !next && res->end < region_res->end)
+-			alloc = min(region_res->end - res->end, to_alloc);
+-
+-		if (!alloc)
+-			continue;
+-
+-		if (adjust_ok(dev_dax, res)) {
+-			rc = adjust_dev_dax_range(dev_dax, res, resource_size(res) + alloc);
+-			break;
+-		}
+-		rc = alloc_dev_dax_range(dev_dax, res->end + 1, alloc);
+-		break;
++	while (to_alloc && (cursor = dax_region_next_gap(dev_dax, cursor, &gap))) {
++		resource_size_t alloc = min(gap.size, to_alloc);
++		int ret;
++
++		if (gap.prev && gap.start == gap.prev->end + 1 &&
++		    adjust_ok(dev_dax, gap.prev))
++			ret = adjust_dev_dax_range(dev_dax, gap.prev,
++					resource_size(gap.prev) + alloc);
++		else
++			ret = alloc_dev_dax_range(dev_dax, gap.start, alloc);
++		if (ret)
++			return ret;
++		to_alloc -= alloc;
+ 	}
+-	if (rc)
+-		return rc;
+-	to_alloc -= alloc;
+-	if (to_alloc)
+-		goto retry;
+-	return 0;
++
++	return to_alloc ? -ENOSPC : 0;
+ }
  
- #include <ndctl/ndctl.h>
-+#include <ndctl/nd-cmd-pkg.h>
- #include <ndctl/libndctl.h>
- #include <ndctl/libndctl-nfit.h>
- #include <ccan/endian/endian.h>
-diff --git a/ndctl/libndctl-nfit.h b/ndctl/libndctl-nfit.h
-index 9ec0db55776d..68fc44252910 100644
---- a/ndctl/libndctl-nfit.h
-+++ b/ndctl/libndctl-nfit.h
-@@ -6,6 +6,7 @@
+ static ssize_t size_store(struct device *dev, struct device_attribute *attr,
+@@ -1115,11 +1187,6 @@ static ssize_t size_store(struct device *dev, struct device_attribute *attr,
+ 	if (rc)
+ 		return rc;
  
- #include <linux/types.h>
- #include <ndctl/ndctl.h>
-+#include <ndctl/nd-cmd-pkg.h>
+-	if (!alloc_is_aligned(dev_dax, val)) {
+-		dev_dbg(dev, "%s: size: %lld misaligned\n", __func__, val);
+-		return -EINVAL;
+-	}
+-
+ 	rc = down_write_killable(&dax_region_rwsem);
+ 	if (rc)
+ 		return rc;
+@@ -1130,8 +1197,13 @@ static ssize_t size_store(struct device *dev, struct device_attribute *attr,
+ 	rc = down_write_killable(&dax_dev_rwsem);
+ 	if (rc)
+ 		goto err_dev;
++	if (!alloc_is_aligned(dev_dax, val)) {
++		dev_dbg(dev, "%s: size: %lld misaligned\n", __func__, val);
++		rc = -EINVAL;
++		goto err_dev;
++	}
  
- /*
-  * libndctl-nfit.h : definitions for NFIT related commands/functions.
-@@ -77,7 +78,7 @@ struct nd_cmd_ars_err_inj_stat {
- } __attribute__((packed));
+-	rc = dev_dax_resize(dax_region, dev_dax, val);
++	rc = dev_dax_resize(dev_dax, val);
  
- struct nd_cmd_bus {
--	struct nd_cmd_pkg gen;
-+	struct nd_cmd_pkg_hdr gen;
- 	union {
- 		struct nd_cmd_ars_err_inj_stat err_inj_stat;
- 		struct nd_cmd_ars_err_inj_clr err_inj_clr;
+ err_dev:
+ 	up_write(&dax_dev_rwsem);
+@@ -1224,9 +1296,9 @@ static ssize_t dev_dax_validate_align(struct dev_dax *dev_dax)
+ 	int i;
+ 
+ 	for (i = 0; i < dev_dax->nr_range; i++) {
+-		size_t len = range_len(&dev_dax->ranges[i].range);
++		struct range *range = &dev_dax->ranges[i].range;
+ 
+-		if (!alloc_is_aligned(dev_dax, len)) {
++		if (!range_is_aligned(dev_dax, range->start, range_len(range))) {
+ 			dev_dbg(dev, "%s: align %u invalid for range %d\n",
+ 				__func__, dev_dax->align, i);
+ 			return -EINVAL;
+@@ -1464,6 +1536,7 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	dev_dax->region = dax_region;
++	dev_dax->align = dax_region->align;
+ 	if (is_static(dax_region)) {
+ 		if (dev_WARN_ONCE(parent, data->id < 0,
+ 				"dynamic id specified to static region\n")) {
+@@ -1522,7 +1595,6 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
+ 
+ 	dev_dax->dax_dev = dax_dev;
+ 	dev_dax->target_node = dax_region->target_node;
+-	dev_dax->align = dax_region->align;
+ 	ida_init(&dev_dax->ida);
+ 
+ 	dev_dax->memmap_on_memory = data->memmap_on_memory;
+
+base-commit: 7be4bc52fd9e0e55dc9a2e0232b89427d2c4b614
 -- 
-2.37.3
+2.54.0
 
