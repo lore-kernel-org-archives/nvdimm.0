@@ -1,64 +1,115 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.215.181
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793257428;
-	b=M6tqlHWG7qMn/MCgH1Iy81gbb0CkebkQDwKoLvncapyDeYwjZE6mSDpoHItUcH1NU6oh
-	 uDDJSbf8QdhyRQWq9MQcXY1FgQz3tBwxyit8MaHbXBRyebHY8OqIiAllnyxgRbq0aLILv
-	 /ykE2ng3AsqQyK9PI1Zkf+zcRxmGGsbx0Cd3Wz0PQaHO5MBYHgT95PmqA6DCI8xjgV4rY
-	 A+JVWZhuI3rXY3yNki4+zWdb6cn7F/6U1DZMPRxVKq0NeKmjbCbasKi7M+jtYc3Y/4+gy
-	 uvZfYWbHR3dNdUZz/rMRNTd4jmMWKWjN/Un6YKlwWTO5hGtewdm8cUkJHal9NbrHaLg==
+	t=1793257937;
+	b=1y0qKlWNi4dgY1Nb+aUzOkF2fe0PxaBI9kyo6dD2Z9m2H6+LOuM8osxKDymPouUilses
+	 2FHvQGsz1TMHbNbcocswvP07VG9xiEf9Xl/GKpxvObO55TypHL5hjNUKiYTc4X+kQdh8P
+	 NAcif2sTD8QBoVVu96MWd+WZu1FbVvXbmpz1IvDLoWrKzGSfBcrlO7oUfLmir5ooPjXva
+	 navhkPNufelnj+Ec2GJvyr9KXxFPDEhjLATfRHLC/R0rQcnumrbsvPfLisbyrhFLHnioW
+	 idxw77DermMJ+8g2RIWpImnEVpaljXJdFdxl0hfqcaTu4ORDI0UgrqDnT62OqIlORGg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793257428;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=yl7DWqvy0CCg289e/p2GYHI3s+4vg6zhNzPzSHj/8eU=;
-	b=vCuPulZmwAAj1O25kTeSuMV4H80d2l2QuU7FkvIVEdF8x/V5K5YTWcbF6LLFQYBOcC9L
-	 DMJVyQnGQQIhXvTd02BdwagKy2gy4EjyJ+sCsxfq2Cg0nLP5NkoNdFdQne3Hj66slxZ4O
-	 wfvvrG6S7Iic/H08Bm1/qnhvrTiK2Ym9tHMmvG2xBxBHsE850ExnUyyOuhkj7avs1ZlKG
-	 2oBTdhrgbdwqcebDzRJSVekfh/y/agm/qpMildfBDR8s1eYGlUerQfit/eFEGeTlHLJaY
-	 0MVr0HJ02JXU4Sh+DCRgOpRpXJ2GyfCThTwNDSc0AnlbbHU4SxCbRL0kqhfjxwaLTGA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793257937;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Sender:From:To:Cc:Subject:Date:Message-Id:X-Mailer:In-Reply-To:
+	 References:MIME-Version:Content-Transfer-Encoding;
+	bh=q3Nd7r/hqjSFpCyfHdGuJldUGtTV8w8XJqRuLAQWCn8=;
+	b=WSlBaC8Qw81A98LL6YS8yKGjsWgju8PmER6XeyN3Mjw3v7aA3ZAsjzvfsF6kf6sPnIcl
+	 bTSSVl408dPNevxM+e3rRoLriREb19QofM+Tc7diT83i2yFBF4miFGIQVb2TlT+rQpg1X
+	 orrjyUf1uHyHYECdZI+4+vang/s7/15RZmDEx8lsNUzciryI5dNCB2xqy7TSsIiNOiEQh
+	 adhWvq4WjDoA7WjNtm7D2PfEY4VKIFiyttfrjzW20oGbzAdUXX0peeq7MyBmjmew3TF3A
+	 e/leNa7d+JS7bKrr5m8wN8LVtnGAfZIc/73NxT/2OxHzr59sQoYSdZVZHMJ4Qbk3VxQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aXDJX3+S;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=ILsqyK2o;
+	arc=none smtp.remote-ip=209.85.215.181
+Received: from mail-pg1-f181.google.com (mail-pg1-f181.google.com [209.85.215.181])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0D51606A32D;
-	Thu, 29 Oct 2026 07:03:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91283606A31C
+	for <nvdimm@lists.linux.dev>; Thu, 29 Oct 2026 07:12:17 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 91283606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aXDJX3+S
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A86371F031EC;
-	Thu, 29 Oct 2026 07:03:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793257427;
-	bh=yl7DWqvy0CCg289e/p2GYHI3s+4vg6zhNzPzSHj/8eU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=aXDJX3+S9WIGkm05gxDG+G7h6G9o1lZSrnw9kz6XyaMf8koBUlYtvUfzu1qHRZ6lb
-	 WG1Xwz8z5yn7HZcnc1Oqd5EwZUfzFzd7B3AyrzdswWtVIbC/yGtzElHATIuW4X6vfF
-	 QnvNdzTXm5FIk4QtITgIA/Ou4XrE7x7ydTOqixUsmjt5ZOFE9qu04vTB3GphMWSgFu
-	 ugpg2oeWF4xklDA3WStjin0tc4jcUEBi+kT7f9WCnM1hvTDv274SvaZd209AH1SkTF
-	 yhzciNJMM2g7i8aMhHeT9f0ULM/8icua8SuvmHAHXBxBj3riVaQ3Z2aD2v7vME9LeD
-	 /bH8RVmr3dfbA==
-Date: Thu, 29 Oct 2026 09:03:39 +0200
-From: Mike Rapoport <rppt@kernel.org>
-To: Muchun Song <songmuchun@bytedance.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=ILsqyK2o
+Received: by mail-pg1-f181.google.com with SMTP id 41be03b00d2f7-cd62c570b5dso1115599a12.2
+        for <nvdimm@lists.linux.dev>; Thu, 29 Oct 2026 00:12:17 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1793257937; x=1793862737; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:sender:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=q3Nd7r/hqjSFpCyfHdGuJldUGtTV8w8XJqRuLAQWCn8=;
+        b=ILsqyK2om03v+OUGXJ8KQce9SVU983lMYHewRPnPpqq4IdroJcHJoPIkr4608N8aQ2
+         y3hE5TqWYkK/Ue77m8TLCe0M2C0Hdj0UjkKbgXIvsMtJxnUiNVnSyfpXPCMPCxv4ceSn
+         kpPFzF7xHkzjWQM2WPAmemA2K0Xt6+cwn2CdkaVoKIh6UfyB7Mf3G0I93Rsw7LQ7HHyh
+         p+zwYyrtqd2Gzf7Nrq59izYFD4GepoZzHbqIdrM1CyMBFRISwWgmvfP+qPaxKAZfzTUL
+         GF4AiqmluOKrYTp6G+oVA4+Vnjv7iBnQYu4qrueK0ia3JZPQ5kLwKX8x//HOLs04fXrz
+         ptOg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793257937; x=1793862737;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:sender:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=q3Nd7r/hqjSFpCyfHdGuJldUGtTV8w8XJqRuLAQWCn8=;
+        b=cHXY3GKjftluqzmXhAOBnoHSHTR4A6B8xRTLXD5O/lzKX6kvyYInJFO5HK9ZApzDHI
+         0naLNZEjUc+3GW6u5FsbeA+XIKgUiEkiD05UTUJRHbbEkDA1PGzhTE0jUJDyYaRssM4Z
+         eB3Wqj/7VR+bP/Fq2Ewx9ad1sNeSzbfCT1y8SMJArfYcM5QwjMgDQ+pfDu9ivvPdiuc7
+         vWNrLStIjlmuoK6QwUWMfUcWa8KFZSISbBXNMIkjDDfsYDBLRxreR6OPnYGbKQCxgFs9
+         iA0dTh9RYhq2onAEO9DRivusnmXhBSMHjWqBt8qRFpsvlGqNqnTNvpqbJfVbBB7vfL7V
+         A9Tg==
+X-Forwarded-Encrypted: i=1; AKwUvBwK3XKuawz3XpsV7PmJsxeMH7pDVwdQ5FHFC9VQh2EF+NKYHojwg7lQbKRfAsYF/nglH9SRwOg=@lists.linux.dev
+X-Gm-Message-State: AFq9FYKVFwDklU4HR5M84I/Eks3eoEGyZga6kyBElzA7mSkgeDu+BMsX
+	9/ulWRTCdSRBfmkDhwai1KucV9q6H1P4BDetXeJdIzdwca5xZVR3Wb+Z
+X-Gm-Gg: AYBFou2G/Kx9Ib34OVELISa3VAfZypSio91vKzy40hd2Jn4uFyv7cJyTffD+BlAVS5j
+	Ntt7gkwhwwS0wRHXGXzRCj+ESPPfK33bkU1qpZ5yQeRxuE0qKqcHCjpzJJ3/vryLaD6QY00KTR+
+	WxESgiXjRBdlhItGRUyWb9hFMkEoqluQhziX01dFY65xp7/RYJ2OXbc5BizgWOf/Ww8vSPEMJd7
+	ImDvJthtEFCuL1poDzJWRGJbrjIaBI83V4Bs1fBiIn7vvCzp3Bz61Uuqjd/5EDNgcgxgmYlzlfZ
+	YQlPTyIa00JQzt3a5QUY1ndl0s6MlUWFDrYO+FaV11PXH3fReclINUTwYwFkAMc0X6xb8Eb327l
+	fPFIfvG2fCOQBhuJamTj42LYYgy8w8ZduFy6WLHQtGhU88tiNTRo7JkB0V5h/5GJbnP4aAp/noX
+	I7blQlPdLrPH8SPLhRM9Sf5b5DmgGI8fpnEttYYrryR29Ud8VT054/rcB4FTsOzTLw3XAbZZ2TQ
+	EUX1g0w3sG73hwncVbaJ+6abM6RgoXyn8qGlgKcMON68Zr3f5+FhrAXCbYxcZLuupASkGraKOGZ
+	mIrygMyYec9GI+CdNq4XlT0dr4bY677xEgZG5ds+S8hjKJ+GMZ99Ow==
+X-Received: by 2002:a17:90b:3c8c:b0:3a4:ca46:8d44 with SMTP id 98e67ed59e1d1-3ae5819e58emr3799149a91.18.1793257936864;
+        Thu, 29 Oct 2026 00:12:16 -0700 (PDT)
+Received: from localhost.localdomain ([101.44.96.6])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3ae6f01e8a5sm1180018a91.0.2026.10.29.00.12.11
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Thu, 29 Oct 2026 00:12:16 -0700 (PDT)
+Sender: Yilei Zheng <trilithzheng@gmail.com>
+From: Yilei Zheng <trilith.zheng@gmail.com>
+To: Muchun Song <muchun.song@linux.dev>
+Cc: Muchun Song <songmuchun@bytedance.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
 	Dan Williams <djbw@kernel.org>,
-	David Hildenbrand <david@kernel.org>, linux-mm@kvack.org,
-	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, linux-cxl@vger.kernel.org,
+	David Hildenbrand <david@kernel.org>,
+	Oscar Salvador <osalvador@suse.de>,
+	Pankaj Gupta <pankaj.gupta@amd.com>,
+	linux-mm@kvack.org,
+	nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-cxl@vger.kernel.org,
 	Vishal Verma <vishal.l.verma@intel.com>,
 	Dave Jiang <dave.jiang@intel.com>,
 	Alison Schofield <alison.schofield@intel.com>,
-	Oscar Salvador <osalvador@suse.de>, Ira Weiny <iweiny@kernel.org>,
-	Jan Kara <jack@suse.cz>, Matthew Wilcox <willy@infradead.org>,
+	Mike Rapoport <rppt@kernel.org>,
+	Ira Weiny <iweiny@kernel.org>,
+	Jan Kara <jack@suse.cz>,
+	Matthew Wilcox <willy@infradead.org>,
 	Lorenzo Stoakes <ljs@kernel.org>,
-	Vlastimil Babka <vbabka@kernel.org>, Michal Hocko <mhocko@suse.com>,
-	Qi Zheng <qi.zheng@linux.dev>, muchun.song@linux.dev
-Subject: Re: [PATCH 1/4] mm: generalize vmemmap remap architecture support
-Message-ID: <auLvy-8djFBRadho@kernel.org>
-References: <20260903122128.12264-1-songmuchun@bytedance.com>
- <20260903122128.12264-2-songmuchun@bytedance.com>
+	Vlastimil Babka <vbabka@kernel.org>,
+	Michal Hocko <mhocko@suse.com>,
+	Qi Zheng <qi.zheng@linux.dev>
+Subject: Re: [PATCH 3/4] mm: add shared read-only vmemmap support for FS-DAX
+Date: Thu, 29 Oct 2026 15:12:06 +0800
+Message-Id: <20261029071206.19059-1-trilith.zheng@gmail.com>
+X-Mailer: git-send-email 2.39.5 (Apple Git-154)
+In-Reply-To: <2E5C10CF-F3E0-4694-965C-B0E432A1A962@linux.dev>
+References: <20260903122128.12264-1-songmuchun@bytedance.com> <20260903122128.12264-4-songmuchun@bytedance.com> <20261027065723.66564-1-trilith.zheng@gmail.com> <4c9741cf-ac62-41d4-9c7a-7d5ceea4a8e1@linux.dev> <20261029030511.12004-1-trilith.zheng@gmail.com> <2E5C10CF-F3E0-4694-965C-B0E432A1A962@linux.dev>
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -68,33 +119,11 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 List-Owner: <mailto:nvdimm+owner@lists.linux.dev>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260903122128.12264-2-songmuchun@bytedance.com>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Sep 03, 2026 at 08:21:24PM +0800, Muchun Song wrote:
-> ARCH_WANT_OPTIMIZE_HUGETLB_VMEMMAP is named after its first user, but
-> the underlying requirement is not HugeTLB-specific. Generic MM only needs
-> to know whether an architecture can safely remap populated vmemmap PTEs at
-> run time.
-> 
-> Rename the architecture opt-in to ARCH_SUPPORTS_VMEMMAP_REMAP and make
-> HugeTLB vmemmap optimization depend on that generic capability. This also
-> prepares for FS-DAX vmemmap optimization, which relies on the same runtime
-> remap support.
-> 
-> Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-
-> ---
->  arch/loongarch/Kconfig | 2 +-
->  arch/riscv/Kconfig     | 2 +-
->  arch/x86/Kconfig       | 2 +-
->  fs/Kconfig             | 2 +-
->  mm/Kconfig             | 6 ++++--
->  5 files changed, 8 insertions(+), 6 deletions(-)
-
--- 
-Sincerely yours,
-Mike.
+I forgot to mention the tool execution case in my last mail. Those
+microVMs start, run a small task, and exit. DAX is there to save
+memory, but the vmemmap is allocated for the whole image. A 2 GiB
+image pays 32 MiB of vmemmap even if a microVM only reads a few MB, so
+for those microVMs the DAX setup can use more memory than the same
+image on virtio-blk. That is also a case this series fixes for us.
