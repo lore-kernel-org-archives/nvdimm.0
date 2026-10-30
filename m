@@ -1,131 +1,85 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=205.220.165.32
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793357642;
-	b=29MJ0WHT7c3iv5N2GCQMPEpfyfj3K1O+WDBVzAu8zDROXGHc4NUUmLwauggjk+oJj64Q
-	 7plpQ9oID1LS3k+ITWg9Z8gj6wrtojtrcoyZZiqBSh0z03jKgu6sG+k5J/u/jYlGPVW0i
-	 jrQen7/O13z8TiDmdEM6XY+BtnSg0Xwx3F9ljTGKVHQRI0TZYtEPugs8P5aqq3Rpsnzr7
-	 Xk30JbVFves2uVHCUCKwd4utVzxu+7xHVl4FdfhqZuVyETsIww35FDGeXETL2eOpUoNiW
-	 24xfkQ7P4kCgVo5E2cBLeaR71M4HLFDJ8NXYGLD0E5eAF94X8WyXhVLMitCdn0hPSDw==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793357642;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:
-	 DKIM-Signature:Received:Received:Message-ID:Date:Subject:To:Cc:
-	 References:Content-Language:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding:X-ClientProxiedBy:MIME-Version:
-	 X-MS-TrafficTypeDiagnostic:X-MS-PublicTrafficType:client-request-id:
-	 request-id:X-MS-Office365-Filtering-Correlation-Id:
-	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
-	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
-	 X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-Exchange-RoutingPolicyChecked:
-	 X-MS-Exchange-AntiSpam-ExternalHop-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-ExternalHop-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
-	 X-MS-Exchange-CrossTenant-UserPrincipalName:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped:
-	 X-Proofpoint-Virus-Version:X-Proofpoint-Spam-Details:
-	 X-Proofpoint-Spam-Details-Enc:X-Authority-Analysis:X-Proofpoint-GUID:
-	 X-Proofpoint-Spam-Info:X-Proofpoint-ORIG-GUID;
-	bh=0m1KRfxR8XKHPUhFuiozlOI1J4rQWDyWGyGE65GD+cA=;
-	b=H30DbBbQ+gvR9z/V5O2MBsPallSYmDuNKwBP066aKoxlT6057ru/Zlf2wpQNnDzAlRFY
-	 Ing91oKo7gq2PmZLtRzUWuma7rv+RYCB9P0MLVBCBQXmmMgPmDq4tpVRNLN6B28ZHe9D6
-	 XF5E46CCPWJ0j+2+ID4mn3uXdoELokg4G/39uMH0oEsfdCe3Gm09lz10pF3jwqupE0zKR
-	 43lrcMXqelNV7Y5feMb1ggTLdJz5YozHS8uiRGOTwK//cmyqBaGuAjbs3Cq2442N5hulE
-	 eYO33zQOUAn1azwebe0NCCEKmZADwRpEc8sPSPGtHqR2vodn8x3kB6TBfOqoKANVMHQ==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=oracle.com;
-	spf=pass smtp.mailfrom=oracle.com;
-	dkim=pass header.d=oracle.com header.i=@oracle.com header.a=rsa-sha256 header.s=corp-2025-04-25 header.b=WT9rbvon;
-	dkim=pass header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.a=rsa-sha256 header.s=selector2-oracle-onmicrosoft-com header.b=m9EFnzpY;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=205.220.165.32
-Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.217.51
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1793369119;
+	b=nPQWx6ynuTBcNu0QnGITrLOba1EKgnuFMooxsBbXm6YetFkb4sFbCaGSilI2Nehvyi8A
+	 3WslRDmPIsioxlyHMLjs8LHxwtJnPaooJNmnzoLzGEgxnb+nZJ0pPLH2bOlFrkphfe0HY
+	 9Pgkiy7HSh4PqBrVzGF1GB93Ao0yZX62sdcW4ylqB098hbf5FOtgzcYz4G+j3R/unNSVq
+	 IpauvZ7stu8NZxwNi7f8dQq+vK+rMw8KWKWR3IWCkbj6aHg1JDM0fzuEjHHvQC24M/TiB
+	 pMGg9q3NE0erFO8uj27t/g1jYuFkBImuFuxaHD7Yj/2c/7ekVIUV7qjL6jhitBeMAIQ==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793369119;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 MIME-Version:Content-Type:Content-Transfer-Encoding:Subject:From:To:
+	 Cc:In-Reply-To:References:Date:Message-Id:X-Mailer;
+	bh=9UBOGrnevchYzRdIK+lYuYuVpkBp6bntw5wHhZWKMa0=;
+	b=awXSsti9d2+6RoTXK+knu9O3PbxPWkA7aAvjGChiS2ScsXdoQu237ZRAX9cu3h4xAtLY
+	 uepkYa7PXoq4c5VdWjXUvifE54aZWF+KMFW1xmgnMbHOXsEw1oaxNd8lGGK0e4UcGvyJF
+	 Wp6n1bUxbecsvipqS/y7pp1R6htwLa5JXbx1NrObeA1Gc6vb8928yB+Yzns5UJ6zfP3Hc
+	 e5eN8gyiKmblh4Rits7U9+VgE35ZVgKRSSqSyuGQ4FTkMDJviNEsiWBrivssFa2FZacgn
+	 C7hOpHkUE2bs1uFqFNSW+RLU+p5nTWQU5wwIK5ZaVQaC3Pyjd4xdEFBG+k0eWpkt40Q==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=none header.from=gourry.net;
+	spf=pass smtp.mailfrom=gourry.net;
+	dkim=pass header.d=gourry.net header.i=@gourry.net header.a=rsa-sha256 header.s=google header.b=iCJ32sOK;
+	arc=none smtp.remote-ip=209.85.217.51
+Received: from mail-vs1-f51.google.com (mail-vs1-f51.google.com [209.85.217.51])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1E77606C6DC;
-	Fri, 30 Oct 2026 10:54:01 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E1E77606C6DC
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oracle.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE498606A31C
+	for <nvdimm@lists.linux.dev>; Fri, 30 Oct 2026 14:05:18 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AE498606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=oracle.com header.i=@oracle.com header.a=rsa-sha256 header.s=corp-2025-04-25 header.b=WT9rbvon;
-	dkim=pass (1024-bit key, unprotected) header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.a=rsa-sha256 header.s=selector2-oracle-onmicrosoft-com header.b=m9EFnzpY
-Received: from pps.filterd (m0246627.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69U2tV8R679165;
-	Fri, 30 Oct 2026 10:53:43 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=
-	corp-2025-04-25; bh=0m1KRfxR8XKHPUhFuiozlOI1J4rQWDyWGyGE65GD+cA=; b=
-	WT9rbvonA1zlSX6M5urVtmuwbYzk9Wsf3n4fGeYy/Thw1i3Qt4nEuGNKoh5RUqJd
-	RDc/t6aRZsBkhyxhCVI7heC9d3XuMutCwaGrO87soIeatArNMsNnJL8YnCmXF7Kl
-	EUVveQTXxU+rU2mWbFtQ2ot2jXUv88e9GkxUGHoDCHsKdyR3J3biQl6XGFK2h8Gt
-	eMMrmLH2Yf9ND9UlY5cQ3qvtFI37tBr3/s9zHeEXTNhUuDITOmgVjKfge8a3an0p
-	jkME7j4PVQhuG8doLYNMz/TPJ254pc2EmWX5bkyER7Rrn6mTBp+Lx7wAKcbmczZ6
-	aXhGVoiyPA1PlHh/33ofwA==
-Received: from phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta02.appoci.oracle.com [147.154.114.232])
-	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 4hme5prmdr-1
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=OK);
-	Fri, 30 Oct 2026 10:53:43 +0000 (GMT)
-Received: from pps.filterd (phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
-	by phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com (8.18.1.11/8.18.1.11) with ESMTP id 69UAnu3G3525438;
-	Fri, 30 Oct 2026 10:53:43 GMT
-Received: from ph0pr06cu001.outbound.protection.outlook.com (mail-westus3azon11011029.outbound.protection.outlook.com [40.107.208.29])
-	by phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTPS id 4hmsu4r3b8-1
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=FAIL);
-	Fri, 30 Oct 2026 10:53:43 +0000 (GMT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=gf7V0KFO2AF54dchA0qZsNyhg2bTit27k2srrDp7Vh4fJalvrde0Jo6605YpXlJ6hp4pavqXqIyewQy0Nr8bYqmJ7uMsAQdtfKXnr6eTdPS08n+/xrEOFWq/wNoNC125ZWzDgsQKx9SqRIBSj9a1t3fJfdDivHo8ERVu3eNyc0V/XVD3nW3uX+IPQ+BmJzOxbCiGYJlINL/5tkNnu9x5Mh3DMh2qPwkOqZjGLryBkbNitJ4/MEm/7uDe4zssxbnVSR2uQTTHKb8dS66D0ZCJFkLOwDgtrwl7PatYOHyp5LlSFcKqphwwAWxTNcS6Yi5n5q5p1rGbswz1vRNtApqZsw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=0m1KRfxR8XKHPUhFuiozlOI1J4rQWDyWGyGE65GD+cA=;
- b=F9M4CKDYD5ns69+76f4DW5Wb7ws0BWAcQcpv2zckfCUGUblTHIh15c1yiPR5HK/Aq0/RxQxUhlfxcG8RNDdCUHf1qZAy5kbeE1IW1sn79+hK9NuutCeZXw+UhnqVejtb+Lfq7M/tmEKfKgT4d8DJoMIPvKTKOsfxcTuv2wOufODB+bi1zTbu6NaK6oQLjCUoXd/QaO1BeMsovmjgMHYRCZjugpIorARrlT2vHCOiooQh+Fd5o6FSVpAVGExOGUBFJLZ0m3lPRFJy7ERMd958uT+9nQVK6j8Zm2LmR+hBwXvPH6v6KqTkVsNg2OxEON8aSazEMCJN/hu1clphSD0ZVA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
- dkim=pass header.d=oracle.com; arc=none
+	dkim=pass (2048-bit key, unprotected) header.d=gourry.net header.i=@gourry.net header.a=rsa-sha256 header.s=google header.b=iCJ32sOK
+Received: by mail-vs1-f51.google.com with SMTP id ada2fe7eead31-7ccb2ffe333so489830137.2
+        for <nvdimm@lists.linux.dev>; Fri, 30 Oct 2026 07:05:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=0m1KRfxR8XKHPUhFuiozlOI1J4rQWDyWGyGE65GD+cA=;
- b=m9EFnzpY0wSf/EpZxuxaTNBSDKnhuPYo/o5c1rUq0ndbiWgGgCwaY15Sp2TuJeFpC4aXp9rhqirN/cKRr7+zqElUNIYD8L0F2Ga8JSl3f/YCRlr660acXmpkHyAbwhFztb+gVYjQYw9YDuW4pHIxlAqO8uZOVixzDvPiC/ExsOY=
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=oracle.com;
-Received: from CHAPR10MB997722.namprd10.prod.outlook.com
- (2603:10b6:610:2f3::10) by MW4PR10MB6464.namprd10.prod.outlook.com with HTTP
- via P2P; Fri, 30 Oct 2026 10:53:40 +0000
-Received: from CHAPR10MB997722.namprd10.prod.outlook.com
- ([fe80::d6fa:c744:373e:9f4f]) by CHAPR10MB997722.namprd10.prod.outlook.com
- ([fe80::d6fa:c744:373e:9f4f%4]) with mapi id 15.21.0569.009; Fri, 30 Oct 2026
- 10:53:40 +0000
-Message-ID: <7de3d0dd-f504-4c8f-8358-80634a2edd6b@oracle.com>
-Date: Fri, 30 Oct 2026 10:53:33 +0000
-Subject: Re: [PATCH] dax/pmem: fix unaligned compound devmap initialization
-To: Muchun Song <muchun.song@linux.dev>
-Cc: Muchun Song <songmuchun@bytedance.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Ritesh Harjani <ritesh.list@gmail.com>, stable@vger.kernel.org,
-        nvdimm@lists.linux.dev, Dan Williams <djbw@kernel.org>,
-        linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Vishal Verma <vishal.l.verma@intel.com>,
-        Dave Jiang <dave.jiang@intel.com>,
-        Alison Schofield <alison.schofield@intel.com>
-References: <20261016054914.2601510-1-songmuchun@bytedance.com>
- <31c89da1-6d3f-4a42-b6bb-2b8f8170eed6@oracle.com>
- <FB79CEA5-ECA4-4313-9D9B-10B231C88E92@linux.dev>
-Content-Language: en-US
-From: Joao Martins <joao.m.martins@oracle.com>
-In-Reply-To: <FB79CEA5-ECA4-4313-9D9B-10B231C88E92@linux.dev>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: LO4P123CA0435.GBRP123.PROD.OUTLOOK.COM
- (2603:10a6:600:1a9::8) To CHAPR10MB997722.namprd10.prod.outlook.com
- (2603:10b6:610:2f3::10)
+        d=gourry.net; s=google; t=1793369117; x=1793973917; darn=lists.linux.dev;
+        h=message-id:date:references:in-reply-to:cc:to:from:subject
+         :content-transfer-encoding:content-type:mime-version:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=9UBOGrnevchYzRdIK+lYuYuVpkBp6bntw5wHhZWKMa0=;
+        b=iCJ32sOKZdJj/khzWWtn9N/z8AhjVtKkRT2IHQ+EoBchykH3C6gB2SpkX1mNKZQPac
+         P1G2SjrIThW0ZkGZlURJ8GCiubFEvMUcbl2bw8bHfW6OjmqM0ut69cGyOmAsNgp1FCtj
+         xSU1OsKxvZ1MHynC7ej7OLrJAlRlLTESmiDqoSb7FCnlSltiXEmK7uj9CTrzjy/OfRJG
+         g72ly312yr4CS66GlcGE3SrUpFgx4rOXC+grcMM1sB7QB2xyN5wgAVFv4DHGEAXYVyXR
+         5cyTosHWOgaUyQdjErBA0rQyVBVq0eehSdRA05RLcf//byDFSWLwI+uuZn0K6Ewu1ZJy
+         iQ1Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793369117; x=1793973917;
+        h=message-id:date:references:in-reply-to:cc:to:from:subject
+         :content-transfer-encoding:content-type:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=9UBOGrnevchYzRdIK+lYuYuVpkBp6bntw5wHhZWKMa0=;
+        b=bXRBU550TZ+hofvEEQF/LbGyIziUznbpOzc+/phF/oqBdRZyw80D95u3tWPvL/lEpH
+         5ztD7vfRL/3jE6Xa9v5/UscSjZ5tI0MWQZr7YxqBTz3I4uNh4ssvqSErww07BEUVYXPV
+         wISKT2GpKACUP7LgELt6zFcn4QDlH+hIxlOTqZJ1RQypOE9PQ+mo3lbfBpFvqCfKaRQk
+         80QFSnR64OAhD0s/wSx51tO5cb7A1/46AhcZKVvJr9XNnzN0lxMKLv4V6uTAYp3amKRW
+         GHmN1SbefDNwPmCa5N3Osm8d35Hu6BkzypGmVX+66SKN4wJzSnhBI1w2d4+LGjFrmsjO
+         /d4g==
+X-Forwarded-Encrypted: i=1; AKwUvBxN36l0lN45lBA6ja2TjYhSxBneDydMoDpAPrmrE69NGTZGiN+vbDLeCTBjh5guaaONoORA1GE=@lists.linux.dev
+X-Gm-Message-State: AFq9FYKQRqxkDRxtrmP9PDleeownYmQrPxpttIiOhc15nC3p0xtknr1Z
+	IzgWvZc2/gEynj2+ZItYbinmB8wVYhvGruaap3209rj5XywYCtrMVUkbH78BkbhuoAQ=
+X-Gm-Gg: AYBFou0ki1i6gsv9DhZn5kGZWjIu0HaQIni4PLIOhbAtVt5uw5MMfRks0JObVItI22P
+	ee49Gdm6VX68CteBFqbszAXdLqZ4EAAagnm1/1sJ0/uZXJ2LlKfuU+DKHHKJu5x0PG23Tndw7Aa
+	S/8CIpofKcWGj/+Bbg7i6flPM+Jo+Xg9VLmYkNJlGP+xMqyrjiBjIIfikoMgcM3ULjipR7NGwZn
+	uoI2H472EKGEHh0uZdN3L8bJG/Z2igWDr1BtiKJZ8i+cJgxrMH9ZWWo9/cV6IReyyGeGoOXiv0+
+	LBengaVPXalkPYLT/qnU1m2eeUiKXNjWl6krGGGBpZKkZ2FcryOP541dd+OwwbDyjmzFo4XxN3U
+	6mbSNFfKpggoZ5I6jATrHUcgmovlaIktQmwE4m+D0knM267AC6FxJkYNbd1JlC98OUAwg1ylNON
+	KdWPEKW13p3dr6K/7lPFpA+IZn8YsNpfNW4C5U3jX9hVBR95mY5wnTwcRFjaPv5kfY6QDkzQzO9
+	xgr3q4K7xztsWtcUGvyOlNlsqvjs+fT+81vbIWKF9LhPhqDPDXB2j3435o9J+ZlWcPQXCRrTELY
+	pYPfXQlakJwtRBQBVlDQxhzUYf6/MAcys8WGpAXlthF+d7AAe2Rsdj/YPBPpZdeaiLzR8hZPDcP
+	R
+X-Received: by 2002:a05:6102:c4f:b0:7cc:3eb0:6ece with SMTP id ada2fe7eead31-7d072d53fa3mr1222192137.33.1793369117323;
+        Fri, 30 Oct 2026 07:05:17 -0700 (PDT)
+Received: from [192.168.86.58] (pool-173-79-60-52.washdc.fios.verizon.net. [173.79.60.52])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91ca806aeeasm15954726d6.35.2026.10.30.07.05.15
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 30 Oct 2026 07:05:15 -0700 (PDT)
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -135,187 +89,69 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 List-Owner: <mailto:nvdimm+owner@lists.linux.dev>
 Precedence: list
 MIME-Version: 1.0
-X-MS-TrafficTypeDiagnostic: CHAPR10MB997722:EE_|MW4PR10MB6464:EE_
-X-MS-PublicTrafficType: Email
-client-request-id: 2820c82c-ff24-4467-9fb2-ceea1e9746f6
-request-id: 481f4185-3dab-4abc-4f53-08df36740e83
-X-MS-Office365-Filtering-Correlation-Id: 481f4185-3dab-4abc-4f53-08df36740e83
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|7416014|366016|1800799024|23010399003|6133799003|18002099003|22082099003|56012099006|4143699003|261022105027099003|261026140227099003|10067099003|261022075727099003|261021121427099003|261021135927099003|261028144727099003|261026121527099003;
-X-Microsoft-Antispam-Message-Info:
-	YzYHvYLgp0qTjvIiFNuHXcACojG9nxbrf6nSV+RrZ0lS+XTwAopOaF2GlQw20fuSlcK0uQAz9er/XspMi0mKlzkexrnYd+nsxmt+uhxsl95mSyHZ+WbO+u93/7KMrvGlkZ84dMPqNS6P8IW74bFTZu17xP9NDgzoWAg+5y4ozwg3dbLJFa7fNG7Z5csSwW6kxDOY7rBlOqJOnR9Y+LnF+ODSW4dLIelIWaLE+SjShD+R9L5jezQw1GzQmRwcKuT3FAe6R461Ti8POxAZHVIvYCrAg17gT1LBCgzB+wgBsL49V4dEe+pSGD4hEseS17uzY037/4E5wNdovDmTpxyq5VuV3IA4Um8Q/78kwmp4DDuqRz6zhyhI43Q7aECrR9sRSokvUqJEwGQDjwLbWPaeTvxXnULFrhESmlYi5OIADwUB5EQAGXsNthPDtq/PBuPQfHOjn7QizFPae2lL3xEJr4DCadu3ie5+QlrbVfx9KySPGCKGum+2oaHELz2zfDDBgitminlLdUkuuROAfJQrTjNS2UZZrsTosBGl65ydhu+6zhv3OghUnSvvKSHMKjO8SSVdZn/1ulXndvVL5RjjR60iOeTZYsMhmZ291dxn5XElELv/hm5RxZ1NyPBTqg/V
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:;PTR:;CAT:NONE;SFS:(13230040)(376014)(7416014)(366016)(1800799024)(23010399003)(6133799003)(18002099003)(22082099003)(56012099006)(4143699003)(261022105027099003)(261026140227099003)(10067099003)(261022075727099003)(261021121427099003)(261021135927099003)(261028144727099003)(261026121527099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?SkVTdjNkK1g1YW5vb0Z1NXBldi9DeXJOMTgyNkZGTlBJek9DODYwd3V6bG1w?=
- =?utf-8?B?aWwyTXdYRmNiWWJoLzcyMk1FU1krWjljcFI2cEVlWXlRZ1huK1NPMEpnSzE5?=
- =?utf-8?B?cDY0UjJHbXlSWFZZQzVUcnlsNzVCUWdOajljUWRRc0VnN3JIcFhFTytseitD?=
- =?utf-8?B?cnBWQTNwZE5CQlZ2czNTVXhQVTFFR1VmaE9xTzFaZTRrZnZua004ZnRPcXRB?=
- =?utf-8?B?cHpWVCsvSUpVRGZmS29Ka1RDS1VZZkJDd21QY1YwQytDMVZlRWsrYjJxdGFQ?=
- =?utf-8?B?V1l4L21lVWgzOGZvVnl1c2VsdUlTVGgyUzJDeWFHcWdpSWlGSm9oWE12QW92?=
- =?utf-8?B?bkN6SjBhMzJMSGJ4aVQ1KzVwSGxsYVJRL2JQdnFYcHNkOGFDNlZzVkh5R2V4?=
- =?utf-8?B?MEh5Y0JSNGtwd2FHTmRZZTlQNjdwazJBOTc4RUtNc0hIK2ordjdLVlR6M2di?=
- =?utf-8?B?My9wTURUZ04rV0h5WXVJaUovaU90WUF5SWYxMmZudlFTdUJyTGdvREg0N0kv?=
- =?utf-8?B?dklRU0tNbno3THk5YUswSlJHcVpPQjNvU1ZGTUYrRjNDWXNDYkVjRUtCNC85?=
- =?utf-8?B?N3hSSDZGdFhaaVlRYXZKZEhSamZTM3FlSWZTM0FhVTR0RzZqOUozU0tvRkRr?=
- =?utf-8?B?bFhtUUMwSDh1d3QyUHlkMlA2eEhqN2tpSC94N0FlMnNjQWRwMmp3dElRbUk4?=
- =?utf-8?B?UFIzRUk2TUF5bHlQY3JHOG0yNnlSZlBIMnRCa1U5YWl1VURieTFRZ0pjVWly?=
- =?utf-8?B?S2djVXMwYXF4U0NsazBFYkNWSkFUR1dMMjc4MVFERHlqZmZ4UldPM2dxVndU?=
- =?utf-8?B?bG9hczZVaStlSGxZVkxSOXRWa1lXd2d2YllGcVhqTWdtTVRHWFpPZytSQ2JZ?=
- =?utf-8?B?WmJLMUYxaStSSjFlOWNVTjgrZzZ5ZmdMNXRwL0FEOElhc3FUR2c1dlpMNnlz?=
- =?utf-8?B?QlloZG16TUY0a0s1TW01V0JLY1JXNmt3cnljc1pERHZSRW42WFEra2N6bDVs?=
- =?utf-8?B?UHF3ZWxOejN1L1NhbkN4TmovK2FwU0Znb0tiZkZqSmU1WlV3NUV4L0JUL3ky?=
- =?utf-8?B?eGNMUnNvVENnaXQxcndaTThzcEhkSy9VU1U0UjV5a3RycHRqaHpmTEVjUkI0?=
- =?utf-8?B?U0JMQUZoNU5vL0VBOEY3TDd6d0VubVhoN0JmWHcydWZSRkJxWFY2K1JMOG9L?=
- =?utf-8?B?ck5vVElYK3hkaVArZHNJN09MZXBIbkZLQ2ozZzNHQ082MkNOY1NxbGhIRkRi?=
- =?utf-8?B?anF0VUpUUG5CWko4RytRMUlZbTVtc29MRFhVOGgrdzhXSERMaXcxdTd4amJG?=
- =?utf-8?B?R20zVFE1SE1XU1BRL3lTYkZybTRtUWNtSFlJY3loQ0FNUDRzT25wNDZ1V1Ns?=
- =?utf-8?B?OXprOWMrTi9sQzFkakUvVFNqcm5PRHo5WEhDb1dkcWdPWnlpMWdtNVlwS0x1?=
- =?utf-8?B?WDlzOU0vUjlGU2pHdzRpWjFjL0Eyb0dGd2ZJSFpHU2xTYnRNQ2xVejNKdDQ4?=
- =?utf-8?B?MEVGd00yUnR0SlJuODlaSXE4QlNNRDVpQkJNUUlmODNWRFZkVklJZlowUGxY?=
- =?utf-8?B?c2tYN2RFdUdsMU9yMitOdHlRL0lmaDd3a1BWV3BXTGY1dFNQQ2FITC9PTTlE?=
- =?utf-8?B?bFdVN0JxKzNROXlrSjllUFowRXU1emprNlRMREZkYnp3Yy8xSXIzM0xwWnda?=
- =?utf-8?B?YmlJOGlQQWlkNFpYRUhSM2dDZW9GM3Vpd3JON1Eyb1RLRk1kSWxnM1ByYlJI?=
- =?utf-8?B?SEQwQmgvbjRqeStNaFJLd0psR1VpaVZCSnJyYnhHNzZuUlBVUXpmOW44Q205?=
- =?utf-8?B?RU9RMCt0SVJnOHVvdEcyT2FQNHZ0WlRMVUd3VXRySGQ3Y25FSTE1azVLd05U?=
- =?utf-8?B?NWhpSGRLYkJhMzBHQlYxSFVYYmRvQWo4WitGVXdwM2x4WkdIblFDLzRpY1lF?=
- =?utf-8?B?d1V3UXZvS1FrdGlYVjM4VXBPek9JTFRzVVZYazNRTE9MWkdrQ3h3d3dWSGtl?=
- =?utf-8?B?K0U0UUtzSzFsbTBsTkhlWlpKWkJOci9XK0QwbDJEVkszSG15REFJbzBDOVF3?=
- =?utf-8?B?NzJiMnY0N09BTFE5b1ZMcFM5SW9qRFZ2bGNjakZDWkxacjJSOWFxRjVZakhj?=
- =?utf-8?B?RThqd0RpM0oyOGpYU2RndUF0aFlvdFZORS9BMnRuOGU3anl6eGhYdUZKUk45?=
- =?utf-8?B?S05xanZ4bHhobjliMm9QS1hYUVBiOTJIMTVPL2pCeXhzM29GRCs4b2lGbndV?=
- =?utf-8?B?Z3BkTWpRUDNvSlFyMmUvUDlTa3JFTDhSRk9jUUtrY3RMeGt6Q3ZKSTZ1Tlht?=
- =?utf-8?B?ZG8rOWNzbXVlNUlSYm9KTStLR0lHamdYVCtmV3I0c2tCVURpY2pnTUIvbVha?=
- =?utf-8?Q?kSRS5PuHmpN1or9k=3D?=
-X-Exchange-RoutingPolicyChecked:
-	FWzDc3LIGJSCx6UdDGOxwo85bO89orLLT0Ye7oGxpvRH8HIg8M2qhhwZt5kFy3TNwF8lZqs6rL4GpFVQbYud6Ybr1IkM5vzV2BWuvEIFl1WZckxmcrHzYsjeKOvLqezMmdHFZRFWyDvlszHBnuAu6Q+eF6eNCJWxC3vryVnuYVf8ZlAqVAuxgrPiRq0evPaMY9K4copoE8aaDYUb8WoXM+mIRUhvRb5XQLEZmJoPd+punXwx7BNRQMoKbTP701H1BwLfS+Rxv1NjkZwBjz8q8u1Knw3NRot4t8zXXAjbvUuNCNBfPPPIetzX9NrAmvtgW7UF0AC0STbmWEV159jEQw==
-X-MS-Exchange-AntiSpam-ExternalHop-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-ExternalHop-MessageData-0:
-	nvm+9RNhCtREl21FCgEL7hpNf5/+WCvWdUuAQyaavvng4vI8kgXZTB45oln2BObu4t4j7tGcZP4RESCFR8MWugEyRlF8MMps4m1kogoJtDHFG8oh8TPWZXHpA9m+oPHpxMAR32+cnFpAA1U+4RDCi/PRFgrNhozpE8d1TTH7+nUeQDfaT63WnInY85gW99yU/qJG48RjS6zMTZogQRxdlgVYSePb/fPKYik5F1QQ/Rn83fNFrwIZaCqGLZ1nm8hYgfrQUm32JMb93847l3nN/rf185Wk3JiEWVRpwk9rZ4Q9+egRRNLoSHWSueuiv3JdqARHu5pYVmaMq0T1dtg2HJT8BTMQDGLcM6PTI9U5hCCmq4DyxCIzCCwtvIb4JfjSCwDitkRzEqymsMOuBnwSGHJSRxFUVlpjFiKOx5oHtSpMoJHrR2+BKn/WgzMDBjHlir+F9ZMpFDfkTWz5OUjuXeoKAZiS+X/8WPGIkQoXQJzy2BBthNmWjhMBdox6QnQLI6M+aditF1W5KwbnuRZGUNFiXZMKBAyLVk34HOs59M9LOPM4MfZEDDiGkJC0kdWhGLePqQE9Y5htHrQsZOLi19E8xftkNJGmKDMvN6Hp+ec=
-X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 481f4185-3dab-4abc-4f53-08df36740e83
-X-MS-Exchange-CrossTenant-AuthSource: CHAPR10MB997722.namprd10.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Oct 2026 10:53:40.3542
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: OtVMedO8KxHP+ETdSHnywK5kh9Qx40gP1zlCL0p+iAEdZyngLh0VCyQWuY+nhWRpasEhwgmJ6LxxfOEA++7kTjH6WwDC9nlmNF4arpA7RsA=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR10MB6464
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
- definitions=2026-10-30_03,2026-10-21_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0
- spamscore=0 lowpriorityscore=0 mlxscore=0 suspectscore=0 mlxlogscore=999
- bulkscore=0 adultscore=0 malwarescore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.22.0-2610190000 definitions=main-2610300042
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDMwMDA0MyBTYWx0ZWRfX9KeWMypexTWl
- BLtsoYTRLKPD7ow/3FcjBVjZITsYLSjAPGwSRhHDREel35ObkSYzX8eK2DN8b0y20c5Ebv4T7Ew
- 7Y0M/R9CBTyz5gvwViwknYpUBC+E8m4+b/qscGmDJu4q1c+Nw/Rtwq+9zlMLKWBK5WAEXtWewEZ
- Ub4zU001hNsodla+bjPwOqq4SFKPIMoz8/IjKxQ5BQfeqXlnFTKrQ/7IUu7hAMlWd2S97A63CMO
- pVHQrXpUR6MxBYai4SQLCnPrjjNBn3pDzEmslPA8CknJkEvUGL7ZINlTc1le3zirkeHVluw/ZEQ
- sXWmfmDTPB5idhy7l0y7fMnndalVzX7c59pcsfEpaffA7/IHj8gjkNQ3y5e21teuODkEQtOIFoY
- 9875orE1suPKdox0G/01j6cSW8872AAseCzejfySR/PlBb4Me8pc6/irp31eGV6rf+pnxa0ulYT
- 6jtv9sEwOZMf0pyJ9rQ==
-X-Authority-Analysis: v=2.4 cv=SI/Xx+vH c=1 sm=1 tr=0 ts=6ae47737 cx=c_pps
- a=OOZaFjgC48PWsiFpTAqLcw==:117 a=OOZaFjgC48PWsiFpTAqLcw==:17
- a=6eWqkTHjU83fiwn7nKZWdM+Sl24=:19 a=z/mQ4Ysz8XfWz/Q5cLBRGdckG28=:19
- a=lCpzRmAYbLLaTzLvsPZ7Mbvzbb8=:19 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10
- a=660iZSQnnn4A:10 a=GoEa3M9JfhUA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=jiCTI4zE5U7BLdzWsZGv:22 a=RD47p0oAkeU5bO7t-o6f:22 a=VwQbUJbxAAAA:8
- a=pGLkceISAAAA:8 a=yPCof4ZbAAAA:8 a=968KyxNXAAAA:8 a=fybzUvBd16Gubq0c39sA:9
- a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
-X-Proofpoint-GUID: kUwGkh62DTHmDxieY_dYcBwu4sTmy93t
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMDMwMDA0MyBTYWx0ZWRfX3jDsExY0nJfN
- VJ6zcCqZHCi2UJGU/spKc7SVmr6Vi4fOYlNyGGWhqKuoTbZnyR2zaDO991TmECuhbJx2gr5qxKl
- NXseYtOcVCkIJX4rlBxrsQI4YryK7NZUtx6X5SU+WO2yKjbUosY4
-X-Proofpoint-ORIG-GUID: kUwGkh62DTHmDxieY_dYcBwu4sTmy93t
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Subject: Re: [ndctl PATCH] libdaxctl: check the zone of onlined memory
+ blocks
+From: "Gregory Price (Meta)" <gourry@gourry.net>
+To: Alison Schofield <alison.schofield@intel.com>
+Cc: "Gregory Price (Meta)" <gourry@gourry.net>, nvdimm@lists.linux.dev, 
+ linux-cxl@vger.kernel.org
+In-Reply-To: <auP1-iC_4r0lF7dV@aschofie-mobl2.lan>
+References: <179322248318.3398847.13424413341337264007@gourry.net>
+ <auP1-iC_4r0lF7dV@aschofie-mobl2.lan>
+Date: Fri, 30 Oct 2026 10:05:14 -0400
+Message-Id: <179336911439.2951797.4892975963347452252.b4-reply@b4>
+X-Mailer: b4 0.17-dev
 
-On 16/10/2026 15:06, Muchun Song wrote:
->> On Oct 16, 2026, at 18: 00, Joao Martins <joao. m. martins@ oracle. com>
-> wrote: > > On 16/10/2026 06: 49, Muchun Song wrote: >> Static pmem Device DAX
-> namespaces reserve space for namespace metadata before >> the user-visible
+On 2026-10-29 18:42 -0700, Alison Schofield wrote:
+> On Wed, Oct 28, 2026 at 02:21:23PM -0700, Gregory Price (Meta) wrote:
+> > daxctl_memory_online_with_zone() is meant to scan the device's blocks
+> > after onlining them and fail with -EBUSY if any block is not in the
+> > requested zone: an agent such as an auto-online policy or a udev rule
+> > may have onlined some blocks first, into a zone daxctl did not ask for.
+> > online_one_memblock() relies on that scan, it ignores a failed write
+> > for a block that someone else onlined ("There will be a full scan for
+> > zone correctness later").
+> > 
+> > But daxctl_memory_op() returns the number of blocks it onlined, and the
+> > function returns early on any non-zero value, so the scan only ever
+> > runs when no block was onlined at all.  Whenever daxctl does online
+> > memory, a zone mismatch goes unreported.
+> > 
+> > Example: 
+> >   memory_hotplug.online_policy=auto-movable
+> >   reconfigure-device --no-movable -m system-ram
+> > 
+> >   => reports success with the memory in ZONE_MOVABLE.
 > 
->> On Oct 16, 2026, at 18:00, Joao Martins <joao.m.martins@oracle.com> wrote:
->> 
->> On 16/10/2026 06:49, Muchun Song wrote:
->>> Static pmem Device DAX namespaces reserve space for namespace metadata before
->>> the user-visible data range, and may also include padding needed to satisfy the
->>> Device DAX alignment. __dax_pmem_probe() adjusts the dax_region range to start
->>> at the
->>> 
->>> Static pmem Device DAX namespaces reserve space for namespace metadata
->>> before the user-visible data range, and may also include padding needed
->>> to satisfy the Device DAX alignment. __dax_pmem_probe() adjusts the
->>> dax_region range to start at the data range, but the dev_pagemap range
->>> still starts at the beginning of the namespace.
->>> 
->>> That is not valid for compound devmap mappings whose memmap is stored in
->>> system RAM. Compound page initialization requires the start PFN to be
->>> naturally aligned to the compound page size, because the head and tail
->>> struct pages are initialized according to that geometry. If the pgmap
->>> starts before the aligned data range, memmap_init_zone_device() can build
->>> compound page metadata from an unaligned PFN.
->>> 
->>> The resulting struct page layout is inconsistent with the Device DAX
->>> mapping. A later mmap fault can then resolve the user-visible PFN through
->>> invalid compound page metadata and hit a kernel panic while inserting the
->>> DAX folio.
->>> 
->>> Fix this by advancing the pgmap start to the aligned Device DAX data
->>> range for non-altmap compound mappings. Leave base-page namespaces
->>> unchanged, and leave the altmap path unchanged because
->>> memmap_init_zone_device() already skips the altmap reservation itself.
->>> 
->>> Fixes: 14606001efb4 ("device-dax: compound devmap support")
->>> Cc: <stable@vger.kernel.org>
->>> Reported-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
->>> Closes: https://lore.kernel.org/r/wlrkqqvg.ritesh.list@gmail.com
->>> Assisted-by: LLM
->>> Signed-off-by: Muchun Song <songmuchun@bytedance.com>
->>> --->  drivers/dax/pmem.c | 7 +++++++
->>> 1 file changed, 7 insertions(+)
->>> 
->>> diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
->>> index bee93066a849..d3a9b85107b0 100644
->>> --- a/drivers/dax/pmem.c
->>> +++ b/drivers/dax/pmem.c
->>> @@ -51,6 +51,13 @@ static struct dev_dax *__dax_pmem_probe(struct device *dev)
->>> 	/* adjust the dax_region range to the start of data */
->>> 	range = pgmap.range;
->>> 	range.start += offset;
->>> + 	/*
->>> + 	 * When the memmap is stored in RAM, exclude metadata and alignment
->>> + 	 * padding from compound page initialization.  Otherwise, the pgmap
->>> + 	 * may start before the naturally aligned Device DAX data range.
->>> + 	 */
->>> + 	if (!pgmap_altmap(&pgmap) && le32_to_cpu(pfn_sb->align) > PAGE_SIZE)
->>> + 		pgmap.range.start = range.start;
->> 
->> Should we need to check here for pgmap.type == MEMORY_DEVICE_GENERIC ?
->> 
->> Considering the dedup is not quite applicable for FSDAX.
+> Hi Gregory,
 > 
-> Good point that FS-DAX does not use compound devmap initialization.
-> However, pgmap.type is not set until the Device DAX or FS-DAX driver
-> probes, so checking it here would always be false.
+> Does writing "online" let the kernels auto-movable policy select
+> ZONE_MOVABLE? I'm wondering if this is a race, or if daxctl should
+> be using "online_kernel" for --no-movable.
 > 
 
-Right, I forgot about that part.
+'online' basically means "kernel picks".  I think it's reasonable to
+convert to using 'online_kernel' for --no-movable.
 
-> The pgmap is also copied into the static dev_dax and reused across
-> driver rebinds. Moving this adjustment into dev_dax_probe() would make
-> its range depend on the previous driver binding unless it were
-> restored on unbind. The removed prefix is only metadata and alignment
-> padding and is not exposed to devdax-backed FS-DAX, while its
-> vmemmap_shift remains zero. Therefore, keeping the adjustment here is
-> harmless for FS-DAX and keeps the static pgmap range consistent.
+> > @@ -1704,8 +1704,9 @@ static int daxctl_memory_online_with_zone(struct daxctl_memory *mem,
+> >  		err(ctx, "%s: BUG: invalid zone for onlining\n", devname);
+> >  		rc = -EINVAL;
+> >  	}
+> > -	if (rc)
+> > +	if (rc < 0)
+> >  		return rc;
 > 
-> If you have a more elegant solution in mind, I'd be glad to hear it.
-I don't. Thanks for addressing this:
+> What happens if the kernel places memory in ZONE_DMA32?
+> Will that lead to a MEM_ZONE_UNKNOWN and then an -EBUSY?
+> 
 
-	Reviewed-by: Joao Martins <joao.m.martins@oracle.com>
+Hm, let me dig into this a little bit.  I didn't think this could happen
+for dax hotplug - but it is subject to default_kernel_zone_for_pfn.
+
+Give me a bit
+
+-- 
+~Gregory
+
