@@ -1,82 +1,82 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.214.182
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.214.178
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793833350;
-	b=1HumZ4mmlyTVJ72UTRBpBjK6PUpQFGMozzX6DQCaERpm/uee0SJ08BwLTyIhP/LQLA8w
-	 MmmwAb9cvZaaXPC0/o0zaSAJMWJ7JuDNRqbhHL5IyUdM/7FrKB4W9X+P3LiDbWJq9PLZq
-	 biWfCEfF6aYjgHVQmiQzdssR88vGtjzRefZVoQFBkzs3AjUZ2SlLK4oMk6fQIl++mddzp
-	 f201AwTZZuVZaHrg8T6tGjqjYVph2iDnOaGoaeZcxV46YzQMoqVXQPzY9aO7biA48Zqni
-	 nmF+r8wkS/4hie8NvBR1wzFSKHmzbL3ME4x6VizYRuEibl5klzeTkT7RVUbTBAArtjQ==
+	t=1793833353;
+	b=OWTiRJzYXMMI64dU434NTjFy4PgAKj+dVfdNE5Wz4nXJdiz3OdVcm4fkiBvbmgCU3VUQ
+	 nanZBc/eUnnJHB7WmSkENC/fvuYodCDgvmdb+PFUYmOOpGTx953f4N8qyP4uL0OUi54En
+	 30z2AdqxUcXqydefB6eWjy704u7hepicYDCwOgoTokKxa4WXJ0p8/VLeUE4NnEQZLWSV9
+	 ftnhZ32/jMyT5g6bRPyxoVdzddablp5Ktw7OzuzBMTkRI7t2+Q8RpBE3GDPav8P6M5BHO
+	 hoJ+Uy76Qz10b0lrECbiLUvM2o5q6JoihR9I9NKISVZyB9KXWyxjyzCi65D1XMynSWA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793833350;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793833353;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:
 	 X-Google-Original-From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 MIME-Version:Content-Type:Content-Transfer-Encoding;
-	bh=+Msk6ANbZn/093DWI4JcEYr+FIuQ0NWktLmKrqtpKoY=;
-	b=EposMkk2KnpCeof8CCYncTLTtJTa65p49WmD6x0N3K9ILkI5xB/lzoEm7zUEofKPqTQy
-	 44im5izh6bcwcCQnHftvuyrhhCia89JAc02Cj6Ws8/VbkAI/GGOTHZE3tPztDX2xHw+g9
-	 kRzlHLNx3w/LQUwY73Z87dV7cVZztHrmWtrgccKsaQxcUZjRwmEvqFTp3L2oeTQ9C++yU
-	 yIfPIZ8OPNy5qKyJ5YxwMBA/9K7Wiv1kuY2i2AStKwpCFc8KOIUMIJoV+JK84VEPBSJaS
-	 ySwvuDJf5YNXmm1YEEZy2B7nZmfVqxHctAI9YGwWoxFYc72L/h80vGNNzLXjKSx8mmg==
+	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
+	bh=rE6d1fjh9gAYO1BJRk5cgo6jEJphiJR3e20EHTFc4lc=;
+	b=ivi14iLTsU8KiGPFpvuPclj9IiEBVj5Ejr3WOEzSCCJXQepwnwgswEXrbiYLjCBe3N+J
+	 h/M9eWQoDc2fFdRJcOIfwUlIGEjVsEwf1PcW7Xmf2ekI5eRS2AJ/xB7UXzljkB5YDuxuz
+	 cyAxdRv9OtzA5lFXaR9IF5MTIOwkogSf16MHxW8qAMBtU0UyXwNNCm9xoEE4wGh90cSOi
+	 vDgoYvHuSuknzBvq57W+hBu48gPDAs+fXksc1qnuZ428yp+47Iui71wRfXTAjr2JzPB2j
+	 CWIwj0udhw7C7k3VJ5QYi9SLrkesbpwmlNLbTwLU9eqvs2ylbx7sESCZZKk54mfcp3Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=v4BBDbDa;
-	arc=none smtp.remote-ip=209.85.214.182
-Received: from mail-pl1-f182.google.com (mail-pl1-f182.google.com [209.85.214.182])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=yBkwHQaN;
+	arc=none smtp.remote-ip=209.85.214.178
+Received: from mail-pl1-f178.google.com (mail-pl1-f178.google.com [209.85.214.178])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADE02606A33D
-	for <nvdimm@lists.linux.dev>; Wed,  4 Nov 2026 23:02:29 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org ADE02606A33D
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14171606D809
+	for <nvdimm@lists.linux.dev>; Wed,  4 Nov 2026 23:02:32 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 14171606D809
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=v4BBDbDa
-Received: by mail-pl1-f182.google.com with SMTP id d9443c01a7336-2e977109392so7834985ad.0
-        for <nvdimm@lists.linux.dev>; Wed, 04 Nov 2026 15:02:29 -0800 (PST)
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=yBkwHQaN
+Received: by mail-pl1-f178.google.com with SMTP id d9443c01a7336-2e5fb79ce82so7550015ad.0
+        for <nvdimm@lists.linux.dev>; Wed, 04 Nov 2026 15:02:32 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793833349; x=1794438149; darn=lists.linux.dev;
-        h=content-transfer-encoding:content-type:mime-version:message-id:date
-         :subject:cc:to:from:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=+Msk6ANbZn/093DWI4JcEYr+FIuQ0NWktLmKrqtpKoY=;
-        b=v4BBDbDaWa3PWus7tTtwG0uWv9adM/4Qn2+lilLEqewfjlfnlzn4A8vXzbwH3NeLoV
-         Saev2QMIJ93uppITgCoYmJGnLCkDIIT5OmILT1MPGfIsDCgO16yQ49gc6lgZsWsBctwA
-         UGZZqnBycpWstdo9Y1UjNDf3OwyY1g8I8vlOdPVwN1J37RBjSi335ElE/vOIiwC/r8gJ
-         5ao7qJMnlcZRonsD1E1Pnxot+D5JsJfX0YUC/SdBjBmOGFpqjSaXFJ9M/lrugGJCO8hW
-         Y/EiNt5s/wv5WcJtIBf7x3rT1o9QaPfkLC0DjWvFoySpbz2JohvBSxSorQQfAsjZ5Vbv
-         H8Pw==
+        d=gmail.com; s=20260707; t=1793833352; x=1794438152; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=rE6d1fjh9gAYO1BJRk5cgo6jEJphiJR3e20EHTFc4lc=;
+        b=yBkwHQaNGAX4RYFyiQUTah/B1LZ8viMiAZfesSzQDbGkwupbC62rSVpZFDp60BQiNq
+         oqzZqqG9hoVu+XQSqJD+4P4fAnWqNEpDOm4qg2P8ILXGUk+TJnuImaA7qiyLSaMW7IqH
+         gXYMtQrs+EXWkxNOdqUsDIz0krYDUIHvQYJOgZK3SmCcfcozdiWyhOaT2dUAgNou+py+
+         TjwjNdBVfGJuZ24kB4VUSNZcHrym35si+ZXJVsyA0woAibWihnPkzzvbR8Zpq/bZHn1r
+         gQxzqAZaRGp1ZX1BUz/CRrPi4+dxhA2A/OYKTaPnzfefeEpafq4LfuOEmJRcw9uwHhhX
+         v3+w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793833349; x=1794438149;
-        h=content-transfer-encoding:content-type:mime-version:message-id:date
-         :subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=+Msk6ANbZn/093DWI4JcEYr+FIuQ0NWktLmKrqtpKoY=;
-        b=aHHbHuy0QZ5H6A68HfZvioe4K3VMAtbrvewetwJci6XuHnhLqFwqjJnUgnAlmp4RXQ
-         evscnfhDseGNMh72t/MwBQWMhz5S9KaOKo/p9wkHT1bgRlFosR9NBgycwzzOQuNoo/lc
-         OYFZhCo3ICrt8jiuhPMLFe4ZCXOUYkNyOgEOZZEQaj7SjRffaKETAihhbzeWC1VVBmFF
-         RcUf1R6AnkJoTKaG+L+Lbw5syVXVI/WmxleJZB0W7w4WqTl2Ej1jN5QBzHQQYNlXDxKP
-         jFZf1VeAW3FowLuO4/U+26VjJrtxpAvr7YZyEZSyTNwoPtP4djVaxMlnWkAiYr/q72sq
-         wZKA==
-X-Gm-Message-State: APuU4Z90eP2nuFPr7rw6p6xL0CHgtuWMdsZiHoxVp24ZwNTV6kAEfu+5
-	YR0PHSQIGeEUVOewuMtAxMuKiqryBpa67VtV1kK7WIeHH3JegQ8YwuYM
-X-Gm-Gg: AYBFou3YYyFWYVhoHXIGwqiQCvg2YxP/mWUtbqG+13uzUsdumvLI87Bfr6uLD4tuDbX
-	g4y0ozeUtf09CYe4RNBrMJyReTBk5jOVXoOXIEbDzlnFDUZWX4ZaV9Pd2dp/OcM0RH1to3tBRe4
-	BkniN/4XjBCXfwXTZwcxLQylJKoK/6/uOC/Te9pfBrj1J19hGE/+T/F5nBeJfaM6YltgqLy8QB6
-	Qr56zmmo/gqhhepcWmxpQEXHug7N8BoX7FYJ/3x9X6K1+rUVnQIGite6dEi1WNZeggJoAUUaY56
-	Om0x/R76qCOQqjG0AHpbYmDHIFlX8WcQ9Qpwx6b/LICAcz7JbGIvfjT6/21Nkq17wwoc40KbCAf
-	0iHIfvVEhArYc3puoRvdSqZv3h+e2wEnSgunaSowvIsEz41ouYMMKlEkllh3O7IfARmhoNZzx+Z
-	OsCNGKmw44DjpFCa77kU1ZNc1Bop4v/zMKRXc0jw6kDNlpHKNhsFCV6uCtoB3EsYwKC1HMbu1lz
-	aXpre4n1eSazyZYCKHcb1lNSfQRTOCeex24oXdsH0F9iuFEOedG6vqEt0u0g5yQbT9oO2cVKJi1
-	BLfa+rYF01+OE4mk8Qa55lk6vNO7ew==
-X-Received: by 2002:a17:903:1b2b:b0:2e5:54b9:6b5c with SMTP id d9443c01a7336-2eb36426f0fmr162418935ad.20.1793833348930;
-        Wed, 04 Nov 2026 15:02:28 -0800 (PST)
+        d=1e100.net; s=20260707; t=1793833352; x=1794438152;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=rE6d1fjh9gAYO1BJRk5cgo6jEJphiJR3e20EHTFc4lc=;
+        b=2MuCQMK2LS/3uiSX6B5yjfC+DgI8t/MgaP99dlZE5Y5z7S7c7GxBa+S6b4qPdGWzeS
+         u+Yi+o8fvl0Ptxvf1sdnksiSPhesUi8HkNBGxXhB2NnqzjYc9LmKEo2KCID3oN+kM8KR
+         zg1CeeII/3lxFoU6keXxrObxgUQXBbMCXl+xFW8FY98NXf+EOG1wHlL8epEDtmWq0U9n
+         LItYy4KeclZCqDff+ste2xw2RC0/p2g9bA8OH65oT0iQJj+8MP2NKkWFRMzLplRfICIh
+         e/EI+aCU3liWEf28O8o2y3pkwP5hJlZlxh9X6UWEidGG7Ffja4mVNtNhMSzcvEEl3EjY
+         y8rg==
+X-Gm-Message-State: APuU4Z+gCbCZLP7PHqThUVZwLy2SE3vORmYJKfcci52qvCREomBHkcVC
+	3Dxt7KpkR4lmFkgz6+QvRNAeoODGnBTp9uP247VKLwWsWN8WJ5cWBjq5
+X-Gm-Gg: AYBFou2Jp58U2GmiBGpqPpmEV1baQGVX6z1S1a2vzVax/GGBkQsZEHeG8Zs+hl4je//
+	0GnHsGEcFIDYfyVAC5WTFrAj3W2MwKFgqENNLSvjx2OCSWDguybAuuarzZGJokXIZsu9SkNZrhm
+	hv5jpu3nqgY5MVlaOVfnkAog2/HcZnz6nB3snLVSRQXHaIshYHo+c6TYEl+1a0OfL7K1p5nwcBM
+	//Da14AX4i8g8NFBFaxo27Jun6NKMkexZ8qEyta73JK/4MqT+kpmQkHkQf5u66pkrY8akoaYYQ8
+	sjlZkEUXcgNrlBCRfcdn/8wk3Ysrwl81yomRDAOZas7/i7gJlLsuU8vplo6B/wNXTi5t9m2IzFg
+	uNyzEu2QmMAvdK8YufbotW4qf0Rg/yvP/5Mmjg7mhfY2loLOiX1e7A1hZ5JlfSeJL6y3Uf996xL
+	WQTFlwqbJuJv7Sx9G2Lw0hBF9+SsxwmZHMyjMIf8coLORDw85Zz7IdBInSalsi15dzDBz7Dz5FN
+	fhgjg8D4nvxS4yAYZhYJqDYdm7c8WmXd1CQFG0Wve4FMYshU9AphFQVbMVlw+85cnX4OkBIlWQz
+	F7MkdDMOPkTuV7niyZ/DLjG+F6beGA==
+X-Received: by 2002:a17:902:c945:b0:2ed:107a:4f5d with SMTP id d9443c01a7336-2ed107a508fmr25016345ad.1.1793833352240;
+        Wed, 04 Nov 2026 15:02:32 -0800 (PST)
 Received: from cxlqual.. ([220.120.90.131])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2ed0908587dsm10999175ad.36.2026.11.04.15.02.25
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2ed0908587dsm10999175ad.36.2026.11.04.15.02.29
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 04 Nov 2026 15:02:28 -0800 (PST)
+        Wed, 04 Nov 2026 15:02:31 -0800 (PST)
 From: Anisa Su <anisa.su887@gmail.com>
 X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
 To: linux-cxl@vger.kernel.org
@@ -94,10 +94,12 @@ Cc: nvdimm@lists.linux.dev,
 	Gregory Price <gourry@gourry.net>,
 	Richard Cheng <icheng@nvidia.com>,
 	Anisa Su <anisa.su@samsung.com>
-Subject: [PATCH v1 00/14] DCD CXL Series: Dynamic Capacity extent handling
-Date: Thu,  5 Nov 2026 08:02:24 +0900
-Message-ID: <20261104230445.66625-1-anisa.su@samsung.com>
+Subject: [PATCH v1 01/14] cxl/core: Return endpoint decoder information from region search
+Date: Thu,  5 Nov 2026 08:02:25 +0900
+Message-ID: <20261104230445.66625-2-anisa.su@samsung.com>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20261104230445.66625-1-anisa.su@samsung.com>
+References: <20261104230445.66625-1-anisa.su@samsung.com>
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -107,316 +109,144 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 List-Owner: <mailto:nvdimm+owner@lists.linux.dev>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-As discussed previously, the remaining DCD series will be split for
-reviewability. I made the following split:
+From: Ira Weiny <iweiny@kernel.org>
 
-    DCD CXL Core half (current series) enables:
-        - pointing an endpoint decoder at a DC partition
-        - creating dax_cxl region for DCD (0-sized until resources added)
-        - processing Add / Release Capacity events
-        - sending DC Add/Release Response back to the device.
+cxl_dpa_to_region() finds the region from a <DPA, device> tuple.
+The search involves finding the device endpoint decoder as well.
 
-DCD stays disabled here too. The follow up:
+Dynamic capacity extent processing uses the endpoint decoder HPA
+information to calculate the HPA offset.  In addition, well behaved
+extents should be contained within an endpoint decoder.
 
-  DCD DAX Series:
-                - create dax_resources from accepted extents
-                - build DAX devices from tag groups
-                - prevent opening devdax w/write permission on read-only partition
-                - expose tag_groups / extents in sysfs,
-                - create_dynamic_ram*_region root decoder files for manual region creation
-                - tools/testing/cxl additions for DCD
-                - enable DCD
+Return the endpoint decoder found to be used in subsequent DCD code.
 
-	^ NDCTL set goes with this one
+Signed-off-by: Ira Weiny <iweiny@kernel.org>
+Co-developed-by: Anisa Su <anisa.su@samsung.com>
+Signed-off-by: Anisa Su <anisa.su@samsung.com>
+Tested-by: Wonjae Lee <wj28.lee@samsung.com>
+Tested-by: Junhee Park <jh9934.park@samsung.com>
+Tested-by: Heesoo Kim <habil.kim@samsung.com>
+Reviewed-by: Jonathan Cameron <jic23@kernel.org>
+Reviewed-by: Fan Ni <nifan.cxl@gmail.com>
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Li Ming <ming.li@zohomail.com>
+Reviewed-by: Alison Schofield <alison.schofield@intel.com>
+---
+ drivers/cxl/core/core.h   |  8 ++++++--
+ drivers/cxl/core/mbox.c   |  2 +-
+ drivers/cxl/core/memdev.c |  4 ++--
+ drivers/cxl/core/region.c | 12 +++++++++++-
+ 4 files changed, 20 insertions(+), 6 deletions(-)
 
-Nothing in this series is reachable at runtime as posted: with
-dcd_supported false no DC partition exists, the decoder mode store
-refuses the dynamic_ram modes, no DC region can be created, and no
-DCD event is ever read.  The intent is to get the extent handling
-reviewed on its own while the DAX side follows.  Testing below is done
-with the full series.
-
-Patch Organization
-==================
-   1: (helper) region search returns the endpoint decoder for a DPA.
-   2: Add dynamic_ram* endpoint decoder modes.
-   3: Set up DC DAX region: 0-size seed device, with 0 HPA until extents
-      are added as children
- 4-5: Set up event handler pipeline with stubbed add/release logic
-6-10: Add Capacity: Fill in add logic, introduce cxl_dc_tag_group /
-      dc_extent objects, verify extent alignement, shared_extn_seq,
-      check tag uniqueness, etc.
-  11: Release Capacity: release tag groups as a whole, send Release
-      DC response.
-  12: Recover existing extents when a DC region's dax_region probes
-  13: Rrace event for Dynamic Capacity event records.
-  14: Documentation of the extent handling.
-
-It will probably be useful to read over patch 14 (documentation) first
-which explains how tags/shared extent sequence #s are handled.
-
-
-[RFC] Sysfs interface
-=====================
-Since the sysfs interface spans both series, it's described here as
-a whole so the decoder modes in patch 2 can be read in context. The
-whole section is RFC, but especially endpoint decoder mode and the
-root decoder create region files.
-
-Memdev partition (exposed in follow up series):
-        memX/ram/{size,qos_class}
-        memX/pmem/{size,qos_class}
-        memX/dynamic_ram_1/{size,qos_class,shareable,read_only}
-
-Currently, only 1 DC partition is supported, but multiple would look
-like this:
-        memX/dynamic_ram_1/{size,qos_class,shareable,read_only}
-        memX/dynamic_ram_2/{size,qos_class,shareable,read_only}
-        ...
-        memX/dynamic_ram_8/{size,qos_class,shareable,read_only}
-
-dynamic_ram_X tells users which index they are looking at.
-
-* Endpoint decoder mode (patch 2):
-        decoderX.Y/mode/{dynamic ram |
-                         dynamic_ram_shared |
-                         dynamic_ram_ro |
-                         dynamic_ram_shared_ro}
-
-The code exists in the current series, but is not exposed because
-dcd is turned off. It is necessary to keep in the current series
-rather deferred for the follow up because extents need a parent
-DAX_CXL region that is dc-capable, which requires an endpoint decoder with
-dynamic_ram* mode
-
-A decoder's DPA is allocated from a DC partition by writing one
-of dynamic_ram, dynamic_ram_shared, dynamic_ram_ro or
-dynamic_ram_shared_ro to decoderX.Y/mode. We only support 1 DC
-partition today, so it must match the partition's read_only
-and shareable attributes exactly. But for multiple, the intent
-is to iterate over DC partitions and find the first one that
-matches. If none match, it's refused with -ENXIO.
-
-So users can specify "I want to use the shareable partition", or
-"I want to use the read_only partition".
-
-But if there were a device with multiple DC partitions that have
-the same shareable/read-only attributes, the user will not be
-able to select the specific partition.
-
-So the other choice is to have dynamic_ram_{1-8} as the possible
-modes (so in this series with only the first partition enabled,
-the only choice would be dynamic_ram_1).
-
-* Root decoder create files & region mode (in follow-up series):
-        decoder0.0/create_dynamic_ram_region |
-                   create_dynamic_ram_shared_region |
-                   create_dynamic_ram_ro_region |
-                   create_dynamic_ram_shared_ro_region
-
-        regionX/mode/{dynamic ram |
-                      dynamic_ram_shared |
-                      dynamic_ram_ro |
-                      dynamic_ram_shared_ro}
-
-The decoder0.0/create_dynamic_ram_* fixes the region's mode at creation,
-and every endpoint decoder attached must match the same mode.
-
-The alternative is to have a single file:
-        decoder0.0/create_dynamic_ram
-
-which will create regionN with no mode. The mode is set when endpoint
-decoderX.Y is written to target0 by inheriting the decoder's mode.
-
-Tag Groups & Extents (in follow-up series)
-
-  dax_regionX/tag_groupX.Y/{uuid,size}
-                          /extentX.Y/{offset,length[,shared_extent_seq]}
-
-  dax_regionX/untagged/{uuid (0000-000....)}/
-                        extentX.Y/{offset,length}
-
-Accepted capacity appears under the region's dax_regionX grouped by tag.
-Under each tag_groupX.Y directory, is the group's UUID, combined size
-of all extents in the group, and each extentX.Y in the group.
-Each extentX.Y shows its offset, length, and if shared: shared_extn_seq.
-
-Untagged extents appear under a general "untagged" directory, with
-UUID = null uuid and *no size*, since each untagged extent is its
-own logical allocation.
-
-Git Info:
-=========
-Based on v7.4-rc1.
-
-GitHub branches:
-  this series:  https://github.com/anisa-su993/anisa-linux-kernel/tree/dcd-cxl-v1
-  DAX series:   https://github.com/anisa-su993/anisa-linux-kernel/tree/dcd-dax-v1
-
-NDCTL:
-https://github.com/anisa-su993/anisa-ndctl/tree/dcd-v8
-
-Testing
-=======
-Build: every patch of the series builds drivers/cxl and drivers/dax
-with CONFIG_CXL_REGION=y and =n.
-
-NDCTL cxl_test:
-- no regressions
-- cxl-dcd.sh also passing although ndctl set is not posted with this series and
-the tools/testing changes for mock DC regions is in the follow-up series
-
-Hardware: a DCD with one sharable, writable 128 GiB DC partition:
-[   26.524021] cxl_core:cxl_get_dc_config:2377: cxl_pci 0000:0b:00.0: Read 1/1 DC partitions
-[   26.524024] cxl_core:cxl_dc_check:2327: cxl_pci 0000:0b:00.0: DC partition 0 start 0x0 size 0x2000000000 blk_size: 0x10000000
-[   26.524028] cxl_core:cxl_dev_dc_identify:2473: cxl_pci 0000:0b:00.0: Returning partition 0 0x0 size 0x2000000000
-[   26.524031] cxl_core:cxl_configure_dcd:778: cxl_pci 0000:0b:00.0: Adding dynamic ram partition; 0x0 size 0x2000000000
-[   26.524036] cxl_core:add_dpa_res:468: cxl_pci 0000:0b:00.0: DPA(dynamic_ram_1): [mem 0x00000000-0x1fffffffff flags 0x200]
-
-Test the following driven by a fabric manager over MCTP from the platform BMC (Initiate
-Dynamic Capacity Add and Release, prescriptive and tag-based):
-
-- FMAPI Add (one More-chain): Tag_A{extent_1}, Tag_B{extent_2-4}
-        - extents 2-4 with shared seq num 0, 1, 2
-
-- Create DAX device from extent 1 and try mmap:
-        anisa@cxlqual:~/ndctl$
-        sudo python3 - <<'EOF'
-        import mmap, os
-        dev, size = "/dev/dax0.1", 0x80000000
-        fd = os.open(dev, os.O_RDWR)
-        m = mmap.mmap(fd, size)
-        m[0:8] = b"DCDHEAD!"                # first page
-        m[size - 8:size] = b"DCDTAIL!"      # last page
-        m.close(); os.close(fd)
-        fd = os.open(dev, os.O_RDONLY)
-        m = mmap.mmap(fd, size, prot=mmap.PROT_READ)
-        print(m[0:8], m[size - 8:size])
-        m.close(); os.close(fd)
-        EOF
-        b'DCDHEAD!' b'DCDTAIL!'
-        anisa@cxlqual:~/ndctl$
-
-Try to add a tag that is already committed:
-[ 1119.080597] cxl_pci:__cxl_pci_mbox_send_cmd:264: cxl_pci 0000:0b:00.0: Sending command: 0x4801
-[ 1119.080646] cxl_pci:cxl_pci_mbox_wait_for_doorbell:75: cxl_pci 0000:0b:00.0: Doorbell wait took 0ms
-[ 6606.397305] cxl_core:cxl_mem_get_event_records:2053: cxl_pci 0000:0b:00.0: Reading event logs: 10
-[ 6606.397322] cxl_pci:__cxl_pci_mbox_send_cmd:264: cxl_pci 0000:0b:00.0: Sending command: 0x0100
-[ 6606.397359] cxl_pci:cxl_pci_mbox_wait_for_doorbell:75: cxl_pci 0000:0b:00.0: Doorbell wait took 0ms
-[ 6606.397427] cxl_core:cxl_handle_dcd_event_records:1955: cxl_pci 0000:0b:00.0: DCD event add : DPA:0xb0000000 LEN:0x10000000
-[ 6606.397439] cxl_pci 0000:0b:00.0: Tag 1b2c3d4e-5f60-4718-9a2b-3c4d5e6f7081: dropping group, tag already committed (firmware/orchestrator bug)
-[ 6606.397451] cxl_pci:__cxl_pci_mbox_send_cmd:264: cxl_pci 0000:0b:00.0: Sending command: 0x4802
-[ 6606.397484] cxl_pci:cxl_pci_mbox_wait_for_doorbell:75: cxl_pci 0000:0b:00.0: Doorbell wait took 0ms
-[ 6606.397491] cxl_core:cxl_clear_event_record:1092: cxl_pci 0000:0b:00.0: Event log '4': Clearing 27
-[ 6606.397497] cxl_pci:__cxl_pci_mbox_send_cmd:264: cxl_pci 0000:0b:00.0: Sending command: 0x0101
-[ 6606.397536] cxl_pci:cxl_pci_mbox_wait_for_doorbell:75: cxl_pci 0000:0b:00.0: Doorbell wait took 0ms
-[ 6606.397544] cxl_pci:__cxl_pci_mbox_send_cmd:264: cxl_pci 0000:0b:00.0: Sending command: 0x0100
-[ 6606.397569] cxl_pci:cxl_pci_mbox_wait_for_doorbell:75: cxl_pci 0000:0b:00.0: Doorbell wait took 0ms
-
-Reject untagged extent on sharable partition:
-[ 6820.356969] cxl_core:cxl_handle_dcd_event_records:1955: cxl_pci 0000:0b:00.0: DCD event add : DPA:0xc0000000 LEN:0x10000000
-[ 6820.356981] cxl_core:cxl_validate_extent:341: cxl_pci 0000:0b:00.0: DC extent DPA [range 0x00000000c0000000-0x00000000cfffffff] (DCR:[mem 0x00000000-0x1fffffffff])(00000000-0000-0000-0000-000000000000)
-[ 6820.356993] cxl_pci 0000:0b:00.0: DC extent DPA [range 0x00000000c0000000-0x00000000cfffffff]: sharable-partition extent has null tag (firmware bug)
-[ 6820.357003] cxl_core:cxl_realize_group:1612: cxl_pci 0000:0b:00.0: Tag 00000000-0000-0000-0000-000000000000: dropping group, failed to add extent DPA:0xc0000000 LEN:0x10000000
-[ 6820.357013] cxl_pci:__cxl_pci_mbox_send_cmd:264: cxl_pci 0000:0b:00.0: Sending command: 0x4802
-[ 6820.357046] cxl_pci:cxl_pci_mbox_wait_for_doorbell:75: cxl_pci 0000:0b:00.0: Doorbell wait took 0ms
-[ 6820.357053] cxl_core:cxl_clear_event_record:1092: cxl_pci 0000:0b:00.0: Event log '4': Clearing 28
-[ 6820.357059] cxl_pci:__cxl_pci_mbox_send_cmd:264: cxl_pci 0000:0b:00.0: Sending command: 0x0101
-[ 6820.357099] cxl_pci:cxl_pci_mbox_wait_for_doorbell:75: cxl_pci 0000:0b:00.0: Doorbell wait took 0ms
-[ 6820.357105] cxl_pci:__cxl_pci_mbox_send_cmd:264: cxl_pci 0000:0b:00.0: Sending command: 0x0100
-[ 6820.357130] cxl_pci:cxl_pci_mbox_wait_for_doorbell:75: cxl_pci 0000:0b:00.0: Doorbell wait took 0ms
-
-Unbind dax_cxl driver releases extents:
-[ 6922.815346] cxl_pci:__cxl_pci_mbox_send_cmd:264: cxl_pci 0000:0b:00.0: Sending command: 0x4803
-[ 6922.815824] cxl_pci:cxl_pci_mbox_wait_for_doorbell:75: cxl_pci 0000:0b:00.0: Doorbell wait took 1ms
-[ 6922.815830] cxl_core:unregister_tag_group:737:  extent0.2: DAX region rm extent HPA [range 0x0000000080000000-0x000000008fffffff]
-[ 6922.815858] cxl_core:unregister_tag_group:737:  extent0.3: DAX region rm extent HPA [range 0x0000000090000000-0x000000009fffffff]
-[ 6922.815866] cxl_core:unregister_tag_group:737:  extent0.4: DAX region rm extent HPA [range 0x00000000a0000000-0x00000000afffffff]
-[ 6922.935361] cxl_pci:__cxl_pci_mbox_send_cmd:264: cxl_pci 0000:0b:00.0: Sending command: 0x4803
-[ 6922.935542] cxl_pci:cxl_pci_mbox_wait_for_doorbell:75: cxl_pci 0000:0b:00.0: Doorbell wait took 1ms
-[ 6922.935547] cxl_core:unregister_tag_group:737:  extent0.1: DAX region rm extent HPA [range 0x0000000000000000-0x000000007fffffff]
-
-Refuse add extents while dax_cxl not bound:
-[ 7064.900283] cxl_core:cxl_handle_dcd_event_records:1955: cxl_pci 0000:0b:00.0: DCD event add : DPA:0xc0000000 LEN:0x10000000
-[ 7064.900296] cxl_core:cxl_validate_extent:341: cxl_pci 0000:0b:00.0: DC extent DPA [range 0x00000000c0000000-0x00000000cfffffff] (DCR:[mem 0x00000000-0x1fffffffff])(55555555-5555-5555-5555-555555555555)
-[ 7064.900313] cxl_core:__cxl_dpa_to_region:3137: cxl decoder9.0: dpa:0xc0000000 mapped in region:region0
-[ 7064.900320] cxl_pci 0000:0b:00.0: DC extent DPA [range 0x00000000c0000000-0x00000000cfffffff]: dax driver not ready, refusing
-[ 7064.900327] cxl_core:cxl_realize_group:1612: cxl_pci 0000:0b:00.0: Tag 55555555-5555-5555-5555-555555555555: dropping group, failed to add extent DPA:0xc0000000 LEN:0x10000000
-[ 7064.900337] cxl_pci:__cxl_pci_mbox_send_cmd:264: cxl_pci 0000:0b:00.0: Sending command: 0x4802
-[ 7064.900370] cxl_pci:cxl_pci_mbox_wait_for_doorbell:75: cxl_pci 0000:0b:00.0: Doorbell wait took 0ms
-[ 7064.900377] cxl_core:cxl_clear_event_record:1092: cxl_pci 0000:0b:00.0: Event log '4': Clearing 33
-[ 7064.900384] cxl_pci:__cxl_pci_mbox_send_cmd:264: cxl_pci 0000:0b:00.0: Sending command: 0x0101
-[ 7064.900453] cxl_pci:cxl_pci_mbox_wait_for_doorbell:75: cxl_pci 0000:0b:00.0: Doorbell wait took 1ms
-[ 7064.900461] cxl_pci:__cxl_pci_mbox_send_cmd:264: cxl_pci 0000:0b:00.0: Sending command: 0x0100
-[ 7064.900486] cxl_pci:cxl_pci_mbox_wait_for_doorbell:75: cxl_pci 0000:0b:00.0: Doorbell wait took 0ms
-
------- Reboot --------
-
-Read previously accepted extents on reboot:
-[   26.570494] cxl_pci:cxl_event_config:801: cxl_pci 0000:0b:00.0: Event config : BIOS DCD supported
-[   26.872701] cxl_core:cxl_bus_probe:2412: cxl_pmu pmu_mem0.0: probe: 0
-[   27.514742] cxl_pci:__cxl_pci_mbox_send_cmd:264: cxl_pci 0000:0b:00.0: Sending command: 0x4801
-[   27.514797] cxl_pci:cxl_pci_mbox_wait_for_doorbell:75: cxl_pci 0000:0b:00.0: Doorbell wait took 0ms
-[   27.514826] cxl_core:cxl_read_extent_list:2546: cxl_pci 0000:0b:00.0: Got extent list 0-3 of 4 generation Num:10
-[   27.514829] cxl_core:cxl_read_extent_list:2570: cxl_pci 0000:0b:00.0: Processing extent 0/4 [range 0x0000000000000000-0x000000007fffffff] (e5407b12-9a68-4c31-8d5e-2f0916bd73a4) seq 0
-[   27.514833] cxl_core:cxl_read_extent_list:2570: cxl_pci 0000:0b:00.0: Processing extent 1/4 [range 0x0000000080000000-0x000000008fffffff] (1b2c3d4e-5f60-4718-9a2b-3c4d5e6f7081) seq 0
-[   27.514836] cxl_core:cxl_read_extent_list:2570: cxl_pci 0000:0b:00.0: Processing extent 2/4 [range 0x0000000090000000-0x000000009fffffff] (1b2c3d4e-5f60-4718-9a2b-3c4d5e6f7081) seq 0
-[   27.514838] cxl_core:cxl_read_extent_list:2570: cxl_pci 0000:0b:00.0: Processing extent 3/4 [range 0x00000000a0000000-0x00000000afffffff] (1b2c3d4e-5f60-4718-9a2b-3c4d5e6f7081) seq 0
-[   27.514843] cxl_core:cxl_validate_extent:341: cxl_pci 0000:0b:00.0: DC extent DPA [range 0x0000000000000000-0x000000007fffffff] (DCR:[mem 0x00000000-0x1fffffffff])(e5407b12-9a68-4c31-8d5e-2f0916bd73a4)
-[   27.514849] cxl_core:__cxl_dpa_to_region:3137: cxl decoder9.0: dpa:0x0 mapped in region:region0
-[   27.514852] cxl_core:cxl_add_extent:570: cxl decoder9.0: Add extent [range 0x0000000000000000-0x000000007fffffff] (e5407b12-9a68-4c31-8d5e-2f0916bd73a4)
-[   27.514855] cxl_core:cxlr_add_extent:496: cxl_dax_region dax_region0: Alloc new tag group
-[   27.514873] cxl_core:online_tag_group:842:  extent0.1: dc_extent HPA [range 0x0000000000000000-0x000000007fffffff] (e5407b12-9a68-4c31-8d5e-2f0916bd73a4)
-[   27.514875] cxl_core:cxlr_notify_extent:470: cxl_dax_region dax_region0: Notify: type 0 tag e5407b12-9a68-4c31-8d5e-2f0916bd73a4
-
-
-Anisa Su (5):
-  cxl/port: Add dynamic capacity options to endpoint decoder mode
-  cxl/mem: Add 20 second timeout for stalled DC event chains
-  cxl/mem: Enforce tag-group semantics
-  cxl/extent: Enforce cross-region tag uniqueness
-  Documentation/cxl: Document DCD extent handling
-
-Ira Weiny (9):
-  cxl/core: Return endpoint decoder information from region search
-  cxl/region: Add dynamic DAX region support
-  cxl/mem: Introduce DC event handlers
-  cxl/extent: Handle DC Add Capacity events
-  cxl/mem: Drop misaligned DCD extent groups
-  cxl/extent: Validate DC extent partition
-  cxl/extent: Handle DC Release Capacity events
-  cxl/region: Read existing extents on region creation
-  cxl/mem: Trace Dynamic capacity Event Record
-
- Documentation/ABI/testing/sysfs-bus-cxl       |   30 +-
- .../driver-api/cxl/linux/cxl-driver.rst       |  181 +++
- Documentation/driver-api/cxl/maturity-map.rst |    2 +-
- drivers/cxl/core/Makefile                     |    2 +-
- drivers/cxl/core/core.h                       |  105 +-
- drivers/cxl/core/extent.c                     |  754 ++++++++++++
- drivers/cxl/core/hdm.c                        |   21 +-
- drivers/cxl/core/mbox.c                       | 1073 ++++++++++++++++-
- drivers/cxl/core/memdev.c                     |    4 +-
- drivers/cxl/core/port.c                       |   55 +-
- drivers/cxl/core/region.c                     |   74 +-
- drivers/cxl/core/region_dax.c                 |  131 +-
- drivers/cxl/core/trace.h                      |   79 +-
- drivers/cxl/cxl.h                             |  121 ++
- drivers/cxl/cxlmem.h                          |   84 ++
- drivers/cxl/pci.c                             |   20 +-
- drivers/dax/bus.c                             |   23 +
- drivers/dax/bus.h                             |    1 +
- drivers/dax/cxl.c                             |   40 +-
- include/cxl/event.h                           |   37 +
- tools/testing/cxl/Kbuild                      |    5 +-
- 21 files changed, 2792 insertions(+), 50 deletions(-)
- create mode 100644 drivers/cxl/core/extent.c
-
-
-base-commit: 6628e7d4c6b25c8d18f1345e3a20d21829aae7e4
+diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
+index 79918fde1575..8a81be004d00 100644
+--- a/drivers/cxl/core/core.h
++++ b/drivers/cxl/core/core.h
+@@ -47,7 +47,8 @@ int cxl_decoder_detach(struct cxl_region *cxlr,
+ int cxl_region_init(void);
+ void cxl_region_exit(void);
+ int cxl_get_poison_by_endpoint(struct cxl_port *port);
+-struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa);
++struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa,
++				     struct cxl_endpoint_decoder **cxled);
+ u64 cxl_dpa_to_hpa(struct cxl_region *cxlr, const struct cxl_memdev *cxlmd,
+ 		   u64 dpa);
+ int devm_cxl_add_dax_region(struct cxl_region *cxlr);
+@@ -61,8 +62,11 @@ static inline u64 cxl_dpa_to_hpa(struct cxl_region *cxlr,
+ 	return ULLONG_MAX;
+ }
+ static inline
+-struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa)
++struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa,
++				     struct cxl_endpoint_decoder **cxled)
+ {
++	if (cxled)
++		*cxled = NULL;
+ 	return NULL;
+ }
+ static inline int cxl_get_poison_by_endpoint(struct cxl_port *port)
+diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
+index 39485b6bcb97..13a68f5cef69 100644
+--- a/drivers/cxl/core/mbox.c
++++ b/drivers/cxl/core/mbox.c
+@@ -966,7 +966,7 @@ void cxl_event_trace_record(struct cxl_memdev *cxlmd,
+ 		guard(rwsem_read)(&cxl_rwsem.dpa);
+ 
+ 		dpa = le64_to_cpu(evt->media_hdr.phys_addr) & CXL_DPA_MASK;
+-		cxlr = cxl_dpa_to_region(cxlmd, dpa);
++		cxlr = cxl_dpa_to_region(cxlmd, dpa, NULL);
+ 		if (cxlr) {
+ 			u64 cache_size = cxlr->params.cache_size;
+ 
+diff --git a/drivers/cxl/core/memdev.c b/drivers/cxl/core/memdev.c
+index 787988e92965..81f1e0441787 100644
+--- a/drivers/cxl/core/memdev.c
++++ b/drivers/cxl/core/memdev.c
+@@ -309,7 +309,7 @@ int cxl_inject_poison_locked(struct cxl_memdev *cxlmd, u64 dpa)
+ 	if (rc)
+ 		return rc;
+ 
+-	cxlr = cxl_dpa_to_region(cxlmd, dpa);
++	cxlr = cxl_dpa_to_region(cxlmd, dpa, NULL);
+ 	if (cxlr)
+ 		dev_warn_once(cxl_mbox->host,
+ 			      "poison inject dpa:%#llx region: %s\n", dpa,
+@@ -378,7 +378,7 @@ int cxl_clear_poison_locked(struct cxl_memdev *cxlmd, u64 dpa)
+ 	if (rc)
+ 		return rc;
+ 
+-	cxlr = cxl_dpa_to_region(cxlmd, dpa);
++	cxlr = cxl_dpa_to_region(cxlmd, dpa, NULL);
+ 	if (cxlr)
+ 		dev_warn_once(cxl_mbox->host,
+ 			      "poison clear dpa:%#llx region: %s\n", dpa,
+diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
+index a048bd5c06cb..f4a9839c73d2 100644
+--- a/drivers/cxl/core/region.c
++++ b/drivers/cxl/core/region.c
+@@ -3045,6 +3045,7 @@ int cxl_get_poison_by_endpoint(struct cxl_port *port)
+ struct cxl_dpa_to_region_context {
+ 	struct cxl_region *cxlr;
+ 	u64 dpa;
++	struct cxl_endpoint_decoder *cxled;
+ };
+ 
+ static int __cxl_dpa_to_region(struct device *dev, void *arg)
+@@ -3078,15 +3079,21 @@ static int __cxl_dpa_to_region(struct device *dev, void *arg)
+ 			dev_name(dev));
+ 
+ 	ctx->cxlr = cxlr;
++	ctx->cxled = cxled;
+ 
+ 	return 1;
+ }
+ 
+-struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa)
++/* @cxled receives the decoder mapping @dpa, if any, even with no region. */
++struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa,
++				     struct cxl_endpoint_decoder **cxled)
+ {
+ 	struct cxl_dpa_to_region_context ctx;
+ 	struct cxl_port *port = cxlmd->endpoint;
+ 
++	if (cxled)
++		*cxled = NULL;
++
+ 	if (!cxlmd->dev.driver)
+ 		return NULL;
+ 
+@@ -3096,6 +3103,9 @@ struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa)
+ 	if (cxl_num_decoders_committed(port))
+ 		device_for_each_child(&port->dev, &ctx, __cxl_dpa_to_region);
+ 
++	if (cxled)
++		*cxled = ctx.cxled;
++
+ 	return ctx.cxlr;
+ }
+ 
 -- 
 2.43.0
 
