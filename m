@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793834324;
-	b=BuNlvzn3wfMafc0i3vg3mS3GXth+NrT0J9GcN7oAK9T1dmMrYcLt3qGWpgbAkr0ggUMT
-	 1tzsnbnHgvZ/fjhFoVpFbh9+C+ON4YguSiRBXDcXBuQph8gaA+ESgoC4POp2JmhYr9I9J
-	 n/5asxacUpaNl4K3IT+ri1DFzVKkEoT3h4iW/0/OGsXjLJGZAfO/DGVeysc/GEVFTdLuO
-	 A/Pg5DHGbO+sFTQpe4xsj1jgiTGlYKaFNXKEipzxQ7aUPhHZP3qSW4Y+FeeP62rCRJFng
-	 PxWNKG2RUhAiQyPLh+Px2L5fiNI/zVvysUX+OnzOUyESs+gl5Xn0vNunoUimUNAQQlA==
+	t=1793834500;
+	b=qCSZE0S9EwDzQBSL8SyekFbY84qK9W5/hILnOzJQ5jHlLp99VLjBsX3GXKUiuzQEUmJl
+	 IanpQT78pn7A2ixu1p+eNmm0K/BQi1DwoqO9ylinugVh2Yc8a3zK2eVCt7cFn5GnO3a6N
+	 tZS94nXXi/iaW9o5/4h454n+W87NpMafjqN/MpqHJA59gso8TfkqlcYGCgCnZyM+dRjs3
+	 Qn3gosZdTa6cosQYQ8Nb9CnSPZ3N/JnwJwxwmhWetAquTG1bPx0E3H7aAPFkKJqhys7oO
+	 0sB34mUNPd+l78fAFnG5zuhwKyUpCcTB0LI3N+md4NxTsyctrmBI0acR/HfHpc0cvGg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793834324;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793834500;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=Spnf9WW7gFI6g07rWBEFRvUbqYpQ+l6ZF40itB3lXKg=;
-	b=weu4Mk4wmwA6rt91teyDXed3IngIxkXCuCoL25AjbdyMDCgOYtzmDy8ownlXgNVI7Qvb
-	 e7ODseAshgNcb50ZqAgxvnE5NJbtwgg/71CQ3Ii4slxYybwK/E2EjDnNeiKIni/V99WLj
-	 7GDy+nmg39EhvZeKw/lDY5xGolSDsQDP4fqzm2/Ur+IvLf1AwG0+iDMx33g5XY7rexJtF
-	 4PPoJx27YA2J0mDUbBBEpPsJST/QiUwreN+CC90W4u8uP5W9Z0UeM2sg/BPcwT0bgLGPf
-	 kQKOEUfmdl5wouJmeATbLMTHO1JSYKuat5H2Npo9/kg+BkLJS6IVkicgOzvSVjunCfg==
+	bh=QFl2W1Z0ZutwztxTaREi/6UBQZDCfpjXpZyL6h4Em7E=;
+	b=dMUPAf7lbuu+qRX2np8EySO/VbFOMdSS1cE94ziVqwxsv92M7+nEBUysN0sWARHzT3fx
+	 1SpezCHRtCnCiZWO/Yrop75gQYDIdpwboJh6uNiIBJuo4rE4csq42cWASerIhjaWfh5tU
+	 qoyLxRRAvRCFgZJbU+N4w2hY7mk4dgI0BeoYIK1Iaz+ZglZpTAHnzcA80lKJzP+HKGZcS
+	 SOLO5oJEdZLt6tJC2DAfV1Sca4+WwYY7fT1pH7Q+bgGRKGyQGusuRxP1GEHkRjU9eefc6
+	 VXX3UqShI9ja7gvd1N9U7uTPdRMXSxz1OQNdmr7Zoo3X2z4gz10IR13lBKrp/gfpWWw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QBZyW676;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Gtf9C2wr;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27405606A31B;
-	Wed,  4 Nov 2026 23:18:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72827606A31B;
+	Wed,  4 Nov 2026 23:21:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QBZyW676
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F2631F00919;
-	Wed,  4 Nov 2026 23:18:43 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Gtf9C2wr
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2A541F000C1;
+	Wed,  4 Nov 2026 23:21:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793834323;
-	bh=Spnf9WW7gFI6g07rWBEFRvUbqYpQ+l6ZF40itB3lXKg=;
+	s=k20260515; t=1793834500;
+	bh=QFl2W1Z0ZutwztxTaREi/6UBQZDCfpjXpZyL6h4Em7E=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=QBZyW676IF//hgPjmbdUzDQ0v8iXVXKJzxUxPKLgGs+D6MTgW2q/t54+8U2/7lJf5
-	 F2O9I5p6T1CTICmJk/DG6rKr5EdwpGsKUlrcVjG3Weeir3vFo13GtCTav8XcDYMccY
-	 pqKGrC7qp1LUBr+kDKPHdWLNi20dGo1kIEvXAlCISORBsJEM3A15+VQRpsZin66rHk
-	 MXEku32tymD+uABG7W+eq37Ypy0GGEkAlB6gwK+Fwr3Y4Y+N3tEGJn37fOE/xujWCz
-	 YfQQ4nGXjl5LkkUajyN1mCpSLI4bKrrHB8grJKyr0CtGFpPxxn81B0ewzUU8urcYwx
-	 4LJ/fijPkBlcQ==
-Message-ID: <sashiko-outbox-198289@kernel.org>
+	b=Gtf9C2wrwE/d4r4qtNHVcmMpYLs4UVqi7pOgmosu8RiriFfZmZplbFm3LTxtTzSFK
+	 0FDTodzZiZpP7v7SWuvQrxkE54CvsIyh+bpdOxVCrQUubKV/gKNm/h0TnTiuMQkOqB
+	 3DPrYM4NuVJyDrllvNiUAb3YKexML3ewE89rdvpJvaBupZYdueyRSdLouBf/2GiCBC
+	 g/ayt4Px00tLXn6GJFrnVMzX9ghHI/J3uIynjQtl7cV0yupxc2FnefqBnPMTVUS63d
+	 5zfzvI8VkuW1iM3LghnrX4e0ZQkIs87wm21zdIF5hDVy/ocVYHBPUJzNZ/A0o08F1S
+	 mDC8zCe7G3c7A==
+Message-ID: <sashiko-outbox-198290@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v1 04/14] cxl/mem: Introduce DC event handlers
+Subject: Re: [PATCH v1 03/14] cxl/region: Add dynamic DAX region support
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Anisa Su" <anisa.su887@gmail.com>, linux-cxl@vger.kernel.org
 Cc: nvdimm@lists.linux.dev
-In-Reply-To: <20261104230445.66625-5-anisa.su@samsung.com>
+In-Reply-To: <20261104230445.66625-4-anisa.su@samsung.com>
 References: <20261104230445.66625-1-anisa.su@samsung.com>
- <20261104230445.66625-5-anisa.su@samsung.com>
+ <20261104230445.66625-4-anisa.su@samsung.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 04 Nov 2026 23:18:43 +0000
+Date: Wed, 04 Nov 2026 23:21:39 +0000
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -60,196 +60,123 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 List-Owner: <mailto:nvdimm+owner@lists.linux.dev>
 Precedence: list
 
-Thank you for your contribution! Sashiko AI review found 2 potential issue(=
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
 s) to consider:
-- [Medium] cxl/mem: incomplete chain abort on staging failure in handle_dcd=
-_chain_event()
-- [Medium] cxl/mem: missing chain abort in cxl_handle_dcd_event_records()
+- [Medium] cxl/region: missing cxled_dcd_enabled() check in cxl_region_atta=
+ch()
 --
 
-commit 5ef1f10166c3a30ee58534de97a6b9ec5412cf04
+commit fbb76db124dfcb143d519163ab21665f41cdcfa6
 Author: Ira Weiny <iweiny@kernel.org>
 
-cxl/mem: Introduce DC event handlers
+cxl/region: Add dynamic DAX region support
 
-This commit adds the event handling skeleton for Dynamic Capacity (DC) Add
-and Release event chains in the CXL mailbox driver. Chained records with the
-CXL_DCD_EVENT_MORE flag set are staged in mds->dc_chain until the closing
-record arrives, at which point Add chains are refused with an empty response
-and Release chains are acknowledged.
+This commit introduces dynamic DAX region support for CXL dynamic capacity
+devices (DCD), tracking shareable and read-only partition properties on
+CXL_PARTMODE_DYNAMIC_RAM regions and creating DAX regions with
+IORESOURCE_DAX_DCD and a zero-sized seed device.
 
-> diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
-> index 13a68f5cef692..3acf5ace48dbc 100644
-> --- a/drivers/cxl/core/mbox.c
-> +++ b/drivers/cxl/core/mbox.c
+> diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
+> index f4a9839c73d2e..fc9139ce358fe 100644
+> --- a/drivers/cxl/core/region.c
+> +++ b/drivers/cxl/core/region.c
+
 [ ... ]
-> +/*
-> + * Drop the open chain.  An add chain is refused with an empty response =
-so
-> + * the device can reclaim the offered capacity; a release chain is simply
-> + * dropped, the capacity stays with the host and the device may retry.
-> + */
-> +static void cxl_dc_chain_abort(struct cxl_memdev_state *mds)
-> +{
-> +	struct cxl_dc_event_chain *chain =3D &mds->dc_chain;
-> +	struct device *dev =3D mds->cxlds.dev;
+
+> @@ -2080,6 +2087,20 @@ static int cxl_region_attach(struct cxl_region *cx=
+lr,
+>  		return -EINVAL;
+>  	}
+> =20
+> +	/* A DC region's flavor is fixed; every member partition must match */
+> +	if (cxlr->mode =3D=3D CXL_PARTMODE_DYNAMIC_RAM) {
+> +		struct cxl_dpa_partition *part =3D &cxlds->part[cxled->part];
 > +
-> +	if (chain->event_type =3D=3D DCD_ADD_CAPACITY &&
-> +	    cxl_send_dc_response(mds, CXL_MBOX_OP_ADD_DC_RESPONSE,
-> +				 &chain->pending_extents, 0))
-> +		dev_dbg(dev, "Failed to refuse add chain\n");
-> +
-> +	clear_pending_extents(mds);
-> +}
-> +
-> +static int stage_pending_extent(struct list_head *pending,
-> +				struct cxl_extent *to_add)
-> +{
-> +	struct cxl_extent_list_node *node =3D kzalloc(sizeof(*node), GFP_KERNEL=
-);
-> +	struct cxl_extent *extent;
-> +
-> +	if (!node)
-> +		return -ENOMEM;
-> +	extent =3D kmemdup(to_add, sizeof(*extent), GFP_KERNEL);
-> +	if (!extent) {
-> +		kfree(node);
-> +		return -ENOMEM;
+> +		if (part->shareable !=3D cxlr->shareable ||
+> +		    part->read_only !=3D cxlr->read_only) {
+> +			dev_dbg(&cxlr->dev, "%s: partition is %s, region is %s\n",
+> +				dev_name(&cxled->cxld.dev),
+> +				cxl_dc_mode_name(part->shareable, part->read_only),
+> +				cxl_dc_mode_name(cxlr->shareable, cxlr->read_only));
+> +			return -EINVAL;
+> +		}
 > +	}
 > +
-> +	node->extent =3D extent;
-> +	list_add_tail(&node->list, pending);
-> +	return 0;
-> +}
-> +
-> +static int handle_dcd_chain_event(struct cxl_memdev_state *mds,
-> +				  struct cxl_event_dcd *event)
-> +{
-> +	struct cxl_dc_event_chain *chain =3D &mds->dc_chain;
-> +	struct device *dev =3D mds->cxlds.dev;
-> +	int rc;
-> +
-> +	/* Chained records share one event type (CXL r4.0 Table 8-229) */
-> +	if (list_empty(&chain->pending_extents)) {
-> +		chain->event_type =3D event->event_type;
-> +	} else if (chain->event_type !=3D event->event_type) {
-> +		dev_warn_ratelimited(dev, "DC %s record inside an open %s chain; dropp=
-ing the chain\n",
-> +				     cxl_dcd_evt_type_str(event->event_type),
-> +				     cxl_dcd_evt_type_str(chain->event_type));
-> +		cxl_dc_chain_abort(mds);
-> +		chain->event_type =3D event->event_type;
-> +	}
-> +
-> +	rc =3D stage_pending_extent(&chain->pending_extents, &event->extent);
-> +	if (rc) {
-> +		cxl_dc_chain_abort(mds);
-> +		return rc;
-> +	}
+>  	/* all full of members, or interleave config not established? */
+>  	if (p->state > CXL_CONFIG_INTERLEAVE_ACTIVE) {
+>  		dev_dbg(&cxlr->dev, "region already active\n");
+> @@ -2411,6 +2432,7 @@ static size_t store_targetN(struct cxl_region *cxlr=
+, const char *buf, int pos,
+>  	if (sysfs_streq(buf, "\n"))
+>  		rc =3D detach_target(cxlr, pos);
+>  	else {
+> +		struct cxl_endpoint_decoder *cxled;
+>  		struct device *dev;
+> =20
+>  		dev =3D bus_find_device_by_name(&cxl_bus_type, NULL, buf);
+> @@ -2422,8 +2444,14 @@ static size_t store_targetN(struct cxl_region *cxl=
+r, const char *buf, int pos,
+>  			goto out;
+>  		}
+> =20
+> -		rc =3D attach_target(cxlr, to_cxl_endpoint_decoder(dev), pos,
+> -				   TASK_INTERRUPTIBLE);
+> +		cxled =3D to_cxl_endpoint_decoder(dev);
+> +		if (cxlr->mode =3D=3D CXL_PARTMODE_DYNAMIC_RAM &&
+> +		    !cxled_dcd_enabled(cxled)) {
+> +			dev_dbg(dev, "DCD not enabled\n");
+> +			rc =3D -ENXIO;
+> +			goto out;
+> +		}
+> +		rc =3D attach_target(cxlr, cxled, pos, TASK_INTERRUPTIBLE);
+>  out:
+>  		put_device(dev);
+>  	}
 
 [Severity: Medium]
-If stage_pending_extent() fails with -ENOMEM on a non-terminal record in a
-chain (where event->flags has CXL_DCD_EVENT_MORE set), what prevents the
-remaining records of that aborted chain from being processed as a new chain?
+Should the cxled_dcd_enabled(cxled) check live inside the
+cxlr->mode =3D=3D CXL_PARTMODE_DYNAMIC_RAM block in cxl_region_attach() ins=
+tead of
+store_targetN()?
 
-cxl_dc_chain_abort() sends CXL_MBOX_OP_ADD_DC_RESPONSE (for DCD_ADD_CAPACIT=
-Y)
-and empties chain->pending_extents via clear_pending_extents(). However,
-cxl_mem_get_records_log() continues iterating through payload->records[i] a=
-nd
-passing subsequent records of the same chain into
-cxl_handle_dcd_event_records() -> handle_dcd_chain_event().
+In the auto-discovery path, cxl_add_to_region() looks up an existing region
+before calling construct_region():
 
-Because handle_dcd_chain_event() checks list_empty(&chain->pending_extents)=
- to
-determine whether a chain is open, the next record in the aborted chain see=
-s an
-empty list and starts staging the remainder of the chain as a fresh operati=
-on.
-When the closing record (More=3D0) arrives, a DCD_RELEASE_CAPACITY chain wi=
-ll
-send CXL_MBOX_OP_RELEASE_DC for only the trailing subset of extents instead=
- of
-dropping the chain, and a DCD_ADD_CAPACITY chain will send a duplicate
-CXL_MBOX_OP_ADD_DC_RESPONSE.
+drivers/cxl/core/region.c:cxl_add_to_region() {
+	...
+	struct cxl_region *cxlr __free(put_cxl_region) =3D
+		cxl_find_region_by_range(cxlrd, &ctx.hpa_range);
+	if (!cxlr)
+		cxlr =3D construct_region(cxlrd, &ctx);
 
-Should struct cxl_dc_event_chain track an aborted state until the closing
-record with CXL_DCD_EVENT_MORE cleared is consumed?
+	rc =3D PTR_ERR_OR_ZERO(cxlr);
+	if (rc)
+		return rc;
 
-> +
-> +	if (event->flags & CXL_DCD_EVENT_MORE) {
-> +		dev_dbg(dev, "more bit set; delay processing of extent\n");
-> +		return 0;
-> +	}
-> +
-> +	/* Nothing is tracked yet: refuse every add, acknowledge every release =
-*/
-> +	if (event->event_type =3D=3D DCD_ADD_CAPACITY)
-> +		rc =3D cxl_send_dc_response(mds, CXL_MBOX_OP_ADD_DC_RESPONSE,
-> +					  &chain->pending_extents, 0);
-> +	else
-> +		rc =3D cxl_send_dc_response(mds, CXL_MBOX_OP_RELEASE_DC,
-> +					  &chain->pending_extents,
-> +					  list_count_nodes(&chain->pending_extents));
-> +	clear_pending_extents(mds);
-> +	return rc;
-> +}
-> +
-> +static void cxl_handle_dcd_event_records(struct cxl_memdev_state *mds,
-> +					 struct cxl_event_record_raw *raw_rec)
-> +{
-> +	struct cxl_event_dcd *event =3D &raw_rec->event.dcd;
-> +	struct cxl_extent *extent =3D &event->extent;
-> +	struct device *dev =3D mds->cxlds.dev;
-> +	uuid_t *id =3D &raw_rec->id;
-> +	int rc;
-> +
-> +	if (!uuid_equal(id, &CXL_EVENT_DC_EVENT_UUID))
-> +		return;
-> +
-> +	dev_dbg(dev, "DCD event %s : DPA:%#llx LEN:%#llx\n",
-> +		cxl_dcd_evt_type_str(event->event_type),
-> +		le64_to_cpu(extent->start_dpa), le64_to_cpu(extent->length));
-> +
-> +	switch (event->event_type) {
-> +	case DCD_ADD_CAPACITY:
-> +	case DCD_RELEASE_CAPACITY:
-> +		rc =3D handle_dcd_chain_event(mds, event);
-> +		break;
-> +	case DCD_FORCED_CAPACITY_RELEASE:
-> +		dev_err_ratelimited(dev, "Forced release event ignored.\n");
-> +		rc =3D 0;
-> +		break;
-> +	case DCD_REGION_CONFIGURATION_UPDATED:
-> +		dev_dbg(dev, "Region configuration updated event ignored.\n");
-> +		rc =3D 0;
-> +		break;
-> +	default:
-> +		rc =3D -EINVAL;
-> +		break;
-> +	}
+	attach_target(cxlr, cxled, -1, TASK_UNINTERRUPTIBLE);
+	...
+}
 
-[Severity: Medium]
-What happens if a DCD_FORCED_CAPACITY_RELEASE,
-DCD_REGION_CONFIGURATION_UPDATED, unknown event_type, or non-DC UUID record
-arrives in the DCD log while mds->dc_chain.pending_extents is non-empty?
+When cxl_find_region_by_range() returns an existing region, construct_regio=
+n()
+is skipped and cxl_add_to_region() calls
+attach_target() -> __attach_target() -> cxl_region_attach() directly.
 
-Currently, the check for an open chain is only performed inside
-handle_dcd_chain_event(), which is only called for DCD_ADD_CAPACITY and
-DCD_RELEASE_CAPACITY. If another event record arrives in the middle of an o=
-pen
-chain, cxl_handle_dcd_event_records() does not call cxl_dc_chain_abort(mds).
+For example, if an auto-discovered DC region has its endpoint detached (whe=
+re
+__cxl_decoder_detach() lowers p->state to CXL_CONFIG_INTERLEAVE_ACTIVE while
+leaving cxlr registered under cxlrd) and DCD is not enabled when the endpoi=
+nt
+port rebinds, or if a second endpoint with DCD disabled matches a region
+created by an earlier endpoint during multi-way auto-discovery,
+cxl_add_to_region() will find the existing cxlr and attach and commit cxled
+without checking cxled_dcd_enabled(cxled).
 
-As a result, an interrupted Add chain is not refused when broken by the
-intervening record, and if the next chain shares the same event_type as the
-interrupted one, handle_dcd_chain_event() sees chain->event_type =3D=3D
-event->event_type and merges the stale extents from the broken chain into t=
-he
-new chain.
-
-Should cxl_handle_dcd_event_records() abort any open chain when receiving
-these non-chain records?
+Checking !cxled_dcd_enabled(cxled) in cxl_region_attach() (alongside
+construct_region()) would cover all target attachment paths under
+cxl_rwsem.region and cxl_rwsem.dpa and avoid duplicating the check in
+store_targetN().
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261104230445.6662=
-5-1-anisa.su@samsung.com?part=3D4
+5-1-anisa.su@samsung.com?part=3D3
