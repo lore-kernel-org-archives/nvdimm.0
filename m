@@ -1,56 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793835282;
-	b=ZICsTnKFSwUFvTbFoHKb//zJUjWo5PWmL+owXNgmPJv03+CYEajhSV2TU/ISY85R8E3s
-	 0PM49FR/YUUDpQljfBhIH3KxwT5yABBL3IM07bqPoInOnWPBrtMyfFDXaPa3DTyFPSqty
-	 h7+9562b77EOx90Xz7Qo8kqizjLQ/n5p0bw0lTTO1HZm94cBF90qILhBI5oAeoMi6JEFz
-	 ksGjbtCInFkNnbBbUZCMStZqX4U0Nf2NAloWp1slu1eNtFJ7EzTdraYFw9LYW5r8/bYln
-	 Lu4A1YWk33RHwvMkdpTbbFAmFDusA8quzlXXfu8UCujWsix3u9s/NGOx41cKSJCmnXg==
+	t=1793835405;
+	b=uUKjdOxRgjHX/S6FEdeYhsdAnIZkfB1RdgH2IekUPPA39qMFJQBuYTePgvUD157dFZZI
+	 MCv4uqlMU7Z4pnzt5h5pBFFryfqRhJ1PVNRvTK72WdVDD5NSNz66Bm97btMKipIID7f5J
+	 KoOjfQQeDsIqRRHGWmZU9OQSBVbehlBpcdMMATlDWma2E5IIdwqHEpN/6ay7KKmgnOGJf
+	 kuF3sR1kqLwKLQfq/nEr8gh9VcxjXEikB9W5M44UQZlXjaGmYomrcSURhkfdgZJve4tI6
+	 YUmUaZ77tcsV1qpSXV6BA+7H5kbH8Gt+qdTbZCXVmbcrBBsNjS069Z8g9fREPPSoHCw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793835282;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793835405;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=NKQXDTnVZ38FCgugTgx3yJHFeA9cExyni1nysWYEqNw=;
-	b=ix+8BpTEIkiqRAQDx3OikvNcmYS9D4IKhJDMbgj2yytbVv3WhGaFOr3YXqpH6oA7rT29
-	 D9ZQ7VVirejQsOccq2dxqaCZqASQ7Y7k9V9eWhVGD5Kp4XRlMcgMqnfj4ga6DJfLzU6KX
-	 2uN86dxqdDqfWphxQA2WKWKHLMmPzZgbxlFvWdhWqFDVRo9SZUN18u7NEAwp+Skwdadk4
-	 unSqZugE6H4KxPEbJH8A3fC+NNk9ahEIgbFb9Kam6pv6uKlDT/Mpy3nKkpGqKh2QmaQwc
-	 utYnkIlqrTSjp7Qb76ncMIr2EqdfgEjR0KPFB640R61NfVlyEbyA1Ic9f5YFgwuwkvw==
+	bh=f7Haz8/IRygPuQn+3YQvOSr5/V7pHEjnqxK/JQTXWqM=;
+	b=QI5eHz7h/79jmscz1ZUWzYqw14rA5lC8zplMHcByxcrD7dfRerBZ0sD206m9+IiZFcb/
+	 wjTsjsEMUYKNFEvn/IBVXLpTrsYqCTl3BGffi09X38pWxsRA75qZ0vRJ92cNZItvIQP8z
+	 K8sAx/AqWRjotyEHp1fD+oLY7c7zQEZoZA/fQ5vgM3Ks7z09NlMWGVD0iRdCeyI9LzsxR
+	 AJmm6Bw6+JZ81mNkPT2jmeCUGAtI8bXQseBkX0hX5k0h8l3g66JBD1A/DpC3qWZPNia6z
+	 zAjBKPfjOX4nm0+c6V6Z5tujVQstBvSpParQ1waCdwM/a/gcCE43M1dgjR9+9676l7w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=b6f1sdh+;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=O0+mbaRs;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13BDD606A326;
-	Wed,  4 Nov 2026 23:34:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9ABEF606A31B;
+	Wed,  4 Nov 2026 23:36:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=b6f1sdh+
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C5CA1F000C1;
-	Wed,  4 Nov 2026 23:34:41 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=O0+mbaRs
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 030251F000C1;
+	Wed,  4 Nov 2026 23:36:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793835281;
-	bh=NKQXDTnVZ38FCgugTgx3yJHFeA9cExyni1nysWYEqNw=;
+	s=k20260515; t=1793835404;
+	bh=f7Haz8/IRygPuQn+3YQvOSr5/V7pHEjnqxK/JQTXWqM=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=b6f1sdh+8EhuVR+/IVSsuj2arV8vDC/hdfWxIFogqfKWhhBUL/Be6r8aBlJRRF2PV
-	 3CaGKIL1vN0cb8F4QjZp0jJvMs7o69GeRncKW2tZM0lAWYInd035S31ZcbL1BGJ6ic
-	 taJ6QnlAsP24RGE+XETANGskLHDt8gg6A0u+DJ2fu0nnBa5dj+poRXE2hdSX6nNfPZ
-	 lQYu9yANllXW8KSj3YAWaIQNmtRb7X1Sb1gOuTqjqBsVfbDPDwIwUsIJScLz4FwfuK
-	 O8nWmIwRhK2+yYDx7AiDCzP1+Je1kJS3Ka69j7T+2tsH7GrVGWOa9JF+SnVvKxpd9T
-	 DLuL54wr8fxFg==
-Message-ID: <sashiko-outbox-198300@kernel.org>
+	b=O0+mbaRsB2KnBunouFIAndJVwG7sOYOHVAZP1+o01ZRMnz2uEJDi3SEY9jvyYAYgD
+	 SbXw7bcF8LAD1xpVib3GfjaIvPhPhR2uHly1a9nJHe7F3Z9Hzm9FED1NMOMZ38Xm3F
+	 lCc3jZoZOnT8eb231Y2SBpzNBrTRT2rBaAI41X62YwWwX57TGRdPJ5LRTAMA0Zz+Ha
+	 XtAu8+BkYRORxtBh9vjqyxQeej/oBwMlD2uPJ6cEGItra8MZfcV7CNNvBHm9x3Mw4H
+	 BWQJNIDErr14YCqlcH2NIFhsKSsT63cV6kCrpoT/nTBR/UpNKpDW24GxFrhI71wCr+
+	 K5HcQet17arSg==
+Message-ID: <sashiko-outbox-198302@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v1 06/14] cxl/extent: Handle DC Add Capacity events
+Subject: Re: [PATCH v1 12/14] cxl/region: Read existing extents on region
+ creation
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Anisa Su" <anisa.su887@gmail.com>, linux-cxl@vger.kernel.org
 Cc: nvdimm@lists.linux.dev
-In-Reply-To: <20261104230445.66625-7-anisa.su@samsung.com>
+In-Reply-To: <20261104230445.66625-13-anisa.su@samsung.com>
 References: <20261104230445.66625-1-anisa.su@samsung.com>
- <20261104230445.66625-7-anisa.su@samsung.com>
+ <20261104230445.66625-13-anisa.su@samsung.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 04 Nov 2026 23:34:41 +0000
+Date: Wed, 04 Nov 2026 23:36:43 +0000
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -60,585 +61,267 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 List-Owner: <mailto:nvdimm+owner@lists.linux.dev>
 Precedence: list
 
-Thank you for your contribution! Sashiko AI review found 5 potential issue(=
+Thank you for your contribution! Sashiko AI review found 4 potential issue(=
 s) to consider:
-- [High] cxl/mbox: unrolled online tag groups in cxl_add_pending() on respo=
-nse failure
-- [High] cxl/extent: unsynchronized nr_extents refcount and deferred releas=
-e race
-- [High] cxl/extent: missing intra-group overlap and region checks in cxl_a=
-dd_extent()
-- [High] cxl/extent: missing cxlmd device lock around cxl_dpa_to_region()
-- [High] cxl/extent: UAF and NULL deref of cxled and mds in memdev_release_=
-group()
+- [High] cxl/mbox: per-extent DPA filtering in cxl_read_extent_list() split=
+s tag groups
+- [High] cxl/mbox: cxl_release_recovered() releases already-onlined DPA cap=
+acity
+- [High] cxl/region: race in cxl_region_add_existing_extents() on concurren=
+t detach
+- [Medium] cxl/mbox: missing end < start check before range_contains() in e=
+xtent scan
 --
 
-commit f4748dabe1962c23e99c77520895fa0832cc59a0
+commit 6931a3e5d551f78995bded312bdac1337c547e3c
 Author: Ira Weiny <iweiny@kernel.org>
 
-cxl/extent: Handle DC Add Capacity events
+cxl/region: Read existing extents on region creation
 
-This commit implements the Dynamic Capacity Add Capacity event pipeline by
-validating pending extents, grouping and sorting them by tag and sequence
-number, registering tag_group, untagged, and extent devices under cxlr_dax,
-and sending the CXL_MBOX_OP_ADD_DC_RESPONSE mailbox command.
-
-> diff --git a/drivers/cxl/core/extent.c b/drivers/cxl/core/extent.c
-> new file mode 100644
-> index 0000000000000..8afb18e7ae5a2
-> --- /dev/null
-> +++ b/drivers/cxl/core/extent.c
-> @@ -0,0 +1,513 @@
-
-[ ... ]
-
-> +static void dc_extent_release(struct device *dev)
-> +{
-> +	struct dc_extent *dc_extent =3D to_dc_extent(dev);
-> +	struct cxl_dc_tag_group *group;
-> +
-> +	if (!dc_extent)
-> +		return;
-> +
-> +	group =3D dc_extent->group;
-> +	xa_erase(&group->cxlr_dax->dc_extents, dc_extent->dev.id);
-> +	xa_erase(&group->dc_extents, dc_extent->seq_num);
-> +	group->nr_extents--;
-> +	if (!group->nr_extents)
-> +		free_tag_group(group);
-> +	kfree_rcu(dc_extent, rcu);
-> +}
-
-[ ... ]
-
-> +static int cxl_validate_extent(struct cxl_memdev_state *mds,
-> +			       struct cxl_extent *extent,
-> +			       struct cxl_endpoint_decoder **out_cxled,
-> +			       struct cxl_dax_region **out_cxlr_dax,
-> +			       struct range *out_ext_range)
-> +{
-> +	u64 start_dpa =3D le64_to_cpu(extent->start_dpa);
-> +	struct cxl_memdev *cxlmd =3D mds->cxlds.cxlmd;
-> +	struct cxl_endpoint_decoder *cxled;
-> +	struct cxl_region *cxlr;
-> +	struct range ext_range =3D (struct range) {
-> +		.start =3D start_dpa,
-> +		.end =3D start_dpa + le64_to_cpu(extent->length) - 1,
-> +	};
-> +	struct range ed_range;
-> +
-> +	cxlr =3D cxl_dpa_to_region(cxlmd, start_dpa, &cxled);
-> +	if (!cxlr || !cxlr->cxlr_dax)
-> +		return -ENXIO;
-
-[Severity: High]
-Is device_lock(&cxlmd->dev) needed around the cxl_dpa_to_region() call here
-(or in cxl_add_pending() before acquiring cxl_rwsem.region and
-cxl_rwsem.dpa)?
-
-In drivers/cxl/core/region.c, cxl_dpa_to_region() reads port =3D
-cxlmd->endpoint, checks if (!cxlmd->dev.driver) return NULL, and then
-dereferences port in cxl_num_decoders_committed(port) and
-device_for_each_child(&port->dev, ...):
-
-  struct cxl_port *port =3D cxlmd->endpoint;
-  ...
-  if (!cxlmd->dev.driver)
-          return NULL;
-  ...
-  if (cxl_num_decoders_committed(port))
-          device_for_each_child(&port->dev, &ctx, __cxl_dpa_to_region);
-
-Neither cxl_mem_probe() nor delete_endpoint() acquires cxl_rwsem.region or
-cxl_rwsem.dpa when updating cxlmd->endpoint:
-
-1. During probe or re-probe, really_probe() sets cxlmd->dev.driver before
-   calling cxl_mem_probe(), while cxlmd->endpoint is still ERR_PTR(-ENXIO) =
-or
-   NULL until devm_cxl_add_endpoint() -> cxl_port_add() assigns
-   cxlmd->endpoint =3D port.
-
-2. During unbind, device_unbind_cleanup() runs devres_release_all() ->
-   delete_endpoint(), which sets cxlmd->endpoint =3D NULL and drops the fin=
-al
-   reference on endpoint->dev before clearing cxlmd->dev.driver.
-
-In cxl_event_trace_record(), guard(device)(&cxlmd->dev) is taken before
-cxl_rwsem.region, cxl_rwsem.dpa, and cxl_dpa_to_region(). Without holding
-device_lock(&cxlmd->dev) in thecxl_event_thread() -> cxl_mem_get_records_lo=
-g()
--> cxl_handle_dcd_event_records() -> handle_dcd_chain_event() ->
-cxl_add_pending() -> cxl_realize_group() -> cxl_add_extent() ->
-cxl_validate_extent() path, can a concurrent cxl_mem probe or unbind cause
-cxl_dpa_to_region() to dereference ERR_PTR(-ENXIO), NULL, or a freed
-cxl_port?
-
-> +
-> +	ed_range =3D (struct range) {
-> +		.start =3D cxled->dpa_res->start,
-> +		.end =3D cxled->dpa_res->end,
-> +	};
-> +	if (!range_contains(&ed_range, &ext_range)) {
-> +		dev_err_ratelimited(&cxled->cxld.dev,
-> +				    "DC extent DPA %pra (%pU) is not fully in ED %pra\n",
-> +				    &ext_range, extent->uuid, &ed_range);
-> +		return -ENXIO;
-> +	}
-> +
-> +	*out_cxled =3D cxled;
-> +	*out_cxlr_dax =3D cxlr->cxlr_dax;
-> +	*out_ext_range =3D ext_range;
-> +	return 0;
-> +}
-> +
-> +enum cxl_extent_class {
-> +	CXL_EXT_NEW,
-> +	CXL_EXT_DUPLICATE,
-> +	CXL_EXT_OVERLAP,
-> +};
-> +
-> +/*
-> + * Stage 2: classify @ext_range against extents already accepted on this
-> + * cxlr_dax+cxled.  Walks cxlr_dax->dc_extents once: a stored extent that
-> + * fully contains @ext_range means the device re-offered accepted capaci=
-ty;
-> + * a stored extent that only overlaps means an inconsistent offer.
-> + */
-> +static enum cxl_extent_class
-> +cxlr_dax_classify_extent(struct cxl_dax_region *cxlr_dax,
-> +			 struct cxl_endpoint_decoder *cxled,
-> +			 const struct range *ext_range)
-> +{
-> +	struct dc_extent *entry;
-> +	unsigned long i;
-> +
-> +	/* kfree_rcu() defers the free; hold RCU so entries stay live while wal=
-ked */
-> +	guard(rcu)();
-> +	xa_for_each(&cxlr_dax->dc_extents, i, entry) {
-> +		if (entry->cxled !=3D cxled)
-> +			continue;
-> +		if (range_contains(&entry->dpa_range, ext_range))
-> +			return CXL_EXT_DUPLICATE;
-> +		if (range_overlaps(&entry->dpa_range, ext_range))
-> +			return CXL_EXT_OVERLAP;
-> +	}
-> +	return CXL_EXT_NEW;
-> +}
-> +
-> +/*
-> + * Stage 3: allocate and populate a dc_extent for an already-validated,
-> + * already-classified-as-new @ext_range.  Only -ENOMEM can fail here.
-> + */
-> +static struct dc_extent *
-> +dc_extent_build(struct cxl_endpoint_decoder *cxled,
-> +		struct cxl_dax_region *cxlr_dax,
-> +		struct cxl_extent *extent,
-> +		const struct range *ext_range, u16 seq_num)
-> +{
-> +	resource_size_t dpa_offset =3D ext_range->start - cxled->dpa_res->start;
-> +	resource_size_t hpa =3D cxled->cxld.hpa_range.start + dpa_offset;
-> +	struct dc_extent *dc_extent;
-> +
-> +	dc_extent =3D kzalloc_obj(*dc_extent);
-> +	if (!dc_extent)
-> +		return ERR_PTR(-ENOMEM);
-> +
-> +	dc_extent->cxled =3D cxled;
-> +	dc_extent->dpa_range =3D *ext_range;
-> +	dc_extent->hpa_range.start =3D hpa - cxlr_dax->hpa_range.start;
-> +	dc_extent->hpa_range.end =3D dc_extent->hpa_range.start +
-> +				   range_len(ext_range) - 1;
-> +	dc_extent->seq_num =3D seq_num;
-> +	import_uuid(&dc_extent->uuid, extent->uuid);
-> +	return dc_extent;
-> +}
-> +
-> +/*
-> + * Stage 4: insert @dc_extent into the pending tag group.  All extents in
-> + * one More-chain group share a UUID =E2=80=94 enforced here as the grou=
-p is
-> + * either being created (first extent) or appended to.  On any failure
-> + * the dc_extent is freed.
-> + *
-> + * Returns 0 on success, <0 on error.
-> + */
-> +static int cxlr_add_extent(struct cxl_memdev_state *mds,
-> +			   struct cxl_dax_region *cxlr_dax,
-> +			   struct dc_extent *dc_extent)
-> +{
-> +	struct cxl_dc_tag_group **group =3D &mds->dc_chain.group;
-> +	int rc;
-> +
-> +	if (*group && !uuid_equal(&(*group)->uuid, &dc_extent->uuid)) {
-> +		kfree(dc_extent);
-> +		return -EINVAL;
-> +	}
-
-[Severity: High]
-What happens if two extents within the same tag group have duplicate or
-overlapping DPA ranges, or resolve to different cxl_dax_region instances on
-the same DC partition?
-
-In cxl_realize_group(), cxl_add_extent() is called for every extent in the
-group before online_tag_group() is invoked:
-
-1. cxlr_dax_classify_extent() only walks cxlr_dax->dc_extents, which is not
-   populated until online_tag_group() runs after the loop finishes, and does
-   not check extents already staged in mds->dc_chain.group->dc_extents. If a
-   tag group contains duplicate or overlapping extents, both are classified
-   as CXL_EXT_NEW, onlined into cxlr_dax->dc_extents, and sent together in
-   CXL_MBOX_OP_ADD_DC_RESPONSE (which the device rejects per CXL r4.0 Secti=
-on
-   8.2.10.9.9.3 after the group is already online).
-
-2. Multiple endpoint decoders on the same memdev can allocate disjoint DPA
-   ranges from the same DC partition and attach to different cxl_region (and
-   cxl_dax_region) instances. Even with cxl_check_group_partition() in the
-   subsequent commit "cxl/mem: Enforce tag-group semantics", two extents in
-   the same tag group that resolve to different endpoint decoders in the sa=
-me
-   DC partition pass partition validation. In dc_extent_build(), the second
-   extent's hpa_range is calculated relative to the second region's
-   cxlr_dax->hpa_range.start, while cxlr_add_extent() only checks
-   uuid_equal() and does not verify (*group)->cxlr_dax =3D=3D cxlr_dax. That
-   inserts the second extent into the first region's tag group and
-   cxlr_dax->dc_extents with an HPA offset relative to the second region, a=
-nd
-   later release lookups in cxl_resolve_extent() will look in the second
-   region's cxlr_dax and fail to find it.
-
-Should cxlr_dax_classify_extent() (or cxlr_add_extent()) also check against
-extents already staged in mds->dc_chain.group->dc_extents, and verify that
-(*group)->cxlr_dax =3D=3D cxlr_dax?
-
-[ ... ]
-
-> +/* Unregister every member; the group is freed with its last extent */
-> +static void unregister_tag_group(struct cxl_dc_tag_group *group)
-> +{
-> +	struct dc_extent *dc_extent;
-> +	unsigned long index;
-> +
-> +	/*
-> +	 * Pin @group across the walk: unregistering a dc_extent drops its
-> +	 * last reference and fires dc_extent_release(), which frees @group
-> +	 * on the final nr_extents decrement.  Without the pin the next
-> +	 * iteration's xa_find_after() dereferences a freed xarray.
-> +	 */
-> +	group->nr_extents++;
-> +	xa_for_each(&group->dc_extents, index, dc_extent) {
-> +		dev_dbg(&dc_extent->dev, "DAX region rm extent HPA %pra\n",
-> +			&dc_extent->hpa_range);
-> +		device_unregister(&dc_extent->dev);
-> +	}
-> +	dc_tag_group_del(group);
-> +	group->nr_extents--;
-> +	if (!group->nr_extents)
-> +		free_tag_group(group);
-> +}
-
-[ ... ]
-
-> +int online_tag_group(struct cxl_dc_tag_group *group)
-> +{
-> +	struct cxl_dax_region *cxlr_dax =3D group->cxlr_dax;
-> +	struct device *parent =3D &cxlr_dax->untagged;
-> +	struct dc_extent *dc_extent;
-> +	unsigned long index;
-> +	int rc =3D 0;
-> +
-> +	/*
-> +	 * Seed nr_extents with the full group size plus a +1 pin held by
-> +	 * this function.  The size counts every dc_extent that might
-> +	 * decrement nr_extents on cleanup; the pin keeps @group alive
-> +	 * across the body even if every dc_extent release fires in the
-> +	 * unwind (e.g. a devm_add_action() failure with a single extent).
-> +	 * The pin is dropped at the end of the function.
-> +	 */
-> +	xa_for_each(&group->dc_extents, index, dc_extent)
-> +		group->nr_extents++;
-> +	group->nr_extents++;
-> +
-> +	/* A tagged group parents its extents; untagged ones share @untagged */
-> +	if (!uuid_is_null(&group->uuid)) {
-> +		rc =3D dc_tag_group_add(group);
-> +		if (rc)
-> +			goto unwind;
-> +		parent =3D &group->dev;
-> +	} else {
-> +		rc =3D cxl_dax_untagged_add(cxlr_dax);
-> +		if (rc)
-> +			goto unwind;
-> +	}
-> +
-> +	xa_for_each(&group->dc_extents, index, dc_extent) {
-> +		struct device *dev =3D &dc_extent->dev;
-> +		u32 id;
-> +
-> +		device_initialize(dev);
-> +		device_set_pm_not_required(dev);
-> +		dev->parent =3D parent;
-> +		dev->type =3D &dc_extent_type;
-> +
-> +		rc =3D xa_alloc(&cxlr_dax->dc_extents, &id, dc_extent,
-> +			      xa_limit_32b, GFP_KERNEL);
-> +		/*
-> +		 * put_device() fires dc_extent_release().  On xa_alloc failure
-> +		 * dev->id is still its invalid init value (0), but the xarray is
-> +		 * declared XA_FLAGS_ALLOC1 so 0 is never a valid id and erasing
-> +		 * it cannot remove another extent.
-> +		 */
-> +		if (rc < 0) {
-> +			put_device(dev);
-> +			break;
-> +		}
-> +		dev->id =3D id;
-> +
-> +		rc =3D dev_set_name(dev, "extent%d.%d", cxlr_dax->cxlr->id,
-> +				  dev->id);
-> +		if (rc) {
-> +			put_device(dev);
-> +			break;
-> +		}
-> +
-> +		rc =3D device_add(dev);
-> +		if (rc) {
-> +			put_device(dev);
-> +			break;
-> +		}
-> +
-> +		dev_dbg(dev, "dc_extent HPA %pra (%pU)\n",
-> +			&dc_extent->hpa_range, &group->uuid);
-> +	}
-> +
-> +	/* Give the capacity back when the region goes away */
-> +	if (!rc)
-> +		rc =3D devm_add_action(&cxlr_dax->dev, dc_tag_group_teardown, group);
-> +
-> +unwind:
-> +	if (rc) {
-> +		/*
-> +		 * Unwind every remaining dc_extent in the group.  The pin
-> +		 * above keeps @group alive across this walk.  Onlined
-> +		 * dc_extents are unregistered; pending ones were never
-> +		 * initialized as devices.
-> +		 */
-> +		xa_for_each(&group->dc_extents, index, dc_extent) {
-> +			if (device_is_registered(&dc_extent->dev))
-> +				device_unregister(&dc_extent->dev);
-> +			else
-> +				cleanup_pending_dc_extent(dc_extent);
-> +		}
-> +		dc_tag_group_del(group);
-> +	}
-> +
-> +	/* Drop the pin; if nothing else still references @group, free it. */
-> +	group->nr_extents--;
-> +	if (!group->nr_extents)
-> +		free_tag_group(group);
-> +	return rc;
-> +}
-
-[Severity: High]
-Can asynchronous execution of dc_extent_release() race on group->nr_extents
-and group->dc_extents when a sysfs/udev reader holds a reference to
-dc_extent->dev or when CONFIG_DEBUG_KOBJECT_RELEASE=3Dy is enabled?
-
-1. In struct cxl_dc_tag_group, nr_extents is a plain unsigned int modified
-   with non-atomic increments and decrements. Once device_add(&dc_extent->d=
-ev)
-   publishes the extent in sysfs and emits KOBJ_ADD, userspace (such as ude=
-vd
-   or sysfs readers) can hold a kobject reference across device_unregister()
-   in unregister_tag_group() or online_tag_group() unwind (or
-   CONFIG_DEBUG_KOBJECT_RELEASE=3Dy can defer kobject_cleanup() to a delayed
-   workqueue). When that reference is dropped asynchronously on another CPU,
-   dc_extent_release() performs an unlocked group->nr_extents-- and checks
-   if (!group->nr_extents) free_tag_group(group), racing with sibling
-   dc_extent_release() calls and with unregister_tag_group() or
-   online_tag_group() and risking either a leaked group (and its
-   cxlr_dax->dev reference) or a double free_tag_group(group).
-
-2. In online_tag_group(), if xa_alloc(), dev_set_name(), or device_add()
-   fails after device_initialize(dev), put_device(dev) is called and the lo=
-op
-   breaks to unwind:. If dc_extent_release() is deferred (for instance under
-   CONFIG_DEBUG_KOBJECT_RELEASE=3Dy), the failed dc_extent is still present=
- in
-   group->dc_extents with device_is_registered(&dc_extent->dev) =3D=3D fals=
-e. The
-   unwind loop then calls cleanup_pending_dc_extent(dc_extent) on that same
-   extent, decrementing group->nr_extents a second time and calling
-   kfree_rcu(dc_extent, rcu) before the delayed kobject release runs.
-
-3. Because xa_erase(&group->cxlr_dax->dc_extents, dc_extent->dev.id) is ins=
-ide
-   dc_extent_release() rather than performed synchronously before
-   device_unregister() or put_device(), any deferred dc_extent_release()
-   leaves unregistered or failed extents visible in cxlr_dax->dc_extents wh=
-ere
-   cxlr_dax_classify_extent() continues to match them.
+This patch reads pre-existing accepted dynamic capacity extents from the
+device via CXL_MBOX_OP_GET_DC_EXTENT_LIST when probing a cxl_dax_region. It
+filters extents by the endpoint decoder's DPA range, stages and onlines
+recovered tag groups without sending an Add response, and gates new extent
+add events until the initial scan completes.
 
 > diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
-> index fea910e6c5108..18044f216de58 100644
+> index c3236fe9e7c5e..a18b41ff5d232 100644
 > --- a/drivers/cxl/core/mbox.c
 > +++ b/drivers/cxl/core/mbox.c
-
 [ ... ]
-
-> +/* Give @group's capacity back to the device with a Release DC response =
-*/
-> +void memdev_release_group(struct cxl_dc_tag_group *group)
-> +{
-> +	unsigned long idx =3D 0;
-> +	struct dc_extent *dc_extent =3D xa_find(&group->dc_extents, &idx,
-> +					      ULONG_MAX, XA_PRESENT);
-> +	struct cxl_memdev_state *mds;
-> +	LIST_HEAD(acks);
-> +	int cnt;
-> +
-> +	if (!dc_extent)
-> +		return;
-> +	/* A DC region is not interleaved: every member shares one memdev */
-> +	mds =3D cxled_to_mds(dc_extent->cxled);
-> +
-> +	cnt =3D stage_group_release(group, &acks);
-> +	if (cnt < 0 ||
-> +	    cxl_send_dc_response(mds, CXL_MBOX_OP_RELEASE_DC, &acks, cnt))
-> +		dev_dbg(mds->cxlds.dev, "Failed to release tag %pUb\n",
-> +			&group->uuid);
-> +	drop_extent_group(&acks);
-> +}
+> @@ -1627,6 +1641,10 @@ static int cxl_realize_group(struct cxl_memdev_sta=
+te *mds, const uuid_t *tag,
+>  	mds->dc_chain.group =3D NULL;
+>  	if (tag_group)
+>  		discard_tag_group(tag_group);
+> +err_release:
+> +	/* A fresh group is simply left out of the Add response */
+> +	if (existing)
+> +		cxl_release_recovered(mds, tag, group);
+>  	return rc;
+>  }
+> =20
+> @@ -1686,11 +1704,14 @@ static int cxl_validate_group(struct cxl_memdev_s=
+tate *mds, const uuid_t *tag,
+>   * list.
+>   */
+>  static int cxl_add_pending(struct cxl_memdev_state *mds,
+> -			   struct list_head *pending)
+> +			   struct list_head *pending, bool existing)
+>  {
+[ ... ]
+> @@ -1727,11 +1748,13 @@ static int cxl_add_pending(struct cxl_memdev_stat=
+e *mds,
+>  		shareable =3D cxl_group_is_shareable(mds, &group);
+> =20
+>  		if (cxl_validate_group(mds, &tag, &group, shareable)) {
+> +			if (existing)
+> +				cxl_release_recovered(mds, &tag, &group);
+>  			drop_extent_group(&group);
+>  			continue;
+>  		}
+> =20
+> -		cnt =3D cxl_realize_group(mds, &tag, &group, shareable);
+> +		cnt =3D cxl_realize_group(mds, &tag, &group, shareable, existing);
 
 [Severity: High]
-Could dc_tag_group_teardown() -> memdev_release_group() dereference a freed
-dc_extent->cxled or a NULL/freed mds if the region target is detached while
-the endpoint and memdev are concurrently unbound?
+Could calling cxl_release_recovered() on all validation and realization
+failures release DPA capacity that is already online on the host?
 
-When a committed region's target is detached via target0_store() ->
-store_targetN() -> detach_target() -> cxl_decoder_detach(cxlr, NULL, pos,
-DETACH_ONLY), __cxl_decoder_detach() runs under cxl_rwsem.region and clears
-cxled->cxld.region =3D NULL via cxl_port_detach_region() -> free_region_ref=
-()
--> cxl_rr_free_decoder(), and then cxl_decoder_detach() drops
-cxl_rwsem.region before calling device_release_driver(&detach->dev).
+During recovery (existing =3D=3D true), cxl_add_pending() processes groups
+sequentially and onlines valid groups into cxlr_dax->dc_extents. If the
+device's extent list contains a subsequent group whose tag is already
+committed (cxl_tag_already_committed() returning true in
+cxl_validate_group()) or whose extent DPA range duplicates or overlaps an
+already-onlined dc_extent:
 
-If the endpoint decoder and memdev/PCI driver are concurrently unbound duri=
-ng
-that window, cxld_unregister() calls cxl_decoder_detach(NULL, cxled, -1,
-DETACH_INVALIDATE), sees cxled->cxld.region =3D=3D NULL in
-__cxl_decoder_detach(), and returns NULL without waiting for
-device_release_driver(&cxlr->dev):
-
-1. In this commit, dc_extent_build() stores an unreferenced pointer in
-   dc_extent->cxled, so cxld_unregister() can unregister and free cxled whi=
-le
-   device_release_driver(&cxlr->dev) -> cxlr_dax_unregister() ->
-   device_release_driver(&cxlr_dax->dev) -> dc_tag_group_teardown() ->
-   memdev_release_group() is still running and dereferences dc_extent->cxle=
-d.
-
-2. Even after the later commit "cxl/region: Read existing extents on region
-   creation" pins cxlr_dax->cxled->cxld.dev in cxl_dax_region_alloc(), that
-   reference only pins cxled and its parent endpoint cxl_port
-   (cxled->cxld.dev.parent), not port->uport_dev (&cxlmd->dev) or mds. Once
-   cxld_unregister() returns early, cxl_memdev_unregister() runs
-   cxl_memdev_shutdown() (setting cxlmd->cxlds =3D NULL) and cxl_pci unbind
-   frees mds via devres while memdev_release_group() calls
-   mds =3D cxled_to_mds(dc_extent->cxled) and dereferences mds in
-   cxl_send_dc_response().
-
-[ ... ]
-
-> +static int cxl_add_pending(struct cxl_memdev_state *mds,
-> +			   struct list_head *pending)
-> +{
-> +	LIST_HEAD(accepted);
-> +	int total_accepted =3D 0;
-> +
-> +	/*
-> +	 * Held across validation, add and online so that cxlr_dax_unpublish()
-> +	 * excludes a whole flush; cxl_dpa_to_region() also walks every dpa_res.
-> +	 */
-> +	guard(rwsem_read)(&cxl_rwsem.region);
-> +	guard(rwsem_read)(&cxl_rwsem.dpa);
-> +
-> +	while (!list_empty(pending)) {
-> +		struct cxl_extent_list_node *first;
-> +		LIST_HEAD(group);
-> +		uuid_t tag;
-> +		int cnt;
-> +
-> +		first =3D list_first_entry(pending, struct cxl_extent_list_node,
-> +					 list);
-> +		import_uuid(&tag, first->extent->uuid);
-> +		/*
-> +		 * A null tag carries no allocation identity: surface each
-> +		 * untagged extent as its own single-extent group rather than
-> +		 * coalescing all untagged extents together.
-> +		 */
-> +		if (uuid_is_null(&tag))
-> +			list_move_tail(&first->list, &group);
-> +		else
-> +			extract_tag_group(pending, &tag, &group);
-> +
-> +		/*
-> +		 * Only a sharable allocation carries a meaningful per-extent
-> +		 * shared_extn_seq; order those by it.  For non-sharable groups,
-> +		 * the stable sort maintains arrival order.
-> +		 */
-> +		list_sort(NULL, &group, extent_seq_compare);
-> +
-> +		cnt =3D cxl_realize_group(mds, &tag, &group);
-> +		if (cnt < 0) {
-> +			drop_extent_group(&group);
-> +			continue;
-> +		}
-> +
-> +		list_splice_tail_init(&group, &accepted);
-> +		total_accepted +=3D cnt;
-> +	}
-> +
-> +	list_splice(&accepted, pending);
-> +
-> +	return cxl_send_dc_response(mds, CXL_MBOX_OP_ADD_DC_RESPONSE,
-> +				    pending, total_accepted);
-> +}
-
-[Severity: High]
-Does cxl_add_pending() leave the onlined tag groups registered on the host =
-if
-cxl_send_dc_response() fails or refuses the extents?
-
-In cxl_add_pending(), each group is onlined via cxl_realize_group() ->
-online_tag_group() before cxl_send_dc_response(mds,
-CXL_MBOX_OP_ADD_DC_RESPONSE, pending, total_accepted) is called.
-
-Inside cxl_send_dc_response(), if kzalloc(pl_size, GFP_KERNEL) fails while
-total_accepted > 0, it falls back to sending an empty response:
-
-	if (!response) {
-		struct cxl_mbox_dc_response empty =3D { };
-
-		/* An empty Release DC is invalid (CXL r4.0 Table 8-352) */
-		if (opcode =3D=3D CXL_MBOX_OP_RELEASE_DC)
-			return -ENOMEM;
-		/* Refuse all extents rather than stall the device. */
-		return send_one_response(cxl_mbox, &empty, opcode, 0, 0);
+drivers/cxl/core/extent.c:cxl_add_extent() {
+	...
+	switch (cxlr_dax_classify_extent(cxlr_dax, cxled, &ext_range)) {
+	case CXL_EXT_DUPLICATE:
+		...
+		return -EEXIST;
+	case CXL_EXT_OVERLAP:
+		return -ENXIO;
+	case CXL_EXT_NEW:
+		break;
 	}
+}
 
-That empty CXL_MBOX_OP_ADD_DC_RESPONSE tells the device that the host refus=
+both error paths invoke cxl_release_recovered(), which sends
+CXL_MBOX_OP_RELEASE_DC for every extent in the failing group. Wouldn't that
+release physical capacity on the device that backs an active, already-onlin=
 ed
-all offered extents (and returns 0 if the mailbox command succeeds), or
-send_one_response() can fail with a mailbox error. Because the tag groups
-onlined during the loop are not unwound with rm_tag_group(), won't the host
-keep those refused extents online in cxlr_dax->dc_extents and sysfs (and la=
-ter
-send CXL_MBOX_OP_RELEASE_DC for them during region teardown) while the devi=
-ce
-treats the capacity as unaccepted?
+dc_extent on the host?
+
+> @@ -2439,6 +2471,180 @@ int cxl_dev_dc_identify(struct cxl_mailbox *mbox,
+>  }
+>  EXPORT_SYMBOL_NS_GPL(cxl_dev_dc_identify, "CXL");
+> =20
+> +/*
+> + * Stage the device's extents inside @dpa_range on @existing.  Returns
+> + * -EAGAIN if the list changes while it is being read.
+> + */
+> +static int cxl_read_extent_list(struct cxl_memdev_state *mds,
+> +				const struct range *dpa_range,
+> +				struct list_head *existing)
+> +{
+[ ... ]
+> +		for (int i =3D 0; i < nr_returned ; i++) {
+> +			struct cxl_extent *extent =3D &extents->extent[i];
+> +			struct range ext_range;
+> +
+> +			ext_range.start =3D le64_to_cpu(extent->start_dpa);
+> +			ext_range.end =3D ext_range.start +
+> +					le64_to_cpu(extent->length) - 1;
+> +			dev_dbg(dev, "Processing extent %d/%d %pra (%pUb) seq %u\n",
+> +				current_index + i, total_expected, &ext_range,
+> +				extent->uuid,
+> +				le16_to_cpu(extent->shared_extn_seq));
+> +			/* Another region's, or an unmapped partition's: not ours */
+> +			if (!range_contains(dpa_range, &ext_range))
+> +				continue;
+> +			rc =3D stage_pending_extent(existing, extent);
+
+[Severity: Medium]
+What happens in cxl_read_extent_list() if the device returns a malformed
+extent where extent->length is 0 or start_dpa + length - 1 wraps around u64
+such that ext_range.end < ext_range.start?
+
+Because range_contains(r1, r2) only checks r1->start <=3D r2->start &&
+r1->end >=3D r2->end, cxl_extent_dc_partition() explicitly guards against
+ext_range->end < ext_range->start before calling range_contains(). Without a
+similar check here, an extent with ext_range.start >=3D dpa_range->start (e=
+ven
+in a higher DPA partition) and a wrapped ext_range.end <=3D dpa_range->end
+passes range_contains(dpa_range, &ext_range) and is staged onto existing.
+
+If that malformed extent carries a UUID matching a valid tag group on this
+region, extract_tag_group() will merge it into that group in
+cxl_add_pending(), causing cxl_validate_group() to fail and
+cxl_release_recovered() to release the entire valid group via
+CXL_MBOX_OP_RELEASE_DC. Should cxl_read_extent_list() check
+ext_range.end < ext_range.start before calling range_contains()?
+
+[Severity: High]
+Also in cxl_read_extent_list(), can filtering individual extents by
+dpa_range before assembling tag groups split a multi-extent tag group that
+spans or straddles the endpoint decoder's DPA boundary?
+
+When cxl_read_extent_list() skips individual extents with
+!range_contains(dpa_range, &ext_range), only the in-range subset of extents
+is staged onto existing. When __cxl_process_extent_list() subsequently calls
+cxl_add_pending(mds, &existing, true), extract_tag_group() forms each group
+from only that pre-filtered subset:
+
+1. For a non-shareable group (or a shareable group whose in-range extents
+   happen to carry shared_extn_seq 0..k-1), cxl_validate_group() and
+   cxl_realize_group() will succeed and online a truncated tag group,
+   committing the tag UUID host-wide so the remaining extents cannot be add=
+ed
+   elsewhere.
+2. For a shareable group whose in-range subset is missing earlier sequence
+   numbers, cxl_check_group_seq() fails and cxl_release_recovered() sends
+   CXL_MBOX_OP_RELEASE_DC for only the in-range subset, violating CXL r4.0
+   Section 8.2.10.9.9.4 which requires shared tag groups to be released as a
+   whole.
+
+Should all extents be staged first (or grouped by tag first) so that a tag
+group only partially contained in dpa_range is detected as a whole?
+
+> diff --git a/drivers/cxl/core/region_dax.c b/drivers/cxl/core/region_dax.c
+> index 790176a8aaddc..816386301b80e 100644
+> --- a/drivers/cxl/core/region_dax.c
+> +++ b/drivers/cxl/core/region_dax.c
+[ ... ]
+> @@ -79,6 +81,15 @@ static struct cxl_dax_region *cxl_dax_region_alloc(str=
+uct cxl_region *cxlr)
+>  	cxlr_dax->hpa_range.start =3D p->res->start;
+>  	cxlr_dax->hpa_range.end =3D p->res->end;
+> =20
+> +	/*
+> +	 * DC regions are not interleaved; the probe-time scan uses this decoder
+> +	 * and may outlive its attachment to the region, so hold a reference.
+> +	 */
+> +	if (cxlr->mode =3D=3D CXL_PARTMODE_DYNAMIC_RAM)
+> +		cxlr_dax->cxled =3D p->targets[0];
+> +	if (cxlr_dax->cxled)
+> +		get_device(&cxlr_dax->cxled->cxld.dev);
+> +
+>  	dev =3D &cxlr_dax->dev;
+>  	cxlr_dax->cxlr =3D cxlr;
+>  	cxlr->cxlr_dax =3D cxlr_dax;
+> @@ -153,6 +164,42 @@ DEFINE_FREE(unpublish_cxl_dax_region, struct cxl_dax=
+_region *,
+>  		put_device(&_T->dev);
+>  	})
+> =20
+> +/*
+> + * Runs from cxl_dax_region_probe().  The region's parameters may not be
+> + * read here: a concurrent detach clears p->targets[] under cxl_rwsem.re=
+gion
+> + * before it waits for this probe.  Use the decoder recorded at allocati=
+on
+> + * instead; cxlr_dax holds a reference on it.
+> + */
+> +int cxl_region_add_existing_extents(struct cxl_dax_region *cxlr_dax)
+> +{
+> +	struct cxl_endpoint_decoder *cxled =3D cxlr_dax->cxled;
+> +	int rc;
+> +
+> +	rc =3D cxl_process_extent_list(cxled);
+
+[Severity: High]
+Can a concurrent region detach or reset while cxl_dax_region_probe() runs
+cause cxl_region_add_existing_extents() to race with decoder reuse, memdev
+teardown, or cache invalidation?
+
+In cxl_decoder_detach(), __cxl_decoder_detach() runs under cxl_rwsem.region
+write lock, disables the decoder, and clears cxled->cxld.region =3D NULL and
+p->targets[0] =3D NULL before dropping cxl_rwsem.region and calling
+device_release_driver(&detach->dev) -> cxlr_dax_unregister(), which waits on
+device_lock(&cxlr_dax->dev) for cxl_dax_region_probe() to finish. Because
+cxl_region_add_existing_extents() passes only cxled to
+cxl_process_extent_list() and runs without cxl_rwsem.region held across the
+scan, it looks like several races can occur once __cxl_decoder_detach()
+drops cxl_rwsem.region:
+
+1. If cxled is reattached to a new region (cxlr2 / cxlr_dax2) while the old
+   cxlr_dax1 probe is in cxl_read_extent_list(), cxl_add_pending() ->
+   cxl_realize_group() -> cxl_add_extent() -> cxl_validate_extent() resolves
+   start_dpa via cxl_dpa_to_region(cxlmd, start_dpa, &cxled) to cxlr_dax2
+   without checking that cxlr->cxlr_dax =3D=3D cxlr_dax1. Because existing =
+is
+   true, cxl_validate_extent() bypasses the extents_scanned gate and
+   online_tag_group() attaches devres actions to cxlr_dax2->dev before
+   cxlr_dax2 has probed, causing really_probe() on cxlr_dax2 to fail with
+   -EBUSY ("Resources present before probing") and leak the tag groups.
+2. Similarly, cxled->dpa_res can be freed and reallocated to a different DPA
+   range via cxl_dpa_free() / cxl_dpa_alloc() before
+   __cxl_process_extent_list() (or one of its -EAGAIN retries) reads
+   cxled->dpa_res under cxl_rwsem.dpa, causing it to scan and release
+   extents in the new DPA range via cxl_release_recovered().
+3. Once detach_target() clears cxled->cxld.region =3D NULL, a concurrent
+   memdev/PCI unbind running cxld_unregister() -> cxl_decoder_detach() sees
+   cxled->cxld.region =3D=3D NULL and returns NULL without waiting for
+   cxlr_dax1's probe. Holding get_device(&cxled->cxld.dev) only pins the
+   decoder device, not cxlmd->cxlds, which cxl_memdev_shutdown() sets to
+   NULL before cxl_pci devres frees mds while cxl_process_extent_list() is
+   dereferencing cxled_to_mds(cxled).
+4. During commit_store() reset (or cxl_decoder_detach()),
+   cxlr_dax_unpublish() clears cxlr->cxlr_dax =3D NULL before waiting for
+   cxl_dax_region_probe() (and in commit_store(), before
+   cxl_region_decode_reset() invalidates CPU caches). When the in-flight
+   scan sees !cxlr->cxlr_dax, cxl_validate_extent() returns -ENXIO and
+   cxl_realize_group() calls cxl_release_recovered(), sending
+   CXL_MBOX_OP_RELEASE_DC while CPU caches may still hold dirty lines or
+   before the region teardown has finished.
+
+Should cxl_region_add_existing_extents() pass cxlr_dax into the scan, verify
+under cxl_rwsem.region and cxl_rwsem.dpa that cxled->cxld.region =3D=3D
+cxlr_dax->cxlr and cxlr->cxlr_dax =3D=3D cxlr_dax, and avoid calling
+cxl_release_recovered() when aborting due to a concurrent detach/unpublish?
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261104230445.6662=
-5-1-anisa.su@samsung.com?part=3D6
+5-1-anisa.su@samsung.com?part=3D12
