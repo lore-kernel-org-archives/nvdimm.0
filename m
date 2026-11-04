@@ -1,82 +1,82 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.214.182
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.214.176
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793833364;
-	b=L4/k/WRMo3RtwG9TMZQliOUSjlqb0+Mcd6IwDlp9B+x9RL40qJk9tDFlHZEGzV5tnczu
-	 lkR7vmAiH4GVrbY3RqAhsmlrtpoClw005KsFXvUBIVwOTzGALIVOAlNkXSugJ85wuvN+x
-	 P15qw2oasfFQPw9r5UkDYEmlo6kdmzFO5wjUGFh+ieCvQVesIEKfruZu5XPnS7r478NbL
-	 oqFaoqOVSZfHSxA0ULEYDu6ErYPqe0lsLVjKhvcEQjtJfG3QSLyTqcfxPQcoFYToCM9tr
-	 5GUMxWLqwkv/K5z0nsZ8QnrjJ3zqCZQhHc9UN4vG6WdnctoF5VtU/pO997PaBvp8crg==
+	t=1793833368;
+	b=kQlqQ6l2DuR28Rorswpl7nvX5j8v4HmGPaTpYNooK3pHMVaB78wwmDp3z/Rww0TYX8K+
+	 CVCtMZh5mq4Iw7FF+mQrEN/jMnW3pdxj+9evikbpkh853lhUjM66RQDCWF0OfmgHC6gPo
+	 ePZ58wwjLzzyIyYXXt+E2tnjyHTyEgDkVFKm1EJS0mCfbtZOTYYY+XHtmv5FTEhgpGBMA
+	 vRLOM/JHXqzoOGaQn2e5r0AXuKDoC4mnY42PHgW6DeexIQQltBX9qILJtflj7SOweKJwM
+	 QooovKrlezvdUVarSzx8PdjbA3mX6lLl7oWCcvYKqzygttsd7+DVyG0jJOeE7kzURDw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793833364;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793833368;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:
 	 X-Google-Original-From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=yo2Z1AMAycbdACFt6xNxywNP8Kvhj7/G+Izur0BYI2M=;
-	b=YfChkSKJjVdvrH7ypz3Jg/y27fPU+/f8HHwwdeM3kSdpopR8JsLosITcDfJbv/62pZeV
-	 KO9viFxdGVK8RNFAeteBynihwdbUiNmTeWXqfy0OxKuQ4b+rxwm+9W5UW/FoA56lsSNBA
-	 ZPaTYCwd5IqPalmTpQ2n50W6nEL1TjqmmVPg3BQnTDmPNmsCVIHl8NyNMwXvrtY5GncdD
-	 bNAejoyH19bsEvfnp5gkcNUytvUDjDePzT/Om4xD61M3Zu0paf4mxRRMQLErpIr/u+3YS
-	 2NKWfgx7VNbGf3F+hdEgi0taM4dQMaPjuiDe+jBB6JrGlUcc6UA3mapM13ZAAySfCSw==
+	bh=CNM1EYOlTzyNUEwxlK4YGo2GVC9yeplaVRpTfyoYgug=;
+	b=SYGJDQkRmFQRVlnBPV9E2VGQ2lxGXjESsYCjvzN6gomKcdulMYafLiozmjIpA07bn9cy
+	 lLZktQcCaH5dfyL39Iao+bJsL0JSZNTMA8d5USn/q3yRcH8mAAYlRU5PAu83/cbSpw/Sd
+	 M2oLvCLgdWlOAbk8x4gsxRcc3NxmZ66iA9OLdP3gzS0WIyXZwFmdj/6VqbXnhQ5kzJBGa
+	 fooTykTABChMk0dkEBOkQeSqjX6g0h/EJjeXwEs34Cx6dEYaW2bKgQTCck8Bgxx2tUpNG
+	 hM++P0adHZI6EO+IWcbdAm5nTI+tLvQc41lU2ajekshrrcu7ynifCEB/x4oNDf2HV0A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=wZ2RVCq4;
-	arc=none smtp.remote-ip=209.85.214.182
-Received: from mail-pl1-f182.google.com (mail-pl1-f182.google.com [209.85.214.182])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=S1z6UdrZ;
+	arc=none smtp.remote-ip=209.85.214.176
+Received: from mail-pl1-f176.google.com (mail-pl1-f176.google.com [209.85.214.176])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16E11606D80A
-	for <nvdimm@lists.linux.dev>; Wed,  4 Nov 2026 23:02:44 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 16E11606D80A
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8D35606EE97
+	for <nvdimm@lists.linux.dev>; Wed,  4 Nov 2026 23:02:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A8D35606EE97
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=wZ2RVCq4
-Received: by mail-pl1-f182.google.com with SMTP id d9443c01a7336-2e8f2c3ad6bso7183885ad.1
-        for <nvdimm@lists.linux.dev>; Wed, 04 Nov 2026 15:02:44 -0800 (PST)
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=S1z6UdrZ
+Received: by mail-pl1-f176.google.com with SMTP id d9443c01a7336-2eb18f4da15so4452135ad.1
+        for <nvdimm@lists.linux.dev>; Wed, 04 Nov 2026 15:02:47 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793833363; x=1794438163; darn=lists.linux.dev;
+        d=gmail.com; s=20260707; t=1793833367; x=1794438167; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=yo2Z1AMAycbdACFt6xNxywNP8Kvhj7/G+Izur0BYI2M=;
-        b=wZ2RVCq4/zLYVrKnrfEdhVlAMTPpDoyu65mK26XM9t8Asxvefp8YzfS1h1ehLYfbTj
-         lyY4CqVoL8CH/7bgzh72q2w9E4BP1DaiV7ScLqWBz4SsSHYmy+NsqLip20ocRE+MaKj1
-         MzRJPwVLulGiVMt4RPy4xxYPYXhUKSJodx4qXsbhNEZsaQ61/dNUwBJwaqGOKTaIqZOS
-         LQcGyQicdSOkcLzkDf3W6uIoQRAFvKhkSLbhWQFCc2Xb/ZNckJgv3dApLyXq7/UrDcrH
-         uTclzl4fsoebI+kytn8+wc9p1B2exdg6mXd5U2ANNYUeUKGtxMUpUpLZc4DIBXL8jdrn
-         opGg==
+        bh=CNM1EYOlTzyNUEwxlK4YGo2GVC9yeplaVRpTfyoYgug=;
+        b=S1z6UdrZ/LvZ1g4CMLmE3lFl7b4t06aa4t8zrtMzrcRVZu7X59k+YTk0tmqkq3ltl5
+         JRCo0iZfBbauaOrvOXvang5NirTq50ZwXwaOR+kO8IamebdwwL7YKN0GvA7QVZH8de5g
+         iGlcglW+KRIiS2X/MqMOBgI/cg9PMdHSXhkVLVbaRjQsM71l499wY2PkZcrtkTBvPQUW
+         BR51r/Ij2Wgr6sYbaqSuu71B06yOT3csiNk2I83Tz3Q63v6yi9Y3tjQ62KW2745ZYMhw
+         lxzfMsJ66GRzXkiGkdbrjn1sbQoyl6Z3IWRrNiSCxofqui5XVhSr4W2JL4t5TawYaJwU
+         RxMw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793833363; x=1794438163;
+        d=1e100.net; s=20260707; t=1793833367; x=1794438167;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=yo2Z1AMAycbdACFt6xNxywNP8Kvhj7/G+Izur0BYI2M=;
-        b=WrAr8b9poRU3vWbaQLQybEau9IbmUvfSX6/TiA4DGNrLt2Hbqte+RMFxShKeyN/x3Y
-         CmfEavSNsU5kb0FgCMyAkxcGOJIjB+WsQo+UDl4QsneT5jvjBtHceb2tRvGOg5KaWlzk
-         JZxWCZ7mIFVFK/y0oD8mwlJklvJObwKFhlY25WSPypyxXUoESTrzuMTH750x0CYWHZyV
-         7cD34r46z4GjGxkFAZhwfzg+6n0/PDogcA5sLZ7q32oa/B21AofBWGTCyPuFr2q28bcb
-         Fx06TswGXEFXmWwz/phurMRU5jul2qSkTCSv7lqDJ7WlUjy+ne6DC0ff5ypwpYy8P1r1
-         rQmg==
-X-Gm-Message-State: APuU4Z9QEUweZo2qRz1BfNB+5kWrhZfb5AU9n6RnkoPU9eAl22E1n+UY
-	Z81HrJwG03QOnK6tYkWwciHvkPdFm/QwHvZwhPPB4T/TUpU2WGUF4BGf
-X-Gm-Gg: AYBFou3UiS8skuXTLp0akkguR4/RqMVIQEq3ZnndifGRONo2AIO51g5vf2XSM/zbU51
-	02CkJgp3UG7pDKjXIAl7fXxyZfOV64O4DDZgSVY57vn/AOrM7kvYY4wZjQXohZBT0vajjRlYBNw
-	jtJVJZvcVm4mF/hzQT10t6YDmFGHbN37IJ2vvisloRttx0DrEcOmQg3SA7W40m5xEHZRHverS2Q
-	QQRoVwXFufJHUx1IX0yGMX0gxwxXhTI4razCk9weHsI/hqAOYAYgG/4qg+qFbUX8CRLbJUMvWkI
-	HqWfHT0fJQ5ow61gbsS09hjYg6HaBndVSdxz3IDuulso6GBg9GViPe68sMWV4zjJKXObrFwqdDc
-	sqK0nL7WJ5YTlapDJuBGdqOeAFU42545eHTOxXaVkun2e9RUFfQp5WnQ3P6G7xnuQJxIY3QuH/t
-	zK4A79xbSQzNUpPAN9zmXfjUfOfmVqz1qHSIUZ0lqOjBkWdE5wxGkHJafUjfe95Yuo8dQCzAb/q
-	T9VO5FOYzL1hU6qGxyRmPbH1lOhv15uv/D+zLs89g651060g3Vvy32rzni2zYcFUJJ8be6hPDjM
-	K9EvwjBR4GdamM2e1RYox8pBXz+Ohg==
-X-Received: by 2002:a17:902:f54a:b0:2e4:adb3:c776 with SMTP id d9443c01a7336-2eb364b8234mr166165075ad.24.1793833363060;
-        Wed, 04 Nov 2026 15:02:43 -0800 (PST)
+        bh=CNM1EYOlTzyNUEwxlK4YGo2GVC9yeplaVRpTfyoYgug=;
+        b=i5B7zjKCkGWHQcBwkhv8fhyJoel153IOBh59rmU7C3e+pUlShZiqvoHBzZLSkTuw64
+         axXQAFKjxMj02QUNQr90phJaC8UBJ9f4fODvvUMMxi0t4Dr0HhU8vcxqGb38AergJaQy
+         5YyBWbh3V6n3dJLHkh3kDYwngnfJB35qx1yV5eGWnPpqrV+jYAnExjpwBOxUdCRoc/GK
+         /tvXI1P5IrXmXqLVLWdcnZist+PC2ZzKKwxNVYpNHsYn1cK90MxZuYMxqKJWkpp9xu4w
+         TM0dEQDGw8rFTcXAw1F24YsahwF1AZXyI9q8pmZdTrOYL4PRs2q7DXMYHcxZbXadjEa1
+         k7kA==
+X-Gm-Message-State: APuU4Z92ED88ccmzgCyqA+kq//weLS0rZsGmhXnxMRFyMcCNG6JbenMz
+	jnEAJuPmFcbu+RrsUQecXx/GHrE74J4EJjHduMIM/AUNUUck0AO0DbKr
+X-Gm-Gg: AYBFou2Acin8RZyj82/E2n6zEJJ9zJ+EVo00FNEv8aszXXWCKXTlpRPVOY+3G+UzzeK
+	XHwBFVlBobS881FsVIk6SBx7BNReBBQmtsEBaPHpgMrLEYt9HLco2AumN7cx4CCQyKNr1yIJ43A
+	xZWiBWmkP5euhw5E0t1khzgAw8FR3g8hNmPVUWpaBho7mOjsdrYUwgsztzBefRpnZpU2nUrz8+C
+	d9U9TPNMbJESzvDo2Tk6fz9gZxWo9+hxOWgSMOfwUNr3jrAg3DJZxJ277nSpcwH4G3Z12G2evT8
+	o9b7zDiWrzDF2RqzPZduWN9ujvFzierhn5GGXXtBKZPKB6xzcwmg8rLhEJNEVs8dIN4DmPlJ++/
+	pDrHqF0qhMf6kmRkN36dOgvrxNKj1zBW9r5M+8lCTf8X1R1mLnx+Z9XlQK/SmUbPMollFs0QDxu
+	vLr9DyPak1q/SWg3OC10dfR7X7DTC7GBLnpKTpX0aG4hrxyABPiFP25DC3yKXwIQFZrNni+J1Yy
+	g9Yta+tNvwXj1SAm44QV+gxOCvF57CWW6EpI6KJuPgjCwZU3eQDeR5sLE6JaGyd3Biz9lFr4+qr
+	3FIvTyZ+P71qfxITjNzhDRf4eOKcrQ==
+X-Received: by 2002:a17:902:d505:b0:2ed:29eb:177f with SMTP id d9443c01a7336-2ed29eb17c1mr509575ad.13.1793833366944;
+        Wed, 04 Nov 2026 15:02:46 -0800 (PST)
 Received: from cxlqual.. ([220.120.90.131])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2ed0908587dsm10999175ad.36.2026.11.04.15.02.39
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2ed0908587dsm10999175ad.36.2026.11.04.15.02.43
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 04 Nov 2026 15:02:42 -0800 (PST)
+        Wed, 04 Nov 2026 15:02:46 -0800 (PST)
 From: Anisa Su <anisa.su887@gmail.com>
 X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
 To: linux-cxl@vger.kernel.org
@@ -94,9 +94,9 @@ Cc: nvdimm@lists.linux.dev,
 	Gregory Price <gourry@gourry.net>,
 	Richard Cheng <icheng@nvidia.com>,
 	Anisa Su <anisa.su@samsung.com>
-Subject: [PATCH v1 04/14] cxl/mem: Introduce DC event handlers
-Date: Thu,  5 Nov 2026 08:02:28 +0900
-Message-ID: <20261104230445.66625-5-anisa.su@samsung.com>
+Subject: [PATCH v1 05/14] cxl/mem: Add 20 second timeout for stalled DC event chains
+Date: Thu,  5 Nov 2026 08:02:29 +0900
+Message-ID: <20261104230445.66625-6-anisa.su@samsung.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261104230445.66625-1-anisa.su@samsung.com>
 References: <20261104230445.66625-1-anisa.su@samsung.com>
@@ -111,592 +111,225 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Ira Weiny <iweiny@kernel.org>
+A Dynamic Capacity event can span multiple event records grouped
+together by the CXL_DCD_EVENT_MORE flag. Extents are staged in the
+pending list until the last event record ('More'=0) is received, at
+which point the chain is processed. If the device opens such a chain
+(More=1) but never sends the closing record, the staged list sits
+indefinitely.
 
-Add the handling skeleton for DC Add and DC Release events. Per CXL
-r4.0 Section 8.2.10.9.9.3, the host is expected to respond to one or
-more Add Capacity Event Record(s) with an Add Dynamic Capacity Response
-(Opcode 4802h) to acknowledge which extents the host accepts for use.
-Similarly, per CXL r4.0 Section 8.2.10.9.9.4, the host is expected to
-respond to Release Capacity Event Record(s) with a Release Dynamic
-Capacity command (Opcode 4803h), or to issue one that is not
-associated with any event to release capacity on its own.
+Add a delayed-work watchdog that drops the chain on timeout: an add
+chain is refused with an empty Add Dynamic Capacity Response (4802h),
+a release chain is left for the device to retry.
 
-The records of one operation can be chained by the More flag. Chained
-records are contiguous in the event log and share one event type (CXL
-r4.0 Table 8-229), so a single staging context, mds->dc_chain, holds
-the records of the open chain until the closing record (More=0)
-arrives and the chain is processed and responded to as a whole. A
-record that fails to stage, or one of the other type arriving inside an
-open chain, drops the chain: an add is refused with an empty response,
-a release is left for the device to retry.
+The spec sets no limit; 20s is a generous upper bound that may be
+tightened later, and guards against a lost mailbox response or a
+crashed fabric manager.
 
-This commit refuses all extents from Add Capacity chains and acks all
-Release Capacity chains. Subsequent commits implement accepting and
-releasing extents.
+The deadline is fixed when the chain opens rather than extended per
+record, so a device cannot keep a chain alive, and the staged list
+growing, by streaming More=1 records.
 
-Forced Capacity Release and Region Configuration Updated events are
-logged and ignored.
-
-Based on an original patch by Navneet Singh.
-
-Signed-off-by: Ira Weiny <iweiny@kernel.org>
-Co-developed-by: Anisa Su <anisa.su@samsung.com>
 Signed-off-by: Anisa Su <anisa.su@samsung.com>
 Tested-by: Wonjae Lee <wj28.lee@samsung.com>
 Tested-by: Junhee Park <jh9934.park@samsung.com>
 Tested-by: Heesoo Kim <habil.kim@samsung.com>
 ---
- drivers/cxl/core/mbox.c  | 246 ++++++++++++++++++++++++++++++++++++++-
- drivers/cxl/core/trace.h |   3 +-
- drivers/cxl/cxl.h        |   9 ++
- drivers/cxl/cxlmem.h     |  46 ++++++++
- drivers/cxl/pci.c        |  20 +++-
- include/cxl/event.h      |  37 ++++++
- 6 files changed, 353 insertions(+), 8 deletions(-)
+ drivers/cxl/core/mbox.c | 84 +++++++++++++++++++++++++++++++++++++++++
+ drivers/cxl/cxlmem.h    | 15 ++++++++
+ 2 files changed, 99 insertions(+)
 
 diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
-index 13a68f5cef69..3acf5ace48db 100644
+index 3acf5ace48db..fea910e6c510 100644
 --- a/drivers/cxl/core/mbox.c
 +++ b/drivers/cxl/core/mbox.c
-@@ -5,6 +5,7 @@
- #include <linux/ktime.h>
- #include <linux/mutex.h>
- #include <linux/unaligned.h>
-+#include <linux/list.h>
- #include <cxlpci.h>
- #include <cxlmem.h>
- #include <cxl.h>
-@@ -1100,6 +1101,237 @@ static int cxl_clear_event_record(struct cxl_memdev_state *mds,
- 	return rc;
- }
- 
-+static int send_one_response(struct cxl_mailbox *cxl_mbox,
-+			     struct cxl_mbox_dc_response *response,
-+			     int opcode, u32 extent_list_size, u8 flags)
-+{
-+	struct cxl_mbox_cmd mbox_cmd = (struct cxl_mbox_cmd) {
-+		.opcode = opcode,
-+		.size_in = struct_size(response, extent_list, extent_list_size),
-+		.payload_in = response,
-+	};
-+
-+	response->extent_list_size = cpu_to_le32(extent_list_size);
-+	response->flags = flags;
-+	return cxl_internal_send_cmd(cxl_mbox, &mbox_cmd);
-+}
-+
-+static int cxl_send_dc_response(struct cxl_memdev_state *mds, int opcode,
-+				struct list_head *extent_list, int cnt)
-+{
-+	struct cxl_mailbox *cxl_mbox = &mds->cxlds.cxl_mbox;
-+	struct cxl_mbox_dc_response *p;
-+	struct cxl_extent_list_node *pos, *tmp;
-+	struct cxl_extent *extent;
-+	u32 pl_index;
-+
-+	size_t pl_size = struct_size(p, extent_list, cnt);
-+	u32 max_extents = cnt;
-+
-+	/* May have to use more bit on response. */
-+	if (pl_size > cxl_mbox->payload_size) {
-+		max_extents = (cxl_mbox->payload_size - sizeof(*p)) /
-+			      sizeof(struct updated_extent_list);
-+		pl_size = struct_size(p, extent_list, max_extents);
-+	}
-+
-+	struct cxl_mbox_dc_response *response __free(kfree) =
-+						kzalloc(pl_size, GFP_KERNEL);
-+	if (!response) {
-+		struct cxl_mbox_dc_response empty = { };
-+
-+		/* An empty Release DC is invalid (CXL r4.0 Table 8-352) */
-+		if (opcode == CXL_MBOX_OP_RELEASE_DC)
-+			return -ENOMEM;
-+		/* Refuse all extents rather than stall the device. */
-+		return send_one_response(cxl_mbox, &empty, opcode, 0, 0);
-+	}
-+
-+	/* Set __counted_by to capacity before populating; reset per response. */
-+	response->extent_list_size = cpu_to_le32(max_extents);
-+
-+	if (cnt == 0)
-+		return send_one_response(cxl_mbox, response, opcode, 0, 0);
-+
-+	pl_index = 0;
-+	list_for_each_entry_safe(pos, tmp, extent_list, list) {
-+		extent = pos->extent;
-+		response->extent_list[pl_index].dpa_start = extent->start_dpa;
-+		response->extent_list[pl_index].length = extent->length;
-+		pl_index++;
-+
-+		if (pl_index == max_extents) {
-+			u8 flags = 0;
-+			int rc;
-+
-+			if (pl_index < cnt)
-+				flags |= CXL_DCD_EVENT_MORE;
-+			rc = send_one_response(cxl_mbox, response, opcode,
-+					       pl_index, flags);
-+			if (rc)
-+				return rc;
-+			cnt -= pl_index;
-+			if (cnt < max_extents)
-+				max_extents = cnt;
-+			pl_index = 0;
-+		}
-+	}
-+
-+	if (!pl_index) /* nothing more to do */
-+		return 0;
-+	return send_one_response(cxl_mbox, response, opcode, pl_index, 0);
-+}
-+
-+static void delete_extent_node(struct cxl_extent_list_node *node)
-+{
-+	list_del(&node->list);
-+	kfree(node->extent);
-+	kfree(node);
-+}
-+
-+static void clear_pending_extents(void *_mds)
-+{
-+	struct cxl_memdev_state *mds = _mds;
-+	struct cxl_extent_list_node *pos, *tmp;
-+
-+	list_for_each_entry_safe(pos, tmp, &mds->dc_chain.pending_extents, list)
-+		delete_extent_node(pos);
-+}
-+
-+static const char *cxl_dcd_evt_type_str(u8 type)
-+{
-+	switch (type) {
-+	case DCD_ADD_CAPACITY:
-+		return "add";
-+	case DCD_RELEASE_CAPACITY:
-+		return "release";
-+	case DCD_FORCED_CAPACITY_RELEASE:
-+		return "force release";
-+	case DCD_REGION_CONFIGURATION_UPDATED:
-+		return "region configuration updated";
-+	default:
-+		break;
-+	}
-+
-+	return "<unknown>";
-+}
-+
-+/*
-+ * Drop the open chain.  An add chain is refused with an empty response so
-+ * the device can reclaim the offered capacity; a release chain is simply
-+ * dropped, the capacity stays with the host and the device may retry.
-+ */
-+static void cxl_dc_chain_abort(struct cxl_memdev_state *mds)
-+{
-+	struct cxl_dc_event_chain *chain = &mds->dc_chain;
-+	struct device *dev = mds->cxlds.dev;
-+
-+	if (chain->event_type == DCD_ADD_CAPACITY &&
-+	    cxl_send_dc_response(mds, CXL_MBOX_OP_ADD_DC_RESPONSE,
-+				 &chain->pending_extents, 0))
-+		dev_dbg(dev, "Failed to refuse add chain\n");
-+
-+	clear_pending_extents(mds);
-+}
-+
-+static int stage_pending_extent(struct list_head *pending,
-+				struct cxl_extent *to_add)
-+{
-+	struct cxl_extent_list_node *node = kzalloc(sizeof(*node), GFP_KERNEL);
-+	struct cxl_extent *extent;
-+
-+	if (!node)
-+		return -ENOMEM;
-+	extent = kmemdup(to_add, sizeof(*extent), GFP_KERNEL);
-+	if (!extent) {
-+		kfree(node);
-+		return -ENOMEM;
-+	}
-+
-+	node->extent = extent;
-+	list_add_tail(&node->list, pending);
-+	return 0;
-+}
-+
-+static int handle_dcd_chain_event(struct cxl_memdev_state *mds,
-+				  struct cxl_event_dcd *event)
-+{
-+	struct cxl_dc_event_chain *chain = &mds->dc_chain;
-+	struct device *dev = mds->cxlds.dev;
-+	int rc;
-+
-+	/* Chained records share one event type (CXL r4.0 Table 8-229) */
-+	if (list_empty(&chain->pending_extents)) {
-+		chain->event_type = event->event_type;
-+	} else if (chain->event_type != event->event_type) {
-+		dev_warn_ratelimited(dev, "DC %s record inside an open %s chain; dropping the chain\n",
-+				     cxl_dcd_evt_type_str(event->event_type),
-+				     cxl_dcd_evt_type_str(chain->event_type));
-+		cxl_dc_chain_abort(mds);
-+		chain->event_type = event->event_type;
-+	}
-+
-+	rc = stage_pending_extent(&chain->pending_extents, &event->extent);
-+	if (rc) {
-+		cxl_dc_chain_abort(mds);
-+		return rc;
-+	}
-+
-+	if (event->flags & CXL_DCD_EVENT_MORE) {
-+		dev_dbg(dev, "more bit set; delay processing of extent\n");
-+		return 0;
-+	}
-+
-+	/* Nothing is tracked yet: refuse every add, acknowledge every release */
-+	if (event->event_type == DCD_ADD_CAPACITY)
-+		rc = cxl_send_dc_response(mds, CXL_MBOX_OP_ADD_DC_RESPONSE,
-+					  &chain->pending_extents, 0);
-+	else
-+		rc = cxl_send_dc_response(mds, CXL_MBOX_OP_RELEASE_DC,
-+					  &chain->pending_extents,
-+					  list_count_nodes(&chain->pending_extents));
-+	clear_pending_extents(mds);
-+	return rc;
-+}
-+
-+static void cxl_handle_dcd_event_records(struct cxl_memdev_state *mds,
-+					 struct cxl_event_record_raw *raw_rec)
-+{
-+	struct cxl_event_dcd *event = &raw_rec->event.dcd;
-+	struct cxl_extent *extent = &event->extent;
-+	struct device *dev = mds->cxlds.dev;
-+	uuid_t *id = &raw_rec->id;
-+	int rc;
-+
-+	if (!uuid_equal(id, &CXL_EVENT_DC_EVENT_UUID))
-+		return;
-+
-+	dev_dbg(dev, "DCD event %s : DPA:%#llx LEN:%#llx\n",
-+		cxl_dcd_evt_type_str(event->event_type),
-+		le64_to_cpu(extent->start_dpa), le64_to_cpu(extent->length));
-+
-+	switch (event->event_type) {
-+	case DCD_ADD_CAPACITY:
-+	case DCD_RELEASE_CAPACITY:
-+		rc = handle_dcd_chain_event(mds, event);
-+		break;
-+	case DCD_FORCED_CAPACITY_RELEASE:
-+		dev_err_ratelimited(dev, "Forced release event ignored.\n");
-+		rc = 0;
-+		break;
-+	case DCD_REGION_CONFIGURATION_UPDATED:
-+		dev_dbg(dev, "Region configuration updated event ignored.\n");
-+		rc = 0;
-+		break;
-+	default:
-+		rc = -EINVAL;
-+		break;
-+	}
-+
-+	if (rc)
-+		dev_err_ratelimited(dev, "dcd event failed: %d\n", rc);
-+}
-+
- static void cxl_mem_get_records_log(struct cxl_memdev_state *mds,
- 				    enum cxl_event_log_type type)
- {
-@@ -1136,9 +1368,13 @@ static void cxl_mem_get_records_log(struct cxl_memdev_state *mds,
- 		if (!nr_rec)
- 			break;
- 
--		for (i = 0; i < nr_rec; i++)
-+		for (i = 0; i < nr_rec; i++) {
- 			__cxl_event_trace_record(cxlmd, type,
- 						 &payload->records[i]);
-+			if (type == CXL_EVENT_TYPE_DCD)
-+				cxl_handle_dcd_event_records(mds,
-+							     &payload->records[i]);
-+		}
- 
- 		if (payload->flags & CXL_GET_EVENT_FLAG_OVERFLOW)
- 			trace_cxl_overflow(cxlmd, type, payload);
-@@ -1170,6 +1406,8 @@ void cxl_mem_get_event_records(struct cxl_memdev_state *mds, u32 status)
- {
- 	dev_dbg(mds->cxlds.dev, "Reading event logs: %x\n", status);
- 
-+	if (cxl_dcd_supported(mds) && (status & CXLDEV_EVENT_STATUS_DCD))
-+		cxl_mem_get_records_log(mds, CXL_EVENT_TYPE_DCD);
- 	if (status & CXLDEV_EVENT_STATUS_FATAL)
- 		cxl_mem_get_records_log(mds, CXL_EVENT_TYPE_FATAL);
- 	if (status & CXLDEV_EVENT_STATUS_FAIL)
-@@ -1771,6 +2009,7 @@ struct cxl_memdev_state *cxl_memdev_state_create(struct device *dev, u64 serial,
- 						 u16 dvsec)
- {
- 	struct cxl_memdev_state *mds;
-+	int rc;
- 
- 	mds = devm_cxl_dev_state_create(dev, CXL_DEVTYPE_CLASSMEM, serial,
- 					dvsec, struct cxl_memdev_state, cxlds,
-@@ -1781,6 +2020,11 @@ struct cxl_memdev_state *cxl_memdev_state_create(struct device *dev, u64 serial,
- 	}
- 
- 	mutex_init(&mds->event.log_lock);
-+	INIT_LIST_HEAD(&mds->dc_chain.pending_extents);
-+
-+	rc = devm_add_action_or_reset(dev, clear_pending_extents, mds);
-+	if (rc)
-+		return ERR_PTR(rc);
- 
- 	return mds;
- }
-diff --git a/drivers/cxl/core/trace.h b/drivers/cxl/core/trace.h
-index c379d60047fc..64c6ce0878e2 100644
---- a/drivers/cxl/core/trace.h
-+++ b/drivers/cxl/core/trace.h
-@@ -177,7 +177,8 @@ TRACE_EVENT(cxl_aer_correctable_error,
- 		{ CXL_EVENT_TYPE_INFO, "Informational" },	\
- 		{ CXL_EVENT_TYPE_WARN, "Warning" },		\
- 		{ CXL_EVENT_TYPE_FAIL, "Failure" },		\
--		{ CXL_EVENT_TYPE_FATAL, "Fatal" })
-+		{ CXL_EVENT_TYPE_FATAL, "Fatal" },		\
-+		{ CXL_EVENT_TYPE_DCD, "Dynamic Capacity" })
- 
- TRACE_EVENT(cxl_overflow,
- 
-diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-index d098f7f50bef..64138e1768a1 100644
---- a/drivers/cxl/cxl.h
-+++ b/drivers/cxl/cxl.h
-@@ -12,6 +12,7 @@
- #include <linux/node.h>
- #include <linux/io.h>
- #include <linux/range.h>
-+#include <linux/xarray.h>
- #include <cxl/cxl.h>
- 
- extern const struct nvdimm_security_ops *cxl_security_ops;
-@@ -557,6 +558,14 @@ struct cxl_pmem_region {
- 	struct cxl_pmem_region_mapping mapping[];
+@@ -873,6 +873,8 @@ static const uuid_t log_uuid[] = {
+ 	[VENDOR_DEBUG_UUID] = DEFINE_CXL_VENDOR_DEBUG_UUID,
  };
  
-+/* See CXL r4.0 8.2.10.2.1.6 */
-+enum dc_event {
-+	DCD_ADD_CAPACITY,
-+	DCD_RELEASE_CAPACITY,
-+	DCD_FORCED_CAPACITY_RELEASE,
-+	DCD_REGION_CONFIGURATION_UPDATED,
-+};
++static void cxl_cancel_dcd_chain_work(void *_mds);
 +
- struct cxl_dax_region {
- 	struct device dev;
- 	struct cxl_region *cxlr;
+ /**
+  * cxl_enumerate_cmds() - Enumerate commands for a device.
+  * @mds: The driver data for the operation
+@@ -891,6 +893,16 @@ int cxl_enumerate_cmds(struct cxl_memdev_state *mds)
+ 	struct cxl_mem_command *cmd;
+ 	int i, rc;
+ 
++	/*
++	 * The DC chain watchdog sends a mailbox command when it fires.  Register
++	 * its cancellation here, once the mailbox is usable, so devm runs it
++	 * before the mailbox goes away: in cxl_pci the device registers were
++	 * mapped before this point and are unmapped after the cancel.
++	 */
++	rc = devm_add_action_or_reset(dev, cxl_cancel_dcd_chain_work, mds);
++	if (rc)
++		return rc;
++
+ 	gsl = cxl_get_gsl(mds);
+ 	if (IS_ERR(gsl))
+ 		return PTR_ERR(gsl);
+@@ -1198,6 +1210,14 @@ static void clear_pending_extents(void *_mds)
+ 		delete_extent_node(pos);
+ }
+ 
++/*
++ * Bound on how long the host will wait for a device to finish a
++ * multi-record DC event chain (More=1 ... More=0) before refusing the
++ * chain.  The spec sets no limit; 20s is a generous upper bound, the
++ * maximum GPF timeout.
++ */
++#define CXL_DC_CHAIN_TIMEOUT	(20 * HZ)
++
+ static const char *cxl_dcd_evt_type_str(u8 type)
+ {
+ 	switch (type) {
+@@ -1226,6 +1246,11 @@ static void cxl_dc_chain_abort(struct cxl_memdev_state *mds)
+ 	struct cxl_dc_event_chain *chain = &mds->dc_chain;
+ 	struct device *dev = mds->cxlds.dev;
+ 
++	lockdep_assert_held(&chain->lock);
++
++	chain->armed = false;
++	cancel_delayed_work(&chain->timeout_work);
++
+ 	if (chain->event_type == DCD_ADD_CAPACITY &&
+ 	    cxl_send_dc_response(mds, CXL_MBOX_OP_ADD_DC_RESPONSE,
+ 				 &chain->pending_extents, 0))
+@@ -1234,6 +1259,43 @@ static void cxl_dc_chain_abort(struct cxl_memdev_state *mds)
+ 	clear_pending_extents(mds);
+ }
+ 
++static void cxl_dc_chain_timeout(struct work_struct *work)
++{
++	struct cxl_dc_event_chain *chain = container_of(to_delayed_work(work),
++							struct cxl_dc_event_chain,
++							timeout_work);
++	struct cxl_memdev_state *mds = container_of(chain,
++						    struct cxl_memdev_state,
++						    dc_chain);
++	struct device *dev = mds->cxlds.dev;
++
++	guard(mutex)(&chain->lock);
++
++	/*
++	 * handle_dcd_chain_event() cancels this work non-synchronously (a sync
++	 * cancel would deadlock on @chain->lock, which the chain-close path
++	 * holds), so a callback that already started running can reach here
++	 * after its chain has moved on.  Abort only if a chain is still armed
++	 * AND the timer has not been re-armed since this expiry fired: a new
++	 * chain's queue_delayed_work() makes delayed_work_pending() true,
++	 * meaning this expiry belongs to a superseded deadline and must not
++	 * abort the current chain.
++	 */
++	if (!chain->armed || delayed_work_pending(&chain->timeout_work))
++		return;
++
++	dev_warn(dev, "DC %s chain timed out\n",
++		 cxl_dcd_evt_type_str(chain->event_type));
++	cxl_dc_chain_abort(mds);
++}
++
++static void cxl_cancel_dcd_chain_work(void *_mds)
++{
++	struct cxl_memdev_state *mds = _mds;
++
++	cancel_delayed_work_sync(&mds->dc_chain.timeout_work);
++}
++
+ static int stage_pending_extent(struct list_head *pending,
+ 				struct cxl_extent *to_add)
+ {
+@@ -1260,6 +1322,8 @@ static int handle_dcd_chain_event(struct cxl_memdev_state *mds,
+ 	struct device *dev = mds->cxlds.dev;
+ 	int rc;
+ 
++	guard(mutex)(&chain->lock);
++
+ 	/* Chained records share one event type (CXL r4.0 Table 8-229) */
+ 	if (list_empty(&chain->pending_extents)) {
+ 		chain->event_type = event->event_type;
+@@ -1279,9 +1343,22 @@ static int handle_dcd_chain_event(struct cxl_memdev_state *mds,
+ 
+ 	if (event->flags & CXL_DCD_EVENT_MORE) {
+ 		dev_dbg(dev, "more bit set; delay processing of extent\n");
++		/* The deadline is fixed when the chain opens, not per record */
++		if (!chain->armed) {
++			queue_delayed_work(system_wq, &chain->timeout_work,
++					   CXL_DC_CHAIN_TIMEOUT);
++			chain->armed = true;
++		}
+ 		return 0;
+ 	}
+ 
++	/*
++	 * Chain is closing.  Disarm before flushing so a pending watchdog
++	 * (queued but blocked on @chain->lock) sees !armed and bails out.
++	 */
++	chain->armed = false;
++	cancel_delayed_work(&chain->timeout_work);
++
+ 	/* Nothing is tracked yet: refuse every add, acknowledge every release */
+ 	if (event->event_type == DCD_ADD_CAPACITY)
+ 		rc = cxl_send_dc_response(mds, CXL_MBOX_OP_ADD_DC_RESPONSE,
+@@ -2021,7 +2098,14 @@ struct cxl_memdev_state *cxl_memdev_state_create(struct device *dev, u64 serial,
+ 
+ 	mutex_init(&mds->event.log_lock);
+ 	INIT_LIST_HEAD(&mds->dc_chain.pending_extents);
++	mutex_init(&mds->dc_chain.lock);
++	INIT_DELAYED_WORK(&mds->dc_chain.timeout_work, cxl_dc_chain_timeout);
+ 
++	/*
++	 * The watchdog cancel is registered later, by cxl_enumerate_cmds(), so
++	 * devm's reverse-order unwind cancels (and waits for) the watchdog
++	 * before this list cleanup runs.
++	 */
+ 	rc = devm_add_action_or_reset(dev, clear_pending_extents, mds);
+ 	if (rc)
+ 		return ERR_PTR(rc);
 diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-index 35268d1c387c..c88de7cb65d1 100644
+index c88de7cb65d1..52c936ec15a9 100644
 --- a/drivers/cxl/cxlmem.h
 +++ b/drivers/cxl/cxlmem.h
-@@ -7,6 +7,7 @@
- #include <linux/cdev.h>
+@@ -8,6 +8,8 @@
  #include <linux/uuid.h>
  #include <linux/node.h>
-+#include <linux/list.h>
+ #include <linux/list.h>
++#include <linux/mutex.h>
++#include <linux/workqueue.h>
  #include <cxl/event.h>
  #include <cxl/mailbox.h>
  #include "cxl.h"
-@@ -426,6 +427,24 @@ static inline struct cxl_dev_state *mbox_to_cxlds(struct cxl_mailbox *cxl_mbox)
- 	return dev_get_drvdata(cxl_mbox->host);
- }
- 
-+/**
-+ * struct cxl_dc_event_chain - staged Dynamic Capacity event chain
-+ * @pending_extents: extents received so far; flushed when the chain
-+ *		     closes (More=0)
-+ * @event_type: DCD event type of the open chain (add or release)
-+ *
-+ * The records of one Dynamic Capacity operation can be chained by the
-+ * CXL_DCD_EVENT_MORE flag.  Chained records are contiguous in the event
-+ * log and share one event type (CXL r4.0 Table 8-229), so at most one
-+ * chain is open at a time.  Both Add Capacity and Release Capacity chains
-+ * are staged here, @event_type says which.  Records are staged until
-+ * More=0, then the chain is processed and responded to as a whole.
-+ */
-+struct cxl_dc_event_chain {
-+	struct list_head pending_extents;
-+	u8 event_type;
-+};
-+
- /**
-  * struct cxl_memdev_state - Generic Type-3 Memory Device Class driver data
+@@ -431,6 +433,11 @@ static inline struct cxl_dev_state *mbox_to_cxlds(struct cxl_mailbox *cxl_mbox)
+  * struct cxl_dc_event_chain - staged Dynamic Capacity event chain
+  * @pending_extents: extents received so far; flushed when the chain
+  *		     closes (More=0)
++ * @timeout_work: watchdog that fires if a chain is opened with
++ *		  CXL_DCD_EVENT_MORE but the closing record never arrives
++ * @lock: serialises updates to the chain state against the watchdog
++ * @armed: set when a More=1 chain opens; cleared when the chain closes
++ *	   (More=0), is aborted by cxl_dc_chain_abort(), or times out.
+  * @event_type: DCD event type of the open chain (add or release)
   *
-@@ -444,6 +463,8 @@ static inline struct cxl_dev_state *mbox_to_cxlds(struct cxl_mailbox *cxl_mbox)
-  * @active_volatile_bytes: sum of hard + soft volatile
-  * @active_persistent_bytes: sum of hard + soft persistent
-  * @dcd_supported: all DCD commands are supported
-+ * @dc_chain: the open Dynamic Capacity event chain, if any
-+ *	      (see &struct cxl_dc_event_chain)
-  * @event: event log driver state
-  * @poison: poison driver state info
-  * @security: security driver state info
-@@ -463,6 +484,7 @@ struct cxl_memdev_state {
- 	u64 active_volatile_bytes;
- 	u64 active_persistent_bytes;
- 	bool dcd_supported;
-+	struct cxl_dc_event_chain dc_chain;
- 
- 	struct cxl_event_state event;
- 	struct cxl_poison_state poison;
-@@ -538,6 +560,21 @@ enum cxl_opcode {
- 	UUID_INIT(0x5e1819d9, 0x11a9, 0x400c, 0x81, 0x1f, 0xd6, 0x07, 0x19,     \
- 		  0x40, 0x3d, 0x86)
- 
-+/*
-+ * Add Dynamic Capacity Response
-+ * CXL r4.0 Section 8.2.10.9.9.3; Table 8-350 & Table 8-351
-+ */
-+struct cxl_mbox_dc_response {
-+	__le32 extent_list_size;
-+	u8 flags;
-+	u8 reserved[3];
-+	struct updated_extent_list {
-+		__le64 dpa_start;
-+		__le64 length;
-+		u8 reserved[8];
-+	} __packed extent_list[] __counted_by_le(extent_list_size);
-+} __packed;
-+
- struct cxl_mbox_get_supported_logs {
- 	__le16 entries;
- 	u8 rsvd[6];
-@@ -608,6 +645,14 @@ struct cxl_mbox_identify {
- 	UUID_INIT(0xe71f3a40, 0x2d29, 0x4092, 0x8a, 0x39, 0x4d, 0x1c, 0x96, \
- 		  0x6c, 0x7c, 0x65)
- 
-+/*
-+ * Dynamic Capacity Event Record
-+ * CXL r4.0 section 8.2.10.2.1; Table 8-221
-+ */
-+#define CXL_EVENT_DC_EVENT_UUID                                             \
-+	UUID_INIT(0xca95afa7, 0xf183, 0x4018, 0x8c, 0x2f, 0x95, 0x26, 0x8e, \
-+		  0x10, 0x1a, 0x2a)
-+
- /*
-  * Get Event Records output payload
-  * CXL rev 3.0 section 8.2.9.2.2; Table 8-50
-@@ -633,6 +678,7 @@ enum cxl_event_log_type {
- 	CXL_EVENT_TYPE_WARN,
- 	CXL_EVENT_TYPE_FAIL,
- 	CXL_EVENT_TYPE_FATAL,
-+	CXL_EVENT_TYPE_DCD,
- 	CXL_EVENT_TYPE_MAX
+  * The records of one Dynamic Capacity operation can be chained by the
+@@ -439,9 +446,17 @@ static inline struct cxl_dev_state *mbox_to_cxlds(struct cxl_mailbox *cxl_mbox)
+  * chain is open at a time.  Both Add Capacity and Release Capacity chains
+  * are staged here, @event_type says which.  Records are staged until
+  * More=0, then the chain is processed and responded to as a whole.
++ *
++ * If a chain is opened (More=1) but the device never sends the closing
++ * record, the staged list would otherwise sit indefinitely.  @timeout_work
++ * is a defensive watchdog that drops such a chain: an add is refused with
++ * an empty response, a release is held for the device to retry.
+  */
+ struct cxl_dc_event_chain {
+ 	struct list_head pending_extents;
++	struct delayed_work timeout_work;
++	struct mutex lock;	/* chain state, against the watchdog */
++	bool armed;
+ 	u8 event_type;
  };
  
-diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
-index 3ed7c3e70042..29541b8f79f2 100644
---- a/drivers/cxl/pci.c
-+++ b/drivers/cxl/pci.c
-@@ -510,12 +510,20 @@ static bool cxl_alloc_irq_vectors(struct pci_dev *pdev)
- 	return true;
- }
- 
--/* Event logs the driver drains: standard logs when native_cxl */
--static u32 cxl_event_drain_mask(struct pci_host_bridge *host_bridge)
-+/*
-+ * Event logs the driver drains: standard logs when native_cxl, DCD when
-+ * supported.
-+ */
-+static u32 cxl_event_drain_mask(struct pci_host_bridge *host_bridge,
-+				struct cxl_memdev_state *mds)
- {
-+	u32 mask = 0;
-+
- 	if (host_bridge->native_cxl_error)
--		return CXLDEV_EVENT_STATUS_STANDARD_LOGS;
--	return 0;
-+		mask |= CXLDEV_EVENT_STATUS_STANDARD_LOGS;
-+	if (cxl_dcd_supported(mds))
-+		mask |= CXLDEV_EVENT_STATUS_DCD;
-+	return mask;
- }
- 
- static irqreturn_t cxl_event_thread(int irq, void *id)
-@@ -525,7 +533,7 @@ static irqreturn_t cxl_event_thread(int irq, void *id)
- 	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlds);
- 	struct pci_host_bridge *host_bridge =
- 		pci_find_host_bridge(to_pci_dev(cxlds->dev)->bus);
--	u32 mask = cxl_event_drain_mask(host_bridge);
-+	u32 mask = cxl_event_drain_mask(host_bridge, mds);
- 	bool handled = false;
- 	u32 status;
- 
-@@ -786,7 +794,7 @@ static int cxl_event_config(struct pci_host_bridge *host_bridge,
- 	if (rc)
- 		return rc;
- 
--	mask = cxl_event_drain_mask(host_bridge);
-+	mask = cxl_event_drain_mask(host_bridge, mds);
- 	if (mask)
- 		cxl_mem_get_event_records(mds, mask);
- 
-diff --git a/include/cxl/event.h b/include/cxl/event.h
-index a9f5c2381cc9..f154ca952340 100644
---- a/include/cxl/event.h
-+++ b/include/cxl/event.h
-@@ -6,6 +6,7 @@
- #include <linux/types.h>
- #include <linux/uuid.h>
- #include <linux/workqueue_types.h>
-+#include <linux/list.h>
- 
- /*
-  * Common Event Record Format
-@@ -141,12 +142,48 @@ struct cxl_event_mem_sparing {
- 	u8 reserved2[0x25];
- } __packed;
- 
-+/*
-+ * CXL r4.0 section 8.2.10.2.1.6; Table 8-230
-+ */
-+struct cxl_extent {
-+	__le64 start_dpa;
-+	__le64 length;
-+	u8 uuid[UUID_SIZE];
-+	__le16 shared_extn_seq;
-+	u8 reserved[0x6];
-+} __packed;
-+
-+struct cxl_extent_list_node {
-+	struct cxl_extent *extent;
-+	struct list_head list;
-+};
-+
-+/*
-+ * Dynamic Capacity Event Record
-+ * CXL r4.0 section 8.2.10.2.1.6; Table 8-229
-+ */
-+#define CXL_DCD_EVENT_MORE			BIT(0)
-+struct cxl_event_dcd {
-+	struct cxl_event_record_hdr hdr;
-+	u8 event_type;
-+	u8 validity_flags;
-+	__le16 host_id;
-+	u8 updated_region_index;
-+	u8 flags;
-+	u8 reserved1[0x2];
-+	struct cxl_extent extent;
-+	u8 reserved2[0x18];
-+	__le32 num_avail_extents;
-+	__le32 num_avail_tags;
-+} __packed;
-+
- union cxl_event {
- 	struct cxl_event_generic generic;
- 	struct cxl_event_gen_media gen_media;
- 	struct cxl_event_dram dram;
- 	struct cxl_event_mem_module mem_module;
- 	struct cxl_event_mem_sparing mem_sparing;
-+	struct cxl_event_dcd dcd;
- 	/* dram & gen_media event header */
- 	struct cxl_event_media_hdr media_hdr;
- } __packed;
 -- 
 2.43.0
 
