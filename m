@@ -1,82 +1,82 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.214.174
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.214.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793833360;
-	b=LNrXH+1DIvyg0YntJlROmaAA3eekYRvkiseFIkWNiK6qFtpvFYUUU+u5KYGl75jp7J61
-	 8pdx1Y82e/nSO50cmb+kxZ1PpV4mARa+uW7FFYzG1tDtUMJgOweQ4YPqSDdLkj7cq8BA7
-	 lrVEYNbVeVcGlzPg01YPHhEqXWbDjYOGsvp9K7UvK4SV1496QXGtUuLPsQiyu2aJg7vHA
-	 e3tRNf4O5R4dRVc4CA/7ffR7RH5nnfFlcq2EzxzyYb2YqjRxkcQbY5I2zkNgGCrxqCe+T
-	 RX1HE64Fxx+BPIRR88uPw92l6J6Mxggz2pH3mMGFCprzUnFsxtmRPd1ElwTXOCzTFhg==
+	t=1793833364;
+	b=L4/k/WRMo3RtwG9TMZQliOUSjlqb0+Mcd6IwDlp9B+x9RL40qJk9tDFlHZEGzV5tnczu
+	 lkR7vmAiH4GVrbY3RqAhsmlrtpoClw005KsFXvUBIVwOTzGALIVOAlNkXSugJ85wuvN+x
+	 P15qw2oasfFQPw9r5UkDYEmlo6kdmzFO5wjUGFh+ieCvQVesIEKfruZu5XPnS7r478NbL
+	 oqFaoqOVSZfHSxA0ULEYDu6ErYPqe0lsLVjKhvcEQjtJfG3QSLyTqcfxPQcoFYToCM9tr
+	 5GUMxWLqwkv/K5z0nsZ8QnrjJ3zqCZQhHc9UN4vG6WdnctoF5VtU/pO997PaBvp8crg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793833360;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793833364;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:
 	 X-Google-Original-From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=eeQXc76txxkNChGpsqrLz/1ptGh49tNOgaE3bfTy8GI=;
-	b=31h7dRn8t8PVxP058eN8bGShiCLBV+DHy3qWPosGObs20Lije2Lz2QQJnVxbhy/8PRWc
-	 z8c12yx97jO9CQBoj4V/hC4AyGclbnkh+amwpjgAyWYMQKtuPbxqBtAcB/WIAQZDvzHQD
-	 qiQs3aXKVVMgnbB/nEeJPehjEFA/PoeJgHnyU+3GuYXynlHkt8U63Qqf/q9YC4X9yK/Fn
-	 5iQ7s3fe5831IN72wZ7RHLzd34KK10ckbV23vHchkhMklTrJAyAz4hjJaO0xpHFu+Fz8f
-	 t/bXoPFzB8C7rhruOvo3QTlHq9sFI7q3EEZhJV7wGpNxBgT4pw30d3EI59yHYnX1Bew==
+	bh=yo2Z1AMAycbdACFt6xNxywNP8Kvhj7/G+Izur0BYI2M=;
+	b=YfChkSKJjVdvrH7ypz3Jg/y27fPU+/f8HHwwdeM3kSdpopR8JsLosITcDfJbv/62pZeV
+	 KO9viFxdGVK8RNFAeteBynihwdbUiNmTeWXqfy0OxKuQ4b+rxwm+9W5UW/FoA56lsSNBA
+	 ZPaTYCwd5IqPalmTpQ2n50W6nEL1TjqmmVPg3BQnTDmPNmsCVIHl8NyNMwXvrtY5GncdD
+	 bNAejoyH19bsEvfnp5gkcNUytvUDjDePzT/Om4xD61M3Zu0paf4mxRRMQLErpIr/u+3YS
+	 2NKWfgx7VNbGf3F+hdEgi0taM4dQMaPjuiDe+jBB6JrGlUcc6UA3mapM13ZAAySfCSw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=krlnQMyQ;
-	arc=none smtp.remote-ip=209.85.214.174
-Received: from mail-pl1-f174.google.com (mail-pl1-f174.google.com [209.85.214.174])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=wZ2RVCq4;
+	arc=none smtp.remote-ip=209.85.214.182
+Received: from mail-pl1-f182.google.com (mail-pl1-f182.google.com [209.85.214.182])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EBD0606D804
-	for <nvdimm@lists.linux.dev>; Wed,  4 Nov 2026 23:02:40 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4EBD0606D804
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16E11606D80A
+	for <nvdimm@lists.linux.dev>; Wed,  4 Nov 2026 23:02:44 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 16E11606D80A
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=krlnQMyQ
-Received: by mail-pl1-f174.google.com with SMTP id d9443c01a7336-2e812e2b31bso7086685ad.3
-        for <nvdimm@lists.linux.dev>; Wed, 04 Nov 2026 15:02:40 -0800 (PST)
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=wZ2RVCq4
+Received: by mail-pl1-f182.google.com with SMTP id d9443c01a7336-2e8f2c3ad6bso7183885ad.1
+        for <nvdimm@lists.linux.dev>; Wed, 04 Nov 2026 15:02:44 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793833360; x=1794438160; darn=lists.linux.dev;
+        d=gmail.com; s=20260707; t=1793833363; x=1794438163; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=eeQXc76txxkNChGpsqrLz/1ptGh49tNOgaE3bfTy8GI=;
-        b=krlnQMyQt9qgONcVB94j8UzG2pyMDSHGYnMnadPWovuPggN/JYP+C6gaxVcIY6wufx
-         CRcPygbab6HRJH1432TNU9HNKsLhhyhedLqHqHwiJfIdeZvdnDa/kcM25EfUMcsLi3mx
-         IW5YQKL45FhAmUg1s6OKPydzqyLg3n9gLBc1HMUiVPT083uM2YRurQMg5z1Z4MxqpOqn
-         I/qaHLERD+ZLP44omfiQjO/NbAILlkM1Ilb2xx7yMmHYPAya6AWplusjxIvFualY0c7E
-         1s5Yhb/5kqEsjvdCQL0/QEGc86Yeb5t4Pw5Lnx5swV0D3RgoJq6ogGaRl844kI7oslrn
-         ncVw==
+        bh=yo2Z1AMAycbdACFt6xNxywNP8Kvhj7/G+Izur0BYI2M=;
+        b=wZ2RVCq4/zLYVrKnrfEdhVlAMTPpDoyu65mK26XM9t8Asxvefp8YzfS1h1ehLYfbTj
+         lyY4CqVoL8CH/7bgzh72q2w9E4BP1DaiV7ScLqWBz4SsSHYmy+NsqLip20ocRE+MaKj1
+         MzRJPwVLulGiVMt4RPy4xxYPYXhUKSJodx4qXsbhNEZsaQ61/dNUwBJwaqGOKTaIqZOS
+         LQcGyQicdSOkcLzkDf3W6uIoQRAFvKhkSLbhWQFCc2Xb/ZNckJgv3dApLyXq7/UrDcrH
+         uTclzl4fsoebI+kytn8+wc9p1B2exdg6mXd5U2ANNYUeUKGtxMUpUpLZc4DIBXL8jdrn
+         opGg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793833360; x=1794438160;
+        d=1e100.net; s=20260707; t=1793833363; x=1794438163;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=eeQXc76txxkNChGpsqrLz/1ptGh49tNOgaE3bfTy8GI=;
-        b=uYS3IwXo3LheE5ciC6z9W3CwqsjjS/Kz8O1CeoIyBCvDVepVB7FkDVJFubHv3TXaEv
-         A0rKqImC/FsszwU3Brwk0FicG6gQODXPXURs602JuHec/sbOLqaww10QvIqjTRV3l9yL
-         WjP/3RkJi6C6xnqShFKY4KRbztV3q0P/s9nwU7bNtHNtnvr96ST88QICYKXtiFegIWs6
-         fgeg2KS1mutWqyFCLJRhVQFhwxue0oucQlUaZC1mQ8IGbaFWVq3F+Wf6Da2e6tLDXEDA
-         tMrAgOOg+9caqJq2zVcnlAO1ZHwwy4FGQHEAeWqEdELcX4eJebTpNZsnN+N/+i//yZ5S
-         VJAw==
-X-Gm-Message-State: APuU4Z/Eoj9rZA/isgq9fTdxkpGD8vfDM+pWDhIjY71M1V+KOTSxrXRK
-	U4+bodHs+otj/FfY35uHD2l0SQmG+awX86p1U9VmAhGb8v/SwBVkUSmW
-X-Gm-Gg: AYBFou3dwPipZcSzh2wNG+n0o/ExI4AWZ4AAbi6U0idLV0X1JNybd7mqJpZjhcLKKbx
-	v3aMg4P4Qy85+CkH9MAV1XWrbXqfRt4m38AYI3nbgw1OYskuON1GxXsHnjKgbBqHyumfmFx29Py
-	uyWny4M+KLAA343MDVM8vCc0Q7wr9Zo+bBbvBbq0LdQInUZu7eFt/SNg7gHbQqc4xsYQP6Ta7UQ
-	W+L8UbK47Ny05JRKpU4s2VeUvuIQIYOSCIQPWBG1/AI2mS0FqdfMeDERy2JqYOafdxBmaaAc9Sn
-	ScXCuhu7QpEfFRuQky0byuYMPyC3GvxmMp30LE2SvKIlVZOODk7tktpG16pbNNFt+/uQr7Dixp1
-	lhU/TwkDq/asiSSPcwSVFL39JzkrV+lrWOF67o2FpzGA+25DhRs2s9xS2RkGFT24gpeOOqiYYil
-	38p9xeKU0x5Jps99ZTGJ5Xn64ma7g/bm5s6ZXVINxJedfxANFkhtM6hLMaEzsh6JDg/s39JgG0i
-	ZLXs2JEXz0HIAtm1Z3aVRDOyRki5HXvX36N9gOzgKsxoMMwq5b2kYT/fbPX1P3AH8HuZV4x0OTB
-	U9GnQRVy54Jffs3jsRCgFiURMrvymA==
-X-Received: by 2002:a17:903:244c:b0:2e5:c563:c0dc with SMTP id d9443c01a7336-2eb364e9f36mr173385085ad.42.1793833359629;
-        Wed, 04 Nov 2026 15:02:39 -0800 (PST)
+        bh=yo2Z1AMAycbdACFt6xNxywNP8Kvhj7/G+Izur0BYI2M=;
+        b=WrAr8b9poRU3vWbaQLQybEau9IbmUvfSX6/TiA4DGNrLt2Hbqte+RMFxShKeyN/x3Y
+         CmfEavSNsU5kb0FgCMyAkxcGOJIjB+WsQo+UDl4QsneT5jvjBtHceb2tRvGOg5KaWlzk
+         JZxWCZ7mIFVFK/y0oD8mwlJklvJObwKFhlY25WSPypyxXUoESTrzuMTH750x0CYWHZyV
+         7cD34r46z4GjGxkFAZhwfzg+6n0/PDogcA5sLZ7q32oa/B21AofBWGTCyPuFr2q28bcb
+         Fx06TswGXEFXmWwz/phurMRU5jul2qSkTCSv7lqDJ7WlUjy+ne6DC0ff5ypwpYy8P1r1
+         rQmg==
+X-Gm-Message-State: APuU4Z9QEUweZo2qRz1BfNB+5kWrhZfb5AU9n6RnkoPU9eAl22E1n+UY
+	Z81HrJwG03QOnK6tYkWwciHvkPdFm/QwHvZwhPPB4T/TUpU2WGUF4BGf
+X-Gm-Gg: AYBFou3UiS8skuXTLp0akkguR4/RqMVIQEq3ZnndifGRONo2AIO51g5vf2XSM/zbU51
+	02CkJgp3UG7pDKjXIAl7fXxyZfOV64O4DDZgSVY57vn/AOrM7kvYY4wZjQXohZBT0vajjRlYBNw
+	jtJVJZvcVm4mF/hzQT10t6YDmFGHbN37IJ2vvisloRttx0DrEcOmQg3SA7W40m5xEHZRHverS2Q
+	QQRoVwXFufJHUx1IX0yGMX0gxwxXhTI4razCk9weHsI/hqAOYAYgG/4qg+qFbUX8CRLbJUMvWkI
+	HqWfHT0fJQ5ow61gbsS09hjYg6HaBndVSdxz3IDuulso6GBg9GViPe68sMWV4zjJKXObrFwqdDc
+	sqK0nL7WJ5YTlapDJuBGdqOeAFU42545eHTOxXaVkun2e9RUFfQp5WnQ3P6G7xnuQJxIY3QuH/t
+	zK4A79xbSQzNUpPAN9zmXfjUfOfmVqz1qHSIUZ0lqOjBkWdE5wxGkHJafUjfe95Yuo8dQCzAb/q
+	T9VO5FOYzL1hU6qGxyRmPbH1lOhv15uv/D+zLs89g651060g3Vvy32rzni2zYcFUJJ8be6hPDjM
+	K9EvwjBR4GdamM2e1RYox8pBXz+Ohg==
+X-Received: by 2002:a17:902:f54a:b0:2e4:adb3:c776 with SMTP id d9443c01a7336-2eb364b8234mr166165075ad.24.1793833363060;
+        Wed, 04 Nov 2026 15:02:43 -0800 (PST)
 Received: from cxlqual.. ([220.120.90.131])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2ed0908587dsm10999175ad.36.2026.11.04.15.02.35
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2ed0908587dsm10999175ad.36.2026.11.04.15.02.39
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 04 Nov 2026 15:02:38 -0800 (PST)
+        Wed, 04 Nov 2026 15:02:42 -0800 (PST)
 From: Anisa Su <anisa.su887@gmail.com>
 X-Google-Original-From: Anisa Su <anisa.su@samsung.com>
 To: linux-cxl@vger.kernel.org
@@ -94,9 +94,9 @@ Cc: nvdimm@lists.linux.dev,
 	Gregory Price <gourry@gourry.net>,
 	Richard Cheng <icheng@nvidia.com>,
 	Anisa Su <anisa.su@samsung.com>
-Subject: [PATCH v1 03/14] cxl/region: Add dynamic DAX region support
-Date: Thu,  5 Nov 2026 08:02:27 +0900
-Message-ID: <20261104230445.66625-4-anisa.su@samsung.com>
+Subject: [PATCH v1 04/14] cxl/mem: Introduce DC event handlers
+Date: Thu,  5 Nov 2026 08:02:28 +0900
+Message-ID: <20261104230445.66625-5-anisa.su@samsung.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261104230445.66625-1-anisa.su@samsung.com>
 References: <20261104230445.66625-1-anisa.su@samsung.com>
@@ -113,40 +113,30 @@ Content-Transfer-Encoding: 8bit
 
 From: Ira Weiny <iweiny@kernel.org>
 
-CXL DAX regions must allow memory to be added or removed dynamically
-to support DCD. In addition to the quantity of memory available, the
-location of the memory within a DC partition is dynamic, based on the
-extents offered by a device.  CXL DAX regions must accommodate the
-dynamic movement of this memory in the management of DAX regions and
-devices.
+Add the handling skeleton for DC Add and DC Release events. Per CXL
+r4.0 Section 8.2.10.9.9.3, the host is expected to respond to one or
+more Add Capacity Event Record(s) with an Add Dynamic Capacity Response
+(Opcode 4802h) to acknowledge which extents the host accepts for use.
+Similarly, per CXL r4.0 Section 8.2.10.9.9.4, the host is expected to
+respond to Release Capacity Event Record(s) with a Release Dynamic
+Capacity command (Opcode 4803h), or to issue one that is not
+associated with any event to release capacity on its own.
 
-Introduce the concept of a dynamic DAX region. A dynamic region
-carries the shareable and read-only properties of the partitions it
-decodes, fixed when the region is created: every endpoint decoder
-attached to it must point at a partition with exactly those
-properties, and the region's 'mode' reports the matching selector.
+The records of one operation can be chained by the More flag. Chained
+records are contiguous in the event log and share one event type (CXL
+r4.0 Table 8-229), so a single staging context, mds->dc_chain, holds
+the records of the open chain until the closing record (More=0)
+arrives and the chain is processed and responded to as a whole. A
+record that fails to stage, or one of the other type arriving inside an
+open chain, drops the chain: an add is refused with an empty response,
+a release is left for the device to retry.
 
-A dynamic region has no capacity when it is created, so the DAX device
-that cxl_dax_region_probe() creates for every region gets size 0
-instead of the region size: a seed that claims no capacity the device
-has not offered yet.  Its dax_region is created with IORESOURCE_DAX_DCD
-rather than IORESOURCE_DAX_KMEM, so the DAX devices on it bind to
-device_dax and not to kmem.
+This commit refuses all extents from Add Capacity chains and acks all
+Release Capacity chains. Subsequent commits implement accepting and
+releasing extents.
 
-Indicate 0 byte available capacity until such time that capacity is
-added.
-
-While DCD is disabled, auto region creation and the region 'target'
-write refuse endpoint decoders on a DC partition with -ENXIO, as the
-decoder 'mode' write already does. The sysfs entries for manual region
-creation follow in a separate patch.
-
-Additionally, dynamic regions complicate the range mapping of dax
-devices. There is no known use case for range mapping on dynamic
-regions. Avoid the complication by preventing range mapping of dax
-devices on dynamic regions.
-
-Interleaving is deferred for now.
+Forced Capacity Release and Region Configuration Updated events are
+logged and ignored.
 
 Based on an original patch by Navneet Singh.
 
@@ -157,321 +147,556 @@ Tested-by: Wonjae Lee <wj28.lee@samsung.com>
 Tested-by: Junhee Park <jh9934.park@samsung.com>
 Tested-by: Heesoo Kim <habil.kim@samsung.com>
 ---
- Documentation/ABI/testing/sysfs-bus-cxl |  5 ++-
- drivers/cxl/core/region.c               | 60 ++++++++++++++++++++++---
- drivers/cxl/core/region_dax.c           |  6 +++
- drivers/cxl/cxl.h                       |  4 ++
- drivers/dax/bus.c                       | 10 +++++
- drivers/dax/bus.h                       |  1 +
- drivers/dax/cxl.c                       | 17 ++++++-
- 7 files changed, 93 insertions(+), 10 deletions(-)
+ drivers/cxl/core/mbox.c  | 246 ++++++++++++++++++++++++++++++++++++++-
+ drivers/cxl/core/trace.h |   3 +-
+ drivers/cxl/cxl.h        |   9 ++
+ drivers/cxl/cxlmem.h     |  46 ++++++++
+ drivers/cxl/pci.c        |  20 +++-
+ include/cxl/event.h      |  37 ++++++
+ 6 files changed, 353 insertions(+), 8 deletions(-)
 
-diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
-index bcbc44fea6db..69e4f1fa21b7 100644
---- a/Documentation/ABI/testing/sysfs-bus-cxl
-+++ b/Documentation/ABI/testing/sysfs-bus-cxl
-@@ -543,7 +543,10 @@ Description:
- 		(RO) The mode of a region is established at region creation time
- 		and dictates the mode of the endpoint decoder that comprise the
- 		region. For more details on the possible modes see
--		/sys/bus/cxl/devices/decoderX.Y/mode
-+		/sys/bus/cxl/devices/decoderX.Y/mode. A dynamic capacity
-+		region reports the selector it was created with: 'dynamic_ram',
-+		'dynamic_ram_shared', 'dynamic_ram_ro' or
-+		'dynamic_ram_shared_ro'.
- 
- 
- What:		/sys/bus/cxl/devices/regionZ/resource
-diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
-index f4a9839c73d2..fc9139ce358f 100644
---- a/drivers/cxl/core/region.c
-+++ b/drivers/cxl/core/region.c
-@@ -495,6 +495,11 @@ static int set_interleave_ways(struct cxl_region *cxlr, int val)
- 	int save, rc;
- 	u8 iw;
- 
-+	if (cxlr->mode == CXL_PARTMODE_DYNAMIC_RAM && val != 1) {
-+		dev_dbg(&cxlr->dev, "Interleaving and DCD not supported\n");
-+		return -EINVAL;
-+	}
-+
- 	rc = ways_to_eiw(val, &iw);
- 	if (rc)
- 		return rc;
-@@ -644,6 +649,8 @@ static ssize_t mode_show(struct device *dev, struct device_attribute *attr,
- 		desc = "ram";
- 	else if (cxlr->mode == CXL_PARTMODE_PMEM)
- 		desc = "pmem";
-+	else if (cxlr->mode == CXL_PARTMODE_DYNAMIC_RAM)
-+		desc = cxl_dc_mode_name(cxlr->shareable, cxlr->read_only);
- 	else
- 		desc = "";
- 
-@@ -2080,6 +2087,20 @@ static int cxl_region_attach(struct cxl_region *cxlr,
- 		return -EINVAL;
- 	}
- 
-+	/* A DC region's flavor is fixed; every member partition must match */
-+	if (cxlr->mode == CXL_PARTMODE_DYNAMIC_RAM) {
-+		struct cxl_dpa_partition *part = &cxlds->part[cxled->part];
-+
-+		if (part->shareable != cxlr->shareable ||
-+		    part->read_only != cxlr->read_only) {
-+			dev_dbg(&cxlr->dev, "%s: partition is %s, region is %s\n",
-+				dev_name(&cxled->cxld.dev),
-+				cxl_dc_mode_name(part->shareable, part->read_only),
-+				cxl_dc_mode_name(cxlr->shareable, cxlr->read_only));
-+			return -EINVAL;
-+		}
-+	}
-+
- 	/* all full of members, or interleave config not established? */
- 	if (p->state > CXL_CONFIG_INTERLEAVE_ACTIVE) {
- 		dev_dbg(&cxlr->dev, "region already active\n");
-@@ -2411,6 +2432,7 @@ static size_t store_targetN(struct cxl_region *cxlr, const char *buf, int pos,
- 	if (sysfs_streq(buf, "\n"))
- 		rc = detach_target(cxlr, pos);
- 	else {
-+		struct cxl_endpoint_decoder *cxled;
- 		struct device *dev;
- 
- 		dev = bus_find_device_by_name(&cxl_bus_type, NULL, buf);
-@@ -2422,8 +2444,14 @@ static size_t store_targetN(struct cxl_region *cxlr, const char *buf, int pos,
- 			goto out;
- 		}
- 
--		rc = attach_target(cxlr, to_cxl_endpoint_decoder(dev), pos,
--				   TASK_INTERRUPTIBLE);
-+		cxled = to_cxl_endpoint_decoder(dev);
-+		if (cxlr->mode == CXL_PARTMODE_DYNAMIC_RAM &&
-+		    !cxled_dcd_enabled(cxled)) {
-+			dev_dbg(dev, "DCD not enabled\n");
-+			rc = -ENXIO;
-+			goto out;
-+		}
-+		rc = attach_target(cxlr, cxled, pos, TASK_INTERRUPTIBLE);
- out:
- 		put_device(dev);
- 	}
-@@ -2737,6 +2765,8 @@ void kill_regions(struct cxl_root_decoder *cxlrd)
-  * @cxlrd: root decoder
-  * @id: memregion id to create, or memregion_free() on failure
-  * @mode: mode for the endpoint decoders of this region
-+ * @shareable: dynamic region: its partitions must be shareable
-+ * @read_only: dynamic region: its partitions must be read-only
-  * @type: select whether this is an expander or accelerator (type-2 or type-3)
-  *
-  * This is the second step of region initialization. Regions exist within an
-@@ -2748,7 +2778,8 @@ void kill_regions(struct cxl_root_decoder *cxlrd)
- static struct cxl_region *devm_cxl_add_region(struct cxl_root_decoder *cxlrd,
- 					      int id,
- 					      enum cxl_partition_mode mode,
--					      enum cxl_decoder_type type)
-+					      enum cxl_decoder_type type,
-+					      bool shareable, bool read_only)
- {
- 	struct cxl_port *port = to_cxl_port(cxlrd->cxlsd.cxld.dev.parent);
- 	struct cxl_region *cxlr;
-@@ -2760,6 +2791,8 @@ static struct cxl_region *devm_cxl_add_region(struct cxl_root_decoder *cxlrd,
- 		return cxlr;
- 	cxlr->mode = mode;
- 	cxlr->type = type;
-+	cxlr->shareable = shareable;
-+	cxlr->read_only = read_only;
- 
- 	dev = &cxlr->dev;
- 	rc = dev_set_name(dev, "region%d", id);
-@@ -2803,7 +2836,8 @@ static ssize_t create_ram_region_show(struct device *dev,
- 
- static struct cxl_region *__create_region(struct cxl_root_decoder *cxlrd,
- 					  enum cxl_partition_mode mode, int id,
--					  enum cxl_decoder_type target_type)
-+					  enum cxl_decoder_type target_type,
-+					  bool shareable, bool read_only)
- {
- 	int rc;
- 
-@@ -2813,6 +2847,7 @@ static struct cxl_region *__create_region(struct cxl_root_decoder *cxlrd,
- 	switch (mode) {
- 	case CXL_PARTMODE_RAM:
- 	case CXL_PARTMODE_PMEM:
-+	case CXL_PARTMODE_DYNAMIC_RAM:
- 		break;
- 	default:
- 		dev_err(&cxlrd->cxlsd.cxld.dev, "unsupported mode %d\n", mode);
-@@ -2828,7 +2863,8 @@ static struct cxl_region *__create_region(struct cxl_root_decoder *cxlrd,
- 		return ERR_PTR(-EBUSY);
- 	}
- 
--	return devm_cxl_add_region(cxlrd, id, mode, target_type);
-+	return devm_cxl_add_region(cxlrd, id, mode, target_type, shareable,
-+				   read_only);
+diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
+index 13a68f5cef69..3acf5ace48db 100644
+--- a/drivers/cxl/core/mbox.c
++++ b/drivers/cxl/core/mbox.c
+@@ -5,6 +5,7 @@
+ #include <linux/ktime.h>
+ #include <linux/mutex.h>
+ #include <linux/unaligned.h>
++#include <linux/list.h>
+ #include <cxlpci.h>
+ #include <cxlmem.h>
+ #include <cxl.h>
+@@ -1100,6 +1101,237 @@ static int cxl_clear_event_record(struct cxl_memdev_state *mds,
+ 	return rc;
  }
  
- static ssize_t create_region_store(struct device *dev, const char *buf,
-@@ -2846,7 +2882,8 @@ static ssize_t create_region_store(struct device *dev, const char *buf,
- 	if ((rc = ACQUIRE_ERR(mutex_intr, &regions_lock)))
- 		return rc;
- 
--	cxlr = __create_region(cxlrd, mode, id, CXL_DECODER_HOSTONLYMEM);
-+	cxlr = __create_region(cxlrd, mode, id, CXL_DECODER_HOSTONLYMEM,
-+			       false, false);
- 	if (IS_ERR(cxlr))
- 		return PTR_ERR(cxlr);
- 
-@@ -3808,10 +3845,18 @@ static struct cxl_region *construct_region(struct cxl_root_decoder *cxlrd,
- 	if (part < 0)
- 		return ERR_PTR(-EBUSY);
- 
-+	if (cxlds->part[part].mode == CXL_PARTMODE_DYNAMIC_RAM &&
-+	    !cxled_dcd_enabled(cxled)) {
-+		dev_dbg(&cxled->cxld.dev, "DCD not enabled\n");
-+		return ERR_PTR(-ENXIO);
-+	}
-+
- 	do {
- 		cxlr = __create_region(cxlrd, cxlds->part[part].mode,
- 				       atomic_read(&cxlrd->region_id),
--				       cxled->cxld.target_type);
-+				       cxled->cxld.target_type,
-+				       cxlds->part[part].shareable,
-+				       cxlds->part[part].read_only);
- 	} while (IS_ERR(cxlr) && PTR_ERR(cxlr) == -EBUSY);
- 
- 	if (IS_ERR(cxlr)) {
-@@ -4262,6 +4307,7 @@ static int cxl_region_probe(struct device *dev)
- 
- 		return devm_cxl_add_pmem_region(cxlr);
- 	case CXL_PARTMODE_RAM:
-+	case CXL_PARTMODE_DYNAMIC_RAM:
- 		rc = devm_cxl_region_edac_register(cxlr);
- 		if (rc)
- 			dev_dbg(&cxlr->dev, "CXL EDAC registration for region_id=%d failed\n",
-diff --git a/drivers/cxl/core/region_dax.c b/drivers/cxl/core/region_dax.c
-index de04f78f6ad8..47c9c52a3902 100644
---- a/drivers/cxl/core/region_dax.c
-+++ b/drivers/cxl/core/region_dax.c
-@@ -84,6 +84,12 @@ int devm_cxl_add_dax_region(struct cxl_region *cxlr)
- 	struct device *dev;
- 	int rc;
- 
-+	if (cxlr->mode == CXL_PARTMODE_DYNAMIC_RAM &&
-+	    cxlr->params.interleave_ways != 1) {
-+		dev_dbg(&cxlr->dev, "Interleaving DC not supported\n");
-+		return -EINVAL;
-+	}
-+
- 	struct cxl_dax_region *cxlr_dax __free(put_cxl_dax_region) =
- 		cxl_dax_region_alloc(cxlr);
- 	if (IS_ERR(cxlr_dax))
-diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-index baa6df2d362a..d098f7f50bef 100644
---- a/drivers/cxl/cxl.h
-+++ b/drivers/cxl/cxl.h
-@@ -490,6 +490,8 @@ struct cxl_region_params {
-  * @cxl_nvb: nvdimm bridge for coordinating @cxlr_pmem setup / shutdown
-  * @cxlr_pmem: (for pmem regions) cached copy of the nvdimm bridge
-  * @flags: Region state flags
-+ * @shareable: (for DC regions) backing partitions must be shareable
-+ * @read_only: (for DC regions) backing partitions must be read-only
-  * @params: active + config params for the region
-  * @coord: QoS access coordinates for the region
-  * @node_notifier: notifier for setting the access coordinates to node
-@@ -506,6 +508,8 @@ struct cxl_region {
- 	struct cxl_nvdimm_bridge *cxl_nvb;
- 	struct cxl_pmem_region *cxlr_pmem;
- 	unsigned long flags;
-+	bool shareable;
-+	bool read_only;
- 	struct cxl_region_params params;
- 	struct access_coordinate coord[ACCESS_COORDINATE_MAX];
- 	struct notifier_block node_notifier;
-diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index e40c25401cf0..d8cc1c012f46 100644
---- a/drivers/dax/bus.c
-+++ b/drivers/dax/bus.c
-@@ -177,6 +177,11 @@ static bool is_static(struct dax_region *dax_region)
- 	return (dax_region->res.flags & IORESOURCE_DAX_STATIC) != 0;
- }
- 
-+static bool is_dcd(struct dax_region *dax_region)
++static int send_one_response(struct cxl_mailbox *cxl_mbox,
++			     struct cxl_mbox_dc_response *response,
++			     int opcode, u32 extent_list_size, u8 flags)
 +{
-+	return (dax_region->res.flags & IORESOURCE_DAX_DCD) != 0;
++	struct cxl_mbox_cmd mbox_cmd = (struct cxl_mbox_cmd) {
++		.opcode = opcode,
++		.size_in = struct_size(response, extent_list, extent_list_size),
++		.payload_in = response,
++	};
++
++	response->extent_list_size = cpu_to_le32(extent_list_size);
++	response->flags = flags;
++	return cxl_internal_send_cmd(cxl_mbox, &mbox_cmd);
 +}
 +
- bool static_dev_dax(struct dev_dax *dev_dax)
++static int cxl_send_dc_response(struct cxl_memdev_state *mds, int opcode,
++				struct list_head *extent_list, int cnt)
++{
++	struct cxl_mailbox *cxl_mbox = &mds->cxlds.cxl_mbox;
++	struct cxl_mbox_dc_response *p;
++	struct cxl_extent_list_node *pos, *tmp;
++	struct cxl_extent *extent;
++	u32 pl_index;
++
++	size_t pl_size = struct_size(p, extent_list, cnt);
++	u32 max_extents = cnt;
++
++	/* May have to use more bit on response. */
++	if (pl_size > cxl_mbox->payload_size) {
++		max_extents = (cxl_mbox->payload_size - sizeof(*p)) /
++			      sizeof(struct updated_extent_list);
++		pl_size = struct_size(p, extent_list, max_extents);
++	}
++
++	struct cxl_mbox_dc_response *response __free(kfree) =
++						kzalloc(pl_size, GFP_KERNEL);
++	if (!response) {
++		struct cxl_mbox_dc_response empty = { };
++
++		/* An empty Release DC is invalid (CXL r4.0 Table 8-352) */
++		if (opcode == CXL_MBOX_OP_RELEASE_DC)
++			return -ENOMEM;
++		/* Refuse all extents rather than stall the device. */
++		return send_one_response(cxl_mbox, &empty, opcode, 0, 0);
++	}
++
++	/* Set __counted_by to capacity before populating; reset per response. */
++	response->extent_list_size = cpu_to_le32(max_extents);
++
++	if (cnt == 0)
++		return send_one_response(cxl_mbox, response, opcode, 0, 0);
++
++	pl_index = 0;
++	list_for_each_entry_safe(pos, tmp, extent_list, list) {
++		extent = pos->extent;
++		response->extent_list[pl_index].dpa_start = extent->start_dpa;
++		response->extent_list[pl_index].length = extent->length;
++		pl_index++;
++
++		if (pl_index == max_extents) {
++			u8 flags = 0;
++			int rc;
++
++			if (pl_index < cnt)
++				flags |= CXL_DCD_EVENT_MORE;
++			rc = send_one_response(cxl_mbox, response, opcode,
++					       pl_index, flags);
++			if (rc)
++				return rc;
++			cnt -= pl_index;
++			if (cnt < max_extents)
++				max_extents = cnt;
++			pl_index = 0;
++		}
++	}
++
++	if (!pl_index) /* nothing more to do */
++		return 0;
++	return send_one_response(cxl_mbox, response, opcode, pl_index, 0);
++}
++
++static void delete_extent_node(struct cxl_extent_list_node *node)
++{
++	list_del(&node->list);
++	kfree(node->extent);
++	kfree(node);
++}
++
++static void clear_pending_extents(void *_mds)
++{
++	struct cxl_memdev_state *mds = _mds;
++	struct cxl_extent_list_node *pos, *tmp;
++
++	list_for_each_entry_safe(pos, tmp, &mds->dc_chain.pending_extents, list)
++		delete_extent_node(pos);
++}
++
++static const char *cxl_dcd_evt_type_str(u8 type)
++{
++	switch (type) {
++	case DCD_ADD_CAPACITY:
++		return "add";
++	case DCD_RELEASE_CAPACITY:
++		return "release";
++	case DCD_FORCED_CAPACITY_RELEASE:
++		return "force release";
++	case DCD_REGION_CONFIGURATION_UPDATED:
++		return "region configuration updated";
++	default:
++		break;
++	}
++
++	return "<unknown>";
++}
++
++/*
++ * Drop the open chain.  An add chain is refused with an empty response so
++ * the device can reclaim the offered capacity; a release chain is simply
++ * dropped, the capacity stays with the host and the device may retry.
++ */
++static void cxl_dc_chain_abort(struct cxl_memdev_state *mds)
++{
++	struct cxl_dc_event_chain *chain = &mds->dc_chain;
++	struct device *dev = mds->cxlds.dev;
++
++	if (chain->event_type == DCD_ADD_CAPACITY &&
++	    cxl_send_dc_response(mds, CXL_MBOX_OP_ADD_DC_RESPONSE,
++				 &chain->pending_extents, 0))
++		dev_dbg(dev, "Failed to refuse add chain\n");
++
++	clear_pending_extents(mds);
++}
++
++static int stage_pending_extent(struct list_head *pending,
++				struct cxl_extent *to_add)
++{
++	struct cxl_extent_list_node *node = kzalloc(sizeof(*node), GFP_KERNEL);
++	struct cxl_extent *extent;
++
++	if (!node)
++		return -ENOMEM;
++	extent = kmemdup(to_add, sizeof(*extent), GFP_KERNEL);
++	if (!extent) {
++		kfree(node);
++		return -ENOMEM;
++	}
++
++	node->extent = extent;
++	list_add_tail(&node->list, pending);
++	return 0;
++}
++
++static int handle_dcd_chain_event(struct cxl_memdev_state *mds,
++				  struct cxl_event_dcd *event)
++{
++	struct cxl_dc_event_chain *chain = &mds->dc_chain;
++	struct device *dev = mds->cxlds.dev;
++	int rc;
++
++	/* Chained records share one event type (CXL r4.0 Table 8-229) */
++	if (list_empty(&chain->pending_extents)) {
++		chain->event_type = event->event_type;
++	} else if (chain->event_type != event->event_type) {
++		dev_warn_ratelimited(dev, "DC %s record inside an open %s chain; dropping the chain\n",
++				     cxl_dcd_evt_type_str(event->event_type),
++				     cxl_dcd_evt_type_str(chain->event_type));
++		cxl_dc_chain_abort(mds);
++		chain->event_type = event->event_type;
++	}
++
++	rc = stage_pending_extent(&chain->pending_extents, &event->extent);
++	if (rc) {
++		cxl_dc_chain_abort(mds);
++		return rc;
++	}
++
++	if (event->flags & CXL_DCD_EVENT_MORE) {
++		dev_dbg(dev, "more bit set; delay processing of extent\n");
++		return 0;
++	}
++
++	/* Nothing is tracked yet: refuse every add, acknowledge every release */
++	if (event->event_type == DCD_ADD_CAPACITY)
++		rc = cxl_send_dc_response(mds, CXL_MBOX_OP_ADD_DC_RESPONSE,
++					  &chain->pending_extents, 0);
++	else
++		rc = cxl_send_dc_response(mds, CXL_MBOX_OP_RELEASE_DC,
++					  &chain->pending_extents,
++					  list_count_nodes(&chain->pending_extents));
++	clear_pending_extents(mds);
++	return rc;
++}
++
++static void cxl_handle_dcd_event_records(struct cxl_memdev_state *mds,
++					 struct cxl_event_record_raw *raw_rec)
++{
++	struct cxl_event_dcd *event = &raw_rec->event.dcd;
++	struct cxl_extent *extent = &event->extent;
++	struct device *dev = mds->cxlds.dev;
++	uuid_t *id = &raw_rec->id;
++	int rc;
++
++	if (!uuid_equal(id, &CXL_EVENT_DC_EVENT_UUID))
++		return;
++
++	dev_dbg(dev, "DCD event %s : DPA:%#llx LEN:%#llx\n",
++		cxl_dcd_evt_type_str(event->event_type),
++		le64_to_cpu(extent->start_dpa), le64_to_cpu(extent->length));
++
++	switch (event->event_type) {
++	case DCD_ADD_CAPACITY:
++	case DCD_RELEASE_CAPACITY:
++		rc = handle_dcd_chain_event(mds, event);
++		break;
++	case DCD_FORCED_CAPACITY_RELEASE:
++		dev_err_ratelimited(dev, "Forced release event ignored.\n");
++		rc = 0;
++		break;
++	case DCD_REGION_CONFIGURATION_UPDATED:
++		dev_dbg(dev, "Region configuration updated event ignored.\n");
++		rc = 0;
++		break;
++	default:
++		rc = -EINVAL;
++		break;
++	}
++
++	if (rc)
++		dev_err_ratelimited(dev, "dcd event failed: %d\n", rc);
++}
++
+ static void cxl_mem_get_records_log(struct cxl_memdev_state *mds,
+ 				    enum cxl_event_log_type type)
  {
- 	return is_static(dev_dax->region);
-@@ -300,6 +305,9 @@ static unsigned long long dax_region_avail_size(struct dax_region *dax_region)
+@@ -1136,9 +1368,13 @@ static void cxl_mem_get_records_log(struct cxl_memdev_state *mds,
+ 		if (!nr_rec)
+ 			break;
  
- 	lockdep_assert_held(&dax_region_rwsem);
+-		for (i = 0; i < nr_rec; i++)
++		for (i = 0; i < nr_rec; i++) {
+ 			__cxl_event_trace_record(cxlmd, type,
+ 						 &payload->records[i]);
++			if (type == CXL_EVENT_TYPE_DCD)
++				cxl_handle_dcd_event_records(mds,
++							     &payload->records[i]);
++		}
  
-+	if (is_dcd(dax_region))
-+		return 0;
+ 		if (payload->flags & CXL_GET_EVENT_FLAG_OVERFLOW)
+ 			trace_cxl_overflow(cxlmd, type, payload);
+@@ -1170,6 +1406,8 @@ void cxl_mem_get_event_records(struct cxl_memdev_state *mds, u32 status)
+ {
+ 	dev_dbg(mds->cxlds.dev, "Reading event logs: %x\n", status);
+ 
++	if (cxl_dcd_supported(mds) && (status & CXLDEV_EVENT_STATUS_DCD))
++		cxl_mem_get_records_log(mds, CXL_EVENT_TYPE_DCD);
+ 	if (status & CXLDEV_EVENT_STATUS_FATAL)
+ 		cxl_mem_get_records_log(mds, CXL_EVENT_TYPE_FATAL);
+ 	if (status & CXLDEV_EVENT_STATUS_FAIL)
+@@ -1771,6 +2009,7 @@ struct cxl_memdev_state *cxl_memdev_state_create(struct device *dev, u64 serial,
+ 						 u16 dvsec)
+ {
+ 	struct cxl_memdev_state *mds;
++	int rc;
+ 
+ 	mds = devm_cxl_dev_state_create(dev, CXL_DEVTYPE_CLASSMEM, serial,
+ 					dvsec, struct cxl_memdev_state, cxlds,
+@@ -1781,6 +2020,11 @@ struct cxl_memdev_state *cxl_memdev_state_create(struct device *dev, u64 serial,
+ 	}
+ 
+ 	mutex_init(&mds->event.log_lock);
++	INIT_LIST_HEAD(&mds->dc_chain.pending_extents);
 +
- 	for_each_dax_region_resource(dax_region, res)
- 		size -= resource_size(res);
- 	return size;
-@@ -1389,6 +1397,8 @@ static umode_t dev_dax_visible(struct kobject *kobj, struct attribute *a, int n)
- 		return 0;
- 	if (a == &dev_attr_mapping.attr && is_static(dax_region))
- 		return 0;
-+	if (a == &dev_attr_mapping.attr && is_dcd(dax_region))
-+		return 0;
- 	if ((a == &dev_attr_align.attr ||
- 	     a == &dev_attr_size.attr) && is_static(dax_region))
- 		return 0444;
-diff --git a/drivers/dax/bus.h b/drivers/dax/bus.h
-index bfc31923f3ff..c877daa8df51 100644
---- a/drivers/dax/bus.h
-+++ b/drivers/dax/bus.h
-@@ -15,6 +15,7 @@ struct dax_region;
- /* dax bus specific ioresource flags */
- #define IORESOURCE_DAX_STATIC BIT(0)
- #define IORESOURCE_DAX_KMEM BIT(1)
-+#define IORESOURCE_DAX_DCD BIT(2)
++	rc = devm_add_action_or_reset(dev, clear_pending_extents, mds);
++	if (rc)
++		return ERR_PTR(rc);
  
- #define DAX_KMEM_UNPLUGGED	(-1) /* Do not create memory blocks */
+ 	return mds;
+ }
+diff --git a/drivers/cxl/core/trace.h b/drivers/cxl/core/trace.h
+index c379d60047fc..64c6ce0878e2 100644
+--- a/drivers/cxl/core/trace.h
++++ b/drivers/cxl/core/trace.h
+@@ -177,7 +177,8 @@ TRACE_EVENT(cxl_aer_correctable_error,
+ 		{ CXL_EVENT_TYPE_INFO, "Informational" },	\
+ 		{ CXL_EVENT_TYPE_WARN, "Warning" },		\
+ 		{ CXL_EVENT_TYPE_FAIL, "Failure" },		\
+-		{ CXL_EVENT_TYPE_FATAL, "Fatal" })
++		{ CXL_EVENT_TYPE_FATAL, "Fatal" },		\
++		{ CXL_EVENT_TYPE_DCD, "Dynamic Capacity" })
  
-diff --git a/drivers/dax/cxl.c b/drivers/dax/cxl.c
-index 3ab39b77843d..43eb18c8a035 100644
---- a/drivers/dax/cxl.c
-+++ b/drivers/dax/cxl.c
-@@ -13,19 +13,32 @@ static int cxl_dax_region_probe(struct device *dev)
- 	struct cxl_region *cxlr = cxlr_dax->cxlr;
- 	struct dax_region *dax_region;
- 	struct dev_dax_data data;
-+	resource_size_t dev_size;
-+	unsigned long flags;
+ TRACE_EVENT(cxl_overflow,
  
- 	if (nid == NUMA_NO_NODE)
- 		nid = memory_add_physaddr_to_nid(cxlr_dax->hpa_range.start);
+diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+index d098f7f50bef..64138e1768a1 100644
+--- a/drivers/cxl/cxl.h
++++ b/drivers/cxl/cxl.h
+@@ -12,6 +12,7 @@
+ #include <linux/node.h>
+ #include <linux/io.h>
+ #include <linux/range.h>
++#include <linux/xarray.h>
+ #include <cxl/cxl.h>
  
-+	if (cxlr->mode == CXL_PARTMODE_DYNAMIC_RAM)
-+		flags = IORESOURCE_DAX_DCD;
-+	else
-+		flags = IORESOURCE_DAX_KMEM;
+ extern const struct nvdimm_security_ops *cxl_security_ops;
+@@ -557,6 +558,14 @@ struct cxl_pmem_region {
+ 	struct cxl_pmem_region_mapping mapping[];
+ };
+ 
++/* See CXL r4.0 8.2.10.2.1.6 */
++enum dc_event {
++	DCD_ADD_CAPACITY,
++	DCD_RELEASE_CAPACITY,
++	DCD_FORCED_CAPACITY_RELEASE,
++	DCD_REGION_CONFIGURATION_UPDATED,
++};
 +
- 	dax_region = alloc_dax_region(dev, cxlr->id, &cxlr_dax->hpa_range, nid,
--				      PMD_SIZE, IORESOURCE_DAX_KMEM);
-+				      PMD_SIZE, flags);
- 	if (!dax_region)
- 		return -ENOMEM;
+ struct cxl_dax_region {
+ 	struct device dev;
+ 	struct cxl_region *cxlr;
+diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+index 35268d1c387c..c88de7cb65d1 100644
+--- a/drivers/cxl/cxlmem.h
++++ b/drivers/cxl/cxlmem.h
+@@ -7,6 +7,7 @@
+ #include <linux/cdev.h>
+ #include <linux/uuid.h>
+ #include <linux/node.h>
++#include <linux/list.h>
+ #include <cxl/event.h>
+ #include <cxl/mailbox.h>
+ #include "cxl.h"
+@@ -426,6 +427,24 @@ static inline struct cxl_dev_state *mbox_to_cxlds(struct cxl_mailbox *cxl_mbox)
+ 	return dev_get_drvdata(cxl_mbox->host);
+ }
  
-+	if (cxlr->mode == CXL_PARTMODE_DYNAMIC_RAM)
-+		/* Add empty seed dax device */
-+		dev_size = 0;
-+	else
-+		dev_size = range_len(&cxlr_dax->hpa_range);
++/**
++ * struct cxl_dc_event_chain - staged Dynamic Capacity event chain
++ * @pending_extents: extents received so far; flushed when the chain
++ *		     closes (More=0)
++ * @event_type: DCD event type of the open chain (add or release)
++ *
++ * The records of one Dynamic Capacity operation can be chained by the
++ * CXL_DCD_EVENT_MORE flag.  Chained records are contiguous in the event
++ * log and share one event type (CXL r4.0 Table 8-229), so at most one
++ * chain is open at a time.  Both Add Capacity and Release Capacity chains
++ * are staged here, @event_type says which.  Records are staged until
++ * More=0, then the chain is processed and responded to as a whole.
++ */
++struct cxl_dc_event_chain {
++	struct list_head pending_extents;
++	u8 event_type;
++};
 +
- 	data = (struct dev_dax_data) {
- 		.dax_region = dax_region,
- 		.id = -1,
--		.size = range_len(&cxlr_dax->hpa_range),
-+		.size = dev_size,
- 		.memmap_on_memory = true,
- 	};
+ /**
+  * struct cxl_memdev_state - Generic Type-3 Memory Device Class driver data
+  *
+@@ -444,6 +463,8 @@ static inline struct cxl_dev_state *mbox_to_cxlds(struct cxl_mailbox *cxl_mbox)
+  * @active_volatile_bytes: sum of hard + soft volatile
+  * @active_persistent_bytes: sum of hard + soft persistent
+  * @dcd_supported: all DCD commands are supported
++ * @dc_chain: the open Dynamic Capacity event chain, if any
++ *	      (see &struct cxl_dc_event_chain)
+  * @event: event log driver state
+  * @poison: poison driver state info
+  * @security: security driver state info
+@@ -463,6 +484,7 @@ struct cxl_memdev_state {
+ 	u64 active_volatile_bytes;
+ 	u64 active_persistent_bytes;
+ 	bool dcd_supported;
++	struct cxl_dc_event_chain dc_chain;
  
+ 	struct cxl_event_state event;
+ 	struct cxl_poison_state poison;
+@@ -538,6 +560,21 @@ enum cxl_opcode {
+ 	UUID_INIT(0x5e1819d9, 0x11a9, 0x400c, 0x81, 0x1f, 0xd6, 0x07, 0x19,     \
+ 		  0x40, 0x3d, 0x86)
+ 
++/*
++ * Add Dynamic Capacity Response
++ * CXL r4.0 Section 8.2.10.9.9.3; Table 8-350 & Table 8-351
++ */
++struct cxl_mbox_dc_response {
++	__le32 extent_list_size;
++	u8 flags;
++	u8 reserved[3];
++	struct updated_extent_list {
++		__le64 dpa_start;
++		__le64 length;
++		u8 reserved[8];
++	} __packed extent_list[] __counted_by_le(extent_list_size);
++} __packed;
++
+ struct cxl_mbox_get_supported_logs {
+ 	__le16 entries;
+ 	u8 rsvd[6];
+@@ -608,6 +645,14 @@ struct cxl_mbox_identify {
+ 	UUID_INIT(0xe71f3a40, 0x2d29, 0x4092, 0x8a, 0x39, 0x4d, 0x1c, 0x96, \
+ 		  0x6c, 0x7c, 0x65)
+ 
++/*
++ * Dynamic Capacity Event Record
++ * CXL r4.0 section 8.2.10.2.1; Table 8-221
++ */
++#define CXL_EVENT_DC_EVENT_UUID                                             \
++	UUID_INIT(0xca95afa7, 0xf183, 0x4018, 0x8c, 0x2f, 0x95, 0x26, 0x8e, \
++		  0x10, 0x1a, 0x2a)
++
+ /*
+  * Get Event Records output payload
+  * CXL rev 3.0 section 8.2.9.2.2; Table 8-50
+@@ -633,6 +678,7 @@ enum cxl_event_log_type {
+ 	CXL_EVENT_TYPE_WARN,
+ 	CXL_EVENT_TYPE_FAIL,
+ 	CXL_EVENT_TYPE_FATAL,
++	CXL_EVENT_TYPE_DCD,
+ 	CXL_EVENT_TYPE_MAX
+ };
+ 
+diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
+index 3ed7c3e70042..29541b8f79f2 100644
+--- a/drivers/cxl/pci.c
++++ b/drivers/cxl/pci.c
+@@ -510,12 +510,20 @@ static bool cxl_alloc_irq_vectors(struct pci_dev *pdev)
+ 	return true;
+ }
+ 
+-/* Event logs the driver drains: standard logs when native_cxl */
+-static u32 cxl_event_drain_mask(struct pci_host_bridge *host_bridge)
++/*
++ * Event logs the driver drains: standard logs when native_cxl, DCD when
++ * supported.
++ */
++static u32 cxl_event_drain_mask(struct pci_host_bridge *host_bridge,
++				struct cxl_memdev_state *mds)
+ {
++	u32 mask = 0;
++
+ 	if (host_bridge->native_cxl_error)
+-		return CXLDEV_EVENT_STATUS_STANDARD_LOGS;
+-	return 0;
++		mask |= CXLDEV_EVENT_STATUS_STANDARD_LOGS;
++	if (cxl_dcd_supported(mds))
++		mask |= CXLDEV_EVENT_STATUS_DCD;
++	return mask;
+ }
+ 
+ static irqreturn_t cxl_event_thread(int irq, void *id)
+@@ -525,7 +533,7 @@ static irqreturn_t cxl_event_thread(int irq, void *id)
+ 	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlds);
+ 	struct pci_host_bridge *host_bridge =
+ 		pci_find_host_bridge(to_pci_dev(cxlds->dev)->bus);
+-	u32 mask = cxl_event_drain_mask(host_bridge);
++	u32 mask = cxl_event_drain_mask(host_bridge, mds);
+ 	bool handled = false;
+ 	u32 status;
+ 
+@@ -786,7 +794,7 @@ static int cxl_event_config(struct pci_host_bridge *host_bridge,
+ 	if (rc)
+ 		return rc;
+ 
+-	mask = cxl_event_drain_mask(host_bridge);
++	mask = cxl_event_drain_mask(host_bridge, mds);
+ 	if (mask)
+ 		cxl_mem_get_event_records(mds, mask);
+ 
+diff --git a/include/cxl/event.h b/include/cxl/event.h
+index a9f5c2381cc9..f154ca952340 100644
+--- a/include/cxl/event.h
++++ b/include/cxl/event.h
+@@ -6,6 +6,7 @@
+ #include <linux/types.h>
+ #include <linux/uuid.h>
+ #include <linux/workqueue_types.h>
++#include <linux/list.h>
+ 
+ /*
+  * Common Event Record Format
+@@ -141,12 +142,48 @@ struct cxl_event_mem_sparing {
+ 	u8 reserved2[0x25];
+ } __packed;
+ 
++/*
++ * CXL r4.0 section 8.2.10.2.1.6; Table 8-230
++ */
++struct cxl_extent {
++	__le64 start_dpa;
++	__le64 length;
++	u8 uuid[UUID_SIZE];
++	__le16 shared_extn_seq;
++	u8 reserved[0x6];
++} __packed;
++
++struct cxl_extent_list_node {
++	struct cxl_extent *extent;
++	struct list_head list;
++};
++
++/*
++ * Dynamic Capacity Event Record
++ * CXL r4.0 section 8.2.10.2.1.6; Table 8-229
++ */
++#define CXL_DCD_EVENT_MORE			BIT(0)
++struct cxl_event_dcd {
++	struct cxl_event_record_hdr hdr;
++	u8 event_type;
++	u8 validity_flags;
++	__le16 host_id;
++	u8 updated_region_index;
++	u8 flags;
++	u8 reserved1[0x2];
++	struct cxl_extent extent;
++	u8 reserved2[0x18];
++	__le32 num_avail_extents;
++	__le32 num_avail_tags;
++} __packed;
++
+ union cxl_event {
+ 	struct cxl_event_generic generic;
+ 	struct cxl_event_gen_media gen_media;
+ 	struct cxl_event_dram dram;
+ 	struct cxl_event_mem_module mem_module;
+ 	struct cxl_event_mem_sparing mem_sparing;
++	struct cxl_event_dcd dcd;
+ 	/* dram & gen_media event header */
+ 	struct cxl_event_media_hdr media_hdr;
+ } __packed;
 -- 
 2.43.0
 
