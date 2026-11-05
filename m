@@ -1,51 +1,51 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.176
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.215.58.10
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793861995;
-	b=wSvpadikee6UPq3+ta8gV8kn8gMgSbdl3YfEtqgtHCVGR/xn3h/1lsTGQdwvo+D7WYOH
-	 apOhzS0AoCQgOIgxk9013AKMTwcfCjIjg84yCc+w8cyWmKnyRMOy8o5CyH4qzjrebU0Gs
-	 GZJyVuK39EJBEqlIgmoHbpUSpu/vQdeU2NXkH32Yl+HgIE3L93WQ+gGbHQNDciapMA9XN
-	 JArECez+HXNsYgM3hlj1NiARW38tmGBZT2vV36cOn7oyBLfU3w8DLRxXza6nFE9lhgsif
-	 vsLFbQLbZz2g1lm1cngfMQ5GOOYTwauIFLF08D2j/HhqsBpbkXzjDHxEKp89NkVE3cA==
+	t=1793862018;
+	b=NdRj1cQ+BFDgFOsXnK24FqxNgLAzN6rSJsI6rFdFy19ZziJfDKYmAczefYs+3A7KdazW
+	 mS91hIM7ZyqeQFPPy/08eyUW0FKeYJwOadIxpbLCiLAlWA2fpTiL3OziKu5X0Q2k0NsUN
+	 t7/XNjVqxBMnz8vxiTOSNcoY/hUdNOrzCXqxx267yqk+kfCpdGI6ZKyKnbfqBkmbAi3iy
+	 FiomHW46bz/RVHKG31xmSavK1PDrn/hYcfKQ2KQxfDNpjyJhm9Wb/gQ+9q0rPEIa4co9C
+	 gQEVUDzRTHcyKraXFyTLgJlkhVL+YS+oG+xZP+I7h7nW9QA6OYZBgD4hMdxh84U/IYA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793861995;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793862018;
 	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
 	 X-Mizu-Trace-ID:X-Migadu-Flow:From:To:Cc:Subject:Date:Message-ID:
 	 X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=giKD9GBB7SqWcODKYmNlG0gh8SE1gt/R19vK2YjohsA=;
-	b=kM1vl2n2wksQKS7C18MEual0ut70Rl4w8tHWcinDdaA/D5GIYu+CAP+cbAcZVWHSynjJ
-	 9NPuPHeFQQT+SzG1uHqMbXj+t282nTccVTzbQwoioxk23TqUG3rjx+5ORxWpEAByVX42N
-	 IMyTckRGCXFng0mMnMrM0mI4yvP4UoPU1gsZWvVDVhYNYrpzpIcmLcw9fIh/GcNmcyBxy
-	 mFdrLisCWp6SVkJ8QNEi+e9Rk/yRUaC6o9RTsLWpAAbtlY1+O5gsoyBPHOGp9VpzWH00J
-	 t0c+ETgW9L0RHESeHpfYdT/1IUsPJSzn88DxkdWeeeQC+v9R8ru9bf+rM5LBv9Y3ztw==
+	bh=0wrzHtFxjFXd7iU05CW3/ydQ7QCAtEugjeoklBp7xpE=;
+	b=lXF9W5TFHpfmlel4FK6bxWQm7WfLLmuHW959lyuczdkCphoJj6hEWkJecbjxv/XttBUp
+	 QHvMDi2tEJNwc72EhnStfHbgXeHOri1yUq47LU2avpgcNHrqEjzoENmC+s4jPEg7/rEfX
+	 3Ab4eS40wxYDNTQXxojBgTVGRadv+WgSYGyLDkAiohD8CsTaWMeAvH0PkJq/34agAUBFI
+	 AKXoC/bGmdh52eVpu8x0Hp5zx4+Kqcc1EPv13NXLs4ywhxFl1wK68YNYlbpwO4hkigpq/
+	 sqqSx5sQtyFC1GQlTNacTrYAsFnrvwV4yZg+laoyo4zyWbwqUn+92crUdnbQyI4Xvuw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=linux.dev;
 	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=UJkINKzK;
-	arc=none smtp.remote-ip=91.218.175.176
-Received: from mta0.migadu.com (out-176.mta0.migadu.com [91.218.175.176])
+	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=gu3dXD8o;
+	arc=none smtp.remote-ip=95.215.58.10
+Received: from mta1.migadu.com (out-10.mta1.migadu.com [95.215.58.10])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB4A5606A328
-	for <nvdimm@lists.linux.dev>; Thu,  5 Nov 2026 06:59:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EB4A5606A328
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 299EC606A32E
+	for <nvdimm@lists.linux.dev>; Thu,  5 Nov 2026 07:00:07 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 299EC606A32E
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=UJkINKzK
+	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=gu3dXD8o
 X-Envelope-To: nvdimm@lists.linux.dev
-DKIM-Signature: a=rsa-sha256; bh=Ht9W8rG1bvFhZOOVFyVUZBS1JBc1APtNoV+i3qOiW1c=;
+DKIM-Signature: a=rsa-sha256; bh=ax+wsuHoy6H96hgXiHuF6MzNsH6ADwaKJZJ1/7kMLiA=;
  c=simple/simple; d=linux.dev;
  h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1793861993; v=1; x=1794466793;
- b=UJkINKzKdtLYR8KtpZuaFU8oFOUGl8oRWRJRBWewSilr+ADj9oA9XTq+T9+x9L2sd0LBRZ6i
- Z/2TgFvG+kvx8D/3Hx3IU7wQqdyh+09q4ppm9LSPVLNI+LaQrJFS/qWfkiLqiLjqQ0vCkhMYn3y
- KBzd3Uw2/VTZ5LBroZQj6YH4=
+ t=1793862006; v=1; x=1794466806;
+ b=gu3dXD8ovEhih0rAWmev6W2AOFR/IDaEehfUUFgeNq3wirBmvDlKHAqm5p/Tz+SA1BiOQuOG
+ qCkwAa3XXnNoqIpcTagxmPi0o24Eif2ZmOzorQBk0pIqEJNSX3rILgB0r5bQ7BLrRzLo2c1K3q2
+ 2yZoCEZ1tjhFvPYpMUYTiwmY=
 X-Envelope-To: nvdimm@lists.linux.dev
-Received: by smtp.migadu.com with ESMTPS id 770e8c686bfb0362;
-	Thu, 05 Nov 2026 06:59:52 +0000
-X-Mizu-Trace-ID: 770e8c686bfb0362
+Received: by smtp.migadu.com with ESMTPS id 96e1fbcbd6d57c1a;
+	Thu, 05 Nov 2026 07:00:05 +0000
+X-Mizu-Trace-ID: 96e1fbcbd6d57c1a
 X-Migadu-Flow: FLOW_OUT
 From: Mengmeng Zhao <mengmeng.zhao@linux.dev>
 To: Jens Axboe <axboe@kernel.dk>,
@@ -73,9 +73,9 @@ Cc: linux-block@vger.kernel.org,
 	linux-xfs@vger.kernel.org,
 	linux-mm@kvack.org,
 	Li Wang <liwang@kylinos.cn>
-Subject: [RFC 3/6] dax: refuse dmabuf iterators in dax_iomap_rw()
-Date: Thu,  5 Nov 2026 14:58:44 +0800
-Message-ID: <20261105065847.196540-4-mengmeng.zhao@linux.dev>
+Subject: [RFC 4/6] iomap: refuse dmabuf iterators in iomap_file_buffered_write()
+Date: Thu,  5 Nov 2026 14:58:45 +0800
+Message-ID: <20261105065847.196540-5-mengmeng.zhao@linux.dev>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261105065847.196540-1-mengmeng.zhao@linux.dev>
 References: <20261105065847.196540-1-mengmeng.zhao@linux.dev>
@@ -92,33 +92,41 @@ Content-Transfer-Encoding: 8bit
 
 From: Mengmeng Zhao <zhaomengmeng@kylinos.cn>
 
-A dax access copies through the CPU linear address, which a device
-mapping cannot provide.  A dmabuf iterator reaching dax_iomap_rw()
-splats a WARN_ON_ONCE from iterate_and_advance2() and fails the I/O
-with EFAULT.  Refuse it up front with -EOPNOTSUPP, as the generic
-buffered copy paths already do.
+A buffered write copies through the CPU linear address, which a
+device mapping cannot provide.  fault_in_iov_iter_readable() treats
+a dmabuf iterator as always readable, so the copy fails with a
+WARN_ON_ONCE from iterate_and_advance2() and iomap_write_iter()
+retries the unchanged remainder forever.
+
+Refuse the iterator at the entry with -EOPNOTSUPP, as
+generic_perform_write() and the generic read paths already do, so
+that every generic buffered copy helper turns the iterator away
+before touching the page cache.
 
 Signed-off-by: Mengmeng Zhao <zhaomengmeng@kylinos.cn>
 Signed-off-by: Li Wang <liwang@kylinos.cn>
 ---
- fs/dax.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ fs/iomap/buffered-io.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 6ba50142eeb2..6ec08316aa6c 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1759,6 +1759,10 @@ dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
- 	if (!iomi.len)
- 		return 0;
+diff --git a/fs/iomap/buffered-io.c b/fs/iomap/buffered-io.c
+index 0a5ebfda90f1..3f56bd225e8c 100644
+--- a/fs/iomap/buffered-io.c
++++ b/fs/iomap/buffered-io.c
+@@ -1304,6 +1304,13 @@ iomap_file_buffered_write(struct kiocb *iocb, struct iov_iter *i,
+ 	};
+ 	ssize_t ret;
  
-+	/* dax copies through the CPU, which a device mapping bypasses */
-+	if (iov_iter_is_dmabuf_map(iter))
++	/*
++	 * A buffered write copies through the CPU linear address, which a
++	 * device mapping cannot provide.
++	 */
++	if (iov_iter_is_dmabuf_map(i))
 +		return -EOPNOTSUPP;
 +
- 	if (iov_iter_rw(iter) == WRITE) {
- 		lockdep_assert_held_write(&iomi.inode->i_rwsem);
- 		iomi.flags |= IOMAP_WRITE;
+ 	if (iocb->ki_flags & IOCB_NOWAIT)
+ 		iter.flags |= IOMAP_NOWAIT;
+ 	if (iocb->ki_flags & IOCB_DONTCACHE)
 -- 
 2.43.0
 
