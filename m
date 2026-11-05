@@ -1,51 +1,51 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.215.58.10
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.200
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793862018;
-	b=NdRj1cQ+BFDgFOsXnK24FqxNgLAzN6rSJsI6rFdFy19ZziJfDKYmAczefYs+3A7KdazW
-	 mS91hIM7ZyqeQFPPy/08eyUW0FKeYJwOadIxpbLCiLAlWA2fpTiL3OziKu5X0Q2k0NsUN
-	 t7/XNjVqxBMnz8vxiTOSNcoY/hUdNOrzCXqxx267yqk+kfCpdGI6ZKyKnbfqBkmbAi3iy
-	 FiomHW46bz/RVHKG31xmSavK1PDrn/hYcfKQ2KQxfDNpjyJhm9Wb/gQ+9q0rPEIa4co9C
-	 gQEVUDzRTHcyKraXFyTLgJlkhVL+YS+oG+xZP+I7h7nW9QA6OYZBgD4hMdxh84U/IYA==
+	t=1793862024;
+	b=jqSRopMB02JTmSXb3EdRjxlPnoyGxx2Zq+79OOnJYozBwtd5J7upV3NnOfxg57SfeC52
+	 ZKeUE8Mm+S7TuNuHC5T6gPZVfIH0g0vV5in9pECYww7x2Rrf1x4V/COCQwyneIU6scDmX
+	 ReXR8x+jPT9NxCSO2MwxRgkXMsTiKzNnz0UvL927BUgjnS1Y4CaTqf5t5ApX/UjV6k4SY
+	 kJ+xIIxsq628oAt9bPuzFCQINm2D7A1JN96FVSqLrvIIzrszNhm6gCRpvkUPI1BxkmnCx
+	 N2vmNqhCx5Tgk29ojrzL2WoBjSuLJ8lj9o2ek2UhwiH5KzE1OijvJd35Cs6koRMWCyw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793862018;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793862024;
 	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
 	 X-Mizu-Trace-ID:X-Migadu-Flow:From:To:Cc:Subject:Date:Message-ID:
 	 X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=0wrzHtFxjFXd7iU05CW3/ydQ7QCAtEugjeoklBp7xpE=;
-	b=lXF9W5TFHpfmlel4FK6bxWQm7WfLLmuHW959lyuczdkCphoJj6hEWkJecbjxv/XttBUp
-	 QHvMDi2tEJNwc72EhnStfHbgXeHOri1yUq47LU2avpgcNHrqEjzoENmC+s4jPEg7/rEfX
-	 3Ab4eS40wxYDNTQXxojBgTVGRadv+WgSYGyLDkAiohD8CsTaWMeAvH0PkJq/34agAUBFI
-	 AKXoC/bGmdh52eVpu8x0Hp5zx4+Kqcc1EPv13NXLs4ywhxFl1wK68YNYlbpwO4hkigpq/
-	 sqqSx5sQtyFC1GQlTNacTrYAsFnrvwV4yZg+laoyo4zyWbwqUn+92crUdnbQyI4Xvuw==
+	bh=Kx5WUkjnErrix8wXibd1Wzcuh2GC05qD7z4XDKSCne4=;
+	b=BfeLRfOuM9C5JqVacfh65oyS1AIgIdJHzcG4/PBZhhkSmLk0KjcP77pf1GT94Lj1PSgN
+	 DLXpbMsLD1Ymjl04Y+MkWOou1mlpfOtHYdSGDCJfSQqimI7WGwUyeG+K6v7azuObt8lqU
+	 vUR3wPGa1/RKuqu5uetbVA6sDyGh7Zel/3BUm3NPeJ3DbR/6fPndnDDQ4nh+pEN9uB8WO
+	 Clxpe8HhBH+LVE8LmzJCNXLGen09p5j3k2I7lINDLAKXN7Wo6kZFj3ezU6OWV4bFDLGZK
+	 4nR/NBkna+zuGTFmv5Hunfy+alqSvDhHIJw+uMVAN4FABTdNqEX10ZUV59EWkgqodeQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=linux.dev;
 	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=gu3dXD8o;
-	arc=none smtp.remote-ip=95.215.58.10
-Received: from mta1.migadu.com (out-10.mta1.migadu.com [95.215.58.10])
+	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=tLEI0IyM;
+	arc=none smtp.remote-ip=91.218.175.200
+Received: from mta0.migadu.com (out-200.mta0.migadu.com [91.218.175.200])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 299EC606A32E
-	for <nvdimm@lists.linux.dev>; Thu,  5 Nov 2026 07:00:07 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 299EC606A32E
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74BF5606A32F
+	for <nvdimm@lists.linux.dev>; Thu,  5 Nov 2026 07:00:23 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 74BF5606A32F
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=gu3dXD8o
+	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=tLEI0IyM
 X-Envelope-To: nvdimm@lists.linux.dev
-DKIM-Signature: a=rsa-sha256; bh=ax+wsuHoy6H96hgXiHuF6MzNsH6ADwaKJZJ1/7kMLiA=;
+DKIM-Signature: a=rsa-sha256; bh=J78YU5ZFO0YkJHWe7jsk/frJ8JTGoObKjxZIdpWIbcM=;
  c=simple/simple; d=linux.dev;
  h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1793862006; v=1; x=1794466806;
- b=gu3dXD8ovEhih0rAWmev6W2AOFR/IDaEehfUUFgeNq3wirBmvDlKHAqm5p/Tz+SA1BiOQuOG
- qCkwAa3XXnNoqIpcTagxmPi0o24Eif2ZmOzorQBk0pIqEJNSX3rILgB0r5bQ7BLrRzLo2c1K3q2
- 2yZoCEZ1tjhFvPYpMUYTiwmY=
+ t=1793862021; v=1; x=1794466821;
+ b=tLEI0IyM03Jx9PdNIr3UD/tEvPDKgYoO7sQaffewF3sLN+sjQl9i0vtYzf+JFZBfMVImQxHf
+ k1Fg3YCSvdSSRiFTKJfj8Xr/R5UM2WP9vkOBMbRE6zUHlO8Ky4+K3wYrJdJAdnm7SdJ1dnhe5dT
+ Mi3iTWH7mh7XM0ZeseSWInl4=
 X-Envelope-To: nvdimm@lists.linux.dev
-Received: by smtp.migadu.com with ESMTPS id 96e1fbcbd6d57c1a;
-	Thu, 05 Nov 2026 07:00:05 +0000
-X-Mizu-Trace-ID: 96e1fbcbd6d57c1a
+Received: by smtp.migadu.com with ESMTPS id 56e7aac47ff0582e;
+	Thu, 05 Nov 2026 07:00:19 +0000
+X-Mizu-Trace-ID: 56e7aac47ff0582e
 X-Migadu-Flow: FLOW_OUT
 From: Mengmeng Zhao <mengmeng.zhao@linux.dev>
 To: Jens Axboe <axboe@kernel.dk>,
@@ -73,9 +73,9 @@ Cc: linux-block@vger.kernel.org,
 	linux-xfs@vger.kernel.org,
 	linux-mm@kvack.org,
 	Li Wang <liwang@kylinos.cn>
-Subject: [RFC 4/6] iomap: refuse dmabuf iterators in iomap_file_buffered_write()
-Date: Thu,  5 Nov 2026 14:58:45 +0800
-Message-ID: <20261105065847.196540-5-mengmeng.zhao@linux.dev>
+Subject: [RFC 5/6] iomap: refuse dmabuf iterators on contents-encrypted inodes
+Date: Thu,  5 Nov 2026 14:58:46 +0800
+Message-ID: <20261105065847.196540-6-mengmeng.zhao@linux.dev>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261105065847.196540-1-mengmeng.zhao@linux.dev>
 References: <20261105065847.196540-1-mengmeng.zhao@linux.dev>
@@ -92,41 +92,48 @@ Content-Transfer-Encoding: 8bit
 
 From: Mengmeng Zhao <zhaomengmeng@kylinos.cn>
 
-A buffered write copies through the CPU linear address, which a
-device mapping cannot provide.  fault_in_iov_iter_readable() treats
-a dmabuf iterator as always readable, so the copy fails with a
-WARN_ON_ONCE from iterate_and_advance2() and iomap_write_iter()
-retries the unchanged remainder forever.
-
-Refuse the iterator at the entry with -EOPNOTSUPP, as
-generic_perform_write() and the generic read paths already do, so
-that every generic buffered copy helper turns the iterator away
-before touching the page cache.
+Contents encryption needs the crypto layer to reach the data pages of
+the bio: blk-crypto_fallback kmaps and memcpys them, which a device
+mapping does not allow.  Refuse the iterator in __iomap_dio_rw()
+before any bio is submitted instead of depending on each filesystem
+to keep dmabuf away from encrypted inodes, and in
+iomap_file_init_dma_buf_io_ctx() so that registration on an encrypted
+file fails up front.
 
 Signed-off-by: Mengmeng Zhao <zhaomengmeng@kylinos.cn>
 Signed-off-by: Li Wang <liwang@kylinos.cn>
 ---
- fs/iomap/buffered-io.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ fs/iomap/direct-io.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/fs/iomap/buffered-io.c b/fs/iomap/buffered-io.c
-index 0a5ebfda90f1..3f56bd225e8c 100644
---- a/fs/iomap/buffered-io.c
-+++ b/fs/iomap/buffered-io.c
-@@ -1304,6 +1304,13 @@ iomap_file_buffered_write(struct kiocb *iocb, struct iov_iter *i,
- 	};
- 	ssize_t ret;
+diff --git a/fs/iomap/direct-io.c b/fs/iomap/direct-io.c
+index fc40f4367ee7..aec47b70b084 100644
+--- a/fs/iomap/direct-io.c
++++ b/fs/iomap/direct-io.c
+@@ -728,6 +728,14 @@ __iomap_dio_rw(struct kiocb *iocb, struct iov_iter *iter,
+ 	if (iov_iter_is_dmabuf_map(iter) && (dio_flags & IOMAP_DIO_BOUNCE))
+ 		return ERR_PTR(-EOPNOTSUPP);
  
 +	/*
-+	 * A buffered write copies through the CPU linear address, which a
-+	 * device mapping cannot provide.
++	 * Contents encryption walks the bio pages in the crypto layer, which
++	 * a dmabuf bio has none of.  Reject before any bio is submitted.
 +	 */
-+	if (iov_iter_is_dmabuf_map(i))
-+		return -EOPNOTSUPP;
++	if (iov_iter_is_dmabuf_map(iter) &&
++	    fscrypt_needs_contents_encryption(inode))
++		return ERR_PTR(-EOPNOTSUPP);
 +
- 	if (iocb->ki_flags & IOCB_NOWAIT)
- 		iter.flags |= IOMAP_NOWAIT;
- 	if (iocb->ki_flags & IOCB_DONTCACHE)
+ 	dio = kmalloc_obj(*dio);
+ 	if (!dio)
+ 		return ERR_PTR(-ENOMEM);
+@@ -940,6 +948,8 @@ int iomap_file_init_dma_buf_io_ctx(struct file *file, struct block_device *bdev,
+ 
+ 	if (IS_DAX(inode))
+ 		return -EOPNOTSUPP;
++	if (fscrypt_needs_contents_encryption(inode))
++		return -EOPNOTSUPP;
+ 	return bdev_init_dma_buf_io_ctx(file, bdev, ctx);
+ }
+ EXPORT_SYMBOL_GPL(iomap_file_init_dma_buf_io_ctx);
 -- 
 2.43.0
 
