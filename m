@@ -1,101 +1,59 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.41
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794020504;
-	b=aNBko/3Jn3qdcJOJV4TbabBWyi3y43KowZjlfE7qu4vl0vOG8X/R+EKSNDLKB323KwVe
-	 T7+2wsyfjV8bjFEEEL3xWamWhYwmQ0XbD8rPmgZhAqiba1kqqQOH4jp+TwiymkaB9K9T4
-	 UxRPI3Ki3ooUz3R2aXW0gPsSeKpGjMQjVIWFlpGlL8F3blfcuUcX8VGIJJ3ZK/Yx8N5SS
-	 EFh5fDOaQGVcRxXwDuJ2KbVo61lD6zJ8k2b9P7CvBc2tMMIOlu6NOBH5siE5zmXJdQ7Uw
-	 jg0U09JkpJi66HrFTyefOMvlgrFmfQGdzEMTpn94YlLKJs9OpLXiJRynBFoabHzbxGA==
+	t=1794071147;
+	b=yqd8sNjZ4kc1Uk6s2+hDouNLv9sJ+XlYqxnfor1HE3QMMwl1hhG2CKV9Uzo8POVdY8yT
+	 rOBzQ+YLw6aJCYwALLVDE4mpdrYSmtSnL1DuOa6/Y9tEC2Jw3zOW1mfqm7cD6nkdLdKPA
+	 5fFpuycCUJSDkY0R5OjR/wByCgFj5PLrxEtsYDG4Uy+HVGddjjB3MApCLjKpBVPwJaVrd
+	 Rnh9fIGBVSYcGxsAPRUtNp4Zec7e/QKt7WwcWvid9Tvk3DSfN43cyvWlt53mzzMkiQFkh
+	 ukPqjZYxZ/P/dCE6/PL98HzbwiUULJIkzrj8Q2N8ttQu6A3rvEoMZuK4LzHt9SJZ+wA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794020504;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=c7RdJd1ac0ZTEx+/NYzXEY+S8dr+3ZAZRK/h78/Mnrs=;
-	b=1ohApgpFbCABQ4VnWacYqQ+wBYva1lUiHLYnzgNwH4EXRtEumXEbcOQcZnyVJnovNKGK
-	 jT1c3r6hdKkdYB1nJorkfk/BUu0xACb4ZqT20okTxXV4xlIUaowe5hVkVA9Humaa/kP0Z
-	 nnBOYTVnEvjO7CM87U1Mr5HQujFMcZzoaTEXfWQvo4wuxEVqq06RpVmxwET67THQ+DNo/
-	 jk8eHBdxpiQXyHVeDjlgn/ipDFpvI3dWlXcY+lnidWKg24KI/5SSiwATXGzcUL9BjV+SQ
-	 9+kUWeRXUlVFZOuaPGrll4JZFpcieg5nCHdOnRey78bMKpyt4doXfAJW/Au1E/T2Bnw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794071147;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=iJmGchz1AX0vrnO9zoYnlDu0hojN7QEExY5Nx/DdNy0=;
+	b=EBy+/T+WlW2M7yAIzUiYbTRiwlOvBKKt3ZiPs+rI+Ycpkzem36qeW9jwIcfsYV/+8vYd
+	 nwdBpWulvVJTQJtNekUCaxAnhyu0KrOz8goiIrGJFA7CHM0s3fJP/MgzNtK+M+CJFgqJY
+	 Bq0wZuFAcFsrAOMWNCLi4k4TVKnjHmfcQujqi3tNwz3vMJzC+kSUqylEW+Ls44rCF4D0i
+	 EdjqwvKLv1Ed2Bu5Y+yYNuKzIVk3OX0k/R2X4i2TczL7rHhdhN8MHxALPwOncKAcW7Pgn
+	 fdoFMZmHAUrlxyg4+oKY3iFuyjfJfA047J9+NjSM4Crzw+GVSpJFMT3jUQ8cxqWjJJQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=bytedance.com;
-	spf=pass smtp.mailfrom=bytedance.com;
-	dkim=pass header.d=bytedance.com header.i=@bytedance.com header.a=rsa-sha256 header.s=google header.b="S/gN4aRF";
-	arc=none smtp.remote-ip=74.125.82.41
-Received: from mail-dl1-f41.google.com (mail-dl1-f41.google.com [74.125.82.41])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="jU+yyG/X";
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D8F6606A326
-	for <nvdimm@lists.linux.dev>; Sat,  7 Nov 2026 03:01:43 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9D8F6606A326
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04800606A326
+	for <nvdimm@lists.linux.dev>; Sat,  7 Nov 2026 17:05:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=bytedance.com header.i=@bytedance.com header.a=rsa-sha256 header.s=google header.b=S/gN4aRF
-Received: by mail-dl1-f41.google.com with SMTP id a92af1059eb24-1ae18eb9b69so1512254c88.0
-        for <nvdimm@lists.linux.dev>; Fri, 06 Nov 2026 19:01:43 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance.com; s=google; t=1794020503; x=1794625303; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=c7RdJd1ac0ZTEx+/NYzXEY+S8dr+3ZAZRK/h78/Mnrs=;
-        b=S/gN4aRFdzZdIh/C5l7VcqbyYPbPzWtK0SrW5vrirWPm36JUJlaeJE2Aq+TOMb7a5A
-         4zW5TxVXx/p742++BmMtj/1hYIF7RRyG4qvCU6Yx61s3JCe0nGyI/LqHcSeljoFs+Ug9
-         B2ke8UfuROYxs0ClBpC4lUm5Ise/HGMsAO/gKW4DqhbpNdWhVLIhl7aWuU5zW04YT0H5
-         pSW1tqc0hwPO5Uq/4fD+7Hss0pvPci8lMdq55r+Olzs3owxyjcdqtI/zQdfHTP5T+zuN
-         KzoDMbqh2d37vN/y6NSPT8eqkhS85GZuGUF5KzhdEI1nM8G6JvGJhFJ4fHywsjExXlIL
-         wANA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794020503; x=1794625303;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=c7RdJd1ac0ZTEx+/NYzXEY+S8dr+3ZAZRK/h78/Mnrs=;
-        b=YgmwF8qnp62EL52B5iuPnhQE5pZEJJ11eW213ztwo5MI7Vk3yrJDtfV0JPBLtnCOvc
-         bRQZf5lck5OPzgncd0SlcEmCUzI8GMWYBGSZYr1Sf6YqoYlaZ+VBT7jvSGvODYp7X9YK
-         YstPdoIDbTY9Nd+1TRYGNCZMrYgy5dMGvrnepXQ6ps43eQSFMIU6UgIU5nDBAzNurdBy
-         Rg1lWGTVohEyIDlWtBIMnzsc3cWs4Yaecf7tlzEXRdy5OsoZDFOlX54sEfP6lPIJGvuZ
-         KS4cqxJZEErH7dMybrtfIYB1K0QfIJD1guliqdWqgVtYWjy+U4fdlU/6MdhOOFCwddQG
-         41Iw==
-X-Forwarded-Encrypted: i=1; AKwUvBwqvQoAFYCvvJVZgw4ey54sQGY7YWyFny2jbz5x8miStBnMsAJkG3rXlhn8uY9mcmZKHF0LQ8M=@lists.linux.dev
-X-Gm-Message-State: APuU4Z9Gw+R4rHs2v9KCCBOZ5PBY/92pL6X0FUSagXiDU/0oNw+Y2ZgF
-	rz7QkqYlfJcvU2Xk9iMV5qnTx8H4JuVuPJy8Mfllke+bFHCQoahueu634zs5c8+71fk=
-X-Gm-Gg: AYBFou1h4mL3amVJ9YT8Puj6MXVeSuWemTfF4dLskjCBLvawCCso+peT3nxCEaw02rz
-	I3mFaCKt2SZ8Eewh8E7TRqVRinCUTG4lMlwLeCvDM/9d3CRLPUnEhz0Eb5XISnYcPxIeLTKFARr
-	OIAmRIuhHZKKoJ02L4dg7gYNbi86XvdL2RpRkVh//Sm8Nuusvzko/jP+UgBmFfqH46hzlIG/fCa
-	Tr4k3dB+M/rY2XOeRdm0yLg9RFMIo5QgLglzOgX358RlXozvozM1kj4tM2OIHs5hHJjqLwPm0Dz
-	U7fi00KUz/NyidsB09otAiECJV7X6TY0D0GIEMiZIMkX6+pHrdpdiGnDw4ZhH6bS0u88OqVT32E
-	VKp6PPMZ70c1ly00KTOZjSrhRCcKYSDtPAR/X7CoJ62YnmAbiIQc35tDoLDL7F1oonbEC9zwujj
-	HXGjgEEvyq9nhIHi8WEgAqGljPZ4sB+HBiiWacXhQCDbbzMrSz3l5sC9JusF5s1/ztFGxPgLmcY
-	Ul4FZII0telYK16KSnVRFrrh3EHITq7jk/N3c1VPNOhkPoZXFir5m2lPXgAL5QzvmBZcEeavPea
-	JCFDsm8FuWk5lFyjciybaFComQa2h/4J82UlxUe5n1LJWZn6zSdOBbfIw1ElJw==
-X-Received: by 2002:a05:7023:a5a:b0:1a0:e3e2:22a3 with SMTP id a92af1059eb24-1b25d33a590mr5333663c88.31.1794020502203;
-        Fri, 06 Nov 2026 19:01:42 -0800 (PST)
-Received: from G6L4RL2QG9 ([2409:8a00:1832:6900:c8de:13da:804b:a0fa])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1b25e4b4aa7sm9534473c88.13.2026.11.06.19.01.35
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Fri, 06 Nov 2026 19:01:40 -0800 (PST)
-From: Muchun Song <songmuchun@bytedance.com>
-To: Dan Williams <djbw@kernel.org>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Joao Martins <joao.m.martins@oracle.com>,
-	Ritesh Harjani <ritesh.list@gmail.com>,
-	Pavithra Prakash <pavrampu@linux.ibm.com>,
-	Muchun Song <muchun.song@linux.dev>,
-	stable@vger.kernel.org,
-	nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Muchun Song <songmuchun@bytedance.com>
-Subject: [PATCH v2] dax/pmem: fix unaligned compound devmap initialization
-Date: Sat,  7 Nov 2026 11:01:26 +0800
-Message-ID: <20261107030126.90894-1-songmuchun@bytedance.com>
-X-Mailer: git-send-email 2.54.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jU+yyG/X
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CEFD1F0089F;
+	Sat,  7 Nov 2026 17:05:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794071146;
+	bh=iJmGchz1AX0vrnO9zoYnlDu0hojN7QEExY5Nx/DdNy0=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=jU+yyG/X1Uzp0VTQ2A3quFIHuu14tHMl3Pf0hihLFfwdzxrcfX9N9xa9d22lSOVxY
+	 /fg5qR9/SPU++x0HAyXzUsN6Ui/H4L7tvWRm+FgCrde3mxfgxlW6ybd66MBb+iD98T
+	 dH4pHXyLdOLFUYu4jYqOC1+HvGo8I0SRAw0xr+iETVRjHsQzRnyjOu7A+jv5LhNjnG
+	 J0+Uqs1YHFD+N/34Ku5G8C6uVefMmaRod/JgO8+pt97UvInc3B1iq0M04cf9M/460T
+	 U/WiWlPPO/MlB+oj7eDZhimuapdqqXD/Wup2hhNNolmBKod8NnKYwlsboprhpogy8w
+	 mukvWZnbIVV+A==
+Message-ID: <sashiko-outbox-203086@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH] mm/huge_memory: use folio_dup_file_rmap_pud() in
+ copy_huge_pud()
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Konstantin Khorenko" <khorenko@virtuozzo.com>, "David Hildenbrand" <david@kernel.org>, "Zi
+ Yan" <ziy@nvidia.com>, "Andrew Morton" <akpm@linux-foundation.org>, "Lorenzo
+ Stoakes" <ljs@kernel.org>, "Alistair Popple" <apopple@nvidia.com>, "Dan
+ Williams" <djbw@kernel.org>
+Cc: linux-mm@kvack.org, nvdimm@lists.linux.dev
+In-Reply-To: <20261106-khorenko-vstor-151183-copy_huge_pud-dup-rmap-v1-1-cf8ee4fafabb@virtuozzo.com>
+References: <20261106-khorenko-vstor-151183-copy_huge_pud-dup-rmap-v1-1-cf8ee4fafabb@virtuozzo.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Sat, 07 Nov 2026 17:05:45 +0000
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -104,68 +62,62 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 List-Owner: <mailto:nvdimm+owner@lists.linux.dev>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-Static pmem Device DAX namespaces reserve space for namespace metadata
-before the user-visible data range, and may also include padding needed
-to satisfy the Device DAX alignment. __dax_pmem_probe() adjusts the
-dax_region range to start at the data range, but the dev_pagemap range
-still starts at the beginning of the namespace.
+Thank you for your contribution! Sashiko AI review found no new issues
+in this patch, but noticed 1 related pre-existing issue it does not
+introduce:
+- [Medium] mm: hardware A/D bits discarded for PUD folios in
+  zap_huge_pud() [1]
+--
 
-That is not valid for compound devmap mappings whose memmap is stored in
-system RAM. Compound page initialization requires the start PFN to be
-naturally aligned to the compound page size, because the head and tail
-struct pages are initialized according to that geometry. If the pgmap
-starts before the aligned data range, memmap_init_zone_device() can build
-compound page metadata from an unaligned PFN.
+commit a6bb79712598f2da7fdcc94c9b1b5f8b9aad8851
+Author: Konstantin Khorenko <khorenko@virtuozzo.com>
 
-The resulting struct page layout is inconsistent with the Device DAX
-mapping. A later mmap fault can then resolve the user-visible PFN through
-invalid compound page metadata and hit a kernel panic while inserting the
-DAX folio.
+mm/huge_memory: use folio_dup_file_rmap_pud() in copy_huge_pud()
 
-Fix this by rounding the pgmap start up to the Device DAX alignment for
-non-altmap mappings. This gives compound mappings the required naturally
-aligned start while retaining full-section vmemmap savings when the
-original start is already aligned. The altmap path remains unchanged
-because memmap_init_zone_device() skips the altmap reservation itself.
+This commit adds folio_dup_file_rmap_pud() to duplicate file rmap mapcounts
+at the PUD level and uses it in copy_huge_pud() instead of
+folio_add_file_rmap_pud().
 
-Fixes: 14606001efb4 ("device-dax: compound devmap support")
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reported-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Closes: https://lore.kernel.org/r/wlrkqqvg.ritesh.list@gmail.com
----
-v2:
-- Round the pgmap start up to the Device DAX alignment to retain
-  full-section vmemmap savings (suggested by Alison Schofield)
-- Update the commit message to describe the alignment approach
+> diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+> index d0e19d9e6b651..13caf81cb51af 100644
+> --- a/mm/huge_memory.c
+> +++ b/mm/huge_memory.c
+> @@ -2100,7 +2100,7 @@ int copy_huge_pud(struct vm_area_struct *dst_vma, s=
+truct vm_area_struct *src_vma
+>  		 * TODO: once we support anonymous pages, use
+>  		 * folio_try_dup_anon_rmap_*() and split if duplicating fails.
+>  		 */
+> -		folio_add_file_rmap_pud(folio, page, dst_vma);
+> +		folio_dup_file_rmap_pud(folio, page, dst_vma);
+>  		add_mm_counter(dst_mm, mm_counter_file(folio), HPAGE_PUD_NR);
+>  	}
 
-v1: https://lore.kernel.org/20261016054914.2601510-1-songmuchun@bytedance.com/
----
- drivers/dax/pmem.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+[Severity: Medium]
+This problem wasn't introduced by this patch, but does zap_huge_pud()
+discard hardware accessed and dirty bits on the PUD folio [1]?
 
-diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
-index bee93066a849..d54d23f1cc58 100644
---- a/drivers/dax/pmem.c
-+++ b/drivers/dax/pmem.c
-@@ -51,6 +51,12 @@ static struct dev_dax *__dax_pmem_probe(struct device *dev)
- 	/* adjust the dax_region range to the start of data */
- 	range = pgmap.range;
- 	range.start += offset;
-+	/*
-+	 * When the memmap is stored in RAM, compound page initialization
-+	 * must start at a naturally aligned address.
-+	 */
-+	if (!pgmap_altmap(&pgmap))
-+		pgmap.range.start = ALIGN(pgmap.range.start, nd_pfn->align);
- 	dax_region = alloc_dax_region(dev, region_id, &range,
- 			nd_region->target_node, le32_to_cpu(pfn_sb->align),
- 			IORESOURCE_DAX_STATIC);
+mm/huge_memory.c:zap_huge_pud() {
+	...
+	orig_pud =3D pudp_huge_get_and_clear_full(vma, addr, pud, tlb->fullmm);
+	...
+	} else {
+		...
+		page =3D pud_page(orig_pud);
+		folio =3D page_folio(page);
+		folio_remove_rmap_pud(folio, page, vma);
+		add_mm_counter(tlb->mm, mm_counter_file(folio), -HPAGE_PUD_NR);
+	...
+}
 
-base-commit: a91337fb5e8e0127c8b5be87be9f3027f95b48bc
--- 
-2.54.0
+Unlike zap_huge_pmd(), which checks the cleared entry and calls
+folio_mark_accessed() and folio_mark_dirty(), zap_huge_pud() removes the
+PUD rmap without propagating the young and dirty bits from orig_pud to the
+folio.  When unmapping a refcounted Device DAX PUD mapping, those hardware
+A/D bits are lost, leaving the folio with stale access and dirty state.
 
+[1] https://sashiko.dev/#/bug/linux-d2fca843-ce3d-48bf-9ef3-bf87872ea6ec
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261106-khorenko-v=
+stor-151183-copy_huge_pud-dup-rmap-v1-1-cf8ee4fafabb@virtuozzo.com?part=3D1
