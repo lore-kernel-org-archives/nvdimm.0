@@ -1,84 +1,51 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.181
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794334049;
-	b=jme0J8A88GSpQDg5qT0evxtTmiIDoj6O9FCQOIvmQgZC1WO4Legkq1nnC/uW1ToKWyj5
-	 Frsw0eLcvpfJFsQxlfTIQ1pZb8yPWvOj0EDqaSmZQ0htP/Swq/z3mzO3dx2B8kOJd4Pe7
-	 RYC3qG/69mja/0Qvw7oGbnGQb1I2EvHoTcFbHCjPA40Al30u9rWEimpyIqli/oZ6/ae8U
-	 kVB9WwuSVFt6cx2il776Z6I5H+8dlhf4Yh/moruYIvzr5v+9aGyc4Pl8KI9aDMETXTeo/
-	 AsnQPuzlL5OYjSKky9T+nbR5XYri5mDVv9dlU6b7xcEVbt/WU4akmg61p092c6yn3+g==
+	t=1794344528;
+	b=Y0KH3MtN7EKN7G7Nhw4NyWKHJ71le6gReIjNPrJ2/9gTNbYd6FUC6gbRSXeGjOj3D6Bx
+	 ZfjMvFUGaO39yU+5WoXtxkk0ZJbEzizpoWZJRE0jR7Dgc0IUA0VZSc7Ist5IVA/U3FiXg
+	 qJtKRECB4xqhW8VjOvJ9rCnfhm5qw+SdSgi0057XYeLzvqY7PEcUUUd/cbl0Oj3/qNqXY
+	 2FzzNUbT4YqisDwaPgj6656lIGeUGV6kJxf9dNLmSsPw7szcOLQfdo7qs6V2EdZI47Bkp
+	 64QAnDvhcnmbJAjTEpQEJJoPl3jhI/H6QcLadkxiDNJ7BbDGJfVlDfwYYwodGo6bUfA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794334049;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 MIME-Version:Content-Type:Content-Transfer-Encoding:Subject:From:To:
-	 Cc:In-Reply-To:References:Date:Message-Id:X-Mailer;
-	bh=/93bouI9CcjSIYEarFZ2TsV/Z5miSOYaycaZE18W1uo=;
-	b=rVhSx02GVcWFg1EbCQZx8fXRD20lJ3zxJG2R29nOs6RKRCnszFUPxyNMW3Z96wllPzsb
-	 ZY8V23Mctk8UmfpDznNs+dYfC1qfUqFqgEp+tDmvnIr/wGDWHP36i0f4xr6gSAs+unEtk
-	 yEt+F3iHyy9UR04X/TJNf50OUfGKM5D9If5UZVKshRfEjyVPUGapK3NYNSSMgbXsRPAOm
-	 2RvsSCEmt/P295tmJWx44PjUe0M0tPovQl+yedKm/Mj8XC8oV9ehglyn9hm0DFl4t8sam
-	 vMkA6RF2AKHQ0RMO+IazDDErxHZM592jzj23AcFZodLuu6BdcfDGGQOpe297hBcNRHg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794344528;
+	h=Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=TYw+lTDw9uZUPVqkSCGZ4s7jhz0x5pD5eMZjD1rHixE=;
+	b=ryviXmyibKtB3Hh4TfypNislBJgzglgt+0VJmUdfggqyyl4oB0JLABOtEDPdvSJFdH37
+	 kUGIe/TdyQHw4Urj/FGcsGodc4TDIn8G0T0czWwuPfJRvAw2yh3pDepIanCFACNuT0la6
+	 W5bORA8nSr3w7ctQhFH4cMWj83hl0IAOWU8u0R6zmlgfvM7rTOxiMxTH+M5umeJXRGRJh
+	 mu8mvddcjVg6AoNOURbSzxReIT13aRox8WPCOatVGrBxX5Qmk8CsTQbMucqNHmtvr+5Is
+	 kdhviFKb45gdIQ8OPEMTD36ghHO1nopq3uKP8geO/1ZlWtZulCwgH4eu5N+QOXxFqmA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=vRVBR98Y;
-	arc=none smtp.remote-ip=74.125.82.181
-Received: from mail-dy1-f181.google.com (mail-dy1-f181.google.com [74.125.82.181])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17F4D606A320
-	for <nvdimm@lists.linux.dev>; Tue, 10 Nov 2026 18:07:27 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 17F4D606A320
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=vRVBR98Y
-Received: by mail-dy1-f181.google.com with SMTP id 5a478bee46e88-37000e7234bso4305400eec.1
-        for <nvdimm@lists.linux.dev>; Tue, 10 Nov 2026 10:07:27 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794334047; x=1794938847; darn=lists.linux.dev;
-        h=message-id:date:references:in-reply-to:cc:to:from:subject
-         :content-transfer-encoding:content-type:mime-version:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=/93bouI9CcjSIYEarFZ2TsV/Z5miSOYaycaZE18W1uo=;
-        b=vRVBR98YDUcnMRZ5f/xCMQbZohjGlYKckX+NOfeW/R4bNjk1Mo9POi2NFBztXtRA5Y
-         YNJ49zm9sJgfugUyaFsh0pr1OP7DApzmzsyE1Frmdwj+HC9sbZw1XXxWTZp6ui++xn7M
-         J5DtyxgQ1Mcqi278fWdHsRjn89dJg8DoyTHD0VX+4FjpUOuKeSrMVPd24+J7mzU8ECzM
-         eppkts6PwdWr9kO51dUIPw2YErAku+8NxXpEb5hoanlKKls+QVzcXiqJBHEZVpoJ/CfG
-         +EPYZrEN1qqtfIkf/NlJdyEMKwN2Q/0bBySMuQ5xM/hvJV8f4H8H4cJnkEZSXR6scvXb
-         TTHw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794334047; x=1794938847;
-        h=message-id:date:references:in-reply-to:cc:to:from:subject
-         :content-transfer-encoding:content-type:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=/93bouI9CcjSIYEarFZ2TsV/Z5miSOYaycaZE18W1uo=;
-        b=sK40JfsQejTl7saNfORKRgPe5CTYfADu5oZdhcGUePqMIdnKHKZX7/CSwp3xaEbab/
-         34Qlu4jDtXxXa5q2/DvFW5bPB84SYqqMJReTkXeNlpKHg4L12J15T1l6YyUR0nnNjPxK
-         XkN6IANnoMneqyvEjMsUE9wS6x26WBhyshl6uSvld34LDvLFntR3J7dza56yW75Ob4UP
-         QfJrZwl6hcdIeOt87AKeHP1cVnCyhRzRUyXdgrLguBMQKdaT+dRds8gRs0SB20O4iNLl
-         gucZYdAT/B1qwLrVVE2aiTZFj7HWqZrEtzMuPI9CO/vJg2de6T1oUMTZr+FVjGkTi9zq
-         pkJg==
-X-Forwarded-Encrypted: i=1; AL+hErHKUVrrwKW9Y1mdccqTcDn23C8WhNW9GJAgeQA2GDpwfOSCEQzlcxIAK2npb4pI+0opMwX0AUM=@lists.linux.dev
-X-Gm-Message-State: APuU4Z8vZhOkwYtDP1O3oYuWCc9lduQIfOaJUhJIZ92oYOLiLTqPXigl
-	FfbBgglaJneX59BQCHeMRHX5i42EkNixI4EfStQv7Uqx7x6kHq7aCqnq
-X-Gm-Gg: AYBFou3g5mslZoZQ0AlLfGd15fVvlPubE4Ij3hCv0cLtQgjDvM0bEBTcJUk+1ivO/E3
-	pkFMNc9Kz0RRVT3qu8JDJO/HrF/mjELG51LTb0PzPYheOLTzZyItdSFzArhrE+caolaZQystYmE
-	2yQBSgXFamJlgrFLr50HMB8bTDB85ivkcIo1c0Gs/Q39hB4p5AGBEW8w/GQ5OJ+jS3g1LuYNAbG
-	DfeKA5TtOedxRXGwJcofhnVHACeva8ZTqna1B5t4gKkhEBXlFjjVFtyfcJP80tnx1kjxxhz2mn/
-	x5jxl3nXE16XYtI/Vh8oYuHH8598TiaH6HgewSQBSS9BYwjAqf8DqezRD06nkg27UdNqTHeoJGJ
-	a0jYFcxhrdAhvz66TJToH9gyvIysQVy/uTDKwdQBsoZw/n2621vBZfzaPyBx2G4yCHwneIHXuJa
-	eBaz5q/gnVE0kzIM5yzR8fhMRmAf8BO9ksLhj9lNDdeP2jzmcJ9sAq4QYkjp+JQ1VSUR1YgXZOB
-	lKGmaOjSbDoKlFg7w2D8ftqTbv4or6UXHYS1O/UdeaHYJZUJarJuHjUBi/5loQ2P0xL6AU9g65D
-	isMl2lENtPylRwHB4m8N2GXr5WXhXkB9cfyfig==
-X-Received: by 2002:a05:693c:2a17:b0:36d:a465:b38e with SMTP id 5a478bee46e88-3768395f032mr102273eec.5.1794334046759;
-        Tue, 10 Nov 2026 10:07:26 -0800 (PST)
-Received: from [192.168.29.85] ([2405:201:8026:213e:7392:6aad:f285:27fa])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3751d9f135asm8302893eec.2.2026.11.10.10.07.23
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 10 Nov 2026 10:07:26 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A9E7606A320;
+	Tue, 10 Nov 2026 21:02:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38C901F008A4;
+	Tue, 10 Nov 2026 21:02:08 +0000 (UTC)
+From: Dave Jiang <dave.jiang@intel.com>
+To: linux-cxl@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	linux-crypto@vger.kernel.org,
+	dmaengine@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: Alison Schofield <alison.schofield@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Matthew Wilcox <willy@infradead.org>,
+	Jan Kara <jack@suse.cz>,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Vinod Koul <vkoul@kernel.org>,
+	Frank Li <Frank.Li@kernel.org>,
+	Alistair Popple <apopple@nvidia.com>,
+	Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+Subject: [PATCH v2] MAINTAINERS: Update CXL, NVDIMM, DAX, and others for djbw
+Date: Tue, 10 Nov 2026 14:01:52 -0700
+Message-ID: <20261110210152.3494345-1-dave.jiang@intel.com>
+X-Mailer: git-send-email 2.54.0
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -88,76 +55,118 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 List-Owner: <mailto:nvdimm+owner@lists.linux.dev>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH] nvdimm/pmem: Fix disk resource cleanup on
- initialization failure
-From: mdshahid03@gmail.com
-To: Alison Schofield <alison.schofield@intel.com>
-Cc: mdshahid03@gmail.com, vishal.l.verma@intel.com, dave.jiang@intel.com, 
- iweiny@kernel.org, nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org
-In-Reply-To: <au0PabL2q2640uWI@aschofie-mobl2.lan>
-References: <20261104161825.314835-1-mdshahid03@gmail.com>
- <au0PabL2q2640uWI@aschofie-mobl2.lan>
-Date: Tue, 10 Nov 2026 23:37:07 +0530
-Message-Id: <179433402708.154498.2389032583809626611.b4-reply@b4>
-X-Mailer: b4 0.16.0
+Content-Transfer-Encoding: 8bit
 
-Thanks Alison .
+Dan is no longer with us. Removing entries in MAINTAINERS to prevent
+people from keep emailing his address.
 
-Lesson learned !!!
+Frank will take over for async_tx until the feature is removed.
 
-On 2026-11-05 15:21 -0800, Alison Schofield wrote:
-> On Wed, Nov 04, 2026 at 09:48:25PM +0530, mdshahid03@gmail.com wrote:
-> > From: Mohammad Shahid <mdshahid03@gmail.com>
-> > 
-> > pmem_attach_disk() allocates a disk using blk_alloc_disk()
-> > before initializing badblocks.
-> > 
-> > If devm_init_badblocks() fails, the function return directly
-> > without releasing the previously allocated disk.
-> > 
-> > Use the existing cleanup path to release the disk and preserve
-> > the original error code returned by devm_init_badblocks().
-> 
-> Hi Mohammad,
-> 
-> Your patch looks right but this leak is fixed in v7.4-rc1 by: 
-> 855a46681e0b ("nvdimm/pmem: Release gendisk on probe failure")
-> 
-> Basing and building your patches on the latest tree, usually
-> the most recent mainline -rc before sending helps avoid this.
-> Sometimes a patch is also just on the mailing list, so check
-> the list too.
-> 
-> -- Alison
-> 
-> > 
-> > Signed-off-by: Mohammad Shahid <mdshahid03@gmail.com>
-> > ---
-> >  drivers/nvdimm/pmem.c | 5 +++--
-> >  1 file changed, 3 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-> > index 5fb86595e8bd..76e80eccc8e7 100644
-> > --- a/drivers/nvdimm/pmem.c
-> > +++ b/drivers/nvdimm/pmem.c
-> > @@ -563,8 +563,9 @@ static int pmem_attach_disk(struct device *dev,
-> >  	nvdimm_namespace_disk_name(ndns, disk->disk_name);
-> >  	set_capacity(disk, (pmem->size - pmem->pfn_pad - pmem->data_offset)
-> >  			/ 512);
-> > -	if (devm_init_badblocks(dev, &pmem->bb))
-> > -		return -ENOMEM;
-> > +	rc = devm_init_badblocks(dev, &pmem->bb);
-> > +	if (rc)
-> > +		goto out;
-> >  	nvdimm_badblocks_populate(nd_region, &pmem->bb, &bb_range);
-> >  	disk->bb = &pmem->bb;
-> >  
-> > -- 
-> > 2.43.0
-> > 
-> 
-> 
+Alistair will take over on fsdax with Alison continue to wrangle patches
+for DAX overall patches.
 
+Cc: Alison Schofield <alison.schofield@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Jonathan Cameron <jic23@kernel.org>
+Cc: Vinod Koul <vkoul@kernel.org>
+Cc: Frank Li <Frank.Li@kernel.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Acked-by: Davidlohr Bueso <dave@stgolabs.net>
+Acked-by: Vishal Verma <vishal.l.verma@intel.com>
+Acked-by: Alison Schofield <alison.schofield@intel.com>
+Acked-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+
+---
+
+v2:
+- Add Frank as reviewer for async_tx.
+- Alistair has been working on fsdax and agreed to be maintainer.
+---
+ MAINTAINERS | 12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 93abbb315065..58bdd5eff5c2 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -4294,7 +4294,7 @@ S:	Maintained
+ F:	crypto/rsa*
+ 
+ ASYNCHRONOUS TRANSFERS/TRANSFORMS (IOAT) API
+-R:	Dan Williams <djbw@kernel.org>
++R:	Frank Li <Frank.li@oss.nxp.com>
+ S:	Odd fixes
+ W:	http://sourceforge.net/projects/xscaleiop
+ F:	Documentation/crypto/async-tx-api.rst
+@@ -6726,7 +6726,6 @@ M:	Jonathan Cameron <jic23@kernel.org>
+ M:	Dave Jiang <dave.jiang@intel.com>
+ M:	Alison Schofield <alison.schofield@intel.com>
+ M:	Vishal Verma <vishal.l.verma@intel.com>
+-M:	Dan Williams <djbw@kernel.org>
+ R:	Ira Weiny <iweiny@kernel.org>
+ R:	Li Ming <ming.li@zohomail.com>
+ R:	Richard Cheng <icheng@nvidia.com>
+@@ -7621,7 +7620,6 @@ S:	Maintained
+ F:	scripts/dev-needs.sh
+ 
+ DEVICE DIRECT ACCESS (DAX)
+-M:	Dan Williams <djbw@kernel.org>
+ M:	Vishal Verma <vishal.l.verma@intel.com>
+ M:	Dave Jiang <dave.jiang@intel.com>
+ M:	Alison Schofield <alison.schofield@intel.com>
+@@ -10315,12 +10313,12 @@ F:	include/linux/fcntl.h
+ F:	include/uapi/linux/fcntl.h
+ 
+ FILESYSTEM DIRECT ACCESS (DAX)
+-M:	Dan Williams <djbw@kernel.org>
++M:	Alistair Popple <apopple@nvidia.com>
+ R:	Matthew Wilcox <willy@infradead.org>
+ R:	Jan Kara <jack@suse.cz>
+ L:	linux-fsdevel@vger.kernel.org
+ L:	nvdimm@lists.linux.dev
+-S:	Supported
++S:	Maintained
+ F:	fs/dax.c
+ F:	include/linux/dax.h
+ F:	include/trace/events/fs_dax.h
+@@ -13455,7 +13453,6 @@ F:	drivers/platform/x86/intel/hid.c
+ 
+ INTEL I/OAT DMA DRIVER
+ M:	Dave Jiang <dave.jiang@intel.com>
+-R:	Dan Williams <djbw@kernel.org>
+ L:	dmaengine@vger.kernel.org
+ S:	Supported
+ Q:	https://patchwork.kernel.org/project/linux-dmaengine/list/
+@@ -15278,7 +15275,6 @@ K:	libie
+ 
+ LIBNVDIMM BTT: BLOCK TRANSLATION TABLE
+ M:	Vishal Verma <vishal.l.verma@intel.com>
+-M:	Dan Williams <djbw@kernel.org>
+ M:	Dave Jiang <dave.jiang@intel.com>
+ M:	Alison Schofield <alison.schofield@intel.com>
+ L:	nvdimm@lists.linux.dev
+@@ -15288,7 +15284,6 @@ P:	Documentation/nvdimm/maintainer-entry-profile.rst
+ F:	drivers/nvdimm/btt*
+ 
+ LIBNVDIMM PMEM: PERSISTENT MEMORY DRIVER
+-M:	Dan Williams <djbw@kernel.org>
+ M:	Vishal Verma <vishal.l.verma@intel.com>
+ M:	Dave Jiang <dave.jiang@intel.com>
+ M:	Alison Schofield <alison.schofield@intel.com>
+@@ -15307,7 +15302,6 @@ F:	Documentation/devicetree/bindings/pmem/pmem-region.yaml
+ F:	drivers/nvdimm/of_pmem.c
+ 
+ LIBNVDIMM: NON-VOLATILE MEMORY DEVICE SUBSYSTEM
+-M:	Dan Williams <djbw@kernel.org>
+ M:	Vishal Verma <vishal.l.verma@intel.com>
+ M:	Dave Jiang <dave.jiang@intel.com>
+ M:	Alison Schofield <alison.schofield@intel.com>
+
+base-commit: 6628e7d4c6b25c8d18f1345e3a20d21829aae7e4
+-- 
+2.54.0
 
