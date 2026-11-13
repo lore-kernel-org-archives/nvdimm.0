@@ -1,51 +1,51 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.179
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.200
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794553624;
-	b=GymfcWMp/YGehW6KC6S//UeKQsUu6E0DW4ykJFL6Xmbu3OmyUDLRcVt5qQix+al9siXX
-	 yGmCylHfJTjHR4LpN/89yGh3kLwqB5hbc9PTEVlININameZgDcixAV3roF5jWLi99fzPx
-	 TKcqO2BTjMBq9IrbbUqB3F+bFRaf7+Gn5LcLrixlSLjda5XfGk/x1fS8erbRWavlxPM8N
-	 BJkM1HO377Pqu4YGj1yHri8gH8ckgBUVHboVy/7HBpM78bnf5E8RriV2uZSIWHB+6By6h
-	 iFdlLMmGliYBxSwlTYlwELOd+PCMgzdguD5rwOSzEz8hxSWVJNK85HIj4+kH10GUlKQ==
+	t=1794553640;
+	b=TJuQsPhnzMT8w07CnkbRth232dTLmSzfPsCR8iBFdwryigcVZwTvg0mNzfYTZoslJS3B
+	 4jKiM0dRbh0QV2qukk3oyQGbD8ss+59CLd1lCwriEQ1uL+iJt9uITlxbw1nIbV9LL+/pE
+	 yk7FGBEhOnApBWoyuDNOP46I8s8tILqPItiErtCoTr9CiYMEC3OR6qUStp8jERHDCmcP9
+	 teU6Hcub1fP3eWghPu8EapLYR16Jcndrfwjco3AiafdO/l/5ORxbCGUIbwatiymH98cvs
+	 2FFIciZmYU07kFOmVROW2WPCiIndLFw9W6/NKDvQwIuTwEXTDYO1cY8OOmgGfohBOmw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794553624;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794553640;
 	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
 	 X-Mizu-Trace-ID:X-Migadu-Flow:From:To:Cc:Subject:Date:Message-ID:
 	 X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=ov6PsgY3xDvctn8CEb8PaC1/EQ2eM7GolUa4HZ+7g3w=;
-	b=LLOfihtcsQW7rkj+RHlEiscDMpQyoOZqUe1JInt7ZJYPe/3sNpTBQkL0FY5meKpwuLfJ
-	 OuooLADLyPu5CELh+8hGbK74y+RiJ/iT2TnLVUmucB5nUWKf7I4K3k+31MgX5czQtp1er
-	 6VfeM/oNvItBLPXqMpJjrA1RhuUtAx77d7/W7gZ3DvEzRnAN2mUloLmGSzrx0eIVgc7s1
-	 L9hzY4SkXxEow4VM1ynDsXJ7tLbvM6jPlrYFIfs7uNVi0ONf/zsqi6IMZBc3Hw0qfqsiM
-	 Tz/ZC3CMsyXBVpgX074oLqRW5dtXWium2RYW58e4SbzhIhdCKVYKZLwOMAZ1H1nNcRg==
+	bh=GZLtnWbFqtu8KIap5fiJtQhx6w9LpQFKds01tBdh2l0=;
+	b=4vXUvVATKbrAMJEONI3hsIUtfU/rMczzCjKfSFKcFVD43KcFQBU1DS6iPZtifgKVUdHF
+	 jLONyrPLYkn6EBqRBSTZj7wwSG21s6oBourXRXdBAsHX8z6W54SqnsI2BUfTYCtImVp8a
+	 XmHwjt1C5qePcvLXVrpxV2iQ9UivWzqF2/xR9arc2semC6An/Y8gEtpuPlA6tANov8K9n
+	 dvfEQade20qJyXE9bcysCOq5Q+eh82Q5Zhewmax/F16WgvwnkY4eZfddcknlf6nXtBNiH
+	 wDktynh1+ZMTG8anQbW+L2N6fAU+H+YHAlnPUIfzGJAGyKbQHrf2PRV/Kn3VLSyCCSw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=linux.dev;
 	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=WoiL4nFY;
-	arc=none smtp.remote-ip=91.218.175.179
-Received: from mta0.migadu.com (out-179.mta0.migadu.com [91.218.175.179])
+	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=u64wSiXr;
+	arc=none smtp.remote-ip=91.218.175.200
+Received: from mta0.migadu.com (out-200.mta0.migadu.com [91.218.175.200])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C837606A323
-	for <nvdimm@lists.linux.dev>; Fri, 13 Nov 2026 07:07:03 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7C837606A323
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAF29606A8B0
+	for <nvdimm@lists.linux.dev>; Fri, 13 Nov 2026 07:07:19 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CAF29606A8B0
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=WoiL4nFY
+	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=u64wSiXr
 X-Envelope-To: nvdimm@lists.linux.dev
-DKIM-Signature: a=rsa-sha256; bh=NPYqP2bSnfKk3JDua2A5vqNZ+eJUoj9E6cqywCvpDEg=;
+DKIM-Signature: a=rsa-sha256; bh=wulpxDchqVhG4T16i7jOp2tJVbBXi1laAGjfm4w5eGs=;
  c=simple/simple; d=linux.dev;
  h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1794553621; v=1; x=1795158421;
- b=WoiL4nFYqSHsvmE4p1QJ083qrAUpGTvH/S1yv4RwG/z4XX8GpSyhztH3Wr3BglFxdkbUQZw/
- rOS1vbyXeE4ZIDj52UY96CUo/0a4F/AQIJ72/pPDwqsaW7Bn3Ookak8wMAS7ZTNjpjUwebmlpdJ
- TwP59BLkYUFCSwsQh19BHC+0=
+ t=1794553638; v=1; x=1795158438;
+ b=u64wSiXr9YoxMTLiiPFG3x6j3X+qgKk4U2wB14aAvE5z2X/c+S+lLtx4APm9yuZmji9smYZx
+ JXNVHCFIMmI7BEQbjNZO1fFwEpVeXYwFKUXVySSIg8MwGOYR4Ol1tMGrDjAmdqHWugAal+GarUR
+ NcCSZkR+A1fKd3JgXQ66mWBM=
 X-Envelope-To: nvdimm@lists.linux.dev
-Received: by smtp.migadu.com with ESMTPS id da2ed9eb902ef4ec;
-	Fri, 13 Nov 2026 07:07:01 +0000
-X-Mizu-Trace-ID: da2ed9eb902ef4ec
+Received: by smtp.migadu.com with ESMTPS id d2229d58c56c6432;
+	Fri, 13 Nov 2026 07:07:17 +0000
+X-Mizu-Trace-ID: d2229d58c56c6432
 X-Migadu-Flow: FLOW_OUT
 From: Mengmeng Zhao <mengmeng.zhao@linux.dev>
 To: Christoph Hellwig <hch@lst.de>,
@@ -82,9 +82,9 @@ Cc: linux-block@vger.kernel.org,
 	linaro-mm-sig@lists.linaro.org,
 	Li Wang <liwang@kylinos.cn>,
 	Mengmeng Zhao <zhaomengmeng@kylinos.cn>
-Subject: [RFC PATCH v2 1/8] block: factor out bdev_init_dma_buf_io_ctx()
-Date: Fri, 13 Nov 2026 15:06:14 +0800
-Message-ID: <20261113070621.273953-2-mengmeng.zhao@linux.dev>
+Subject: [RFC PATCH v2 2/8] iomap: add dma-buf direct I/O guards
+Date: Fri, 13 Nov 2026 15:06:15 +0800
+Message-ID: <20261113070621.273953-3-mengmeng.zhao@linux.dev>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261113070621.273953-1-mengmeng.zhao@linux.dev>
 References: <20261113070621.273953-1-mengmeng.zhao@linux.dev>
@@ -101,97 +101,75 @@ Content-Transfer-Encoding: 8bit
 
 From: Nitesh Shetty <nj.shetty@samsung.com>
 
-Factor the checks and the driver setup out of
-blkdev_init_dma_buf_io_ctx() into an exported helper that takes the
-block device as an argument, so callers can set up a dma-buf I/O
-context for any block device.  The block device file operation becomes
-a thin wrapper using file_bdev(), so its behavior is unchanged.
+Direct I/O copies data from the CPU in four places, zero-filling
+holes, inline data, bounce pages and integrity metadata. A dma-buf
+iterator has no pages behind it, so refuse it there.
+
+Reads that encounter a hole or unwritten extent therefore return
+-EOPNOTSUPP for the entire operation, even if I/O for an earlier
+mapped extent was already submitted.
 
 Signed-off-by: Nitesh Shetty <nj.shetty@samsung.com>
+Signed-off-by: Anuj Gupta <anuj20.g@samsung.com>
 Signed-off-by: Mengmeng Zhao <zhaomengmeng@kylinos.cn>
 Signed-off-by: Li Wang <liwang@kylinos.cn>
 ---
- block/bdev.c           | 14 ++++++++++++++
- block/fops.c           | 12 +-----------
- include/linux/blkdev.h |  3 +++
- 3 files changed, 18 insertions(+), 11 deletions(-)
+ fs/iomap/direct-io.c | 21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
 
-diff --git a/block/bdev.c b/block/bdev.c
-index f20f91b3176e..88e3f552f5d4 100644
---- a/block/bdev.c
-+++ b/block/bdev.c
-@@ -17,6 +17,7 @@
- #include <linux/blkpg.h>
- #include <linux/magic.h>
- #include <linux/buffer_head.h>
-+#include <linux/dma-buf-io.h>
- #include <linux/swap.h>
- #include <linux/writeback.h>
- #include <linux/mount.h>
-@@ -60,6 +61,19 @@ struct block_device *file_bdev(struct file *bdev_file)
- }
- EXPORT_SYMBOL(file_bdev);
+diff --git a/fs/iomap/direct-io.c b/fs/iomap/direct-io.c
+index ad041ac3252a..4a2b0f9df5a7 100644
+--- a/fs/iomap/direct-io.c
++++ b/fs/iomap/direct-io.c
+@@ -425,6 +425,11 @@ static int iomap_dio_bio_iter(struct iomap_iter *iter, struct iomap_dio *dio)
+ 	unsigned int alignment;
+ 	ssize_t ret = 0;
  
-+int bdev_init_dma_buf_io_ctx(struct file *file, struct block_device *bdev,
-+			     struct dma_buf_io_ctx *ctx)
-+{
-+	if (!(file->f_flags & O_DIRECT))
-+		return -EINVAL;
-+	if (ctx->dmabuf->size > UINT_MAX)
-+		return -EINVAL;
-+	if (!bdev->bd_disk->fops->init_dma_buf_io_ctx)
++	/* integrity metadata is generated from the data pages */
++	if (iov_iter_is_dmabuf_map(dio->submit.iter) &&
++	    (iomap->flags & IOMAP_F_INTEGRITY))
 +		return -EOPNOTSUPP;
-+	return bdev->bd_disk->fops->init_dma_buf_io_ctx(bdev, ctx);
-+}
-+EXPORT_SYMBOL_GPL(bdev_init_dma_buf_io_ctx);
 +
- static void bdev_write_inode(struct block_device *bdev)
+ 	/*
+ 	 * File systems that write out of place and always allocate new blocks
+ 	 * need each bio to be block aligned as that's the unit of allocation.
+@@ -589,7 +594,13 @@ static int iomap_dio_bio_iter(struct iomap_iter *iter, struct iomap_dio *dio)
+ 
+ static int iomap_dio_hole_iter(struct iomap_iter *iter, struct iomap_dio *dio)
  {
- 	struct inode *inode = BD_INODE(bdev);
-diff --git a/block/fops.c b/block/fops.c
-index a0ccadaa9c79..86bf1f298b79 100644
---- a/block/fops.c
-+++ b/block/fops.c
-@@ -19,7 +19,6 @@
- #include <linux/iomap.h>
- #include <linux/module.h>
- #include <linux/io_uring/cmd.h>
--#include <linux/dma-buf-io.h>
- #include "blk.h"
- 
- static inline struct inode *bdev_file_inode(struct file *file)
-@@ -1009,16 +1008,7 @@ static int blkdev_mmap_prepare(struct vm_area_desc *desc)
- static int blkdev_init_dma_buf_io_ctx(struct file *file,
- 				      struct dma_buf_io_ctx *ctx)
- {
--	struct block_device *bdev = file_bdev(file);
--	struct gendisk *disk = bdev->bd_disk;
--
--	if (!(file->f_flags & O_DIRECT))
--		return -EINVAL;
--	if (ctx->dmabuf->size > UINT_MAX)
--		return -EINVAL;
--	if (!disk->fops->init_dma_buf_io_ctx)
--		return -EOPNOTSUPP;
--	return disk->fops->init_dma_buf_io_ctx(bdev, ctx);
-+	return bdev_init_dma_buf_io_ctx(file, file_bdev(file), ctx);
- }
- 
- const struct file_operations def_blk_fops = {
-diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
-index 215753171cef..b98f43478cc0 100644
---- a/include/linux/blkdev.h
-+++ b/include/linux/blkdev.h
-@@ -1610,6 +1610,9 @@ struct block_device_operations {
- 	int (*alternative_gpt_sector)(struct gendisk *disk, sector_t *sector);
- };
- 
-+int bdev_init_dma_buf_io_ctx(struct file *file, struct block_device *bdev,
-+			     struct dma_buf_io_ctx *ctx);
+-	loff_t copied = iov_iter_zero(iomap_length(iter), dio->submit.iter);
++	loff_t copied;
 +
- #ifdef CONFIG_COMPAT
- extern int blkdev_compat_ptr_ioctl(struct block_device *, blk_mode_t,
- 				      unsigned int, unsigned long);
++	/* zero-filling walks the data pages */
++	if (iov_iter_is_dmabuf_map(dio->submit.iter))
++		return -EOPNOTSUPP;
++
++	copied = iov_iter_zero(iomap_length(iter), dio->submit.iter);
+ 
+ 	if (dio->flags & IOMAP_DIO_FSBLOCK_ALIGNED) {
+ 		loff_t aligned_copied = round_down(copied,
+@@ -619,6 +630,10 @@ static int iomap_dio_inline_iter(struct iomap_iter *iomi, struct iomap_dio *dio)
+ 	loff_t pos = iomi->pos;
+ 	u64 copied;
+ 
++	/* inline data is copied from the CPU */
++	if (iov_iter_is_dmabuf_map(iter))
++		return -EOPNOTSUPP;
++
+ 	if (WARN_ON_ONCE(!inline_data))
+ 		return -EIO;
+ 
+@@ -717,6 +732,10 @@ __iomap_dio_rw(struct kiocb *iocb, struct iov_iter *iter,
+ 	if (!iomi.len)
+ 		return NULL;
+ 
++	/* bouncing copies the data from the CPU */
++	if (iov_iter_is_dmabuf_map(iter) && (dio_flags & IOMAP_DIO_BOUNCE))
++		return ERR_PTR(-EOPNOTSUPP);
++
+ 	dio = kmalloc_obj(*dio);
+ 	if (!dio)
+ 		return ERR_PTR(-ENOMEM);
 -- 
 2.43.0
 
