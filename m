@@ -1,50 +1,51 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.164
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.179
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794553608;
-	b=RX9EwGFslXmof8HfAouXg1x+TCQUYPutPsN03D6ssgPMX8Ee5YtUV8wT3p43b43JHHFa
-	 EHeUi+/GX7WdJsJCexWqiHutTVbTmgx8JyCkXeIpynrgN98QYKxAzbefMUO6N6TU95qlw
-	 YdGyiYiDLNXt2hsPR71VOvOy7EW8EO7RXuNOD2xbFDb1mab33MM4vxF62Q1GnDSYSJWBK
-	 b6GC6PkdW239Kom+pU592dEnl88Js8pqpHcJZGfDdZ/8Bgqn7jp+WX+Wv1hyRfYn8M4Qo
-	 PBwYg08J/JcatCmqoOVtSupzY9ySUfQ4au2yT6Jklipo9xXmaQ8NrIqh7hO8E8AlPNw==
+	t=1794553624;
+	b=GymfcWMp/YGehW6KC6S//UeKQsUu6E0DW4ykJFL6Xmbu3OmyUDLRcVt5qQix+al9siXX
+	 yGmCylHfJTjHR4LpN/89yGh3kLwqB5hbc9PTEVlININameZgDcixAV3roF5jWLi99fzPx
+	 TKcqO2BTjMBq9IrbbUqB3F+bFRaf7+Gn5LcLrixlSLjda5XfGk/x1fS8erbRWavlxPM8N
+	 BJkM1HO377Pqu4YGj1yHri8gH8ckgBUVHboVy/7HBpM78bnf5E8RriV2uZSIWHB+6By6h
+	 iFdlLMmGliYBxSwlTYlwELOd+PCMgzdguD5rwOSzEz8hxSWVJNK85HIj4+kH10GUlKQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794553608;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794553624;
 	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
 	 X-Mizu-Trace-ID:X-Migadu-Flow:From:To:Cc:Subject:Date:Message-ID:
-	 X-Mailer:MIME-Version:Content-Transfer-Encoding;
-	bh=tz/3kHKfP5O1F2qPHz5sww7BaOT1KLvA0dXNCk/OZIk=;
-	b=o4X6H0x7LAVjW3YTjbcAX76Mzx+NFOCEi6ncIiX8Hcbg40+2zMhP4seaWtIMzQEif4P3
-	 FQIp9ABZVkG1weUWyc9VE88E0qTSDR8HB9XuWMnUCQGMLtaj1nCNnUQ8ug/Hl47Vruma8
-	 3/2TX803KUGPQhQ9Sah1VKgRD5TikoLCmAOHxSzUeynRKMJBK5CFjHhzM/n/yR/XkrfLN
-	 mVFPrrsYP90BR5ECMhqyfssnPagbV0qMz8yw9SmYS2Y5YKmkcW9hP0bHVxoXRsGM91O0r
-	 okP+YxEQV/U1v1BhRt/l+FLt9nXzWrQM2qfz0UXsFgVBwqF6g1UKYqb1NOHP/98zRZg==
+	 X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=ov6PsgY3xDvctn8CEb8PaC1/EQ2eM7GolUa4HZ+7g3w=;
+	b=LLOfihtcsQW7rkj+RHlEiscDMpQyoOZqUe1JInt7ZJYPe/3sNpTBQkL0FY5meKpwuLfJ
+	 OuooLADLyPu5CELh+8hGbK74y+RiJ/iT2TnLVUmucB5nUWKf7I4K3k+31MgX5czQtp1er
+	 6VfeM/oNvItBLPXqMpJjrA1RhuUtAx77d7/W7gZ3DvEzRnAN2mUloLmGSzrx0eIVgc7s1
+	 L9hzY4SkXxEow4VM1ynDsXJ7tLbvM6jPlrYFIfs7uNVi0ONf/zsqi6IMZBc3Hw0qfqsiM
+	 Tz/ZC3CMsyXBVpgX074oLqRW5dtXWium2RYW58e4SbzhIhdCKVYKZLwOMAZ1H1nNcRg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=linux.dev;
 	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=HCTOAUYa;
-	arc=none smtp.remote-ip=91.218.175.164
-Received: from mta0.migadu.com (out-164.mta0.migadu.com [91.218.175.164])
+	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=WoiL4nFY;
+	arc=none smtp.remote-ip=91.218.175.179
+Received: from mta0.migadu.com (out-179.mta0.migadu.com [91.218.175.179])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F923606A333
-	for <nvdimm@lists.linux.dev>; Fri, 13 Nov 2026 07:06:46 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2F923606A333
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C837606A323
+	for <nvdimm@lists.linux.dev>; Fri, 13 Nov 2026 07:07:03 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7C837606A323
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=HCTOAUYa
+	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=WoiL4nFY
 X-Envelope-To: nvdimm@lists.linux.dev
-DKIM-Signature: a=rsa-sha256; bh=ERnLBl8wC0u2PnoqT3bHbS7adfW2xOd+NgxfHeJjTDM=;
+DKIM-Signature: a=rsa-sha256; bh=NPYqP2bSnfKk3JDua2A5vqNZ+eJUoj9E6cqywCvpDEg=;
  c=simple/simple; d=linux.dev;
  h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1794553605; v=1; x=1795158405;
- b=HCTOAUYaFgw7pCqA4CZGypARO6Cef0gopMDQw7f6zI2rbiMuJl8KzhnkRlN0iwFGKh7n+YMh
- gge6Au3wmDjj1hQpAyFgYcykBgleRShCzVf2vlcrK6iyhYtm8lcHnemvKUZZsebFB9ivJLTQnOp
- MRCIeO5ZTYWLXWEeDd/W4vFs=
+ t=1794553621; v=1; x=1795158421;
+ b=WoiL4nFYqSHsvmE4p1QJ083qrAUpGTvH/S1yv4RwG/z4XX8GpSyhztH3Wr3BglFxdkbUQZw/
+ rOS1vbyXeE4ZIDj52UY96CUo/0a4F/AQIJ72/pPDwqsaW7Bn3Ookak8wMAS7ZTNjpjUwebmlpdJ
+ TwP59BLkYUFCSwsQh19BHC+0=
 X-Envelope-To: nvdimm@lists.linux.dev
-Received: by smtp.migadu.com with ESMTPS id 089f84f20e46ec29;
-	Fri, 13 Nov 2026 07:06:44 +0000
-X-Mizu-Trace-ID: 089f84f20e46ec29
+Received: by smtp.migadu.com with ESMTPS id da2ed9eb902ef4ec;
+	Fri, 13 Nov 2026 07:07:01 +0000
+X-Mizu-Trace-ID: da2ed9eb902ef4ec
 X-Migadu-Flow: FLOW_OUT
 From: Mengmeng Zhao <mengmeng.zhao@linux.dev>
 To: Christoph Hellwig <hch@lst.de>,
@@ -81,10 +82,12 @@ Cc: linux-block@vger.kernel.org,
 	linaro-mm-sig@lists.linaro.org,
 	Li Wang <liwang@kylinos.cn>,
 	Mengmeng Zhao <zhaomengmeng@kylinos.cn>
-Subject: [RFC PATCH v2 0/8] ext4: Add dma-buf read/write support
-Date: Fri, 13 Nov 2026 15:06:13 +0800
-Message-ID: <20261113070621.273953-1-mengmeng.zhao@linux.dev>
+Subject: [RFC PATCH v2 1/8] block: factor out bdev_init_dma_buf_io_ctx()
+Date: Fri, 13 Nov 2026 15:06:14 +0800
+Message-ID: <20261113070621.273953-2-mengmeng.zhao@linux.dev>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20261113070621.273953-1-mengmeng.zhao@linux.dev>
+References: <20261113070621.273953-1-mengmeng.zhao@linux.dev>
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -96,119 +99,99 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Mengmeng Zhao <zhaomengmeng@kylinos.cn>
+From: Nitesh Shetty <nj.shetty@samsung.com>
 
-This series adds dma-buf read/write support for ext4. The dma-buf direct
-I/O infrastructure allows dma-buf to be handed to file I/O as an iov_iter,
-but currently it only supports raw block devices. To better serve the
-GPU-NVMe direct access through normal filesystems, prior work for XFS has
-been discussed at [1]. We are also interested in this field and working on
-it [2].
+Factor the checks and the driver setup out of
+blkdev_init_dma_buf_io_ctx() into an exported helper that takes the
+block device as an argument, so callers can set up a dma-buf I/O
+context for any block device.  The block device file operation becomes
+a thin wrapper using file_bdev(), so its behavior is unchanged.
 
-The series is based on v7.4-rc2 (7475ea8b5861), which already contains
-the common dma-buf direct I/O infrastructure, so it no longer depends on a
-separate base tree.
-Patches 1-2 carry the block and iomap prerequisites from Nitesh Shetty and
-Anuj Gupta:
-- bdev_init_dma_buf_io_ctx in patch 1 was moved to block/bdev.c as
-suggested by Christoph.
-- iomap_file_init_dma_buf_io_ctx from that series is not carried. ext4
-calls bdev_init_dma_buf_io_ctx directly, and the capability check is
-handled by FMODE_CAN_DMABUF_IO.
+Signed-off-by: Nitesh Shetty <nj.shetty@samsung.com>
+Signed-off-by: Mengmeng Zhao <zhaomengmeng@kylinos.cn>
+Signed-off-by: Li Wang <liwang@kylinos.cn>
+---
+ block/bdev.c           | 14 ++++++++++++++
+ block/fops.c           | 12 +-----------
+ include/linux/blkdev.h |  3 +++
+ 3 files changed, 18 insertions(+), 11 deletions(-)
 
-The design is:
-- FMODE_CAN_DMABUF_IO marks files that can be the target of dma-buf I/O;
-  a filesystem sets it at open time for inodes whose data can be reached
-  without the page cache.
-- dma_buf_io_ctx_create() refuses files that lack the flag and checks the
-  current f_flags for O_DIRECT at registration.
-- As F_SETFL can clear O_DIRECT afterwards, the paths that would fall back
-  to buffered or copied I/O still need per-I/O checks in the callers.
-- DAX is rechecked per I/O because it can be enabled after open.
-- iomap must not ask for a buffered fallback on behalf of a dma-buf
-  iterator: -ENOTBLK would be refused by the callers and would turn a
-  failure into a successful transfer of zero bytes.
-
-Patch 3 keeps the buffered fallback out of dma-buf I/O, patches 4-7 add
-the refusals on the common paths and the capability flag, and patch 8
-enables ext4.
-
-Known limitation: 
-1. A dma-buf read that reaches a hole or an unwritten
-extent fails as a whole, even when an earlier mapped extent was already
-transferred into the buffer, so the caller does not learn how much of the
-dma-buf was filled.  Reporting the prefix instead would return a short
-read, which callers cannot tell apart from the end of the file, and both
-the buffered and the direct path normally hide holes by zero-filling.
-Probing the mapping before submitting anything would fix it, but that
-belongs to the common iomap series.
-
-2. A refused dma-buf I/O reaches the caller as -EOPNOTSUPP through
-iomap_dio_set_error(), which also emits an fserror notification even
-though no I/O was submitted.  The report could be limited to requests
-that did submit a bio, since iomap_dio_bio_iter() accounts dio->size at
-submission time, but that changes what fserror users see for every iomap
-filesystem, so this version leaves it as it is and asks the fserror
-maintainers.
-
-Testing:
-- io_uring dma-buf suite (udmabuf + REGISTER_BUFFERS_UPDATE + READ_FIXED /
-  WRITE_FIXED) against ext4 on a PCIe NVMe namespace, all passed.
-- xfstests -g quick on ext4 devices: 689 tests ran, 11 reported  failures,
-  all of them environment related, no failure is attributable to this 
-  series.
-
-[1] https://lore.kernel.org/linux-xfs/20261016091919.971295-1-anuj1072538@gmail.com/
-[2] https://lore.kernel.org/all/20260908131545.105987-1-liwang@kylinos.cn/
-
-Changelog:
-==========
-RFC v2:
-- Rebased onto v7.4-rc2 and dropped the dependency on a separate base
-  tree; the block and iomap prerequisites are patches 1-2.
-- Added patch 3, which reports why a dma-buf direct I/O could not be done
-  instead of asking for a buffered fallback that the callers refuse.
-- Split the block changes: patch 4 only factors the integrity check
-  into a helper, and patch 5 refuses a dma-buf bio in the inline
-  encryption fallback, which is where the data pages are walked
-  instead of in blk_mq_submit_bio(). (Christoph)
-- Dropped the mm/filemap and iomap_file_buffered_write() guards; the
-  refusals now happen in the callers that would fall back to buffered
-  or copied I/O. (Christoph)
-- Added the FMODE_CAN_DMABUF_IO flag and use it to check whether a bdev or
-  a filesystem can do dma-buf I/O. (Christoph)
-
-RFC v1:
-- https://lore.kernel.org/all/20261105065847.196540-1-mengmeng.zhao@linux.dev/
-
-Mengmeng Zhao (6):
-  iomap: don't ask for a buffered fallback for dma-buf iterators
-  blk-mq: factor out a dma-buf bio refusal helper
-  blk-crypto: refuse dma-buf bios in the fallback path
-  fs: add FMODE_CAN_DMABUF_IO and require it for dma-buf I/O contexts
-  dax: refuse dma-buf iterators in dax_iomap_rw()
-  ext4: support dma-buf registered buffers for direct I/O
-
-Nitesh Shetty (2):
-  block: factor out bdev_init_dma_buf_io_ctx()
-  iomap: add dma-buf direct I/O guards
-
- .../filesystems/iomap/operations.rst          |  3 ++
- block/bdev.c                                  | 14 ++++++
- block/blk-crypto.c                            |  8 ++++
- block/blk-mq.c                                | 24 ++++++----
- block/fops.c                                  | 12 +----
- drivers/dma-buf/dma-buf-io.c                  | 13 ++++--
- fs/dax.c                                      |  4 ++
- fs/ext4/ext4.h                                | 11 +++++
- fs/ext4/file.c                                | 44 +++++++++++++++++--
- fs/iomap/direct-io.c                          | 41 +++++++++++++++--
- include/linux/blkdev.h                        |  8 ++++
- include/linux/fs.h                            |  8 +++-
- 12 files changed, 159 insertions(+), 31 deletions(-)
-
-
-base-commit: 7475ea8b58616b33c04afb976cf0fbaad9dd63fb
+diff --git a/block/bdev.c b/block/bdev.c
+index f20f91b3176e..88e3f552f5d4 100644
+--- a/block/bdev.c
++++ b/block/bdev.c
+@@ -17,6 +17,7 @@
+ #include <linux/blkpg.h>
+ #include <linux/magic.h>
+ #include <linux/buffer_head.h>
++#include <linux/dma-buf-io.h>
+ #include <linux/swap.h>
+ #include <linux/writeback.h>
+ #include <linux/mount.h>
+@@ -60,6 +61,19 @@ struct block_device *file_bdev(struct file *bdev_file)
+ }
+ EXPORT_SYMBOL(file_bdev);
+ 
++int bdev_init_dma_buf_io_ctx(struct file *file, struct block_device *bdev,
++			     struct dma_buf_io_ctx *ctx)
++{
++	if (!(file->f_flags & O_DIRECT))
++		return -EINVAL;
++	if (ctx->dmabuf->size > UINT_MAX)
++		return -EINVAL;
++	if (!bdev->bd_disk->fops->init_dma_buf_io_ctx)
++		return -EOPNOTSUPP;
++	return bdev->bd_disk->fops->init_dma_buf_io_ctx(bdev, ctx);
++}
++EXPORT_SYMBOL_GPL(bdev_init_dma_buf_io_ctx);
++
+ static void bdev_write_inode(struct block_device *bdev)
+ {
+ 	struct inode *inode = BD_INODE(bdev);
+diff --git a/block/fops.c b/block/fops.c
+index a0ccadaa9c79..86bf1f298b79 100644
+--- a/block/fops.c
++++ b/block/fops.c
+@@ -19,7 +19,6 @@
+ #include <linux/iomap.h>
+ #include <linux/module.h>
+ #include <linux/io_uring/cmd.h>
+-#include <linux/dma-buf-io.h>
+ #include "blk.h"
+ 
+ static inline struct inode *bdev_file_inode(struct file *file)
+@@ -1009,16 +1008,7 @@ static int blkdev_mmap_prepare(struct vm_area_desc *desc)
+ static int blkdev_init_dma_buf_io_ctx(struct file *file,
+ 				      struct dma_buf_io_ctx *ctx)
+ {
+-	struct block_device *bdev = file_bdev(file);
+-	struct gendisk *disk = bdev->bd_disk;
+-
+-	if (!(file->f_flags & O_DIRECT))
+-		return -EINVAL;
+-	if (ctx->dmabuf->size > UINT_MAX)
+-		return -EINVAL;
+-	if (!disk->fops->init_dma_buf_io_ctx)
+-		return -EOPNOTSUPP;
+-	return disk->fops->init_dma_buf_io_ctx(bdev, ctx);
++	return bdev_init_dma_buf_io_ctx(file, file_bdev(file), ctx);
+ }
+ 
+ const struct file_operations def_blk_fops = {
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index 215753171cef..b98f43478cc0 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -1610,6 +1610,9 @@ struct block_device_operations {
+ 	int (*alternative_gpt_sector)(struct gendisk *disk, sector_t *sector);
+ };
+ 
++int bdev_init_dma_buf_io_ctx(struct file *file, struct block_device *bdev,
++			     struct dma_buf_io_ctx *ctx);
++
+ #ifdef CONFIG_COMPAT
+ extern int blkdev_compat_ptr_ioctl(struct block_device *, blk_mode_t,
+ 				      unsigned int, unsigned long);
 -- 
 2.43.0
 
