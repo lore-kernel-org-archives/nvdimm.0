@@ -1,87 +1,91 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.210.180
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.42
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794896901;
-	b=3dW1LsvLqfjZedWwZDqi2CjxpHZ9Wk2WTUA1aFGBToEX7hTs4cLmNYV7Zd+YJGrj7WPi
-	 coAF/PgaO6SjzbTQfHjHeNKzAuDXlgqhswfWb9UZ4FgoSVZMN/Ft7HXYG+D4vy37zt++8
-	 YmnFNR28tyUl0fNdCxIXGY6pM5PTBl9WeOw99Yx1Z5yvi+Jvve/2Gk6pNTu5bfAtSqbHF
-	 i+HQjS7HsK4q8yOvY9UjO+EIqt+HDx3J7OotMUx8sWIbq3+UgRJ7EJj3wsisAs561JtAV
-	 CnAB6/xRtoNcMZ9lXVlNr426KCONaCyW66CeWj7pKwNQAEagJoNRv6guw82ZTJ0DdMg==
+	t=1794896912;
+	b=k8vSoLhv0ywyE/mNkkO5LqvLkEZcnHzIrJDQpXTHiyIozn6KVLlpLRDFEjDw2kMwRdGN
+	 O4ZLkgWAlkL8j50PoTeuiN81TJfYkcIU46S8u5fR9ski6jhvAO9f0f/t3DGZnh2lNEBYA
+	 kyjEPJQN1LfZZeDbK6JhvClOZo5KqwzNfQ+s35sjCFTn9EaSs8t2YvC8djtciLCvUGxc2
+	 LaCBnDDBp4xsGDu7jqJ3Y7sKD/Op40FMlzWDSiTV0XEE/Sr7+G/tX69XSXBYG+BtVGjZK
+	 P2FHCDLcwQQM5RnvkvXWLhQtRcLlutv9EEtNw9FF48BBSuczlS8D1deimhesHNLy3bA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794896901;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794896912;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
-	 Date:Message-Id:X-Mailer:MIME-Version:Content-Transfer-Encoding;
-	bh=tuZl/9PgkO4+JI7Whd0Kd2da7HJ9ig7Fz1mk57ILQSI=;
-	b=jwrlvwQZ67BOko1YcfJdy832+7lQt+sO8wicgAwJVfdET4VZTJ0NISDfzG1A/7yJ87wn
-	 OdnyiQMWj1OmngMljRmVz3uUus5Nm0x6HivPj6Krbf/hl9vpNIKHZ8uq4AqyxdR6FSOeC
-	 wncQdaVbsotzMF9VP12w2yv2f1v5do6/Y0thPDipoK7NJbloGuQWhm42EKkflrKMd1bqt
-	 7V4HxpJfe4oU4F8hGz9ZDINYVZf+pKT3iDcZDBc0jLSBUQNLVxNG/hHzSFuKjL3Oe3BxF
-	 GTITbJmwLQDNjq0nRkaOZi2ltbhMiu42YEx41KfHChh/hTuFPjjjmiOzqWsIyjN9knw==
+	 Date:Message-Id:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=1h+mNsm4d6SsdlXCt/tdo1XAATCvtA2LcsNfY9aNvYQ=;
+	b=pZ3+8SW4L+enpEKG6ltVs5Zgygm/O2S7J+qNVJl0QolGdfseMX9aL1mjbCVMuRYcBuF4
+	 OBXu+KiWAf+rph6LiQvKTeRRjHaVmEpXgUFpW8Jdlqiuj4bDrDUIDjESFW1Gfdbl0ENsL
+	 KS9VXkLlo9HUv/3zWRzmHHJTiDr1SCl8wnGERJp282+1QKbQwfmMRxEi0XtPKIvPAJYde
+	 hyIWGBjhrktyHso2krxEqcyn4Uc4QY2viYdBO6UXt/I513Y/h721EFd8CMQqeGsmrKESR
+	 6ZPgoeSgYoxMQur+GbwgvM7dRaRNlWTCRMvQIBZDbetHthYuw+6F1xVMoZ3rzyHIFTw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Vt4qMaQP;
-	arc=none smtp.remote-ip=209.85.210.180
-Received: from mail-pf1-f180.google.com (mail-pf1-f180.google.com [209.85.210.180])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=0NFzGmWv;
+	arc=none smtp.remote-ip=209.85.216.42
+Received: from mail-pj1-f42.google.com (mail-pj1-f42.google.com [209.85.216.42])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD2B2606A31C
-	for <nvdimm@lists.linux.dev>; Tue, 17 Nov 2026 06:28:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CD2B2606A31C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CADC606A333
+	for <nvdimm@lists.linux.dev>; Tue, 17 Nov 2026 06:28:32 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7CADC606A333
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Vt4qMaQP
-Received: by mail-pf1-f180.google.com with SMTP id d2e1a72fcca58-8c20d68c83fso332078b3a.0
-        for <nvdimm@lists.linux.dev>; Mon, 16 Nov 2026 22:28:20 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=0NFzGmWv
+Received: by mail-pj1-f42.google.com with SMTP id 98e67ed59e1d1-3b1535be329so3154360a91.3
+        for <nvdimm@lists.linux.dev>; Mon, 16 Nov 2026 22:28:31 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794896900; x=1795501700; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=tuZl/9PgkO4+JI7Whd0Kd2da7HJ9ig7Fz1mk57ILQSI=;
-        b=Vt4qMaQPHwDcf4te6iFh+s8oVO3gMX5Hg7svlTX+qvAoqIL57TGz3beF1OZLQMDx75
-         rUeQA1jmhD1kNgM/6oRZ/rU25/GOQJv/67OSJKyfgzvRaUbWo/ygtG492HxOu400Ndtk
-         AciPhTAhn1n+w061S7b9Mtn31Cbx36m2E3dRt8sqyMI6wA/+uecxHCZYN4yvjG9yuM2o
-         Ao/fhjOmYKPY7uQQD72R/rrs0NNYGsIsiTJMCehChiMfGmh5xEqurw/YX1MxHW6BClE5
-         43PcnJRmL43HNzK9WnuvmOqmPcTkwHw69avwR7xIa+k0IpMSZD7m/C3LH7A55wm9kJeA
-         aTpQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794896900; x=1795501700;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20260707; t=1794896911; x=1795501711; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=tuZl/9PgkO4+JI7Whd0Kd2da7HJ9ig7Fz1mk57ILQSI=;
-        b=I8yuKTYdd7QwOY8RhmB71tN8QanC6lC8CCJDrIDsUomZvYsA/CWXbeyTRgD0wTW3if
-         VRVI5kmYv+seNZEICxwNQ0fzR8VzxN3tOYO3NtSvtPo8ooQu02YyGZgkmcZxq/V8hgCn
-         5pMRHrA95zj1DxUufAm8RZcxC8BMX7S7UFc+ME8JWdnGsdy+pTkcErrASWQ006MlMVnc
-         7EuwEyow6p+jC4WVP6u0fmr+UDTZuPYAVxJNGn6nkOYfzGbqfsEe8wLSF/xz5j6fxN/p
-         V1S8+6dUr921Hxx0spTuX7NEvcCL3sBlOhQz824Bf8vFjodRlfL1qML4Wn2OzGe5GivD
-         8D3Q==
-X-Gm-Message-State: APuU4Z9vHWSyACEGcelJ4I5FJnV7NQKwZk6/N7mGWpZtRag55N8wETvs
-	0vQOND0kAqcFL4RwrwBWyGf1VbHzeLTKTISvyApH/YbCj13w8TPPz3UMlT7zdmCYReRo7j7J
-X-Gm-Gg: AYBFou2lAHx3vvxAzTJlRBxt2G1wNKsdaY/37Cegcs/HHSIm1whbgQS0vlnBsDYRuPy
-	FpKXvd5ecB53mR+w10tDw2mRdJAr+XnxrVZjwjpIoHJLp5/UWSyV39cj4c6I5cF/NyxLjDEX9Z9
-	BDFT/FUMYdmwMQWIQ+OFkyJqG6Qg4HmpZ+0oqH7CqtL6D27OAVBBdi9ZyROlZo463UxoyglEWLi
-	fh7rjubvPfp6qMaWatLb9UTDmV7HCja6+XrYjif6emY5PE9xityUvrZkNfgJcdlqBaXWGGE3lTL
-	/TQbOTIY6R4foejmxfUpyyh3+q4SNUYNmnNyAwoVKItmWvidQjBsxihhf0MU4YHfNkGgsOGB6Sm
-	0173dkYzQVY+3Bk4RbyZIHnf2WLMlS1/nsKLFWs1mG4MqOSycZF316+bXEDPbD+aiYYWhqocUdk
-	45h66J32SwNnve/pmU1KkI7IYlSlvM3RSzZHxh5M1KM7vyZ1FhtMMCk6Ic0vCfnDPcZtQDRuxru
-	zXy9+9c+TNstdKnvDHVfZK4n5gaUyy6rrofSeZ4rn3BhxeUHGnqMrnGnat3W8fIftt/XwdCJt3A
-	nAKasrYGgwN4bxcgN7617FgAx9NOavlA
-X-Received: by 2002:a05:6a20:e211:b0:3f8:f0b1:e7b3 with SMTP id adf61e73a8af0-3fd2a1f7d05mr1363642637.7.1794896899925;
-        Mon, 16 Nov 2026 22:28:19 -0800 (PST)
+        bh=1h+mNsm4d6SsdlXCt/tdo1XAATCvtA2LcsNfY9aNvYQ=;
+        b=0NFzGmWv+mvUrbuLafDKBpFQMQLT94Ib/VeOuabpWhoslgqLsL5nN0utITqVXjswnQ
+         9iEvel0sH38RAn+++ECYQlkYAbSzk5iddxqkDHBRAjg5f//fWkLeKgStMCRnS0V2uisD
+         +YsJ8l1FpbFHfTSq405h1QTGRHwOj1W80/Q9HNbLjrVytCpk9PL5upgLP7T4naXAP9nt
+         /B9Dt9277oN91SuMARnIEWcikdmiBavA/ZNHGswG7Z1zXW0srCNOR3RaIXkjl1hYXBE/
+         c8PSsRDInc5vSmJ6bbbtWFFPK0rqT/3ZTc9Vi/fZkV8CgeNST8mNShc106UdLpjncTvi
+         C/4w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794896911; x=1795501711;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=1h+mNsm4d6SsdlXCt/tdo1XAATCvtA2LcsNfY9aNvYQ=;
+        b=IvS7yorHJFBwEGzRgKYvS8AnDoEzZ1DQSHqsTjn71Orj0SvKFbSgFxYw7oHltcX5Q9
+         OK92hcmEOl8JdOEohQFjtX8wtRmZ/wMpHHqhTwERtQKgfwTu8kkXzU/SwnQeIqRWeG0i
+         JuEDxJ0NZupjNqUh/MfpvgNQe6Z8Y0gUF463A7fzmjnIT9qF0zZTyZZJWGf1mtbE4LpI
+         UYuWoAHl4LDp8go8dZz+qOTybWEsfuNXOMTLgsOrC/4JzMTGqJrMIzEGQS7b8ivD27jk
+         w6PeXK4G50TtqMqqIyurGFQEBc3m8C8dz4UbdPCI1Ut5R1T8ogN3T7TRa1kz8J8FVnqC
+         OzPA==
+X-Gm-Message-State: APuU4Z+TLr30bSkt890sQD7pRs0UzO5xNCtzMZRWtMNhWC7o0fA11pBg
+	x78zi6ep0ZuL/1CldBOfdS8xCt/izssb+fTb+LwgBAh+mMDE8ST6ZFc7y0DVsJeewoBLuXbc
+X-Gm-Gg: AZFdTZeMxT/jk7sDlxHim25zMsPHafhRZ4VPf5gPik1JS9tEBzRl63+TS52dhRiXFQY
+	1fQAPQu1stqAV0wKF3FjdyUHaTb9u4RJzDqpi/qbvRLFqOvc/cMH46DZaXV8GY6oSOa0fSZD8BL
+	HTq6dkm36b8/6P7WTfFDe0UXipsPJHHNxgw/4I3qmiRGQZz/+QWqHjC+5auEM9zI/qzAbz580cf
+	BopNzdma9sJPfduv504/DAvxHyXFxayXc8jXLjtEMVkXsnU3LQM/hxZoaP7W/ELnf/YPwWqmDLG
+	diAveAoRC464AjfQ+OMlZrPbdWTyCLEUP0nSg20ZPzhNBSvOhlwngLJnbfpWuS1vsb2WJU5+9nb
+	LsfyXAmPybdKr+RtzLWzkVllzxqy+T9oq1uodUNwop6dFRGHUhdIoxL6WdIRpIEwnFIp/e9fCXx
+	9hPQmVL6dpPTIc37Bjol9RiDEeDJxW1rcsZKJqfHcXaDrJAKDTO5MaziSJlB8HyjpSl7hyedjgn
+	JHKhHuE3vbEUL9OSaTX61htPA+GI08/vKwTcLjctvhtJtNkDlicTPhzAq5uqY7ve6b6WTrFHiZ7
+	tIVf9xWotYLLN5atvbYAsp7AEx7ab4C+
+X-Received: by 2002:a17:90a:e710:b0:3b0:9941:8d42 with SMTP id 98e67ed59e1d1-3b1b0a0e108mr12498803a91.33.1794896911364;
+        Mon, 16 Nov 2026 22:28:31 -0800 (PST)
 Received: from Yee-680G4.lan ([46.16.129.105])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-cddc18851ecsm4956170a12.13.2026.11.16.22.28.17
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-cddc18851ecsm4956170a12.13.2026.11.16.22.28.29
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 16 Nov 2026 22:28:19 -0800 (PST)
+        Mon, 16 Nov 2026 22:28:31 -0800 (PST)
 From: YeeLi <seven.yi.lee@gmail.com>
 To: nvdimm@lists.linux.dev
 Cc: yeeli <seven.yi.lee@gmail.com>
-Subject: [ndctl PATCH 0/2] ndctl: fix option table termination and multi-ID filters
-Date: Tue, 17 Nov 2026 14:28:06 +0800
-Message-Id: <20261117062808.4004617-1-seven.yi.lee@gmail.com>
+Subject: [ndctl PATCH 1/2] ndctl/dimm: add missing OPT_END() to key_options
+Date: Tue, 17 Nov 2026 14:28:07 +0800
+Message-Id: <20261117062808.4004617-2-seven.yi.lee@gmail.com>
 X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20261117062808.4004617-1-seven.yi.lee@gmail.com>
+References: <20261117062808.4004617-1-seven.yi.lee@gmail.com>
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -95,39 +99,77 @@ Content-Transfer-Encoding: 8bit
 
 From: yeeli <seven.yi.lee@gmail.com>
 
-This series fixes two small bugs found while reviewing ndctl v85.
+key_options[] is used by setup-passphrase and update-passphrase, but
+it is not terminated with OPT_END().  The option parser walks the
+array until it finds an OPTION_END entry, so it runs past the end of
+key_options[] and interprets the adjacent sanitize_options[] array.
 
-Patch 1 adds the missing OPT_END() to key_options[].  Without it the
-option parser walks past the end of the array and interprets the
-adjacent sanitize_options[] array, so setup-passphrase lists and
-accepts options that belong to sanitize-dimm.
+Before the fix, --crypto-erase is silently accepted and the command
+prints the bogus usage:
 
-Patch 2 makes util_bus_filter(), util_region_filter() and
-util_dimm_filter() parse the current strtok_r() token instead of the
-start of the duplicated identifier string.  Numeric lists such as
-"0 1" therefore only matched their first entry.
+    $ ndctl setup-passphrase --crypto-erase
+    usage: ndctl setup-passphrase <nmem0> [<nmem1>..<nmemN>] [<options>]
 
-Both issues were reproduced with the commands and harnesses described
-in the individual patches.  The fixes were built and tested on an
-x86 test system.
+        -b, --bus <bus-id>    <nmem> must be on a bus with an
+                              id/provider of <bus-id>
+        -v, --verbose         turn on debug
+        -k, --key-handle <key-handle>
+                              master encryption key handle
+        -m, --master-passphrase
+                              use master passphrase
+        -b, --bus <bus-id>    <nmem> must be on a bus with an
+                              id/provider of <bus-id>
+        -v, --verbose         turn on debug
+        -c, --crypto-erase    crypto erase a dimm
+        -o, --overwrite       overwrite a dimm
+        -z, --zero-key        pass in a zero key
+        -m, --master-passphrase
+                              use master passphrase
 
-AI disclosure: the bug analysis, reproducers and initial fixes were
-produced with the help of an AI coding assistant (DeepSeek V4.1
-Flash, running in OpenCode).  The prompts asked for a review of
-ndctl v85 for reproducible bugs, then for fixes to the option-table
-termination and filter token parsing.  The assistant identified the
-missing OPT_END(), wrote a harness for the filter bug, and proposed
-both changes.  The submitter reviewed and verified the changes and
-added the Signed-off-by tags; the assistant did not add them.
+After the fix, the same command rejects the invalid option and
+prints only the valid options:
 
-yeeli (2):
-  ndctl/dimm: add missing OPT_END() to key_options
-  ndctl/filter: parse the current token in util_*_filter
+    $ ndctl setup-passphrase --crypto-erase
+      Error: unknown option `crypto-erase'
 
- ndctl/dimm.c   |  1 +
- ndctl/filter.c | 12 ++++++------
- 2 files changed, 7 insertions(+), 6 deletions(-)
+    usage: ndctl setup-passphrase <nmem0> [<nmem1>..<nmemN>] [<options>]
 
+        -b, --bus <bus-id>    <nmem> must be on a bus with an
+                              id/provider of <bus-id>
+        -v, --verbose         turn on debug
+        -k, --key-handle <key-handle>
+                              master encryption key handle
+        -m, --master-passphrase
+                              use master passphrase
+
+An AddressSanitizer build reports a global-buffer-overflow
+immediately after key_options[].
+
+Terminate key_options[] with OPT_END() so parsing stops at the end of
+the array.
+
+Tested by building ndctl on the target test system: both passphrase
+commands now show only the four expected options, and --crypto-erase
+is rejected as an unknown option.
+
+Fixes: 374369ac2f67 ("ndctl: master phassphrase management support")
+Signed-off-by: yeeli <seven.yi.lee@gmail.com>
+---
+ ndctl/dimm.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index 533ab04..bae7782 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -1276,6 +1276,7 @@ static const struct option key_options[] = {
+ 	BASE_OPTIONS(),
+ 	KEY_OPTIONS(),
+ 	MASTER_OPTIONS(),
++	OPT_END(),
+ };
+ 
+ static const struct option sanitize_options[] = {
 -- 
 2.34.1
 
