@@ -1,49 +1,68 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.10
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794931131;
-	b=Bv2ZHou+qyyvSM0So3gyyfYZSzFOm7ycAEJj5MyfquHnG/7+w3L8ON6jAStJez0tfN2n
-	 hkGTfQKwojZ5i27f9c/GXjLVDD3PKayDvuIPN1KvmXCDQl6RtJ1jVKAYAVQQy3tdNEaBr
-	 m1JDKW5i8xmZ2U9/y/tKneDBXryZs4FFIkCSu5ziSol5DKu/ldirJCNO9x8qpaUh9uRUr
-	 T1shtqn3eRYI2qM4oMTrDmBcqn8gB99898YGZ39M5T06iggqMg8XQaNbFkD+2s1sBpZpt
-	 liN5ecop891K6P+eZnL0s1gxiRBlzEY4hajbfmj5IUylnip16wF1Mcu0OIW9TUqe1zw==
+	t=1794931161;
+	b=rimiMIos/0lBnExIuifr52yb83pMuWY51sxz7EbFEoSpOFeD44FMefBPX5ouhQEZVmVI
+	 SOGXkcEIiL1r1AmR6di01WofjZqDq9gpDHD3dFIApdq92VYQOMjH0KE9/2kaeKnIce53y
+	 wu9aBqTZqHyUsCxmAEpBI4zvZC2/bDDY4wiDw018eUOGVywcw2Zzs9PlmXcSYvKheZtTh
+	 B1iWQ5+2/Ib1pIiqP13VZMZ9WbhbkZNu51NlrRq6eQVc+GGtijRb4fgo3y9PlRr6eBr7+
+	 bjpmTJEyInRO5/1I6g1YGQ2nweqlOOym+T/5tbIXL7JinrcWCOI29Ul/BmYzmNPzZJw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794931131;
-	h=Received:DKIM-Signature:From:Date:Subject:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding:Message-Id:References:In-Reply-To:To:Cc:
-	 X-Mailer;
-	bh=SH3B96UoxOckJWmgiMFdQXZ6He/d2a60d40nEzWGR/Y=;
-	b=jodd0c2ArCc6hwuwIMhqb2vsmyIXrHdn0HCc7vFolSnqJqtYN8Esg15a7gazx/zkpeXj
-	 UvRx2EYBB+yBTynjyQZfxwnwxT2+fKTOWDVbdabSZkTc5p9jGXmrtW8GM+YtfOd+bwIX5
-	 3+47Bh8+pZuDhXyyW7SO1QHvp5ycvFSMLOtCEAhmxF/1QSD6IOXuXg22Gp1X7SksXtp/h
-	 dn6I/IFzXzT5r5iwilN7bW0Dneobfo82x+fMHayUqAshx82S/lYNCoXHyHU4SDxH/xYKX
-	 9X083imsGG3rzmnPqluZhWKN/+5GqMqsUwCxVNLiEjGKYCfo0FRqONu9VsVuRKivJKw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794931161;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Message-ID:Date:
+	 MIME-Version:User-Agent:Subject:From:To:Cc:References:
+	 Content-Language:In-Reply-To:Content-Type:Content-Transfer-Encoding;
+	bh=h/3rF4Eul2ZUedOC6ysniY/GPouHi/AlQBH3kKs+gsU=;
+	b=UskHKV+VnsZmDmkt2surlkY+SQIz5gdImLpBwWx7TJ7Aj3ANovWkDG9BmslHFlVWbPIs
+	 J7kDvVpcdCx7DSeXWMOsXqNt+r66qPIbqONfkv0bdQnNaP046aaZ1ZMrhrWlf1SyXA8qe
+	 iBjpsKEoRuVKePfEkC3vT/4dUaCImf04vPwQhgXsuCmeuER5OerVwyrL3nE56xB0eiJhd
+	 F2hmlLF3KSbcDXtaYQsU2G+9th2OHFJQ5HPkWa56e2W2I5zZzvGhx8jExmZ4zLFK9SOv6
+	 qQUC8ibrUY7x8d0L6BUDhTJO/qprMJsVGJa9702Fi8MEO/qwzLRtem5HjbmsTc+CzIg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aiNgqNJC;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=intel.com;
+	spf=pass smtp.mailfrom=intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=gQhrWKfl;
+	arc=none smtp.remote-ip=198.175.65.10
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81DA5606A31C;
-	Tue, 17 Nov 2026 15:58:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13089606A334
+	for <nvdimm@lists.linux.dev>; Tue, 17 Nov 2026 15:59:19 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 13089606A334
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aiNgqNJC
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E91E21F000C8;
-	Tue, 17 Nov 2026 15:58:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794931131;
-	bh=SH3B96UoxOckJWmgiMFdQXZ6He/d2a60d40nEzWGR/Y=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=aiNgqNJCBDq75GpvSOEPsFj3zOzPEJ3ehg7/ZUjkX5SOrdNtkq1McDKKzKFSV8aAo
-	 WRtOVxAyES7+rdGx3KU0uqhEP2sz14f8ArxZjkHc5ESuPKR+ydPlRhhwnuCQew7tzB
-	 L8ll6paqcwd3yyCmEupFz1TFeQp9Jng+5VadnP5xKjCCvvsxpy/uqo0OBJZHdce+Os
-	 jfOdqz+rZfJBCmNfxfJdUseOQzECZpfrChosWk/L0DL7bF7Ig8aOBIZ0qQ1XPMrGdt
-	 YbvdpQz5OulOc/7+sbj0UHxhTExEHBmGYFNza4SLbyyiwk2imMiUJ8VgZmSaKAL9Iy
-	 C5sw+ZRl5fPsA==
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Date: Tue, 17 Nov 2026 17:58:34 +0200
-Subject: [PATCH 3/3] mm/memory: don't upgrade non-present PTEs in
- insert_page_into_pte_locked()
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=gQhrWKfl
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1794931161; x=1826467161;
+  h=message-id:date:mime-version:subject:from:to:cc:
+   references:in-reply-to:content-transfer-encoding;
+  bh=ogO0mTz2AgaJsonmWpeYAFiZBu7kzIrrb/QfEOJdD04=;
+  b=gQhrWKflq+V/fS9kOmsJsBXjvnbkXbXTbVV8Edy7QaiNNjL+OUiPt2u2
+   zwuOp0jv2CxGW8+AQDlrPSiknZQZUhdZpN4wN5UY7FFBahMPdfKp5M6qK
+   smXMVr1Fx09ZHRXHO3Mc6Lu/8B33Hd0dbhIO1St/pYmDarz62g7+ot0az
+   3plaMCD5yZZhKvqaoZ7WpJX+9zNedikxsxy8IdIZZdaNV1XZ4Ygy5XNZk
+   n7O8hAU4tW6z8FDVBIBzXKSjZak10RkdC40KLftVKKrb7LGoUMhlaWsrf
+   c1bP5C0mmiQ2TtoO5QKxFEwU0ELX7LV3roqcorLeMKBMTNcqaQpBf5jnM
+   w==;
+X-CSE-ConnectionGUID: R8/QBBMYRD2GCkJnZLx89A==
+X-CSE-MsgGUID: gg8eLvz/QzW9/ZiGoe3rYg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11969"; a="3625149"
+X-IronPort-AV: E=Sophos;i="6.27,218,1787036400"; 
+   d="scan'208";a="3625149"
+Received: from fmviesa005.fm.intel.com ([10.60.135.145])
+  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Nov 2026 07:58:04 -0800
+X-CSE-ConnectionGUID: xExwgk48SUKFDOhmSkw7kQ==
+X-CSE-MsgGUID: WZojkiUMQy2BW7p8NZgTBA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,218,1787036400"; 
+   d="scan'208";a="9930907"
+Received: from sghuge-mobl2.amr.corp.intel.com (HELO [10.125.108.197]) ([10.125.108.197])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Nov 2026 07:58:01 -0800
+Message-ID: <d6a3c6a9-71f7-406d-9ae9-33b3566768eb@intel.com>
+Date: Tue, 17 Nov 2026 08:57:59 -0700
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -53,77 +72,140 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 List-Owner: <mailto:nvdimm+owner@lists.linux.dev>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2] MAINTAINERS: Update CXL, NVDIMM, DAX, and others for
+ djbw
+From: Dave Jiang <dave.jiang@intel.com>
+To: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+ linux-crypto@vger.kernel.org, dmaengine@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Cc: Alison Schofield <alison.schofield@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, Matthew Wilcox
+ <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+ Davidlohr Bueso <dave@stgolabs.net>, Jonathan Cameron <jic23@kernel.org>,
+ Vinod Koul <vkoul@kernel.org>, Frank Li <Frank.Li@kernel.org>,
+ Alistair Popple <apopple@nvidia.com>,
+ Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+References: <20261110210152.3494345-1-dave.jiang@intel.com>
+Content-Language: en-US
+In-Reply-To: <20261110210152.3494345-1-dave.jiang@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <20261117-uffd-dax-async-wp-fix-v1-3-c9a30f27f452@kernel.org>
-References: <20261117-uffd-dax-async-wp-fix-v1-0-c9a30f27f452@kernel.org>
-In-Reply-To: <20261117-uffd-dax-async-wp-fix-v1-0-c9a30f27f452@kernel.org>
-To: Andrew Morton <akpm@linux-foundation.org>, 
- David Hildenbrand <david@kernel.org>
-Cc: Jan Kara <jack@suse.cz>, Jingyi Sun <1045704958@qq.com>, 
- "Liam R. Howlett" <liam@infradead.org>, Lorenzo Stoakes <ljs@kernel.org>, 
- Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@suse.com>, 
- Mike Rapoport <rppt@kernel.org>, Muhammad Usama Anjum <usama.anjum@arm.com>, 
- Peter Xu <peterx@redhat.com>, Suren Baghdasaryan <surenb@google.com>, 
- Vlastimil Babka <vbabka@kernel.org>, linux-kernel@vger.kernel.org, 
- linux-mm@kvack.org, nvdimm@lists.linux.dev
-X-Mailer: b4 0.16.1-dev
 
-On a write fault insert_page_into_pte_locked() assumes that a non-empty PTE
-maps a page, compares its PFN with the page being inserted and upgrades
-the PTE to writable.
 
-Since guard regions are allowed in file-backed mappings,
-MADV_GUARD_INSTALL can put a guard marker into a PTE of a DAX mapping
-after the DAX fault handler found that PTE empty and before it inserts
-the page.
 
-vmf_insert_page_mkwrite() then extracts a PFN from the marker, hits the
-WARN_ON_ONCE() and fails the fault with SIGBUS instead of the SIGSEGV
-expected on access to a guard region:
+On 11/10/26 2:01 PM, Dave Jiang wrote:
+> Dan is no longer with us. Removing entries in MAINTAINERS to prevent
+> people from keep emailing his address.
+> 
+> Frank will take over for async_tx until the feature is removed.
+> 
+> Alistair will take over on fsdax with Alison continue to wrangle patches
+> for DAX overall patches.
+> 
+> Cc: Alison Schofield <alison.schofield@intel.com>
+> Cc: Vishal Verma <vishal.l.verma@intel.com>
+> Cc: Matthew Wilcox <willy@infradead.org>
+> Cc: Jan Kara <jack@suse.cz>
+> Cc: Davidlohr Bueso <dave@stgolabs.net>
+> Cc: Jonathan Cameron <jic23@kernel.org>
+> Cc: Vinod Koul <vkoul@kernel.org>
+> Cc: Frank Li <Frank.Li@kernel.org>
+> Cc: Alistair Popple <apopple@nvidia.com>
+> Acked-by: Davidlohr Bueso <dave@stgolabs.net>
+> Acked-by: Vishal Verma <vishal.l.verma@intel.com>
+> Acked-by: Alison Schofield <alison.schofield@intel.com>
+> Acked-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> 
 
-  WARNING: mm/memory.c:2489 at insert_page_into_pte_locked+0x47e/0x490, CPU#3: guard-race/157
-  RIP: 0010:insert_page_into_pte_locked+0x47e/0x490
-  Call Trace:
-   <TASK>
-   insert_page+0x6f/0xc0
-   vmf_insert_page_mkwrite+0x31/0x60
-   dax_fault_iter+0x3be/0x5f0
-   dax_iomap_pte_fault+0x1b8/0x390
-   ext4_dax_huge_fault+0x1a4/0x2f0
-   __do_fault+0x34/0xc0
-   do_fault+0x179/0x610
-   __handle_mm_fault+0x8ca/0x1250
-   handle_mm_fault+0xb4/0x290
-   do_user_addr_fault+0x15f/0x730
-   exc_page_fault+0x83/0x190
-   asm_exc_page_fault+0x26/0x30
-
-Return -EBUSY for non-present PTEs on write faults like it's done for read
-faults, so that the fault is retried and handle_pte_marker() deals with
-the marker.
-
-Fixes: f807123d578d ("mm: allow guard regions in file-backed and read-only mappings")
-
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
----
- mm/memory.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/mm/memory.c b/mm/memory.c
-index 66ad58429967..a80925c61706 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2474,7 +2474,7 @@ static int insert_page_into_pte_locked(struct vm_area_struct *vma, pte_t *pte,
- 		return 0;
- 	}
- 
--	if (!mkwrite)
-+	if (!mkwrite || !pte_present(pteval))
- 		return -EBUSY;
- 
- 	/*
-
--- 
-2.53.0
+Applied to cxl/next:
+9b5da39088f4
+> ---
+> 
+> v2:
+> - Add Frank as reviewer for async_tx.
+> - Alistair has been working on fsdax and agreed to be maintainer.
+> ---
+>  MAINTAINERS | 12 +++---------
+>  1 file changed, 3 insertions(+), 9 deletions(-)
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 93abbb315065..58bdd5eff5c2 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -4294,7 +4294,7 @@ S:	Maintained
+>  F:	crypto/rsa*
+>  
+>  ASYNCHRONOUS TRANSFERS/TRANSFORMS (IOAT) API
+> -R:	Dan Williams <djbw@kernel.org>
+> +R:	Frank Li <Frank.li@oss.nxp.com>
+>  S:	Odd fixes
+>  W:	http://sourceforge.net/projects/xscaleiop
+>  F:	Documentation/crypto/async-tx-api.rst
+> @@ -6726,7 +6726,6 @@ M:	Jonathan Cameron <jic23@kernel.org>
+>  M:	Dave Jiang <dave.jiang@intel.com>
+>  M:	Alison Schofield <alison.schofield@intel.com>
+>  M:	Vishal Verma <vishal.l.verma@intel.com>
+> -M:	Dan Williams <djbw@kernel.org>
+>  R:	Ira Weiny <iweiny@kernel.org>
+>  R:	Li Ming <ming.li@zohomail.com>
+>  R:	Richard Cheng <icheng@nvidia.com>
+> @@ -7621,7 +7620,6 @@ S:	Maintained
+>  F:	scripts/dev-needs.sh
+>  
+>  DEVICE DIRECT ACCESS (DAX)
+> -M:	Dan Williams <djbw@kernel.org>
+>  M:	Vishal Verma <vishal.l.verma@intel.com>
+>  M:	Dave Jiang <dave.jiang@intel.com>
+>  M:	Alison Schofield <alison.schofield@intel.com>
+> @@ -10315,12 +10313,12 @@ F:	include/linux/fcntl.h
+>  F:	include/uapi/linux/fcntl.h
+>  
+>  FILESYSTEM DIRECT ACCESS (DAX)
+> -M:	Dan Williams <djbw@kernel.org>
+> +M:	Alistair Popple <apopple@nvidia.com>
+>  R:	Matthew Wilcox <willy@infradead.org>
+>  R:	Jan Kara <jack@suse.cz>
+>  L:	linux-fsdevel@vger.kernel.org
+>  L:	nvdimm@lists.linux.dev
+> -S:	Supported
+> +S:	Maintained
+>  F:	fs/dax.c
+>  F:	include/linux/dax.h
+>  F:	include/trace/events/fs_dax.h
+> @@ -13455,7 +13453,6 @@ F:	drivers/platform/x86/intel/hid.c
+>  
+>  INTEL I/OAT DMA DRIVER
+>  M:	Dave Jiang <dave.jiang@intel.com>
+> -R:	Dan Williams <djbw@kernel.org>
+>  L:	dmaengine@vger.kernel.org
+>  S:	Supported
+>  Q:	https://patchwork.kernel.org/project/linux-dmaengine/list/
+> @@ -15278,7 +15275,6 @@ K:	libie
+>  
+>  LIBNVDIMM BTT: BLOCK TRANSLATION TABLE
+>  M:	Vishal Verma <vishal.l.verma@intel.com>
+> -M:	Dan Williams <djbw@kernel.org>
+>  M:	Dave Jiang <dave.jiang@intel.com>
+>  M:	Alison Schofield <alison.schofield@intel.com>
+>  L:	nvdimm@lists.linux.dev
+> @@ -15288,7 +15284,6 @@ P:	Documentation/nvdimm/maintainer-entry-profile.rst
+>  F:	drivers/nvdimm/btt*
+>  
+>  LIBNVDIMM PMEM: PERSISTENT MEMORY DRIVER
+> -M:	Dan Williams <djbw@kernel.org>
+>  M:	Vishal Verma <vishal.l.verma@intel.com>
+>  M:	Dave Jiang <dave.jiang@intel.com>
+>  M:	Alison Schofield <alison.schofield@intel.com>
+> @@ -15307,7 +15302,6 @@ F:	Documentation/devicetree/bindings/pmem/pmem-region.yaml
+>  F:	drivers/nvdimm/of_pmem.c
+>  
+>  LIBNVDIMM: NON-VOLATILE MEMORY DEVICE SUBSYSTEM
+> -M:	Dan Williams <djbw@kernel.org>
+>  M:	Vishal Verma <vishal.l.verma@intel.com>
+>  M:	Dave Jiang <dave.jiang@intel.com>
+>  M:	Alison Schofield <alison.schofield@intel.com>
+> 
+> base-commit: 6628e7d4c6b25c8d18f1345e3a20d21829aae7e4
 
