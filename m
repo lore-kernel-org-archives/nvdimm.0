@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794882157;
-	b=34Su7qSLqsFrgWOm9AVwr50cy3G9Yx2+/8WoRwpi7wzDJp9tqfEJoQijT4qkH7b3ShPI
-	 rRJRd/g06c33GEQ5xYA7dW4P4lDqhWAPO2C8l/jZbFWvpj/BVZxHqigfxvy26DWtJvJyi
-	 vQLlCaqjbu4phUNkSOCjvCaql/6JA4ZRmbpmiUCLXjw8J0WUsQs0E9v/EjtVYoqyFG29M
-	 CXkPrffjpL8f7ZeHHcZfkac5DMn6OTxSFRhK2oMS1/LEjdY3m6y37hXDuppJMTH5gMyla
-	 bKyJthQaSHoQ2suo1OwkU92635F0UmF7EklupSHt+TJRNcVeOqC49UedzzIS4E1Y/ow==
+	t=1794882729;
+	b=ogwXiBl/rRQfC1jTfRtEM1GwdiR7WnJC2CyQPitzSCsERmuz64fvxKX6FgbGprMMgXzv
+	 PDKlm4vVLIXVbowptHNQpWBPswUY224FCYJATJJnXvcVAcNNeSmEo02amH37uRoMNrNvG
+	 5WCuGcn0ym992AQ5lVyXKTGbwfXHdXgfLcQoKu1V6AsFJqrhfn6ig7tOrdVJ3A3p6hdf/
+	 Q9PaNtlFZYCwqqnV6loFmU57+F9V7yuocHsZqUwktpPTnRuD2c8nRXbLgP0uf85CApnIR
+	 Fz66JufaFFR8Jl3mAvOM/LsLgcPeBWQbHIKqotaz/JEzCOO4h3wWKpDw6GcE43IS/CA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794882157;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794882729;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
 	 In-Reply-To:References:X-Mailer:MIME-Version:Content-Type:
 	 Content-Transfer-Encoding;
-	bh=vhQMbf/9QOBK7STkWUtf7NSQ2paMplC/n0grkTn19So=;
-	b=qnZAo24GI78WrCeVdoWXyhqmhsrd6uZ98+ox5VUNLWtOUi6Z17m6EQdrIcz4eWzZ4Ml0
-	 NLRlfMVK+LFOiPz2pzmWze7VbONUIJyjckLOoVW3hWKL5Wwu1o6axRBYtN0+KXTavPsqI
-	 VprmzW3y8twS1LuBC3RXIBpdvcvMrnLUZ//LnSeCf+VR0Wi0DsHIpKhmR34cVvX9oZRgU
-	 kb+FSzUkTuDnEuXjqu+vI0Yz7H4qmbjEGUXEbgbNdLUkx0/bxWD5509qKwb0k9w09ekIf
-	 5Lg7i9TwAyLdroAaVUsCvZTmDQXLinS8SGZGdS4yIv8DOqsgDHx5yKPD8nVYPQui8mw==
+	bh=jF3jMumUZAbpVyF1eDwIYxLiuHyevBLWQFM8Owa9OZk=;
+	b=GDF4Ho7Kr9ZZg9fewsz6ZgEW3HtHX/iX3Lc0mpH2ULeZEa6M17kB5k7OY3efVa33twxc
+	 z5DMjpUsrF9xxYn05PuP+gjw9Oq0a4GWeSGNOfZgDE9jGR+5ZpcXniiqAmwCsormHYRl0
+	 CxCxRMdrLy2rYwC/UM+R9J5oMFbndE3wGWCfn0g8jNRsUrUkkiKqZUr/99+lvFSzViMTQ
+	 g9swpIQG3LXHvK9wtqLrYOev+FYmjo1SBiXbRdcWSZZjZZPGPAVyMTQhCJ4DlWDOoB4A/
+	 4RpUaPsl7m8xQOFCLoWh3wnsIDoiyxaplhqr+BKrQ3CZ+4DmVS1Sh3f7TI7j+1Oo8jQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=d7AN4EeH;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aOrXiRZI;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3D06606A31C;
-	Tue, 17 Nov 2026 02:22:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B25C4606A31C;
+	Tue, 17 Nov 2026 02:32:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=d7AN4EeH
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DF201F000C4;
-	Tue, 17 Nov 2026 02:22:32 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aOrXiRZI
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 860031F000C4;
+	Tue, 17 Nov 2026 02:32:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794882156;
-	bh=vhQMbf/9QOBK7STkWUtf7NSQ2paMplC/n0grkTn19So=;
+	s=k20260515; t=1794882729;
+	bh=jF3jMumUZAbpVyF1eDwIYxLiuHyevBLWQFM8Owa9OZk=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=d7AN4EeHmlvOJjRV45jWR6YuUi6Il8n0G0jWiAGdvtH1QKSQJPbn/BusqHeV9B+he
-	 ANmXvXUmIi/KNWK32/shUijmrtiBZSHWfqH1hKDU8ROOuPwJkCDchf56VjhomFDNYe
-	 KasJfOrV+UgOIXGJwCrQq3Vtk5U2XvllCNhLsi7F/mGrUIKaSfWdIx5RSrh3hfxiN4
-	 4mMJ9ZGzTi5maOLVLkk20n+eXu8CpB2ze9u87CkAjI+0iBfPs7yejzMUw7Aobp10QR
-	 odHjwgtpTw60yNa3XCuE9QC6NoYuJWYU1wLcnozGOQrxd6XXeBSkEq/3mZoL1ghl4Q
-	 o/PupYQE2Z+jQ==
-Date: Tue, 17 Nov 2026 02:22:28 +0000
+	b=aOrXiRZIW5dICW3ndkWDL3PrtzmGBlG4lcfcKqdm3XAq8si+HO1wONlnWEp87s1a/
+	 gM6N87I3qh19NleFCWxpKkqo0fIziwqCEVR3C7MGwobKb+K6kM3hzGKLAtXPQK+yN9
+	 mJZYILuY5HmwxOQDyNaeCDFNd0sYEoHG72vbSzyoEA6ISoFpxlmMCS5l4AO6z/yqZV
+	 blNyPkF5lmSVVZUCJDKleuz4lk4S9EON9RJw8aN0B9jLfYvYTtWH1pTm5yEP+po+AO
+	 5MfHhVTzTjtUGx5ampDHF56kKNQpyZNodaILKy2r6QW9Pu/1om4ngUha9wCEzYcn+3
+	 WG+yBYtgOtHOA==
+Date: Tue, 17 Nov 2026 02:32:01 +0000
 From: Jonathan Cameron <jic23@kernel.org>
 To: Anisa Su <anisa.su887@gmail.com>
 Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
@@ -51,12 +51,11 @@ Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
  <ming.li@zohomail.com>, Benjamin Cheatham <benjamin.cheatham@amd.com>,
  Gregory Price <gourry@gourry.net>, Richard Cheng <icheng@nvidia.com>, Anisa
  Su <anisa.su@samsung.com>
-Subject: Re: [PATCH v1 02/14] cxl/port: Add dynamic capacity options to
- endpoint decoder mode
-Message-ID: <20261117022228.43725ce7@jic23-hlaptop>
-In-Reply-To: <20261104230445.66625-3-anisa.su@samsung.com>
+Subject: Re: [PATCH v1 03/14] cxl/region: Add dynamic DAX region support
+Message-ID: <20261117023201.5eee045c@jic23-hlaptop>
+In-Reply-To: <20261104230445.66625-4-anisa.su@samsung.com>
 References: <20261104230445.66625-1-anisa.su@samsung.com>
-	<20261104230445.66625-3-anisa.su@samsung.com>
+	<20261104230445.66625-4-anisa.su@samsung.com>
 X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-pc-linux-gnu)
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -70,143 +69,111 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Thu,  5 Nov 2026 08:02:26 +0900
+On Thu,  5 Nov 2026 08:02:27 +0900
 Anisa Su <anisa.su887@gmail.com> wrote:
 
-> Endpoints can now carry a dynamic ram partition following the
-> persistent memory partition. A DC partition is further described by
-> two properties reported in its CDAT DSMAS entry: shareable and
-> read-only.
+> From: Ira Weiny <iweiny@kernel.org>
 > 
-> Expand the decoder mode to accept 'dynamic_ram', 'dynamic_ram_shared',
-Time to argue about bikeshed colors.
-
-So we want the subtle distinction between shared and shareable?
-Shared implies it is happening, shareable that it might.
-
-I don't really care either way.
-
-> 'dynamic_ram_ro' and 'dynamic_ram_shared_ro'. cxl_dpa_set_part()
-> selects the first dynamic ram partition whose properties match exactly.
+> CXL DAX regions must allow memory to be added or removed dynamically
+> to support DCD. In addition to the quantity of memory available, the
+> location of the memory within a DC partition is dynamic, based on the
+> extents offered by a device.  CXL DAX regions must accommodate the
+> dynamic movement of this memory in the management of DAX regions and
+> devices.
 > 
-> DCD may be disabled during validation after the DC partition(s) were
-> added to the DPA layout, so a decoder may only be assigned to a DC
-> partition while DCD is enabled for its memdev. Add a helper,
-> cxled_dcd_enabled(), to check cxl_dcd_supported().
+> Introduce the concept of a dynamic DAX region. A dynamic region
+> carries the shareable and read-only properties of the partitions it
+> decodes, fixed when the region is created: every endpoint decoder
+> attached to it must point at a partition with exactly those
+> properties, and the region's 'mode' reports the matching selector.
 > 
+> A dynamic region has no capacity when it is created, so the DAX device
+> that cxl_dax_region_probe() creates for every region gets size 0
+> instead of the region size: a seed that claims no capacity the device
+> has not offered yet.  Its dax_region is created with IORESOURCE_DAX_DCD
+no capacity has not been offered?   no capacity as the device
+has not offered any yet. perhaps.
+> rather than IORESOURCE_DAX_KMEM, so the DAX devices on it bind to
+> device_dax and not to kmem.
+> 
+> Indicate 0 byte available capacity until such time that capacity is
+> added.
+> 
+> While DCD is disabled, auto region creation and the region 'target'
+> write refuse endpoint decoders on a DC partition with -ENXIO, as the
+> decoder 'mode' write already does. The sysfs entries for manual region
+> creation follow in a separate patch.
+> 
+> Additionally, dynamic regions complicate the range mapping of dax
+> devices. There is no known use case for range mapping on dynamic
+> regions. Avoid the complication by preventing range mapping of dax
+> devices on dynamic regions.
+> 
+> Interleaving is deferred for now.
+> 
+> Based on an original patch by Navneet Singh.
+> 
+> Signed-off-by: Ira Weiny <iweiny@kernel.org>
+> Co-developed-by: Anisa Su <anisa.su@samsung.com>
 > Signed-off-by: Anisa Su <anisa.su@samsung.com>
 > Tested-by: Wonjae Lee <wj28.lee@samsung.com>
 > Tested-by: Junhee Park <jh9934.park@samsung.com>
 > Tested-by: Heesoo Kim <habil.kim@samsung.com>
-> ---
->  Documentation/ABI/testing/sysfs-bus-cxl | 25 +++++++----
->  drivers/cxl/core/core.h                 | 23 ++++++++++-
->  drivers/cxl/core/hdm.c                  | 21 ++++++++--
->  drivers/cxl/core/port.c                 | 55 ++++++++++++++++++++++---
->  4 files changed, 105 insertions(+), 19 deletions(-)
-> 
-> diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
-> index 7352dbd70bc7..bcbc44fea6db 100644
-> --- a/Documentation/ABI/testing/sysfs-bus-cxl
-> +++ b/Documentation/ABI/testing/sysfs-bus-cxl
-> @@ -339,22 +339,29 @@ Description:
+
+A few small things inline. 
+
+> @@ -2411,6 +2432,7 @@ static size_t store_targetN(struct cxl_region *cxlr, const char *buf, int pos,
+>  	if (sysfs_streq(buf, "\n"))
+>  		rc = detach_target(cxlr, pos);
+>  	else {
+> +		struct cxl_endpoint_decoder *cxled;
+>  		struct device *dev;
 >  
+>  		dev = bus_find_device_by_name(&cxl_bus_type, NULL, buf);
+> @@ -2422,8 +2444,14 @@ static size_t store_targetN(struct cxl_region *cxlr, const char *buf, int pos,
+>  			goto out;
+>  		}
 >  
->  What:		/sys/bus/cxl/devices/decoderX.Y/mode
-> -Date:		May, 2022
-> -KernelVersion:	v6.0
-> +Date:		May, 2022, November, 2026
-> +KernelVersion:	v6.0, v7.5 (dynamic_ram)
->  Contact:	linux-cxl@vger.kernel.org
->  Description:
->  		(RW) When a CXL decoder is of devtype "cxl_decoder_endpoint" it
->  		translates from a host physical address range, to a device
->  		local address range. Device-local address ranges are further
-> -		split into a 'ram' (volatile memory) range and 'pmem'
-> -		(persistent memory) range. The 'mode' attribute emits one of
-> -		'ram', 'pmem', or 'none'. The 'none' indicates the decoder is
-> -		not actively decoding, or no DPA allocation policy has been
-> -		set.
-> +		split into a 'ram' (volatile memory) range, 'pmem' (persistent
-> +		memory) range, and dynamic capacity ranges. The 'mode'
-> +		attribute emits one of 'ram', 'pmem', 'none', or a dynamic
-> +		capacity selector: 'dynamic_ram', 'dynamic_ram_shared',
-> +		'dynamic_ram_ro' or 'dynamic_ram_shared_ro', composed from the
-> +		shareable and read-only properties of the partition the decoder
-> +		points at. The 'none' indicates the decoder is not actively
-> +		decoding, or no DPA allocation policy has been set.
+> -		rc = attach_target(cxlr, to_cxl_endpoint_decoder(dev), pos,
+> -				   TASK_INTERRUPTIBLE);
+> +		cxled = to_cxl_endpoint_decoder(dev);
+> +		if (cxlr->mode == CXL_PARTMODE_DYNAMIC_RAM &&
+> +		    !cxled_dcd_enabled(cxled)) {
+> +			dev_dbg(dev, "DCD not enabled\n");
+> +			rc = -ENXIO;
+> +			goto out;
+> +		}
+> +		rc = attach_target(cxlr, cxled, pos, TASK_INTERRUPTIBLE);
+>  out:
+>  		put_device(dev);
+Could tidy this up whilst here and use a __free() for the put device.
+Entirely up to you though.
+
+>  	}
+
+> @@ -3808,10 +3845,18 @@ static struct cxl_region *construct_region(struct cxl_root_decoder *cxlrd,
+>  	if (part < 0)
+>  		return ERR_PTR(-EBUSY);
+
+There are quite a few cxled->part[part] lookups in this function. Perhaps
+a local variable for that is worth introducing?
+
 >  
->  		'mode' can be written, when the decoder is in the 'disabled'
-> -		state, with either 'ram' or 'pmem' to set the boundaries for the
-> -		next allocation.
-> +		state, with 'ram', 'pmem', or one of the dynamic capacity
-> +		selectors to set the boundaries for the next allocation. A
-> +		selector picks the first dynamic capacity partition whose
-> +		shareable and read-only properties match it exactly, and is
-> +		accepted only while the driver has dynamic capacity enabled
-> +		for the device.
->  
->  
->  What:		/sys/bus/cxl/devices/decoderX.Y/dpa_resource
-> diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
-> index 8a81be004d00..24fbb5718abc 100644
-> --- a/drivers/cxl/core/core.h
-> +++ b/drivers/cxl/core/core.h
-> @@ -6,6 +6,7 @@
->  
->  #include <cxl/mailbox.h>
->  #include <linux/rwsem.h>
-> +#include <cxlmem.h>
->  
->  extern const struct device_type cxl_nvdimm_bridge_type;
->  extern const struct device_type cxl_nvdimm_type;
-> @@ -18,6 +19,25 @@ enum cxl_detach_mode {
->  	DETACH_INVALIDATE,
->  };
->  
-> +static inline struct cxl_memdev_state *
-> +cxled_to_mds(struct cxl_endpoint_decoder *cxled)
-> +{
-> +	struct cxl_memdev *cxlmd = cxled_to_memdev(cxled);
+> +	if (cxlds->part[part].mode == CXL_PARTMODE_DYNAMIC_RAM &&
+> +	    !cxled_dcd_enabled(cxled)) {
+> +		dev_dbg(&cxled->cxld.dev, "DCD not enabled\n");
+> +		return ERR_PTR(-ENXIO);
+> +	}
 > +
-> +	return to_cxl_memdev_state(cxlmd->cxlds);
-> +}
-> +
-> +/* Type-2 devices have no memdev state; nothing else leaves @cxlds NULL here */
-
-Seems like an odd comment given cxlds isn't visibly used in here.
-Perhaps needs to refer to it via a specific path?
-
-> +static inline bool cxled_dcd_enabled(struct cxl_endpoint_decoder *cxled)
-> +{
-> +	struct cxl_memdev_state *mds = cxled_to_mds(cxled);
-> +
-> +	return mds && cxl_dcd_supported(mds);
-> +}
-
-
-> diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-> index f3705ea44db7..9b71b58d4e36 100644
-> --- a/drivers/cxl/core/port.c
-> +++ b/drivers/cxl/core/port.c
-> @@ -203,6 +203,40 @@ static ssize_t target_list_show(struct device *dev,
->  }
->  static DEVICE_ATTR_RO(target_list);
+>  	do {
+>  		cxlr = __create_region(cxlrd, cxlds->part[part].mode,
+>  				       atomic_read(&cxlrd->region_id),
+> -				       cxled->cxld.target_type);
+> +				       cxled->cxld.target_type,
+> +				       cxlds->part[part].shareable,
+> +				       cxlds->part[part].read_only);
+>  	} while (IS_ERR(cxlr) && PTR_ERR(cxlr) == -EBUSY);
 >  
-> +/* Dynamic capacity selectors: the flags name one kind of DC partition */
-> +static const struct {
-> +	const char *name;
-> +	bool shareable;
-> +	bool read_only;
-> +} cxl_dc_modes[] = {
-> +	{ "dynamic_ram",		false,	false },
-> +	{ "dynamic_ram_shared",		true,	false },
-
-This rather highlights the disconnect in naming. 
-
-> +	{ "dynamic_ram_ro",		false,	true },
-> +	{ "dynamic_ram_shared_ro",	true,	true },
-> +};
-> +
+>  	if (IS_ERR(cxlr)) {
 
 
