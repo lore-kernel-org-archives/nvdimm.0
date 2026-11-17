@@ -1,68 +1,47 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.10
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794931161;
-	b=rimiMIos/0lBnExIuifr52yb83pMuWY51sxz7EbFEoSpOFeD44FMefBPX5ouhQEZVmVI
-	 SOGXkcEIiL1r1AmR6di01WofjZqDq9gpDHD3dFIApdq92VYQOMjH0KE9/2kaeKnIce53y
-	 wu9aBqTZqHyUsCxmAEpBI4zvZC2/bDDY4wiDw018eUOGVywcw2Zzs9PlmXcSYvKheZtTh
-	 B1iWQ5+2/Ib1pIiqP13VZMZ9WbhbkZNu51NlrRq6eQVc+GGtijRb4fgo3y9PlRr6eBr7+
-	 bjpmTJEyInRO5/1I6g1YGQ2nweqlOOym+T/5tbIXL7JinrcWCOI29Ul/BmYzmNPzZJw==
+	t=1794932537;
+	b=eBhYvR8cXf7qfgPing8bR2/V+N3ugtCPAJND+IaedbFJ9CLKrLxU5/kG0wTNo/eN9CMA
+	 F/RvraMlbLcHv+/eumZ/pVDM8NU6UYKlxIEm8ciHo82zJ4xk+QxPQ0TXAV/nNXrbdeQVK
+	 /jrPPaWFnuyjvmKfspFmpkRENIOS0QgnE9331v+a2bI906PjTO3G+BUBqh5dz4IhWAdxO
+	 hYJT0q8su54+N8ppN8mpzOd/otWCP5Iv81dgH39H5loaWBW+pquxOYMOxCa2F4uWPBF+g
+	 Iff2ANBIUKK5n2+0uzAbY+ocF1n+KIiT64H+jvbaWWph3AhdkqTsw5EviGEfftrdzZg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794931161;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Message-ID:Date:
-	 MIME-Version:User-Agent:Subject:From:To:Cc:References:
-	 Content-Language:In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	bh=h/3rF4Eul2ZUedOC6ysniY/GPouHi/AlQBH3kKs+gsU=;
-	b=UskHKV+VnsZmDmkt2surlkY+SQIz5gdImLpBwWx7TJ7Aj3ANovWkDG9BmslHFlVWbPIs
-	 J7kDvVpcdCx7DSeXWMOsXqNt+r66qPIbqONfkv0bdQnNaP046aaZ1ZMrhrWlf1SyXA8qe
-	 iBjpsKEoRuVKePfEkC3vT/4dUaCImf04vPwQhgXsuCmeuER5OerVwyrL3nE56xB0eiJhd
-	 F2hmlLF3KSbcDXtaYQsU2G+9th2OHFJQ5HPkWa56e2W2I5zZzvGhx8jExmZ4zLFK9SOv6
-	 qQUC8ibrUY7x8d0L6BUDhTJO/qprMJsVGJa9702Fi8MEO/qwzLRtem5HjbmsTc+CzIg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794932537;
+	h=Received:DKIM-Signature:Message-ID:Date:MIME-Version:User-Agent:
+	 Subject:To:Cc:References:From:Content-Language:Autocrypt:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding;
+	bh=+u0XvPm1yl8lpppCa0o7Ub3ZqbKbjWd/kwvQc+jK5VQ=;
+	b=F2KWvaLHY2KfHGzWcDFuf9NZEBXoZikoCSKLZBSrjoEp8MrUl7J6vGZVZJX1g5StlhvS
+	 Hk5wCf/ohza/C84Q4k+/MulVEtnP9CbCdW5OyoRUD81OYmWBX2hxGNidZviCwlrOufuOc
+	 UpYf6PjOfDCtIIzVL9JUY9jNupG2NpmmhtAGiqSk7YLG5zW7lGtoImf2Zg+g2Bp1lCYYC
+	 qESBg04bukPFnjNyopU5KkdgwZsVV4lO4GdM2PzpvAj4wZaZ/s5aFf73402D5q8ovEqSP
+	 GYarxwpU3bDiYscda4XoSr6Wyakc/4XF/SCKFCI9ss4mCJ2M79zwCsgAr/FqmvgvdsQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=intel.com;
-	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=gQhrWKfl;
-	arc=none smtp.remote-ip=198.175.65.10
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=g96uGOli;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13089606A334
-	for <nvdimm@lists.linux.dev>; Tue, 17 Nov 2026 15:59:19 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 13089606A334
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01173606A31C;
+	Tue, 17 Nov 2026 16:22:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=gQhrWKfl
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1794931161; x=1826467161;
-  h=message-id:date:mime-version:subject:from:to:cc:
-   references:in-reply-to:content-transfer-encoding;
-  bh=ogO0mTz2AgaJsonmWpeYAFiZBu7kzIrrb/QfEOJdD04=;
-  b=gQhrWKflq+V/fS9kOmsJsBXjvnbkXbXTbVV8Edy7QaiNNjL+OUiPt2u2
-   zwuOp0jv2CxGW8+AQDlrPSiknZQZUhdZpN4wN5UY7FFBahMPdfKp5M6qK
-   smXMVr1Fx09ZHRXHO3Mc6Lu/8B33Hd0dbhIO1St/pYmDarz62g7+ot0az
-   3plaMCD5yZZhKvqaoZ7WpJX+9zNedikxsxy8IdIZZdaNV1XZ4Ygy5XNZk
-   n7O8hAU4tW6z8FDVBIBzXKSjZak10RkdC40KLftVKKrb7LGoUMhlaWsrf
-   c1bP5C0mmiQ2TtoO5QKxFEwU0ELX7LV3roqcorLeMKBMTNcqaQpBf5jnM
-   w==;
-X-CSE-ConnectionGUID: R8/QBBMYRD2GCkJnZLx89A==
-X-CSE-MsgGUID: gg8eLvz/QzW9/ZiGoe3rYg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11969"; a="3625149"
-X-IronPort-AV: E=Sophos;i="6.27,218,1787036400"; 
-   d="scan'208";a="3625149"
-Received: from fmviesa005.fm.intel.com ([10.60.135.145])
-  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Nov 2026 07:58:04 -0800
-X-CSE-ConnectionGUID: xExwgk48SUKFDOhmSkw7kQ==
-X-CSE-MsgGUID: WZojkiUMQy2BW7p8NZgTBA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,218,1787036400"; 
-   d="scan'208";a="9930907"
-Received: from sghuge-mobl2.amr.corp.intel.com (HELO [10.125.108.197]) ([10.125.108.197])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Nov 2026 07:58:01 -0800
-Message-ID: <d6a3c6a9-71f7-406d-9ae9-33b3566768eb@intel.com>
-Date: Tue, 17 Nov 2026 08:57:59 -0700
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=g96uGOli
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E6DD1F000C4;
+	Tue, 17 Nov 2026 16:22:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794932536;
+	bh=+u0XvPm1yl8lpppCa0o7Ub3ZqbKbjWd/kwvQc+jK5VQ=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=g96uGOlizPLYBJJRsK+FTKMmsGeaNP9VPNN1fuNODhjDw/mG0D43hUdrwZTpddwXG
+	 /Z0UTEUTIEf58Z4VAJm4t61vIFvRFe8eVZPefJ59dIlSrGdKf+6WU9weImo6EUMpxp
+	 Nud1h3CYvt8I76Xw92EczkTMlNHu06zUMdsxIr87SjSunZHDXDbSygpMC2PxwFhGGQ
+	 z+ogIJCU3dUL0HMPmecWdGOidfpaA7GjVehQQBsmfnrQ+e3SUhi37Xz2yx4dAqWIDU
+	 FXg3tlRB32Jaigk0PJcQaM29bbqR2EJjTvUMCxZrq1+A4G6YR1XxJJi9KNsaMt3wJ+
+	 Pb4XFPmAj2i5Q==
+Message-ID: <7ae17206-829d-4fdb-afd0-cc14c5411b74@kernel.org>
+Date: Tue, 17 Nov 2026 17:22:09 +0100
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -73,139 +52,108 @@ List-Owner: <mailto:nvdimm+owner@lists.linux.dev>
 Precedence: list
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2] MAINTAINERS: Update CXL, NVDIMM, DAX, and others for
- djbw
-From: Dave Jiang <dave.jiang@intel.com>
-To: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-crypto@vger.kernel.org, dmaengine@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Cc: Alison Schofield <alison.schofield@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, Matthew Wilcox
- <willy@infradead.org>, Jan Kara <jack@suse.cz>,
- Davidlohr Bueso <dave@stgolabs.net>, Jonathan Cameron <jic23@kernel.org>,
- Vinod Koul <vkoul@kernel.org>, Frank Li <Frank.Li@kernel.org>,
- Alistair Popple <apopple@nvidia.com>,
- Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
-References: <20261110210152.3494345-1-dave.jiang@intel.com>
+Subject: Re: [PATCH 0/3] mm/memory: fix handling of PTE markers in
+ insert_page_into_pte_locked()
+To: "Mike Rapoport (Microsoft)" <rppt@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>
+Cc: Jan Kara <jack@suse.cz>, Jingyi Sun <1045704958@qq.com>,
+ "Liam R. Howlett" <liam@infradead.org>, Lorenzo Stoakes <ljs@kernel.org>,
+ Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@suse.com>,
+ Muhammad Usama Anjum <usama.anjum@arm.com>, Peter Xu <peterx@redhat.com>,
+ Suren Baghdasaryan <surenb@google.com>, Vlastimil Babka <vbabka@kernel.org>,
+ linux-kernel@vger.kernel.org, linux-mm@kvack.org, nvdimm@lists.linux.dev
+References: <20261117-uffd-dax-async-wp-fix-v1-0-c9a30f27f452@kernel.org>
+From: "David Hildenbrand (Arm)" <david@kernel.org>
 Content-Language: en-US
-In-Reply-To: <20261110210152.3494345-1-dave.jiang@intel.com>
+Autocrypt: addr=david@kernel.org; keydata=
+ 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
+ qIws/H2t
+In-Reply-To: <20261117-uffd-dax-async-wp-fix-v1-0-c9a30f27f452@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-
-
-On 11/10/26 2:01 PM, Dave Jiang wrote:
-> Dan is no longer with us. Removing entries in MAINTAINERS to prevent
-> people from keep emailing his address.
+On 11/17/26 16:58, Mike Rapoport (Microsoft) wrote:
+> Jingyi reported that a uffd-wp marker in a DAX mapping causes endless
+> refaults on reads and SIGBUS on writes [1].
 > 
-> Frank will take over for async_tx until the feature is removed.
+> The root cause is that insert_page_into_pte_locked() treats every PTE that
+> is not none as a present mapping. Besides uffd-wp markers, this also
+> affects guard markers that MADV_GUARD_INSTALL can put into a DAX mapping
+> concurrently with a write fault.
 > 
-> Alistair will take over on fsdax with Alison continue to wrangle patches
-> for DAX overall patches.
+> The first patch restructures insert_page_into_pte_locked() to make room
+> for the fixes, the second patch fixes the reported issue and the third
+> makes write faults back off on non-present PTEs.
 > 
-> Cc: Alison Schofield <alison.schofield@intel.com>
-> Cc: Vishal Verma <vishal.l.verma@intel.com>
-> Cc: Matthew Wilcox <willy@infradead.org>
-> Cc: Jan Kara <jack@suse.cz>
-> Cc: Davidlohr Bueso <dave@stgolabs.net>
-> Cc: Jonathan Cameron <jic23@kernel.org>
-> Cc: Vinod Koul <vkoul@kernel.org>
-> Cc: Frank Li <Frank.Li@kernel.org>
-> Cc: Alistair Popple <apopple@nvidia.com>
-> Acked-by: Davidlohr Bueso <dave@stgolabs.net>
-> Acked-by: Vishal Verma <vishal.l.verma@intel.com>
-> Acked-by: Alison Schofield <alison.schofield@intel.com>
-> Acked-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
-> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> Both issues were reproduced on ext4 with dax=always on emulated pmem, and
+> the fixes were verified with these reproducers.
+> selftests.
 > 
-
-Applied to cxl/next:
-9b5da39088f4
+> [1] https://lore.kernel.org/all/tencent_1874C71D4177A1624528043E008DB1A5EF05@qq.com
+> 
 > ---
+> Mike Rapoport (Microsoft) (3):
+>       mm/memory: install new PTEs first in insert_page_into_pte_locked()
+>       mm/memory: replace uffd-wp markers in insert_page_into_pte_locked()
+>       mm/memory: don't upgrade non-present PTEs in insert_page_into_pte_locked()
 > 
-> v2:
-> - Add Frank as reviewer for async_tx.
-> - Alistair has been working on fsdax and agreed to be maintainer.
+>  mm/memory.c | 68 +++++++++++++++++++++++++++++++------------------------------
+>  1 file changed, 35 insertions(+), 33 deletions(-)
 > ---
->  MAINTAINERS | 12 +++---------
->  1 file changed, 3 insertions(+), 9 deletions(-)
+> base-commit: 93d7a816a2df3e907e2719bd12b0073f1285fc5c
+> change-id: 20261117-uffd-dax-async-wp-fix-867acc8dc78f
 > 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 93abbb315065..58bdd5eff5c2 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -4294,7 +4294,7 @@ S:	Maintained
->  F:	crypto/rsa*
->  
->  ASYNCHRONOUS TRANSFERS/TRANSFORMS (IOAT) API
-> -R:	Dan Williams <djbw@kernel.org>
-> +R:	Frank Li <Frank.li@oss.nxp.com>
->  S:	Odd fixes
->  W:	http://sourceforge.net/projects/xscaleiop
->  F:	Documentation/crypto/async-tx-api.rst
-> @@ -6726,7 +6726,6 @@ M:	Jonathan Cameron <jic23@kernel.org>
->  M:	Dave Jiang <dave.jiang@intel.com>
->  M:	Alison Schofield <alison.schofield@intel.com>
->  M:	Vishal Verma <vishal.l.verma@intel.com>
-> -M:	Dan Williams <djbw@kernel.org>
->  R:	Ira Weiny <iweiny@kernel.org>
->  R:	Li Ming <ming.li@zohomail.com>
->  R:	Richard Cheng <icheng@nvidia.com>
-> @@ -7621,7 +7620,6 @@ S:	Maintained
->  F:	scripts/dev-needs.sh
->  
->  DEVICE DIRECT ACCESS (DAX)
-> -M:	Dan Williams <djbw@kernel.org>
->  M:	Vishal Verma <vishal.l.verma@intel.com>
->  M:	Dave Jiang <dave.jiang@intel.com>
->  M:	Alison Schofield <alison.schofield@intel.com>
-> @@ -10315,12 +10313,12 @@ F:	include/linux/fcntl.h
->  F:	include/uapi/linux/fcntl.h
->  
->  FILESYSTEM DIRECT ACCESS (DAX)
-> -M:	Dan Williams <djbw@kernel.org>
-> +M:	Alistair Popple <apopple@nvidia.com>
->  R:	Matthew Wilcox <willy@infradead.org>
->  R:	Jan Kara <jack@suse.cz>
->  L:	linux-fsdevel@vger.kernel.org
->  L:	nvdimm@lists.linux.dev
-> -S:	Supported
-> +S:	Maintained
->  F:	fs/dax.c
->  F:	include/linux/dax.h
->  F:	include/trace/events/fs_dax.h
-> @@ -13455,7 +13453,6 @@ F:	drivers/platform/x86/intel/hid.c
->  
->  INTEL I/OAT DMA DRIVER
->  M:	Dave Jiang <dave.jiang@intel.com>
-> -R:	Dan Williams <djbw@kernel.org>
->  L:	dmaengine@vger.kernel.org
->  S:	Supported
->  Q:	https://patchwork.kernel.org/project/linux-dmaengine/list/
-> @@ -15278,7 +15275,6 @@ K:	libie
->  
->  LIBNVDIMM BTT: BLOCK TRANSLATION TABLE
->  M:	Vishal Verma <vishal.l.verma@intel.com>
-> -M:	Dan Williams <djbw@kernel.org>
->  M:	Dave Jiang <dave.jiang@intel.com>
->  M:	Alison Schofield <alison.schofield@intel.com>
->  L:	nvdimm@lists.linux.dev
-> @@ -15288,7 +15284,6 @@ P:	Documentation/nvdimm/maintainer-entry-profile.rst
->  F:	drivers/nvdimm/btt*
->  
->  LIBNVDIMM PMEM: PERSISTENT MEMORY DRIVER
-> -M:	Dan Williams <djbw@kernel.org>
->  M:	Vishal Verma <vishal.l.verma@intel.com>
->  M:	Dave Jiang <dave.jiang@intel.com>
->  M:	Alison Schofield <alison.schofield@intel.com>
-> @@ -15307,7 +15302,6 @@ F:	Documentation/devicetree/bindings/pmem/pmem-region.yaml
->  F:	drivers/nvdimm/of_pmem.c
->  
->  LIBNVDIMM: NON-VOLATILE MEMORY DEVICE SUBSYSTEM
-> -M:	Dan Williams <djbw@kernel.org>
->  M:	Vishal Verma <vishal.l.verma@intel.com>
->  M:	Dave Jiang <dave.jiang@intel.com>
->  M:	Alison Schofield <alison.schofield@intel.com>
-> 
-> base-commit: 6628e7d4c6b25c8d18f1345e3a20d21829aae7e4
+> --
+> Sincerely yours,
+> Mike.
 
+
+I have here a fix to disallow uffd on DAX entirely. It's completely broken.
+
+I was staging it to send with others, but I can send it out separately.
+
+-- 
+Cheers,
+
+David
