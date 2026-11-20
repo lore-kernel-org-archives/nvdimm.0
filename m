@@ -1,78 +1,78 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
 	t=1795198207;
-	b=VQdwJhnyQgkIadm7urVb9ZdOlruHl4u2WhbhKRSJvacp7fAXTpb0a6epEUADZYCFBKU/
-	 uR328VjuOhF68gd4Db2jJllEl6b6L7bsS3I0ZYTcmpdtPm18iJvu/nEmd18v2rjjoDWRO
-	 z2tv6zqhLGKAT00dmd9Va247p7Z9vjXDHq4JZkWKydbtoRmJdA7ktkeJZ5i+INpU00+m6
-	 lDrNtp6EsXLVH7g+mWUeQB60XzEZMlvC0i8JWoFIXn7O5WMUfBwo74QUyOj65rA30F8xj
-	 r5dY1gM40YNS6nW7hiXU8mGQtJDyArHyUOsm8Tih/15DQNQZMOyjxdODPBmHGMhZYqw==
+	b=1GHEJ4hQqKJdKOHMRcDJpGA/gVRMcSQhRHYpyFawb8XXGr49ho9llw7immgWMQvkOwSJ
+	 8eBuEaJ9HUYlBO2niFA5UrTk6A6gGceWpbFlhv+gBXxYhrczDgvUTPn7YExp3wcZoJi5r
+	 CDii91sbQ1JF5iFYU6irwVfQQnZSAZ7JLEktoxV3gmiOqQGej9cS9U4ZfUz3VdEu9v4tq
+	 3++Tm6OipEoBpDSv1ETByb4sSRfwuyrg1s98C4AjVf1Xhc4oEMqQ2zthmiIASOVRTt+6j
+	 tR/8RL1fG4582sfGJ1QkAa2wt/9lO2+U8H6lZS/q+W6Z7b1bc+Sqr5GI998vH+my1+g==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1795198207;
 	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
 	 Content-Type:Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=viHCEx84Kk76c0umGmj4eFC340kJyEsd5v6cdjPlHcY=;
-	b=12IKWxQ/n6fvdqVuBJgPb1ynzDLkQ8QlhyF9n/IzWEB1AccH+5qAd7yw9mfZrRWTk8D9
-	 C358vafi39/BQEpGHcWG/2Ol0j5XP0nBtPXqnrvzlxhClazg+FscVpx4HCBaEblsDYuSa
-	 Y96yWGFhNIvS/T5X9YvCiH23qISnCNxUCdeBio6LeO1yyPcxHNY1PzvUQg8dy9dJ2Aizu
-	 Pl+fm7J8Vzpgvcqi3sxeqzP3Y2gR7dmaTjuzRgV6i6gOGWtMl/xus3e1zIwWrDATMjpkg
-	 MEfrQ6ZTcZQl8UzRRAELR88w1iQUefrhyNECjyh5chXqfJq+PJiV0pc4E9HDohfn/ug==
+	bh=kS8ULtElOh9VKJauHuptEbqEopupzknKORQFIhtAO3g=;
+	b=kQbd4ARPjRe1t49+jizBvT0KeQjT/k4jkNWNhzkGSlEWMpBK/nUCCbVlOl3WbX9miOtG
+	 2RidvX8ck+/OlL7/Es3QbHuzpX+2x/IdE9UGnU8rVSSKmwnwULPrm5wyQikh+2t59e6KS
+	 A5f8uOJKL3Mfv+KNjF7rs9QPKPeOwhtik6pw9liDb1cfBfBqBeSHp6juXv91gheJI/RQQ
+	 /R+xy6YGQrixfO4iA05LXK0m1sbSmsHv9i1nlLVz+pkRvOSPsWamCJ81s9LiET8994J4y
+	 jP0dARAGJn3uzDy2XH7TivEebfGysJ2/Wd4tJU7S6xD3z13sHLp4crI6FrqEAm1x0wA==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=G8pOxSv0;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nmpGkOHM;
 	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F84960A262A;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 598B5606B239;
 	Fri, 20 Nov 2026 18:10:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=G8pOxSv0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nmpGkOHM
 Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
 ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
 	t=1795198207;
-	b=dEsY6jC+hM/yYhcgSxWfaSHcyTERa/FiOUo5NjTE1dcdGNsbjz4RLOf/7I0rSs0vQD9J
-	 jRpez96k2+1JAEtLGd0ZKeLa22Ri8INMthc29njdUUDi1P+bLO+XUepVEdga+5Kqzu8Ae
-	 jx68pFcnO/sWLAhrKzy5YL9QOsFUj9tep4ADAkIK/FX6/5sLqn7sD8VAVk2nMKVXlTyVB
-	 ZwKjWxw5W9ls/OnEmELL7QquU3Z8aZ5VsBRlvNUq1xmhzjrr57oH0FVJjOsOOezqtx6fk
-	 Jowb4lfbN41bsGxcvzeyfguYY+OMDAfZLlukP5zw69D0HwhnxY8wWT0GUcSDxvYertw==
+	b=rhbLIWnoeah4+Pg0Bh25heTkgOMOwy8+kdjSX6dpFpVb8OixjXxxR95U9dR2wI5IxlXn
+	 hwkW8d931TpcbBzuE5fKsCen0ke0i3Kdw3wTsGw9NtK6hI7CshwJ57NK72FM7Gp14Bc+l
+	 gcP905DGfxPrbr+g1w5N75T8+WC8NZcZbl6S1+MGIwwB1a+ZX7uSjWnGd+eJm/yr75+ab
+	 0Tu0fZBTo2802TK/HDcSDS+SNNDIuqtM4upfp/0L56qA200Hhc5z4CATuVfOl9Yqo23Gl
+	 MvPR44qcZxwszArywPCArxBPPcAR1H4P+FlNEgWFIFYYD7i3LQ9I8UnT0baRglfIj7Q==
 ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
 	c=relaxed/relaxed; t=1795198207;
 	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
 	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=viHCEx84Kk76c0umGmj4eFC340kJyEsd5v6cdjPlHcY=;
-	b=dD3Cfvsm1PcEmjbMeEV+475LC8AzEurevQq0iy5YzSkNXTJvedB5HkS9s/NHg6UC6ttB
-	 m9m9nG/iBrveqtMNRrr6qhVQezwpF7vLjJqcsejiLZb7Os1d2XzE7Ul8yZ0OC2qBfRrOl
-	 jxee/cojqoRMqg87Y0rTH4IZmWGOg85V/Nrv8ya36UtzmX6BMLGipVBFoTKiYie4cfYIY
-	 TDzeQBXrQr1diuVFVGUfYO6ZOQP5QPa+UKF8vTKNrtvLHixsEDRo/Dr6m9TkH6/4d6tGE
-	 KNE9oTLFbdvVLbZN2+dNGP0U7odbp8FsNydGJqbcymoKo53N7TM1IUOOiDwzvWh3k7A==
+	bh=kS8ULtElOh9VKJauHuptEbqEopupzknKORQFIhtAO3g=;
+	b=gafFd1hFivTR1EnDOfgQ5BjbkW8P6m1oL7wpJXNKKjcfqGppKImYACtnCEPlmynLPYvz
+	 oQ9IMkSPpjsQfEb+Mcm/cRoEtIPn09CvJ7F6Xwo0L6MQ1WEbiFB0vsRmIluvr/EINDgX7
+	 xgsKzjZ6CZOTtixOBRY3bj5VSD3Aph9iRCEWW19H8cyxfXWuofTZAuf8TExSJh5AgeF/7
+	 ASbM3fHNlNhcIQSZLO1w6AbOUN5di9HdwAvKiMygca1CpxfECPKpubRiRjr9/pASY8+Qx
+	 sqaWAmKWr85nhRl1F3qIiF1uxrCrO61gDbMB8RTBY8S5AnDxHdOeswDbufVP/FZzQbw==
 ARC-Authentication-Results: i=1; smtp.kernel.org; 
 	arc=none smtp.remote-ip=100.80.115.77
 Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id DA7D01F02EF0;
-	Fri, 20 Nov 2026 18:09:50 +0000 (UTC)
+	by smtp.kernel.org (Postfix) with ESMTPS id E2E2A1F01561;
+	Fri, 20 Nov 2026 18:09:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1795198207;
-	bh=viHCEx84Kk76c0umGmj4eFC340kJyEsd5v6cdjPlHcY=;
+	bh=kS8ULtElOh9VKJauHuptEbqEopupzknKORQFIhtAO3g=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To;
-	b=G8pOxSv0UzN0zM95wd2/bRpmO8fn4Y8tjGI0SyQRuTauglGzsDlDDM6xXJHQmCZzb
-	 DBc9lliqAa4aPF/f8HpXMMR/3ebBIsTDPZiRGmQvFLK0ErbcjlC7G1Nx781fjJGRS/
-	 Cu/3qi7FWxtSY1C1BjratlBN3T5z2/bEf+Jgf1obMqEZIpEp2a1t10Yw3wabn5Om+k
-	 a/0YKqviddA0s58cm+5lQfr6DFcpfRQwlkFLG4jJ2tEDh9iHj2jKNZfVAzLqXuu1Ez
-	 5LcaIaM585tbGoUoSXuzCGlbhJFLZGS0jvJEb27LWgftfEvZcbBqtCpw//Wm2CCjL4
-	 7UYTXKsQeSAxQ==
+	b=nmpGkOHMHeAt0ferEtV3OfGvY9ht35A2lBRivtOZfW6DchavZvY1MEc9wOHH4KgJh
+	 3FNJkN1c/Kiu16ckro4mMzkhdziUVKNKQX6Gmk0JEBqGpokOV2haZJrspUFat7mBeB
+	 HH5+vYdvYwCekMxWdEP2xGa4Ng/zgoq6AdBDI+NWB88V1pPgbTesGccZ13Z2UzTg9R
+	 qE0ThmvM13ojxHh2voH566stwnq+0S2AW8EaUBvEYdbXv8PBcZQTSmWEYcmLS2UjaC
+	 yTXorXrS7TgUBgui17Zzn1rViYo1JKs5dEEPl7G4gBQV++ys+GLPbF9ujfOhdUylo3
+	 EokS1f9cvxgCQ==
 Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id 08EB64B905;
-	Fri, 20 Nov 2026 18:09:19 +0000 (UTC)
+	by lkml.kernel.org (Postfix) with ESMTP id A2E054B8F9;
+	Fri, 20 Nov 2026 18:09:18 +0000 (UTC)
 From: Gregory Price via B4 Relay <devnull+gourry.gourry.net@kernel.org>
-Date: Fri, 20 Nov 2026 13:09:08 -0500
-Subject: [PATCH 17/60] PM: hibernate: size the image from common memory
+Date: Fri, 20 Nov 2026 13:09:05 -0500
+Subject: [PATCH 14/60] mm: base hash distribution on common memory nodes
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -83,7 +83,7 @@ List-Owner: <mailto:nvdimm+owner@lists.linux.dev>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Message-Id: <20261120-private_nodes_v6-v1-17-74f5f9a115c2@gourry.net>
+Message-Id: <20261120-private_nodes_v6-v1-14-74f5f9a115c2@gourry.net>
 References: <20261120-private_nodes_v6-v1-0-74f5f9a115c2@gourry.net>
 In-Reply-To: <20261120-private_nodes_v6-v1-0-74f5f9a115c2@gourry.net>
 To: Yury Norov <yury.norov@gmail.com>, 
@@ -140,11 +140,11 @@ Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
  cgroups@vger.kernel.org, nvdimm@lists.linux.dev, 
  linux-kselftest@vger.kernel.org, "Gregory Price (Meta)" <gourry@gourry.net>
 X-Mailer: b4 0.14.3
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1795198152; l=2366;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1795198152; l=752;
  i=gourry@gourry.net; s=20261120; h=from:subject:message-id;
- bh=A3l/6pPMz9YPRB99YIwhmspv/HD0g4ri54lK4DwOHLU=;
- b=mI+JjYrIOIQon3oEqa2KKxHS1h91tm2h8L4t/n3aWLMMUysU1+sJoKRNNeogaWqhf2eGMWvyF
- WkAqiNUeQllD2ej1Rpnh67Y1ngxyx7Mj3iNBos7ryRyQn7xec/6u1L2
+ bh=kzu60kHcR4jg5+83pzySdZg/16HqDs5ZJU+b16doVWE=;
+ b=748lnM0UAIWYIikKEzoqzk1NLfEf9UkP/kYV8mG5fcRoZKQ2waLuxmbZewbEadsHLukTRzV3V
+ r9lLSXCux+nBTwzYAwYPzqHH+pyb+k2EBGnYxU14R5HCUN2/FGpt/7x
 X-Developer-Key: i=gourry@gourry.net; a=ed25519;
  pk=BZWDlx4htkR5KcvGjGtSDfx1tM0E5dlyBR43FEhjWVc=
 X-Endpoint-Received: by B4 Relay for gourry@gourry.net/20261120 with
@@ -155,72 +155,30 @@ Content-Transfer-Encoding: 7bit
 
 From: "Gregory Price (Meta)" <gourry@gourry.net>
 
-hibernate_preallocate_memory(), enough_free_mem() and
-count_free_highmem_pages() count the free pages of every populated zone
-as room for the hibernation image, but the pages used to store the image
-can only come from common memory.
+hashdist is useful when large kernel hash tables can be allocated across
+multiple NUMA nodes. The tables come from ordinary allocations, which
+only N_MEMORY_COMMON nodes serve.
 
-Count free pages only in zones on N_MEMORY_COMMON nodes.
-
-The image metadata estimate is a separate sum.  The bitmaps track the
-page frames, and every zone's frames are tracked (regardless of node),
-so that sum still needs to be calculated for all populated zones.
+Count N_MEMORY_COMMON nodes when applying the single-node optimization.
 
 Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
 ---
- kernel/power/snapshot.c | 15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ mm/mm_init.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/kernel/power/snapshot.c b/kernel/power/snapshot.c
-index d5dba0e50b2e..912804bee361 100644
---- a/kernel/power/snapshot.c
-+++ b/kernel/power/snapshot.c
-@@ -1291,16 +1291,19 @@ static void mark_free_pages(struct zone *zone)
- /**
-  * count_free_highmem_pages - Compute the total number of free highmem pages.
-  *
-- * The returned number is system-wide.
-+ * Only common memory counts, since image pages come from common memory.
-  */
- static unsigned int count_free_highmem_pages(void)
+diff --git a/mm/mm_init.c b/mm/mm_init.c
+index 46fe9a274a7a..f21b3dbcc92a 100644
+--- a/mm/mm_init.c
++++ b/mm/mm_init.c
+@@ -685,7 +685,7 @@ __setup("hashdist=", set_hashdist);
+ 
+ static inline void fixup_hashdist(void)
  {
- 	struct zone *zone;
- 	unsigned int cnt = 0;
- 
--	for_each_populated_zone(zone)
-+	for_each_populated_zone(zone) {
-+		if (!node_state(zone_to_nid(zone), N_MEMORY_COMMON))
-+			continue;
- 		if (is_highmem(zone))
- 			cnt += zone_page_state(zone, NR_FREE_PAGES);
-+	}
- 
- 	return cnt;
+-	if (num_node_state(N_MEMORY) == 1)
++	if (num_node_state(N_MEMORY_COMMON) == 1)
+ 		hashdist = false;
  }
-@@ -1868,6 +1871,9 @@ int hibernate_preallocate_memory(void)
- 	size = 0;
- 	for_each_populated_zone(zone) {
- 		size += snapshot_additional_pages(zone);
-+		/* Image pages come from ordinary allocations. */
-+		if (!node_state(zone_to_nid(zone), N_MEMORY_COMMON))
-+			continue;
- 		if (is_highmem(zone))
- 			highmem += zone_page_state(zone, NR_FREE_PAGES);
- 		else
-@@ -2011,9 +2017,12 @@ static int enough_free_mem(unsigned int nr_pages, unsigned int nr_highmem)
- 	struct zone *zone;
- 	unsigned int free = alloc_normal;
- 
--	for_each_populated_zone(zone)
-+	for_each_populated_zone(zone) {
-+		if (!node_state(zone_to_nid(zone), N_MEMORY_COMMON))
-+			continue;
- 		if (!is_highmem(zone))
- 			free += zone_page_state(zone, NR_FREE_PAGES);
-+	}
- 
- 	nr_pages += count_pages_for_highmem(nr_highmem);
- 	pr_debug("Normal pages needed: %u + %u, available pages: %u\n",
+ #else
 
 -- 
 2.56.1
