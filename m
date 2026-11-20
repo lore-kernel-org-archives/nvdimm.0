@@ -1,79 +1,79 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795198264;
-	b=lzmE60AeXNWG8EPD/nrILE8Vu+7tVlRLIk4a7S2QOkgQmYrZAvAR4+f2XzyyopmjE2uo
-	 O1DAi6UqsQivqGiW6UxKurIzONEV4hvOfuBg+apcB9xRLOqYuFy5aG/TIWWnWwH6ui6XO
-	 dk6V2q6oLPqtG2GuodiWSNjfDjBj2KPIFS5aY6D/PB4S1gG9X1D/zuZGFoj+G6poeakp/
-	 KUhgIOG4Ym8nESWR4JP709dXeIzv/hHb7acXdnv6X77j3WIfNimq7HdTm2p70jyQBJNNA
-	 da8NTd59kBiDLFMtkn6TyhbQXmwwjzukS9VcwNggcV2VbfU60BUv2bBUZrvA1CrJsSQ==
+	t=1795198265;
+	b=vdN4RGs0iQF3/hO2bXu1a+3Oi7p4WQyMnt1yuD92O0xpXSjXtNtJAbgKxicPNJ7CO4qL
+	 +bPmuOFC37l4vrIh8NY1sYDttaqOeVTa5d9QOWKNXJKVfYTMCf29v9bVYp9sExlS4nTe/
+	 NRmfCqId74OpEY4MNEjTDN0khVMgKvZYFWA5LZASfHSwbaHVAUr+38dG2YCM3MT1KA/mi
+	 vZYyPhjFpLWyPD9OqLnQTNWcwiluhGKx/9cm7lCi3uAFPePp8enEplCtVUDofUxgXllod
+	 OmqqbcVzjnU4bO+WPMreQ0Rml6p8Jq3BYLUU20aHFSjQ8NmO/uwhZi/HBvwqkh5vYpQ==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795198264;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795198265;
 	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
 	 Content-Type:Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=N4LUHMZ9Zq2StHJtUd5qOtvoSX+upmsion4LtPce8LQ=;
-	b=GgUVdODfik0bntDwhWJ+iUos1sfRORJaGvWablOePuq/SAoMv3KOwj1OiMyVO8v7MYrs
-	 8ph1ewHcsDY4ZrzePmWlfNe6Ss6axyCZOVVOcps9uMFAwCv9z3K7+go8aYGhfdpLvXQJI
-	 rhH8YAEycBRMN3oUWCekSHLeHYA8yk6yMsObAVRDXIRri6np6OHVZ0qHbbiVmiRwdlCbH
-	 gpx0PoZM9sx/gmJ1IInrsOSK9JJ4QyJv8c92azvHXIddcLagzv1RR9Z3V6TIokgVvNWSE
-	 CYwMulZWXs7QTUKxUjuS2mzN+KDzsJu7tLvxqhEuVi7LnCA2zNmybCamvHbc8OghF0Q==
+	bh=SDxj2h8LUz/yKelW0hpXFzxdAGDfTr2wWvPbhGHboyw=;
+	b=E2Vk2Rv2FNCrm45+Omk2ZVagZ3ET7ukOJL2RHt2B21QfJXkD45o4wBjUN0ZdS03xMy0J
+	 06QwzQcY0Hrhsztwif05ds+lfJYonKfniaIZ0uV7kOFzUZLjGXHXLV8n1OEkNu75NuSrE
+	 3Tha0HYbE9UiOB4SQQR7lRXAUX7u7TIcB56Y2y+iilW7HnYJl3iPa4/Dc7Y46VS1/Sybb
+	 FP6iz5UZaf3mLQLkIpzUNHon/sJFe8f3dMWQVM6eZkcWHki6tT7sKdROUHTM8yd6A8Vsb
+	 wwcwLMifIfenxUd5VRqTfv3EPeyMRI81m/ToPU/EcfYcLvpOlSAir/XoQ26MEZ9WaQA==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NK3q7emV;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=K7wL3Pl5;
 	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B7846076C67;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F133606B44A;
 	Fri, 20 Nov 2026 18:11:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NK3q7emV
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=K7wL3Pl5
 Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
 ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
 	t=1795198264;
-	b=k2/92vX07HrIW+S0URaAFdStkvHnitluAh0ydx/TLxefkGOBTjq5aCgfn9FT6WjZY63l
-	 mFPomJWb4/u+ZFe91AXioU8MsWtNz2Ummso/E6EUoTs6K65+dsPM1SeZNxcXDd6iyk0LN
-	 qP0RorSy+hLV3/3O73lYhuP3KK6txde6LqXfLa2Afmhw52CXcGEJASStLF7r9eZwMHz4l
-	 3UV8gt2hyyXkwICiGiW2h+eRjVmrlsPqm1iy5pQa90Y20U8sjUUtM/kiUuMul+rh9DSjR
-	 4zPhGYwLCe7QbYFF82+27PgMARfhxZoo3M6mPnoncEjn1V9t6o+k+tQ03F/t9dcN4fw==
+	b=kE0AhTAjt5mvEomE/RIe4XLX4Hs2ipvGMh0A39Gte3At61QLY3YKijQYtPfmLTu0cvOn
+	 2G5RexrBMAmASK+T0PHWMxP1tockKYsktieMqq2ylad8C408CeJvqBSD+qR4uIHzvlVA/
+	 8iyviVJfOQKQXAR7Z9L/hZBcAIVr1O5P6081d2jPsmRSGzLQSp8V+5dR0vi50Hiwvo1ku
+	 RILztZiGyaELi7K3FGx1xNrZdUp5hxcqi0ah8qqqQbE9LgVeVjJDxHLp6PG1p4tkF97we
+	 soDLFree2320Fy9NDAF/9mtOALb0Qyi4AnFPocjLG6TzfVopq8B3nL7H8sDj0uGoI7Q==
 ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
 	c=relaxed/relaxed; t=1795198264;
 	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
 	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=N4LUHMZ9Zq2StHJtUd5qOtvoSX+upmsion4LtPce8LQ=;
-	b=ZWrLhdoRxz6QVPz/RWIxtRUZXa7mjh5uavwQmWDvWdE50jotXGDhbU3p8smdiNVEZXvZ
-	 kEtUfdLUWXrEl62OJTA96upXau8wutdwolSMwNqkN4CpKnLtF3v5e9EUd7MsvFa7McXGL
-	 r5Cs3HUv9fqYKKLPnjWqXlMkVYHNwHL9zzcBzZn9KFTz1IzGPXM76Tx0YYdGgLsXsTpJg
-	 YIQ7ClzkiVJlcO4F41hSCUB5mJxuBrBGL8qdCi11aa/rAW+Sm4iWMy6D7yOVWaRRd8cOQ
-	 zqsCz+6L/5xg1mGyTgztKcuJ+uxihAKNNH6bk+2dgKlBCJvLxGE5WF2tXD7IfxXI1vQ==
+	bh=SDxj2h8LUz/yKelW0hpXFzxdAGDfTr2wWvPbhGHboyw=;
+	b=wRB7iNq2zmkQkjDdbza26hhQjBigLAjR1kMtCXtf+GIKUOZiSo+IL/oF3gJT3i2WFwBT
+	 7jl7GuqyrLroFzr+uqmwn5D+QPqo5DMZlS+5LexuSyn8YdebRKRD4myPFx4gPnntuq3Un
+	 ljL8hIRxZbSiM//AT7dpwBnYtFQHxAzNPyv5BBVC1qWOLhT0ljKJQtf6IqGvj8R2lTpqQ
+	 5rmnq6Ts2xsJQwKycqgevOqIvf6vo56IUnd2v1gq1FIGmdvmTcMrPZVEuDOOc2IZErjjq
+	 1cJ1+f/Ojy4pRZKZ7Zl27JC3bEA78PGp4/I9JNQHGAWWY1BlhhuhfLd4FBmZYSMA86A==
 ARC-Authentication-Results: i=1; smtp.kernel.org; 
 	arc=none smtp.remote-ip=100.80.115.77
 Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id 501181F01562;
-	Fri, 20 Nov 2026 18:10:38 +0000 (UTC)
+	by smtp.kernel.org (Postfix) with ESMTPS id A237D1F00ADF;
+	Fri, 20 Nov 2026 18:10:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1795198264;
-	bh=N4LUHMZ9Zq2StHJtUd5qOtvoSX+upmsion4LtPce8LQ=;
+	bh=SDxj2h8LUz/yKelW0hpXFzxdAGDfTr2wWvPbhGHboyw=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To;
-	b=NK3q7emVbUik3L6Koi3qFVUpX2MwbLejtymVXVSP+6DGks5CPyStrENGI09OwxWZq
-	 zSNqW+cxqVfd4P/0ZaVYTOoRDtB/o4OkCuo2oG0JNcNfbopq7W+SDV76pZCm+ByX2H
-	 mpcYK1hDU4vQdgBpEMXZCNobPf78Tg4HTmYWJCSf7y9/Ulk1hXwZ/Q1uunpg3uWdQN
-	 go6IAT5N662I+k4F4ZhnXj7kIDRTOErJ6dvYzInI1mf/2XMq94C7Iu+JmGOLmJoH/h
-	 ekLz8mX5549K5raMvsP8yo6/Egd6d49U2BHkydpE6CX6OBVcVnxFkUhFz3cki/lu1C
-	 +crcMyjPzrnvQ==
+	b=K7wL3Pl51LKxnGHBdlAfvvRb3zx0G66FKkg2Bk9pnCrUpi0EZWpAc3i3mKVijKO+1
+	 gk92KS4/xtldhh5+fZmphZMHXuR88Ba5MWhELHAEJBcstzv9ZD03CiMskChzCin+mS
+	 SErYPhg0XAZ+ESZUpSS0Chrr00UQSAT/TAiivIAB2oBadcTsH6+FFSNbVOtUETNY4W
+	 6qipPQWvN/58Cy+XDAsMTE0sXGXqp2JYllhF8hDMy3sEF2WyIMwfOTFZch2HkNRsCl
+	 LU7gP8sH2rNAIDKCqNR3V/QaSbefxiPNdOQitIeIQJIlNIA62N7R+Vc8+thL45zOk+
+	 NJojqlBCUiZhg==
 Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id 00C844B965;
+	by lkml.kernel.org (Postfix) with ESMTP id 1E32C4B969;
 	Fri, 20 Nov 2026 18:09:22 +0000 (UTC)
 From: Gregory Price via B4 Relay <devnull+gourry.gourry.net@kernel.org>
-Date: Fri, 20 Nov 2026 13:09:32 -0500
-Subject: [PATCH 41/60] mm/page_alloc: relax a private request whose node
- becomes ineligible
+Date: Fri, 20 Nov 2026 13:09:33 -0500
+Subject: [PATCH 42/60] mm: fail private placement on exhaustion instead of
+ OOM killing
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -84,7 +84,7 @@ List-Owner: <mailto:nvdimm+owner@lists.linux.dev>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Message-Id: <20261120-private_nodes_v6-v1-41-74f5f9a115c2@gourry.net>
+Message-Id: <20261120-private_nodes_v6-v1-42-74f5f9a115c2@gourry.net>
 References: <20261120-private_nodes_v6-v1-0-74f5f9a115c2@gourry.net>
 In-Reply-To: <20261120-private_nodes_v6-v1-0-74f5f9a115c2@gourry.net>
 To: Yury Norov <yury.norov@gmail.com>, 
@@ -141,11 +141,11 @@ Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
  cgroups@vger.kernel.org, nvdimm@lists.linux.dev, 
  linux-kselftest@vger.kernel.org, "Gregory Price (Meta)" <gourry@gourry.net>
 X-Mailer: b4 0.14.3
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1795198153; l=6951;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1795198153; l=3361;
  i=gourry@gourry.net; s=20261120; h=from:subject:message-id;
- bh=C2lGBLJod3NcaBo85CjVEXWAAO0FPHUICJ5RG9BwKOc=;
- b=JDY7uV4eikBnxv6llFVY6VolS/1VlCkSAEYghL17DozTh0aYg9lRJWAk67Fn72xJYpFmyychC
- sazxiFhhQ+HCfqTJqkOEcFduj64EA2V+c1bfaDbrQNVpad7gQAyoF6H
+ bh=TbRq76F0ctxLdrc4ZvqTJEioaj0puOvUL1bbmmWV60Y=;
+ b=4TuCqLi3E6og3lhWPEnbx57vqhH0UZ+xHpnIJwJApHy8FsrwbpMCJEhWBmQF1kacYofzGuQUk
+ MJg+9HMhsJnCGqIcMdsQtmg/Q+w3B05gKy4AO+RBfvyb9bK7v/Vtefk
 X-Developer-Key: i=gourry@gourry.net; a=ed25519;
  pk=BZWDlx4htkR5KcvGjGtSDfx1tM0E5dlyBR43FEhjWVc=
 X-Endpoint-Received: by B4 Relay for gourry@gourry.net/20261120 with
@@ -156,180 +156,91 @@ Content-Transfer-Encoding: 7bit
 
 From: "Gregory Price (Meta)" <gourry@gourry.net>
 
-A private request allocates only from its node's private zonelist. If
-the cpuset revokes the node, or memory hotplug removes it, the request
-has nowhere left to allocate, and a faulting task retries forever.
+Private memory belongs to a device or specialized service and is a fixed
+pool, like the HugeTLB pool. The OOM killer has no good answer for it:
+the task that faults the last page may not be the one that filled the
+node, a remote accessor or another mapper of a shared object would be
+blamed, and killing a task does not free shared private pages.
 
-An ordinary bind policy does not hit this. A cpuset change rebinds it,
-and check_retry_cpuset() drops a nodemask that no longer intersects the
-cpuset. A private binding is never rebound, and dropping its nodemask
-does not help, since the private zonelist still holds only its node.
+When reclaim cannot satisfy an allocation from a private zonelist, fail
+it instead of OOMing.
+  - __alloc_pages_may_oom() does not select a victim for a private
+    request, and marks the task.
+  - handle_mm_fault() turns VM_FAULT_OOM from such a failure into
+    VM_FAULT_SIGBUS. GUP and remote access see -EFAULT, and other
+    callers see the allocation failure, e.g. -ENOMEM from write(2).
 
-Add relax_private_alloc() as the last of the slowpath retry checks.
-When no node in a private request's zonelist is in its nodemask and
-allowed by the cpuset, it drops ALLOC_ZONELIST_PRIVATE and the nodemask
-and switches to the common zonelist of the preferred node, which
-alloc_context now records. It runs after check_retry_cpuset() and
-check_retry_zonelist(), so a concurrent update retries with the original
-constraints instead.
-
-A node counts in any zone type, so a GFP zone restriction or an
-exhausted node never relaxes a request. A __GFP_THISNODE private request
-is never relaxed. check_retry_cpuset() leaves a private request's
-nodemask alone.
-
-The alloc_context comment now lists nodemask and alloc_flags among the
-fields the slowpath may change.
-
-Without private nodes, the slowpath retry checks are unchanged.
+A request that became ineligible since the last retry check is not
+exhausted. Report progress so the slowpath retries and relaxes it.
 
 Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
 ---
- mm/page_alloc.c | 60 +++++++++++++++++++++++++++++++++++++++++++++++++++++----
- mm/page_alloc.h |  7 ++++---
- 2 files changed, 60 insertions(+), 7 deletions(-)
+ include/linux/sched.h |  2 ++
+ mm/memory.c           |  5 +++++
+ mm/page_alloc.c       | 14 ++++++++++++++
+ 3 files changed, 21 insertions(+)
 
+diff --git a/include/linux/sched.h b/include/linux/sched.h
+index e4f6323d7855..8a2e37475e5d 100644
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -1038,6 +1038,8 @@ struct task_struct {
+ 	/* whether the LRU algorithm may apply to this access */
+ 	unsigned			in_lru_fault:1;
+ #endif
++	/* A private memory allocation failed; a fault reports SIGBUS. */
++	unsigned			private_alloc_failed:1;
+ #ifdef CONFIG_COMPAT_BRK
+ 	unsigned			brk_randomized:1;
+ #endif
+diff --git a/mm/memory.c b/mm/memory.c
+index 282266dd5e5d..4a8a08df28ff 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -7003,6 +7003,7 @@ vm_fault_t handle_mm_fault(struct vm_area_struct *vma, unsigned long address,
+ 	}
+ 
+ 	is_droppable = !!(vma->vm_flags & VM_DROPPABLE);
++	current->private_alloc_failed = 0;
+ 
+ 	/*
+ 	 * Enable the memcg OOM handling for faults triggered in user
+@@ -7034,6 +7035,10 @@ vm_fault_t handle_mm_fault(struct vm_area_struct *vma, unsigned long address,
+ 	if (is_droppable && (flags & FAULT_FLAG_USER))
+ 		ret &= ~VM_FAULT_OOM;
+ 
++	/* Exhausted private memory fails like an empty HugeTLB pool. */
++	if (unlikely(current->private_alloc_failed) && (ret & VM_FAULT_OOM))
++		ret = (ret & ~VM_FAULT_OOM) | VM_FAULT_SIGBUS;
++
+ 	if (flags & FAULT_FLAG_USER) {
+ 		mem_cgroup_exit_user_fault();
+ 		/*
 diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index a219057931c3..63cc8729c41a 100644
+index 63cc8729c41a..ea48991ef589 100644
 --- a/mm/page_alloc.c
 +++ b/mm/page_alloc.c
-@@ -4078,6 +4078,35 @@ __alloc_pages_cpuset_fallback(gfp_t gfp_mask, unsigned int order,
- 	return page;
- }
+@@ -4176,6 +4176,20 @@ __alloc_pages_may_oom(gfp_t gfp_mask, unsigned int order,
+ 	 * failures more gracefully we should just bail out here.
+ 	 */
  
-+/* A request on the private zonelist. */
-+static bool alloc_is_private(const struct alloc_context *ac)
-+{
-+	return ac->alloc_flags & ALLOC_ZONELIST_PRIVATE;
-+}
-+
-+/*
-+ * Whether a private request can still allocate: some node in its zonelist is
-+ * in its nodemask and allowed by the cpuset. Any zone type counts, so neither a
-+ * GFP zone restriction nor an exhausted node makes the request unsatisfiable.
-+ */
-+static bool alloc_private_reachable(gfp_t gfp, const struct alloc_context *ac)
-+{
-+	struct zoneref *z;
-+	struct zone *zone;
-+
-+	/* A strict local private request keeps its allocation domain. */
-+	if (gfp & __GFP_THISNODE)
-+		return true;
-+
-+	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist, MAX_NR_ZONES - 1,
-+					ac->nodemask) {
-+		if (!cpusets_enabled() ||
-+		    node_isset(zone_to_nid(zone), cpuset_current_mems_allowed))
-+			return true;
++	/*
++	 * Private memory is a fixed pool, exhausting it fails the allocation
++	 * rather than selecting an OOM victim. Otherwise, if there is some
++	 * indication of progress because of a revoked request, just report
++	 * some progress so the slowpath retries and relaxes it.
++	 */
++	if (ac->alloc_flags & ALLOC_ZONELIST_PRIVATE) {
++		if (!alloc_private_reachable(gfp_mask, ac))
++			*did_some_progress = 1;
++		else
++			current->private_alloc_failed = 1;
++		goto out;
 +	}
-+	return false;
-+}
 +
- static inline struct page *
- __alloc_pages_may_oom(gfp_t gfp_mask, unsigned int order,
- 	const struct alloc_context *ac, unsigned long *did_some_progress)
-@@ -4753,8 +4782,10 @@ check_retry_cpuset(int cpuset_mems_cookie, struct alloc_context *ac)
- 	 * from MPOL_BIND mempolicy (whose documented semantics is to be ignored
- 	 * when it does not intersect with the cpuset restrictions) or the
- 	 * caller can deal with a violated nodemask.
-+	 *
-+	 * relax_private_alloc() handles a private request instead.
- 	 */
--	if (cpusets_enabled() && ac->nodemask &&
-+	if (cpusets_enabled() && ac->nodemask && !alloc_is_private(ac) &&
- 			!cpuset_nodemask_valid_mems_allowed(ac->nodemask)) {
- 		ac->nodemask = NULL;
- 		return true;
-@@ -4773,6 +4804,23 @@ check_retry_cpuset(int cpuset_mems_cookie, struct alloc_context *ac)
- 	return false;
- }
- 
-+/*
-+ * Relax a private request that can no longer allocate, because the cpuset
-+ * revoked its node or memory hotplug removed it. Drop the nodemask and allocate
-+ * from the common zonelist of the preferred node. Called after
-+ * check_retry_cpuset() and check_retry_zonelist() found no concurrent update.
-+ */
-+static bool relax_private_alloc(gfp_t gfp, struct alloc_context *ac)
-+{
-+	if (!alloc_is_private(ac) || alloc_private_reachable(gfp, ac))
-+		return false;
-+
-+	ac->nodemask = NULL;
-+	ac->alloc_flags &= ~ALLOC_ZONELIST_PRIVATE;
-+	ac->zonelist = node_zonelist(ac->preferred_nid, gfp);
-+	return true;
-+}
-+
- static void check_alloc_stall_warn(gfp_t gfp_mask, const nodemask_t *nodemask,
- 				unsigned int order, unsigned long alloc_start_time)
- {
-@@ -5060,7 +5108,8 @@ __alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
- 	 * unless it can execute just once.
- 	 */
- 	if (check_retry_cpuset(cpuset_mems_cookie, ac) ||
--	    check_retry_zonelist(zonelist_iter_cookie))
-+	    check_retry_zonelist(zonelist_iter_cookie) ||
-+	    relax_private_alloc(gfp_mask, ac))
- 		goto restart;
- 
- 	if (should_reclaim_retry(gfp_mask, order, ac, alloc_flags,
-@@ -5095,7 +5144,8 @@ __alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
- 	 * a unnecessary OOM kill.
- 	 */
- 	if (check_retry_cpuset(cpuset_mems_cookie, ac) ||
--	    check_retry_zonelist(zonelist_iter_cookie))
-+	    check_retry_zonelist(zonelist_iter_cookie) ||
-+	    relax_private_alloc(gfp_mask, ac))
- 		goto restart;
- 
- 	/* Reclaim has failed us, start killing things */
-@@ -5121,7 +5171,8 @@ __alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
- 	 * a unnecessary OOM kill.
- 	 */
- 	if (check_retry_cpuset(cpuset_mems_cookie, ac) ||
--	    check_retry_zonelist(zonelist_iter_cookie))
-+	    check_retry_zonelist(zonelist_iter_cookie) ||
-+	    relax_private_alloc(gfp_mask, ac))
- 		goto restart;
- 
- 	/*
-@@ -5172,6 +5223,7 @@ static inline bool prepare_alloc_pages(gfp_t gfp_mask, unsigned int order,
- 		unsigned int *alloc_flags)
- {
- 	ac->highest_zoneidx = gfp_zone(gfp_mask);
-+	ac->preferred_nid = preferred_nid;
- 	ac->zonelist = select_zonelist(preferred_nid, gfp_mask, *alloc_flags);
- 	ac->nodemask = nodemask;
- 	ac->migratetype = gfp_migratetype(gfp_mask);
-diff --git a/mm/page_alloc.h b/mm/page_alloc.h
-index c0a0e6abe4cd..3dd73ce641b5 100644
---- a/mm/page_alloc.h
-+++ b/mm/page_alloc.h
-@@ -73,11 +73,11 @@
-  * between functions involved in allocations, including the alloc_pages*
-  * family of functions.
-  *
-- * nodemask, migratetype and highest_zoneidx are initialized only once in
-+ * migratetype, preferred_nid and highest_zoneidx are initialized only once in
-  * __alloc_pages() and then never change.
-  *
-- * zonelist, preferred_zone and highest_zoneidx are set first in
-- * __alloc_pages() for the fast path, and might be later changed
-+ * zonelist, nodemask, preferred_zone, highest_zoneidx and alloc_flags are set
-+ * first in __alloc_pages() for the fast path, and might be later changed
-  * in __alloc_pages_slowpath(). All other functions pass the whole structure
-  * by a const pointer.
-  */
-@@ -85,6 +85,7 @@ struct alloc_context {
- 	struct zonelist *zonelist;
- 	const nodemask_t *nodemask;
- 	struct zoneref *preferred_zoneref;
-+	int preferred_nid;
- 	int migratetype;
- 
- 	/*
+ 	/* Exhausted what can be done so it's blame time */
+ 	if (out_of_memory(&oc) ||
+ 	    WARN_ON_ONCE_GFP(gfp_mask & __GFP_NOFAIL, gfp_mask)) {
 
 -- 
 2.56.1
