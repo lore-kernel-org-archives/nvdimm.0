@@ -1,78 +1,79 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795198303;
-	b=jhFq07q9/S5MIZIw6E0rOnq/G4MFvQVgGexS8HCa4S/0i5D5Y884URn5jOAxU0JIp727
-	 zqEgpVppn9yWRFiQE3lfSdOWLaif8p/AxoNa+It8xdgJcZCe1pGd25MIKxJMp9JanBt+q
-	 1sdWOqkEmuxwEZMhKLyZOfPP7jH91CvLQp240eH8j62qNruT6+cTpU2nvvBqe/s2H6lJ5
-	 XIN9kfwVDOrnLGseGLdV308PsTi0MjmW57NSR0ZRRg4AJV55nledgmOH45Vl9OKrBau58
-	 dLG4E39rgoGh1IrWk27Bd0kzG9FJdxv6xm00lz8wvr1tjh8M/ASJIfPlGJf808lrPFg==
+	t=1795198298;
+	b=xSUaoMqdw9MutyAOlPdpxA1axml/2fVvtSgzBlnSObuxF/K26+zuFaAEbjsQ6whZ34pT
+	 smr3InQqncNKLs4eug5FxIVOnVkRu8WfmuzYMJZN7xNdA/cC0PSPphZJvyhV7chgyMlbN
+	 m2RWLOruyngRjr4eOdu6PxAwFuZLKpQwFTJO3IAAAIc9oRTNx7IXFDD9ZmXMHT907DaAx
+	 HbqXqOeUxTpddNfM6GBaDfkpSuCtpjXOvgk3wxXE7qv5P9k4I0um9xB2nUgfBxO6Pmzb6
+	 VkKAMyBNRGPne2BLnpM942KZiTMMVkClvQ/KnGlvy51rGkpBFT/H2VHw44tiygEdMVw==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795198303;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795198298;
 	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
 	 Content-Type:Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=aAsbrw4yRrnFUoDswiqHnu4cjJkXZl8gdX2ZKLaFLsY=;
-	b=VR/w1BsB/fm6iudFoI8YMbrY9ZIcIahSewn8SL8gwXSHL1xNQB5sNA7VoavIOLpZooi/
-	 sWb8l3Pm3b2kht0AZw2TfZ8ZIxMj0TAieAtN221ut+FrltqbipQP9QHBK0ShharpeGy2M
-	 CVStVO3dFUEziw2BkWCgNa3f3lGIg5/JHO7xEp5Wgp0APvN0lfHXlyZqHvIhuJdgeAPXU
-	 DLzlta3GRkaxQJ2HCu3CYQa4fBdb7hkW2m2rHBaTw1skfQx2qiDQYQye57dNn6NQv7JUD
-	 3H78ybY6dUBnle6NksDARgEiKlUG6rEbZWkaCEjXhfA9ZN1T4jE3TvonUR8eONGNj/Q==
+	bh=FeMVQLv7GLlhS6IUX7kRUUhFVa1pXNLb+geY1fYUbs4=;
+	b=aQzXj7mh7s35CDZ4dQaA1vBg58N8Imcu9lIs5j/VlFxBAojeUh0K/Vd16UB4MWR/1CLv
+	 WTWFv6bsh7Ym7NCOD1J9ki/5wofC21fB4WBpy+OsCPQdE4idNy9MHC+Uw1TRwwODCj2dp
+	 DfVV7O2QEDakCOPeDEDUKUneVkuiKmprsRdU+RquYHJpxNvbiFYPc1qGKZEgsJATm6ftH
+	 2D1JiMzhHsSkxsQN6Q5RakKH9FjsPPujllC1UV+aeRKsgi0R/CIBy9tpiisbUzSgoI2TB
+	 JNvL0kOWkL+cDy8CfWjbqDbnATbZgDIlyPGzv//mYWWSajf3D0zRdh7aERi4hQJsjIw==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=k5Osmg7Z;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=g1trP5Q1;
 	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD2F6606B99A;
-	Fri, 20 Nov 2026 18:11:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D84DB606C6C2;
+	Fri, 20 Nov 2026 18:11:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=k5Osmg7Z
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=g1trP5Q1
 Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
 ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
-	t=1795198303;
-	b=nM22Hc7Vi2r6/BW6xk2B5fxqvbzeULULxmHOqqYiU7epZLVNQx6rGFUjKuEWZJ36Q748
-	 qUygk+Qz1bFk8vJ4Mqok8QnR2yGJwt18vBOCxwshwrL+9eis1sSQ/k/MfAJFs8Gq6iU3p
-	 Hnk0YIYoH1fD2eJE8Y3TDXbNT8rIZW0BdlNOFkA0pum39OHGQjLcVpwi355lIQ5/nyMdk
-	 cLQJ0MRq9FN/OnynGBzp3fLFpNfPxUNoYIB5Y3iYm0/RJZ/b7S5qmH36c8QWmj1aCwB0W
-	 eN6vHr1xIPQ2Vt/E6rRMnTz+2uDD08ykXKhW21uDUA6bvPh+RQt+YjywFo1OT+DEvNg==
+	t=1795198298;
+	b=qGzPnbfU7Kp1fBbIiSJqpPch8UkUtXlZ6ORUP/t51MeKayrA0Mu4v3J7gnY0g3oFzlmT
+	 Vlpg2BQXTc1JWyTJdNJ9npf9O4tIm0y4f+ejWxBAarjQNUsWHHYp0RNXEsAfvJP6ij50O
+	 exI1G9agnNz0yH/RARmGZL7DwqRcMYfi0laRJhA8ST/hB5uZbU3HEPVd2hb68+gwpWKWd
+	 o8n9ZnAnpBpev2z7/afeMIG+9rJUnK4HBubFFfVBX0cQTB5IgNHr46f/3prER6l7jbxbb
+	 8h+a2TkPD1nYBCyagYhKj/qCzZO5JRTFTC2GqD3buL5lohsxjo4OKsmFnAvDv34wzyw==
 ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
-	c=relaxed/relaxed; t=1795198303;
+	c=relaxed/relaxed; t=1795198298;
 	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
 	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=aAsbrw4yRrnFUoDswiqHnu4cjJkXZl8gdX2ZKLaFLsY=;
-	b=qamLepV4uY33Xhj3XiMKF4ANd4NYA3keJUlw3Yc554ziXFKSU+G37UbRDE1xMzCm368C
-	 +9u6k550aHSgTleMSrFo8BL0RdM5Si7oaC8X41VG7R5Uhp5yU+RJKHPMVwY38eDHL1bsz
-	 0niu6pe3UVAAAi4fVzbTPbnA0Y9Cg1246hScY+Qv+TmBQ1LQF2upWtAMry2AruBerwIrI
-	 q/KnnRFVh1FsXNOvmeCnK5xFzygCLJAJ9JQHTZi4NDv+Gv4gsYBncXR3Y48/72qmcuOxp
-	 j0XghkWvBY+W+881AQLi2+9Gx8XYtBP/7CiLcRqG8iASTEA8SDBtatcH6xICAoUp8wg==
+	bh=FeMVQLv7GLlhS6IUX7kRUUhFVa1pXNLb+geY1fYUbs4=;
+	b=tmV8qlp8ueMzh6Sq67qJ1k95zVFMrOEQWgfg+A/ZANmCqI7NUoChy+Er4G2lrePWhbxs
+	 TomLuQ5vmSblus+F/ckA29k7DOPZ8eqfYE0t5nkSgYF+EM6fJEUVSmbWoHQdU8LYHJmTp
+	 j5AOyfy0Hd1eapL6IYTTrBHzeDkPXTERCSY647K9XJ3T8if8+yfogH1HDSHur95QDeql+
+	 m3DWZ8rsEjvsLN42qEITeTqwUyQYuOB8TeajSP+nV2eWkZ/ql/4yDnIihM2NoWLHikCio
+	 cr6lT0doBITq0zbr9jEjIy3NtoKpfbRqepzaok8f+TZwelxJ3zy9UKBaJVmTO1xqABA==
 ARC-Authentication-Results: i=1; smtp.kernel.org; 
 	arc=none smtp.remote-ip=100.80.115.77
 Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id 544971F00A36;
-	Fri, 20 Nov 2026 18:11:22 +0000 (UTC)
+	by smtp.kernel.org (Postfix) with ESMTPS id 484771F0157A;
+	Fri, 20 Nov 2026 18:11:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795198303;
-	bh=aAsbrw4yRrnFUoDswiqHnu4cjJkXZl8gdX2ZKLaFLsY=;
+	s=k20260515; t=1795198298;
+	bh=FeMVQLv7GLlhS6IUX7kRUUhFVa1pXNLb+geY1fYUbs4=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To;
-	b=k5Osmg7ZvVYWVXd2aYMmbPGiPe5LEFdxGz9+JhvDpdmfGhwtHSgS+4I3KYo/H4PLh
-	 fkgXjYF/EWyeACKlPlx7FCVbcK9WfvWCfkpe+V7e5CrSSPgqsiDyQrYEQyCtK/69l2
-	 8PtZi0D5vdI1A3ukmWbO6wjg3YT/GxihhLWnN8CmkswcG7bnApMZ0mHGkaWj7xP4Xk
-	 UoUQ1Y74VPQhZ/JzGWTXUYj4i+6zig/cZYuJciyYvfMevoHDycQQVq5/xeFaTqSy1V
-	 JUSH2h0Br2lqnocxiltk3qP0TLGIj2MynMs7qlxn+PXEZTUBJQxOoXdwF9orEDy7Uc
-	 +ME6j/P1MoKOw==
+	b=g1trP5Q1di8EH67EQ1Xc+jsib0rxqEhTzKzRTnv3EQ4aD1Ej0r4vJj/OLmADWGjzE
+	 VGXxwXrM/GVPN4MJFTD3qDFWZ8CN2ZRG1Gd0I2NasoOe+aC7oxOhnUfofEU7WuOsnX
+	 cC2al+BDEOB+lzduurOsQBBu0Dtrp3kFenA40yJoK4V1kT9r2PyNNAQxRJ5kQrqXn6
+	 OCr8HfR4FuvSIT8PuaYIG4FHdHhv/ipC/s96lUh2/B0zyfpgxJiEXtkIMbq/chyMu9
+	 4o3veNmUXDpYm/7RBRMu4zcE5bGA8L722mXS53qwBOVm7hj0OicOqC/iEka6KFeLw7
+	 kavS7R5/nruDw==
 Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id 5AADA4B9B0;
-	Fri, 20 Nov 2026 18:09:24 +0000 (UTC)
+	by lkml.kernel.org (Postfix) with ESMTP id B5C804B99C;
+	Fri, 20 Nov 2026 18:09:23 +0000 (UTC)
 From: Gregory Price via B4 Relay <devnull+gourry.gourry.net@kernel.org>
-Date: Fri, 20 Nov 2026 13:09:51 -0500
-Subject: [PATCH 60/60] Documentation/mm: describe private memory nodes
+Date: Fri, 20 Nov 2026 13:09:46 -0500
+Subject: [PATCH 55/60] mm/memory_hotplug: online and offline private memory
+ nodes
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -83,7 +84,7 @@ List-Owner: <mailto:nvdimm+owner@lists.linux.dev>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Message-Id: <20261120-private_nodes_v6-v1-60-74f5f9a115c2@gourry.net>
+Message-Id: <20261120-private_nodes_v6-v1-55-74f5f9a115c2@gourry.net>
 References: <20261120-private_nodes_v6-v1-0-74f5f9a115c2@gourry.net>
 In-Reply-To: <20261120-private_nodes_v6-v1-0-74f5f9a115c2@gourry.net>
 To: Yury Norov <yury.norov@gmail.com>, 
@@ -140,11 +141,11 @@ Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
  cgroups@vger.kernel.org, nvdimm@lists.linux.dev, 
  linux-kselftest@vger.kernel.org, "Gregory Price (Meta)" <gourry@gourry.net>
 X-Mailer: b4 0.14.3
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1795198154; l=15763;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1795198154; l=9476;
  i=gourry@gourry.net; s=20261120; h=from:subject:message-id;
- bh=1CxuEurfODQ6QUesg2p+46KtXtCsxztkO+La2AEjh24=;
- b=WnIWFdXNA3YhHmbpHmvoUOZODvZAbww7W+o8UVb3uDxQYfzw96Yr4+pTNSw84j5Jay8xHYv7i
- imoUMEv16NyAMKIYKCcM4AM4Islb2OK0ve028+6PeyNhbWqAicWlZ+l
+ bh=b3jGnnyWNDUyPQKsXIBVFwBX7ofSFROdnSCpZbbkWAM=;
+ b=dURyeucqjPXkJcCpnAWMuH39xYYU9Sy7XUOxE2r8Wwzbf7ANdiCKotrRObSTQ40QuJ0Zf1HzK
+ SNlKPBgabacDKodij1dmaphP8727fp4GMxD4DcXEnSyqnVu+FgJGUPW
 X-Developer-Key: i=gourry@gourry.net; a=ed25519;
  pk=BZWDlx4htkR5KcvGjGtSDfx1tM0E5dlyBR43FEhjWVc=
 X-Endpoint-Received: by B4 Relay for gourry@gourry.net/20261120 with
@@ -155,320 +156,267 @@ Content-Transfer-Encoding: 7bit
 
 From: "Gregory Price (Meta)" <gourry@gourry.net>
 
-Add Documentation/mm/numa_private_nodes.rst for administrators,
-covering:
-  - creating a private node with dax kmem private mode.
-  - binding memory to it with MPOL_F_PRIVATE_NODES, and explicit
-    migration.
-  - controlling access with cpusets.
-  - what happens when the node becomes unavailable or full.
-  - shared memory placement.
-  - which memory management services apply, and how memory counters
-    account private memory.
+Allow a driver to hotplug memory onto a private node at runtime.
 
-In both cgroup guides, document that cpuset memory migration never
-targets a private node and moves pages off one only when the cpuset no
-longer allows it. Document how a private-only cpuset.mems gains the
-parent's common memory nodes in v2, and is rejected in v1.
+Pass a feature mask through driver-managed hotplug, and reject masks
+that node_memory_features_valid() refuses.
+
+Memory joins a node only with the same mask. The node's features hold
+while any System RAM block remains (including offline blocks), and are
+reset after the last one is removed, even when ZONE_DEVICE memory keeps
+the node alive.
+
+dax/kmem and the other hotplug callers pass NODE_MEMORY_FEAT_ALL, which
+registers the node as N_MEMORY_COMMON.
 
 Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
 ---
- Documentation/admin-guide/cgroup-v1/cpusets.rst |   7 +
- Documentation/admin-guide/cgroup-v2.rst         |  13 +-
- Documentation/mm/index.rst                      |   1 +
- Documentation/mm/numa_private_nodes.rst         | 223 ++++++++++++++++++++++++
- 4 files changed, 243 insertions(+), 1 deletion(-)
+ drivers/dax/kmem.c             |  2 +-
+ include/linux/memory_hotplug.h |  2 +-
+ mm/internal.h                  |  9 ++++
+ mm/memory_hotplug.c            | 94 +++++++++++++++++++++++++++++++-----------
+ 4 files changed, 80 insertions(+), 27 deletions(-)
 
-diff --git a/Documentation/admin-guide/cgroup-v1/cpusets.rst b/Documentation/admin-guide/cgroup-v1/cpusets.rst
-index fb3fb6fa88cb..642b6f568bcc 100644
---- a/Documentation/admin-guide/cgroup-v1/cpusets.rst
-+++ b/Documentation/admin-guide/cgroup-v1/cpusets.rst
-@@ -653,6 +653,13 @@ the cpuset is preserved during these migration operations if possible.
- For example if the page was on the second valid node of the prior cpuset
- then the page will be placed on the second valid node of the new cpuset.
+diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
+index a48d699cf344..5ec653bc88f0 100644
+--- a/drivers/dax/kmem.c
++++ b/drivers/dax/kmem.c
+@@ -126,7 +126,7 @@ static int dax_kmem_do_hotplug(struct dev_dax *dev_dax,
+ 		 */
+ 		rc = __add_memory_driver_managed(data->mgid, range.start,
+ 				range_len(&range), kmem_name, mhp_flags,
+-				online_type);
++				online_type, NODE_MEMORY_FEAT_ALL);
  
-+Private memory nodes (see Documentation/mm/numa_private_nodes.rst) are
-+never a migration destination. With 'cpuset.memory_migrate' set, pages
-+on a private node migrate only when the cpuset no longer allows that
-+node. Listing a private node in 'cpuset.mems' permits explicit private
-+bindings to it, but tasks do not otherwise allocate from it. Writing a
-+'cpuset.mems' that names only private nodes fails with -ENOSPC.
-+
- Also if 'cpuset.memory_migrate' is set true, then if that cpuset's
- 'cpuset.mems' file is modified, pages allocated to tasks in that
- cpuset, that were on nodes in the previous setting of 'cpuset.mems',
-diff --git a/Documentation/admin-guide/cgroup-v2.rst b/Documentation/admin-guide/cgroup-v2.rst
-index 9e3c67b02ae2..8b24c2648040 100644
---- a/Documentation/admin-guide/cgroup-v2.rst
-+++ b/Documentation/admin-guide/cgroup-v2.rst
-@@ -2626,6 +2626,12 @@ Cpuset Interface Files
- 	tasks within the cgroup to be migrated to the designated nodes if
- 	they are currently using memory outside of the designated nodes.
+ 		if (rc) {
+ 			dev_warn(dev, "mapping%d: %#llx-%#llx memory add failed\n",
+diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+index ec71debc0673..ae6046510958 100644
+--- a/include/linux/memory_hotplug.h
++++ b/include/linux/memory_hotplug.h
+@@ -304,7 +304,7 @@ extern int add_memory_resource(int nid, struct resource *resource,
+ 			       mhp_t mhp_flags);
+ int __add_memory_driver_managed(int nid, u64 start, u64 size,
+ 				const char *resource_name, mhp_t mhp_flags,
+-				enum mmop online_type);
++				enum mmop online_type, unsigned long features);
+ extern int add_memory_driver_managed(int nid, u64 start, u64 size,
+ 				     const char *resource_name,
+ 				     mhp_t mhp_flags);
+diff --git a/mm/internal.h b/mm/internal.h
+index 646efc2eacd1..0eefa0df1350 100644
+--- a/mm/internal.h
++++ b/mm/internal.h
+@@ -65,6 +65,15 @@ void folio_mark_lazyfree(struct folio *folio);
+ void node_set_memory_state(int nid, unsigned long features);
+ void node_clear_memory_state(int nid);
  
-+	Private memory nodes (see Documentation/mm/numa_private_nodes.rst)
-+	are never a migration destination.  Pages on a private node are
-+	migrated only when the node is removed from "cpuset.mems.effective".
-+	Listing a private node in "cpuset.mems" permits explicit private
-+	bindings to it, but tasks do not otherwise allocate from it.
++#ifdef CONFIG_MEMORY_HOTPLUG
++bool can_claim_node_memory(int nid, unsigned long features);
++#else
++static inline bool can_claim_node_memory(int nid, unsigned long features)
++{
++	return false;
++}
++#endif
 +
- 	There is a cost for this memory migration.  The migration
- 	may not be complete and some memory pages may be left behind.
- 	So it is recommended that "cpuset.mems" should be set properly
-@@ -2652,7 +2658,12 @@ Cpuset Interface Files
- 	parent cgroup that will be available to be used by this cgroup.
- 	Otherwise, it should be a subset of "cpuset.mems" unless none of
- 	the memory nodes listed in "cpuset.mems" can be granted.  In this
--	case, it will be treated just like an empty "cpuset.mems".
-+	case, it will be treated just like an empty "cpuset.mems", except
-+	that the parent's private memory nodes are left out.
-+
-+	If the granted nodes are all private memory nodes, the parent's
-+	other memory nodes are added, so that tasks always have memory for
-+	ordinary allocations.
+ /*
+  * Common memory is available to generic MM services. ZONE_DEVICE folios do
+  * not qualify even when their NUMA node is common.
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 8146f77919d5..37e64c146b46 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -1494,6 +1494,43 @@ static int create_altmaps_and_memory_blocks(int nid, struct memory_group *group,
+ 	return ret;
+ }
  
- 	Its value will be affected by memory nodes hotplug events.
++static int check_no_memblock_for_node_cb(struct memory_block *mem, void *arg)
++{
++	int nid = *(int *)arg;
++
++	/*
++	 * If a memory block belongs to multiple nodes, the stored nid is not
++	 * reliable. However, such blocks are always online (e.g., cannot get
++	 * offlined) and, therefore, are still spanned by the node.
++	 */
++	return mem->nid == nid ? -EEXIST : 0;
++}
++
++/* Caller must hold the memory hotplug lock for these checks. */
++static bool node_has_memory_blocks(int nid)
++{
++	return for_each_memory_block(&nid, check_no_memblock_for_node_cb);
++}
++
++static bool node_has_system_ram(int nid)
++{
++	/* Mixed-node memory blocks are always online and covered by N_MEMORY. */
++	return node_state(nid, N_MEMORY) || node_has_memory_blocks(nid);
++}
++
++/*
++ * Whether memory with @features may join @nid. Offline System RAM blocks keep
++ * the node's features until the last block is removed.
++ */
++bool can_claim_node_memory(int nid, unsigned long features)
++{
++	pg_data_t *pgdat = NODE_DATA(nid);
++
++	if (pgdat->memory_features == features)
++		return true;
++	return !node_has_system_ram(nid);
++}
++
+ /*
+  * NOTE: The caller must call lock_device_hotplug() to serialize hotplug
+  * and online/offline operations (triggered e.g. by sysfs).
+@@ -1501,11 +1538,12 @@ static int create_altmaps_and_memory_blocks(int nid, struct memory_group *group,
+  * we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG
+  */
+ static int __add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags,
+-				 enum mmop online_type)
++				 enum mmop online_type, unsigned long features)
+ {
+ 	struct mhp_params params = { .pgprot = pgprot_mhp(PAGE_KERNEL) };
+ 	enum memblock_flags memblock_flags = MEMBLOCK_NONE;
+ 	struct memory_group *group = NULL;
++	unsigned long old_features;
+ 	u64 start, size;
+ 	bool new_node = false;
+ 	int ret;
+@@ -1528,6 +1566,8 @@ static int __add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags,
+ 		WARN(1, "node %d was absent from the node_possible_map\n", nid);
+ 		return -EINVAL;
+ 	}
++	if (!node_memory_features_valid(features))
++		return -EINVAL;
  
-diff --git a/Documentation/mm/index.rst b/Documentation/mm/index.rst
-index e9ae5cd82163..ecb83e1bdbf6 100644
---- a/Documentation/mm/index.rst
-+++ b/Documentation/mm/index.rst
-@@ -66,6 +66,7 @@ documentation, or deleted if it has served its purpose.
-    mmu_notifier
-    multigen_lru
-    numa
-+   numa_private_nodes
-    overcommit-accounting
-    page_migration
-    page_frags
-diff --git a/Documentation/mm/numa_private_nodes.rst b/Documentation/mm/numa_private_nodes.rst
-new file mode 100644
-index 000000000000..2fedf7534446
---- /dev/null
-+++ b/Documentation/mm/numa_private_nodes.rst
-@@ -0,0 +1,223 @@
-+.. SPDX-License-Identifier: GPL-2.0
+ 	mem_hotplug_begin();
+ 
+@@ -1552,6 +1592,14 @@ static int __add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags,
+ 		new_node = true;
+ 	}
+ 
++	old_features = NODE_DATA(nid)->memory_features;
++	if (!can_claim_node_memory(nid, features)) {
++		ret = -EBUSY;
++		goto error;
++	}
++	/* Set the node's features before onlining its memory. */
++	WRITE_ONCE(NODE_DATA(nid)->memory_features, features);
 +
-+====================
-+Private memory nodes
-+====================
+ 	/*
+ 	 * Self hosted memmap array
+ 	 */
+@@ -1597,6 +1645,8 @@ static int __add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags,
+ 
+ 	return ret;
+ error:
++	/* Restore the previous features while holding the lock. */
++	WRITE_ONCE(NODE_DATA(nid)->memory_features, old_features);
+ 	if (new_node) {
+ 		node_set_offline(nid);
+ 		unregister_node(nid);
+@@ -1612,7 +1662,8 @@ static int __add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags,
+ int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
+ {
+ 	return __add_memory_resource(nid, res, mhp_flags,
+-				     mhp_get_default_online_type());
++				     mhp_get_default_online_type(),
++				     NODE_MEMORY_FEAT_ALL);
+ }
+ 
+ /* requires device_hotplug_lock, see __add_memory_resource() */
+@@ -1651,6 +1702,9 @@ EXPORT_SYMBOL_GPL(add_memory);
+  * @resource_name: Resource name in format "System RAM ($DRIVER)"
+  * @mhp_flags: Memory hotplug flags
+  * @online_type: Auto-Online behavior (offline, online, kernel, movable)
++ * @features: NODE_MEMORY_FEAT_* services the memory opts into;
++ *            %NODE_MEMORY_FEAT_ALL adds it as ordinary common system RAM,
++ *            and a mask without %NODE_MEMORY_FEAT_COMMON as private memory.
+  *
+  * Add special, driver-managed memory to the system as system RAM. Such
+  * memory is not exposed via the raw firmware-provided memmap as system
+@@ -1677,7 +1731,7 @@ EXPORT_SYMBOL_GPL(add_memory);
+  */
+ int __add_memory_driver_managed(int nid, u64 start, u64 size,
+ 		const char *resource_name, mhp_t mhp_flags,
+-		enum mmop online_type)
++		enum mmop online_type, unsigned long features)
+ {
+ 	struct resource *res;
+ 	int rc;
+@@ -1698,7 +1752,7 @@ int __add_memory_driver_managed(int nid, u64 start, u64 size,
+ 		goto out_unlock;
+ 	}
+ 
+-	rc = __add_memory_resource(nid, res, mhp_flags, online_type);
++	rc = __add_memory_resource(nid, res, mhp_flags, online_type, features);
+ 	if (rc < 0)
+ 		release_memory_resource(res);
+ 
+@@ -1727,8 +1781,8 @@ int add_memory_driver_managed(int nid, u64 start, u64 size,
+ 			      const char *resource_name, mhp_t mhp_flags)
+ {
+ 	return __add_memory_driver_managed(nid, start, size, resource_name,
+-			mhp_flags,
+-			mhp_get_default_online_type());
++			mhp_flags, mhp_get_default_online_type(),
++			NODE_MEMORY_FEAT_ALL);
+ }
+ EXPORT_SYMBOL_GPL(add_memory_driver_managed);
+ 
+@@ -1789,18 +1843,6 @@ bool mhp_range_allowed(u64 start, u64 size, bool need_mapping)
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ 
+-static int check_no_memblock_for_node_cb(struct memory_block *mem, void *arg)
+-{
+-	int nid = *(int *)arg;
+-
+-	/*
+-	 * If a memory block belongs to multiple nodes, the stored nid is not
+-	 * reliable. However, such blocks are always online (e.g., cannot get
+-	 * offlined) and, therefore, are still spanned by the node.
+-	 */
+-	return mem->nid == nid ? -EEXIST : 0;
+-}
+-
+ /* Caller must hold the memory hotplug lock for this check. */
+ static bool node_is_memoryless(int nid)
+ {
+@@ -1811,12 +1853,9 @@ static bool node_is_memoryless(int nid)
+ 	 */
+ 	if (node_spanned_pages(nid))
+ 		return false;
+-	/*
+-	 * Offline memory blocks may not be spanned by the node yet, but they
+-	 * link to it in sysfs and can be onlined later, so the node is not
+-	 * memoryless while any remain.
+-	 */
+-	return !for_each_memory_block(&nid, check_no_memblock_for_node_cb);
 +
-+A private memory node is a NUMA node whose memory the kernel does not use for
-+ordinary allocations. Applications place memory there only by asking for that
-+node explicitly. This keeps specialized memory, such as HBM or coherent device
-+memory, visible as a NUMA node without making it a general fallback for every
-+allocation. Memory that is not private is called common memory.
-+
-+The kernel manages a private node's memory with the usual page allocator. The
-+driver that provides the memory decides which memory management services the
-+node also gets. The dax kmem private mode described below enables reclaim,
-+compaction and explicit placement by applications.
-+
-+``/sys/devices/system/node/has_private_memory`` lists the private nodes, and
-+``has_common_memory`` lists the others. Together they make up ``has_memory``.
-+
-+Creating a private node
-+=======================
-+
-+Private memory is added through memory hotplug and requires ``CONFIG_NUMA``.
-+With ``CONFIG_DEV_DAX_KMEM`` and ``CONFIG_MEMORY_HOTREMOVE``, a device-dax
-+instance bound to ``kmem`` can be onlined as private memory. Select private mode
-+while the device's memory is unplugged::
-+
-+    echo unplugged > /sys/bus/dax/devices/daxX.Y/state
-+    echo 1 > /sys/bus/dax/devices/daxX.Y/private
-+    echo online_movable > /sys/bus/dax/devices/daxX.Y/state
-+
-+The ``private`` attribute defaults to 0, which keeps ordinary kmem behavior.
-+Its value can change only while the device is unplugged. Unbinding kmem
-+discards the setting. Bind the device with memory auto-onlining disabled, so
-+that its memory is not onlined as common memory first.
-+
-+All System RAM on a node shares one configuration. Adding memory with a
-+different configuration to a node that already has System RAM fails with
-+``-EBUSY``. To change the configuration, remove every System RAM block on the
-+node first. Offlining the blocks is not enough, since offline blocks keep their
-+configuration so they can be onlined again.
-+
-+A private node may have CPUs. Like the CPUs of a memoryless node, they get
-+ordinary memory from the nearest common nodes.
-+
-+Using private memory
-+====================
-+
-+An application binds an anonymous or shmem-backed mapping to one private node
-+with ``mbind(2)``, passing ``MPOL_BIND | MPOL_F_PRIVATE_NODES``, before it
-+faults the pages in::
-+
-+    buf = mmap(NULL, length, PROT_READ | PROT_WRITE,
-+               MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+    /* mask contains exactly the chosen private node */
-+    mbind(buf, length, MPOL_BIND | MPOL_F_PRIVATE_NODES, mask, maxnode, 0);
-+    memset(buf, 0, length);
-+
-+``mbind(2)`` rejects a private binding with ``-EINVAL`` if:
-+
-+- the mask names more than one node, or a node that is not private memory
-+  with userspace placement enabled.
-+- the mode is not ``MPOL_BIND``, or the flag is combined with
-+  ``MPOL_F_STATIC_NODES``, ``MPOL_F_RELATIVE_NODES`` or
-+  ``MPOL_F_NUMA_BALANCING``.
-+- the mapping is a HugeTLB mapping. Private nodes hold no HugeTLB pages.
-+- the node is not in the caller's cpuset.
-+
-+Kernels without private node support reject the flag with ``-EINVAL``, so
-+applications can probe for it. ``get_mempolicy(2)`` reports the flag.
-+
-+Without ``MPOL_F_PRIVATE_NODES``, private nodes in a ``set_mempolicy(2)`` or
-+``mbind(2)`` mask are ignored, as nodes outside the cpuset are. A mask that
-+names only private nodes is therefore rejected with ``-EINVAL``.
-+``set_mempolicy(2)`` does not accept the flag, because a task policy also
-+applies to the kernel's allocations on behalf of the task. Preferred,
-+interleave and preferred-many policies, tmpfs ``mpol=`` mount options, HugeTLB
-+pools and automatic NUMA balancing use only common memory.
-+
-+``move_pages(2)`` and ``migrate_pages(2)`` can move pages to a private node
-+with userspace placement enabled, subject to their usual permission checks.
-+They take no flag. ``move_pages(2)`` rejects other private nodes with
-+``-ENODEV``, and ``migrate_pages(2)`` ignores them, as it ignores nodes outside
-+the caller's cpuset.
-+
-+Page cache for regular files is never allocated from private memory.
-+Copy-on-write pages of a private file mapping follow a binding like anonymous
-+memory, and explicit migration can move existing file pages to a private node.
-+A private binding on a shmem-backed mapping allocates its pages from the
-+private node, and reclaim swaps them out like other shmem pages.
-+
-+guest_memfd memory cannot be moved, so a binding places it on a private node
-+only if the node has memory onlined as ``online`` or ``online_kernel``.
-+
-+Controlling access
-+==================
-+
-+``cpuset.mems`` includes private nodes by default, so any task can bind to a
-+private node and use up its capacity. Use ``cpuset.mems`` to limit which tasks
-+may use a private node. Listing a private node in ``cpuset.mems`` permits
-+private bindings to it. Tasks do not otherwise allocate from it.
-+
-+In cgroup v2, a ``cpuset.mems`` that names only private nodes is accepted, and
-+the parent's common nodes are added to ``cpuset.mems.effective`` so that tasks
-+always have memory for ordinary allocations. The parent's other private nodes
-+are not added. An empty ``cpuset.mems`` inherits the parent's effective nodes,
-+private nodes included.
-+
-+In cgroup v1, writing a ``cpuset.mems`` that names only private nodes, or
-+attaching a task to such a cpuset, fails with ``-ENOSPC``. When memory hotplug
-+leaves a v1 cpuset with only private memory, its tasks move to an ancestor.
-+
-+Cpuset memory migration never moves pages to a private node. It moves pages
-+off a private node only when the cpuset no longer allows that node.
-+
-+When a node becomes unavailable
-+===============================
-+
-+A private binding applies while its node is online private memory with
-+userspace placement enabled and the task's cpuset allows it. While it applies,
-+allocations use only that node and never fall back to common memory.
-+
-+Otherwise the binding is suspended and allocations use the task's common
-+memory. The binding is never rebound to another node. It applies again when
-+its node becomes available again. If the node comes back as common memory, the
-+binding acts like an ordinary binding to that node. ``get_mempolicy(2)`` keeps
-+reporting the original binding throughout.
-+
-+==============================  ==================  =========================
-+Event                           New allocations     Existing private pages
-+==============================  ==================  =========================
-+cpuset removes the node         common memory       migrated to common memory
-+cpuset allows the node again    the private node    not migrated back
-+node is being hot-removed       the private node    migrated to common memory
-+node is removed                 common memory       none remain
-+node returns as private memory  the private node
-+node returns as common memory   that common node
-+==============================  ==================  =========================
-+
-+While a node is being hot-removed, its free memory is no longer available, so
-+faults on mappings bound to it can fail with ``SIGBUS`` until removal finishes.
-+
-+Allocations that cannot use ``ZONE_MOVABLE``, such as guest_memfd memory, ignore
-+a binding to a private node whose memory is all movable and use common memory.
-+Long-term pins migrate pages out of ``ZONE_MOVABLE`` as usual.
-+
-+An ordinary policy that is not rebound, such as a static binding or a shared
-+memory policy, can name a node that later comes back as private memory. If the
-+task may use no common node in such a policy, the policy is ignored and the
-+allocation uses common memory.
-+
-+Exhaustion and OOM
-+==================
-+
-+A private node is a fixed pool, like a HugeTLB pool. When the node is full and
-+reclaim cannot free enough memory on it, an allocation for a private binding
-+fails without invoking the OOM killer and without falling back to common
-+memory. A page fault then gets ``SIGBUS``, as with an exhausted HugeTLB pool.
-+Other callers see an error, such as ``-ENOMEM`` from ``write(2)`` to a shmem
-+file or ``-EFAULT`` from a write through ``/proc/pid/mem`` or
-+``process_vm_writev(2)``. Allocations succeed again once memory on the node is
-+freed.
-+
-+Private pages are charged to memory cgroups like other memory. Reaching a
-+memory cgroup limit causes reclaim and OOM handling as usual, and memcg reclaim
-+also reclaims private nodes that permit reclaim.
-+
-+Tasks whose cpusets overlap only on private nodes are not chosen as OOM victims
-+for each other.
-+
-+Shared memory
-+=============
-+
-+A private binding on a shmem-backed mapping, such as memfd, tmpfs or shared
-+anonymous memory, applies to the file's offset range, not to each task that
-+maps it. Whether a new page is allocated on the private node depends on the
-+cpuset of the task that faults it in. A task whose cpuset excludes the node
-+allocates the page on common memory, and every task that maps the file then
-+uses that page. A file can therefore hold both private and common pages.
-+
-+Shared pages keep using private memory until they are freed. Unmapping the
-+file does not free them while the file still exists or another task keeps it
-+open. Truncate the file or punch holes in it to return the memory.
-+
-+Memory management services
-+==========================
-+
-+kswapd and kcompactd run on a private node only if its driver enables reclaim
-+and compaction, as the dax kmem private mode does. Writing to ``nodeN/reclaim``
-+or ``nodeN/compact`` fails with ``-EOPNOTSUPP`` for a private node without the
-+service. ``MADV_COLD``, ``MADV_PAGEOUT`` and ``MADV_FREE`` act only on pages on
-+nodes that permit reclaim.
-+
-+Private nodes are excluded from KSM merging, THP collapse, automatic NUMA
-+balancing, DAMON actions, demotion between memory tiers and HugeTLB pool
-+growth. A KSM page that is explicitly migrated to a private node remains
-+shareable while it is mapped.
-+
-+Memory hot-remove and soft offline migrate pages on a private node to common
-+memory. Pinned or otherwise unmovable pages can still prevent removal.
-+
-+Accounting
-+==========
-+
-+``MemTotal`` and ``MemFree`` in ``/proc/meminfo`` include private memory with
-+userspace placement enabled, such as dax kmem private memory, since it holds
-+ordinary application data. They leave out other private memory. The overcommit
-+limit (``CommitLimit``) and other limits sized from total memory follow
-+``MemTotal``.
-+
-+``MemAvailable`` and the dirty page limits count free memory on common nodes
-+only, since free private memory serves only private bindings. ``MemTotal``
-+minus ``MemAvailable`` therefore includes free private memory.
-+
-+Per-node statistics, including ``nodeN/meminfo``, ``/proc/vmstat`` and
-+``memory.numa_stat``, count all memory, private memory included.
-+
-+Limitations
-+===========
-+
-+- A task's OOM score includes its resident private pages.
-+- Free page reporting reports free private pages like other free pages.
++	/* Offline memory blocks keep the node alive so they can be onlined. */
++	return !node_has_memory_blocks(nid);
+ }
+ 
+ /*
+@@ -2347,8 +2386,13 @@ static int try_remove_memory(u64 start, u64 size)
+ 
+ 	release_mem_region_adjustable(start, size);
+ 
+-	if (nid != NUMA_NO_NODE)
++	if (nid != NUMA_NO_NODE) {
++		/* No System RAM left: reset the node's features. */
++		if (!node_has_system_ram(nid))
++			WRITE_ONCE(NODE_DATA(nid)->memory_features,
++				   NODE_MEMORY_FEAT_ALL);
+ 		try_offline_node(nid);
++	}
+ 
+ 	mem_hotplug_done();
+ 	return 0;
 
 -- 
 2.56.1
