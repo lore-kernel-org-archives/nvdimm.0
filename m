@@ -1,79 +1,78 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795198281;
-	b=lG8FeaEhxkmQnBO+boZHAq3Po34nASYwR1IO8P8jeaXwLeEPKT42Jv+OALLI1/gLxkEJ
-	 V6nleyR2IHjvtVt7vG08ITZgGhg8kTk/ykDWLFwSNMobz8JhAYWqhqbSeBxW1ak1exS6r
-	 zi+6rZ2dgj5PeK6hJzhrOOhbiiZjDgMtKLYoUDJqUZt73K4mqOhjULRByVi0f2b9bDenj
-	 quH6l3xS1yV7pnmwL4qQBlPpovKT5MAn4husRe2qMSZ0Ri9wUHyNtR32+9vw/CRY802BY
-	 tttAsXc0rkfdEijuY4QTuoolsM4ss/OrOWpHHhT+nXmRH28wkOIEW+U7Omt4cB2bmuQ==
+	t=1795198280;
+	b=5Ms/icO3u/iXnenJi9PxIltOqxhaSlZZ30y5ZUtrv32jQOFmE2eziwTpyniuRu7cogOv
+	 2AIL9+goFpG/lsmNSY1hnfUqLoQ9OeEIjROpZGkvtYjM9r5mhQ3UI89kblOBb4O61ffs2
+	 o30eazUPfXmMgK4q5FVlkIVkzfR6AgiwVDfugN4XbTYUcC5vTvFV0L1D1yK4qV1KD4stu
+	 rxaQTFROP9Us5cDLHGpPlxFhnBldNqNLnFL0+Cac0XZ6jAtyj1sKqqFWxVhIvjIP8OYXA
+	 HY/shhlsRZh25AlCf+Rd0IJHhCocgwVPS75674ANLifuRCJvz2uTlYBskJCjS4cKs0w==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795198281;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795198280;
 	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
 	 Content-Type:Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=rthxdo4zZLRdMrG9hzCU++aKsWt/EVLHx0ntdyOkT/A=;
-	b=C6Q0FIVw9LhMkrhqEfL3wCe+1dBVj80otbYo2ShaJXevYuL2XGPZKOjBcKcQCGSPrMwq
-	 /2y/arJjo7U1793XUp3xiPmRsHZWqvnJrmqOYg02CsspBZmC0ze5SK2vmqLlh8BreTE8u
-	 B7lbMK6Lm45pc1GBdsSCxLRQCQod6XvPwFFOsOHazGtURbNT1uvjQ19zpzQix25ymZI6H
-	 /SfyYY1An91K+I/BoAu3GtXVoaYeIOSQH87pFdZgbHBtc1HviVDR2D/sqkX4sObP9+ysv
-	 8sdX12kVZdJYX2452a9q+cL263tEpQT+s1u0OC2drizxOyUdaXk/CkXJsGvJTi48eAQ==
+	bh=imMR3p2duQqhNdG0Ig5xxDisuLnpgFn7S+h/c9cqvAo=;
+	b=du2MWD0Dw742use+nlOEowWx2moDLnq2c+g65T04wiUDKHpE6NNFKEYrafjAr+QWIHdw
+	 zT79Ed1sDvXJaQiyGufp14ZcwzYx0hc1Ih6mpgqDtWKM4rzDWO9gWnyB1OyqfUet9oRUf
+	 pPOc2eoXsFIyVmXI9xGwcnY2L0Y6P/MKH4OXVipdw0b3BWxUwugau8+obx+4z69QddWlT
+	 wzvpfZGAtvvsboFZ0YiVEO9vVx5rzJbYyVwYzWDedblOIgfp6VCzeKX0QCzpagRyHYvu4
+	 n1Mo60+927r5Qh2Ph4rfuVgvkC38BRe14pvga8Km2CnMLjakJHpiHxjYU+MKqg4PPfw==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dIM7EgcY;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BnD2RIMI;
 	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D78356076C62;
-	Fri, 20 Nov 2026 18:11:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69A146078DDD;
+	Fri, 20 Nov 2026 18:11:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dIM7EgcY
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BnD2RIMI
 Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
 ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
-	t=1795198281;
-	b=hkXL/hDvbaKnzBBpH8INsEnublg3SJPZugEsXCkNXhAjZHpKwkvelJYVZpAWhJ6MUA8I
-	 Ocio82VVYX1QVweb2xVPe14J/lQ7vmNXHbV2hWO0w16BMfIMV5y7oSOQtsazvmVsQAJDj
-	 bKBfB58jh6eSXNhgXFvRL5cXhgZDWbzLiuAyx796rjBluLdPvojGXqk6YZaGMUY/45wcK
-	 pSBcWNWQCpNKzEtkqxTiu5oGTSAFH8oQsRq0LzATvXwkroDNnRU0XcUGSyZ4YaorMq/Tu
-	 wVoJi8ge3BNI/OmjnxDl3AuBwujQZIbRGwpNTptz6Gi9HbcSGlFFVxKJgudT1DexcOw==
+	t=1795198280;
+	b=Yf1aEbpkzikzIqVNDBbPCx2vIOb/n74lTRPUm9enAbAvryNRkbxofWlBn6TacQZc1g2w
+	 DrI2T77dqmj+yK1n1EZm8VByLSBkjwvVEBrcaiqqflMPQrcCwh88eiFXffKRWigYJMAEx
+	 EMu0IubBzjcFy2WRW3yDu7ZpBBITUuZh176CpzWFDPuTFR45meLEM8aYX3/9z8z+j2l+w
+	 v8sfbwlRRPViiypN0HtI2o7gd2OzYB10a+nK10JtFGIlVX+YeYsrbfya4sEWEq3vqNrnV
+	 BsCJtVhd6GFcrMMxb6OJHXkuA802dj4SeVAyii1DEYPNbYtWrW3/KA5GGhQD5gWlP7w==
 ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
-	c=relaxed/relaxed; t=1795198281;
+	c=relaxed/relaxed; t=1795198280;
 	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
 	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=rthxdo4zZLRdMrG9hzCU++aKsWt/EVLHx0ntdyOkT/A=;
-	b=NWRF9JlHvWuq58EisCNxzK9c1Jshx1YA1fWki6o/VUXj4wfckU2gaAH/B51+5LBfvQYh
-	 hctdfBbop2PmkLp3uyUrniylLc5ejHm7er1xKkrajK87QehbKj9Ekz++bPuwqeQoP1Ud4
-	 VmqMfI67N6AN/YmL0mT5u3p1aVYNjywYfgf8lu2z6Rr1hdVJiD+55AQ0Fnu8tsFIxc84w
-	 EZsGHtWEB7Pi5eYa3zfwjluXOle7Cli/ffIE1aiXUKipxwAuKAOWctLGe79bTijVY6EVo
-	 cPuYGV3KWfHcsXEjfa3M6c3zZs1pvTxeEwqlfDjkydtXyr/VpfK2CHrbfpvettc9KIw==
+	bh=imMR3p2duQqhNdG0Ig5xxDisuLnpgFn7S+h/c9cqvAo=;
+	b=uGMBjDJuoL2XY+fr1QWAg4aMByVDnu3nr8ilySyFeErQ+Ge74vqbpPJAyyhcXsKWNqcc
+	 Ky5jW8yYRuZqj2A2D2XEPx6gqlUOZMx+LeX0b431bid3RCmcoY9fkRXnkFbE3duhL+CJJ
+	 JU2v7gPNkm4msRpzI/CGad/mDN77FgC4w/QX0Y33aTr4FXffJKbOZflPNQTEOOxm9TWpM
+	 2wyH4SQ73Vb3G0gZwT+6/pdxhRe4L4+Zp8+IRK1Xc4gjuhP50I/8IvdYwEyPrdEk8wcSK
+	 NPmgFF0/KhcrMbJtAnq4CR0m3myBJxJiIuxA+xtgSHu18FekO+QK8m9tVprPJiXlAVQ==
 ARC-Authentication-Results: i=1; smtp.kernel.org; 
 	arc=none smtp.remote-ip=100.80.115.77
 Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id 45CFD1F00AD3;
-	Fri, 20 Nov 2026 18:11:00 +0000 (UTC)
+	by smtp.kernel.org (Postfix) with ESMTPS id 4D9B81F0156F;
+	Fri, 20 Nov 2026 18:10:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795198281;
-	bh=rthxdo4zZLRdMrG9hzCU++aKsWt/EVLHx0ntdyOkT/A=;
+	s=k20260515; t=1795198280;
+	bh=imMR3p2duQqhNdG0Ig5xxDisuLnpgFn7S+h/c9cqvAo=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To;
-	b=dIM7EgcYckLvHR9IusQ07q3XIR7rWeAcf1VirvJguvCG5KFeT4jmkznaLsu72OK9h
-	 KSh0KW+Lfj1VGdAgjhAD93kJfcXLGL4bg3shpvXZg1Ws2MNsPGHmI8uuRiWHd3rnlP
-	 2RZd48Ebh/iY+I447aN0o5pGlfQXWdmUig8y6NapRxEYW/TjPh2hv4XJ3Hyt8M5KxS
-	 eLO7IN2vWKgHNsZWv6cZkxywg6XLn1DJP9qyGYEMhDAtzcEU0QtwkWzphYjx9vrL+F
-	 u9JLfBHzalYZ0fqnAMHr06F3LKVW8yL5MXG74n07Kv4/SI/5tlxDGGedOZaoadRpAP
-	 NNsmFOM7RBOHQ==
+	b=BnD2RIMI7V38GP4lrJkUPfKZ1qi3SXnHGsE1xZANnq3BbWl1waLaY4sWNxnzUvmMk
+	 M+RSTkPDJ/kxtyccwGZBGDcMzmPHfcEFHeto1mfKNjC3NjKlnAvMTLRZadSSWK9RQY
+	 T2/fdoC+oH25n8YBK9RgfTN+fu966iSfgN2PaDOl9SzY4YyIU01RZJVrYbGxxmS8l6
+	 jxvAD/mLxYwwZn1kIU0n1AA8nzk2AbJ6MXLSO9FwWl5xGBecAwD5HhIiokBTXEkVJL
+	 0HGTz8mGc370cPkJK+w8IGirmowsSOVcUV8c1l82fA23B5RhJlv6/niidUS9Rrf7LT
+	 tzTCVQ4NnExeg==
 Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id 5C51E4B990;
+	by lkml.kernel.org (Postfix) with ESMTP id 1AF6E4B988;
 	Fri, 20 Nov 2026 18:09:23 +0000 (UTC)
 From: Gregory Price via B4 Relay <devnull+gourry.gourry.net@kernel.org>
-Date: Fri, 20 Nov 2026 13:09:43 -0500
-Subject: [PATCH 52/60] mm: count memory with userspace placement as general
- purpose
+Date: Fri, 20 Nov 2026 13:09:41 -0500
+Subject: [PATCH 50/60] mm: add N_MEMORY_MEMPOLICY node state
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -84,7 +83,7 @@ List-Owner: <mailto:nvdimm+owner@lists.linux.dev>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Message-Id: <20261120-private_nodes_v6-v1-52-74f5f9a115c2@gourry.net>
+Message-Id: <20261120-private_nodes_v6-v1-50-74f5f9a115c2@gourry.net>
 References: <20261120-private_nodes_v6-v1-0-74f5f9a115c2@gourry.net>
 In-Reply-To: <20261120-private_nodes_v6-v1-0-74f5f9a115c2@gourry.net>
 To: Yury Norov <yury.norov@gmail.com>, 
@@ -141,11 +140,11 @@ Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
  cgroups@vger.kernel.org, nvdimm@lists.linux.dev, 
  linux-kselftest@vger.kernel.org, "Gregory Price (Meta)" <gourry@gourry.net>
 X-Mailer: b4 0.14.3
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1795198154; l=4692;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1795198153; l=4477;
  i=gourry@gourry.net; s=20261120; h=from:subject:message-id;
- bh=6RX//QZ0SKZV5TxlzdYhe/tOzKC4XmRnHwcFufstJ18=;
- b=NCTptt6/uCAZdwhyVmM2rpriQlBmZN9AxKQqG79yZ5rxdXd8RGciTmhOiPZUUECoSDy16oEFb
- Kbu7zu/nGUdCEINR6uXZJsSM2Z1tPpxQx5CroIpLspzccWRfbqKkHRl
+ bh=POrrod7a8qe5/RJcpG1x1W6f1yuN7ZdnOW2+WhH0FXE=;
+ b=aTDMy5aQgR/eu/TnyoctRRRg14g5CIETIw3u4dDaQdYVGncbixZ+T0SNCnrlFn6DFrsn4+Zg1
+ q8XW52q1jYMDuHrNhBZsCfARwTf3Qz3aNp9IhHdIxv9ybHyAJ3U5en6
 X-Developer-Key: i=gourry@gourry.net; a=ed25519;
  pk=BZWDlx4htkR5KcvGjGtSDfx1tM0E5dlyBR43FEhjWVc=
 X-Endpoint-Received: by B4 Relay for gourry@gourry.net/20261120 with
@@ -156,140 +155,110 @@ Content-Transfer-Encoding: 7bit
 
 From: "Gregory Price (Meta)" <gourry@gourry.net>
 
-Userspace places ordinary data on N_MEMORY_MEMPOLICY nodes, and neither
-the commit charge nor a task's RSS can tell nodes apart. Treat their
-memory as general purpose: totalram_pages() and MemFree count it, and so
-do the limits sized from them (overcommit, OOM capacity).
+Add N_MEMORY_MEMPOLICY as an internal state for the nodes that memory
+policy interfaces and explicit migration may target, and
+NODE_MEMORY_FEAT_MEMPOLICY for memory providers to select it.
 
-Other defaults sized from totalram_pages(), such as the zswap pool and
-tmpfs sizes, also see the larger total, as they already do for memory
-the kernel cannot allocate from in ZONE_MOVABLE.
-
-Free memory on these nodes serves only private bindings and migration,
-so counting it in MemAvailable or the global dirtyable memory would
-overstate both. Add common_free_pages() and use it there.
-
-MemAvailable also assumes about half of the file LRU can be reclaimed.
-Reclaiming file pages on these nodes frees only private memory, so
-count only the file LRU on common nodes, via common_file_pages().
-
-File pages that reach a private node through migration stay covered
-by the dirty limits' file LRU term.
+Userspace placement lets ordinary processes use the node like any other
+memory. That assumes the node is reclaimed and compacted, so the feature
+requires both.
 
 Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
 ---
- mm/internal.h       | 26 ++++++++++++++++++++++++--
- mm/page-writeback.c |  7 ++++++-
- mm/show_mem.c       | 24 ++++++++++++++++++++----
- 3 files changed, 50 insertions(+), 7 deletions(-)
+ Documentation/mm/physical_memory.rst |  3 +++
+ include/linux/nodemask.h             | 11 +++++++++--
+ mm/page_alloc.c                      |  4 ++++
+ 3 files changed, 16 insertions(+), 2 deletions(-)
 
-diff --git a/mm/internal.h b/mm/internal.h
-index 4bac570bb29f..c83c100a5253 100644
---- a/mm/internal.h
-+++ b/mm/internal.h
-@@ -793,11 +793,33 @@ void set_recommended_min_free_kbytes(void);
+diff --git a/Documentation/mm/physical_memory.rst b/Documentation/mm/physical_memory.rst
+index 1bafe8c085a3..75752c3a5694 100644
+--- a/Documentation/mm/physical_memory.rst
++++ b/Documentation/mm/physical_memory.rst
+@@ -190,6 +190,8 @@ The following states are internal and not exported through sysfs:
+ ``N_MEMORY_RECLAIM``
+   The kernel reclaims the node on its own initiative (kswapd, memcg and
+   explicit reclaim).
++``N_MEMORY_MEMPOLICY``
++  Memory-policy interfaces and explicit migration may target the node.
  
- extern char * const zone_names[MAX_NR_ZONES];
+ For each node that has a property described above, the bit corresponding to the
+ node ID in the ``node_states[<property>]`` bitmask is set.
+@@ -205,6 +207,7 @@ For example, for node 2 with normal memory and CPUs, bit 2 will be set in ::
+   node_states[N_CPU]
+   node_states[N_MEMORY_COMPACTION]
+   node_states[N_MEMORY_RECLAIM]
++  node_states[N_MEMORY_MEMPOLICY]
  
--/* true if the node is capable of servicing general system allocations */
-+/*
-+ * true if the node is capable of servicing general system allocations or
-+ * userspace directed allocations (mempolicy, migration)
-+ */
- static inline bool node_memory_is_general_purpose(int nid)
+ For various operations possible with nodemasks please refer to
+ ``include/linux/nodemask.h``.
+diff --git a/include/linux/nodemask.h b/include/linux/nodemask.h
+index be5edbee2b22..c7a1800d9171 100644
+--- a/include/linux/nodemask.h
++++ b/include/linux/nodemask.h
+@@ -414,6 +414,7 @@ enum node_states {
+ 	/* Internal states, not exported through sysfs */
+ 	N_MEMORY_COMPACTION,	/* mm compaction may operate on the node */
+ 	N_MEMORY_RECLAIM,	/* mm reclaim may operate on the node */
++	N_MEMORY_MEMPOLICY,	/* memory policy may target the node */
+ 	NR_NODE_STATES
+ };
+ 
+@@ -552,14 +553,17 @@ static __always_inline int node_random(const nodemask_t *maskp)
+ #define NODE_MEMORY_FEAT_COMMON		BIT(0) /* add to fallback zonelist */
+ #define NODE_MEMORY_FEAT_COMPACTION	BIT(1) /* mm compaction */
+ #define NODE_MEMORY_FEAT_RECLAIM	BIT(2) /* mm reclaim */
++#define NODE_MEMORY_FEAT_MEMPOLICY	BIT(3) /* userspace NUMA controls */
+ #define NODE_MEMORY_FEAT_ALL		(NODE_MEMORY_FEAT_COMMON | \
+ 					 NODE_MEMORY_FEAT_COMPACTION | \
+-					 NODE_MEMORY_FEAT_RECLAIM)
++					 NODE_MEMORY_FEAT_RECLAIM | \
++					 NODE_MEMORY_FEAT_MEMPOLICY)
+ 
+ /*
+  * Common memory carries every feature. Private memory needs NUMA: node 0
+  * holds all memory without it. Reclaim leaves high-order requests to
+- * compaction, so it requires compaction.
++ * compaction, so it requires compaction. Userspace placement assumes the
++ * node is reclaimed and compacted like any other memory.
+  */
+ static inline bool node_memory_features_valid(unsigned long features)
  {
- 	return READ_ONCE(NODE_DATA(nid)->memory_features) &
--	       NODE_MEMORY_FEAT_COMMON;
-+	       NODE_MEMORY_FEAT_MEMPOLICY;
-+}
-+
-+unsigned long common_free_pages(void);
-+
-+/* File LRU pages on common nodes, whose reclaim frees common memory. */
-+static inline unsigned long common_file_pages(void)
-+{
-+	unsigned long nr = global_node_page_state(NR_ACTIVE_FILE) +
-+			   global_node_page_state(NR_INACTIVE_FILE);
-+	int nid;
-+
-+	if (!IS_ENABLED(CONFIG_NUMA))
-+		return nr;
-+
-+	for_each_node_state(nid, N_MEMORY_PRIVATE) {
-+		nr -= min(nr, node_page_state(NODE_DATA(nid), NR_ACTIVE_FILE) +
-+			      node_page_state(NODE_DATA(nid), NR_INACTIVE_FILE));
-+	}
-+	return nr;
+@@ -570,6 +574,9 @@ static inline bool node_memory_features_valid(unsigned long features)
+ 	if ((features & NODE_MEMORY_FEAT_RECLAIM) &&
+ 	    !(features & NODE_MEMORY_FEAT_COMPACTION))
+ 		return false;
++	if ((features & NODE_MEMORY_FEAT_MEMPOLICY) &&
++	    !(features & NODE_MEMORY_FEAT_RECLAIM))
++		return false;
+ 	return IS_ENABLED(CONFIG_NUMA);
  }
  
- extern int min_free_kbytes;
-diff --git a/mm/page-writeback.c b/mm/page-writeback.c
-index 00293a64fcea..6181266bf159 100644
---- a/mm/page-writeback.c
-+++ b/mm/page-writeback.c
-@@ -317,7 +317,12 @@ static unsigned long global_dirtyable_memory(void)
- {
- 	unsigned long x;
- 
--	x = nr_free_pages();
-+	/*
-+	 * Free private memory serves only private bindings and migration.
-+	 * File pages that reach private memory are counted with the file
-+	 * LRU below.
-+	 */
-+	x = common_free_pages();
- 	/*
- 	 * Pages reserved for the kernel should not be considered
- 	 * dirtyable, to prevent a situation where reclaim has to
-diff --git a/mm/show_mem.c b/mm/show_mem.c
-index 24dd33ba783b..de4769e06a53 100644
---- a/mm/show_mem.c
-+++ b/mm/show_mem.c
-@@ -46,17 +46,18 @@ long si_mem_available(void)
- 
- 	/*
- 	 * Estimate the amount of memory available for userspace allocations,
--	 * without causing swapping or OOM.
-+	 * without causing swapping or OOM. Only free common memory serves
-+	 * ordinary allocations.
- 	 */
--	available = nr_free_pages() - totalreserve_pages;
-+	available = common_free_pages() - totalreserve_pages;
- 
- 	/*
- 	 * Not all the page cache can be freed, otherwise the system will
- 	 * start swapping or thrashing. Assume at least half of the page
- 	 * cache, or the low watermark worth of cache, needs to stay.
- 	 */
--	pagecache = global_node_page_state(NR_ACTIVE_FILE) +
--		global_node_page_state(NR_INACTIVE_FILE);
-+	/* Reclaiming file pages on private nodes frees only private memory. */
-+	pagecache = common_file_pages();
- 	pagecache -= min(pagecache / 2, wmark_low);
- 	available += pagecache;
- 
-@@ -92,6 +93,21 @@ unsigned long nr_free_pages(void)
- 	return nr;
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index cc70e1b45322..eff9c3d8251f 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -206,6 +206,7 @@ nodemask_t node_states[NR_NODE_STATES] __read_mostly = {
+ 	[N_MEMORY_COMMON] = { { [0] = 1UL } },
+ 	[N_MEMORY_COMPACTION] = { { [0] = 1UL } },
+ 	[N_MEMORY_RECLAIM] = { { [0] = 1UL } },
++	[N_MEMORY_MEMPOLICY] = { { [0] = 1UL } },
+ 	[N_CPU] = { { [0] = 1UL } },
+ #endif	/* NUMA */
+ };
+@@ -224,10 +225,13 @@ void __meminit node_set_memory_state(int nid, unsigned long features)
+ 		node_set_state(nid, N_MEMORY_COMPACTION);
+ 	if (features & NODE_MEMORY_FEAT_RECLAIM)
+ 		node_set_state(nid, N_MEMORY_RECLAIM);
++	if (features & NODE_MEMORY_FEAT_MEMPOLICY)
++		node_set_state(nid, N_MEMORY_MEMPOLICY);
  }
  
-+/* Free pages on common nodes, the free memory ordinary allocations can use. */
-+unsigned long common_free_pages(void)
-+{
-+	unsigned long nr = global_zone_page_state(NR_FREE_PAGES);
-+	int nid;
-+
-+	if (!IS_ENABLED(CONFIG_NUMA))
-+		return nr;
-+
-+	for_each_node_state(nid, N_MEMORY_PRIVATE) {
-+		nr -= min(nr, sum_zone_node_page_state(nid, NR_FREE_PAGES));
-+	}
-+	return nr;
-+}
-+
- void si_meminfo(struct sysinfo *val)
+ void __meminit node_clear_memory_state(int nid)
  {
- 	val->totalram = totalram_pages();
++	node_clear_state(nid, N_MEMORY_MEMPOLICY);
+ 	node_clear_state(nid, N_MEMORY_RECLAIM);
+ 	node_clear_state(nid, N_MEMORY_COMPACTION);
+ 	node_clear_state(nid, N_MEMORY_PRIVATE);
 
 -- 
 2.56.1
