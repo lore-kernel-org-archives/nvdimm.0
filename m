@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795199601;
-	b=BTencnIZvCggsFcBl8syKerPPHoV8o/Su3yXJMvSl3NTwTMk1v7GNO0ym7mDkC0i056H
-	 T+MAlxQSMIkq2OiyAVcrI5UFwZPMPN9Q971Qp9OXzXWVyCMHB5WN7wDt3t60MZ6LlRgBw
-	 AS8Yv2oYvqYAnvlXgI+HlTM/aqal4fSuHnET+AvFJ4qMfmlv80zBWibl4JIE2jZMx6iUL
-	 8ufqkYrL4HXpWm9zpTxYlicZ31NM97BzLOf/TgYscgySd4tg763RyBPyKlRWQ2EIMGCJS
-	 Swv89A38EAVVRVejQ9cM7U4l0YW/Nv8aWPfqkdlBBQFBRbeyZqLxlfUBuqYjksqFPVw==
+	t=1795199716;
+	b=uSd7zS/9IOoKx2oA1qgibkbP9eYRLNvCuAFPI6wxjPzaboSIyup9IgOgEimNRMn2K3nr
+	 sxRimza2c8rlk1At1N1jjaBYg3GglYLYe9jWDFppgz8kxPaFATXL9yU/DPqHmiY/agbLc
+	 gUYsccux9BacU+I/px/54b7XQl6jTTZn3gfWAUhCfrD5XZMzV0zjs6RIGai6rX1Q2EvA9
+	 vYtWXtkTepzXecF+AbrAi8dISPGty/JS8Y/Z/MyMJoXNGpVRYfDhhY9i4D7zBZF7YUi5Y
+	 aVtl4Y3N2aOWiwZX4N6k474Y2uIRMyaQAvHQuf/Ud2i5039Q5Vdb0Fi0BQHtoCGRdRg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795199601;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795199716;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=/QjdGr8du1+0/up5L/FeJ50rChwbRYbU49k9UAYdf/g=;
-	b=ihDGPbgfV9/uIAEUz8cNwqkSwrYs4NeUF1wlTkL3j/14nOA1tevIiBdGqV3YfanJZbT5
-	 h3UySZbBZhm4lpmXYFEpEmZfT7voqnACqcZzrQZYxhhsAdId5wAVE2WD36qj/s3k+amE+
-	 6N0k0DHk0b+IELoYZkk0+XKpbge7cmXSl1XJb4mXVeeQfvfmzeDh2dEli/z68+o8wLKLj
-	 0v4QTeKSlanYRuTxw1dxtZhBwxJ14HiKG5pZoqwq/if3Ivh8DvxgHua2bP9wEASCEK7TX
-	 zR4iQNNSml6/CfxF6ytiT78AEtAFmpqBrxml/OX0Pv7m8lrsph4X+DC7iS36OA1Uk5g==
+	bh=bIIG4zl8TPynaHSoT/O3ZoKJ4B6crfr5G2QFKKsC6Lk=;
+	b=F/SPrg9Rk29baPPWRKKiFhCD/BeCNjvo+ujOPAmVw8hNaYudGAc7vi7xaJANyOAZ2VXg
+	 rAvauuR+PcFJUupOzPsDtab4o0pGzRZLpaf1Dwgugta2GePQB0CVRmfKN8sqH8Qo2mBBs
+	 ex9wDlcy71Id9i24iSbiTRA7Xtpn5nHpY9v/229vAKkLFpPdo7v7qLqnYNdSrifVfhdOB
+	 RN3oNF2HPxCW9wqCThPg20UGC0PxGZ3Xk1OSXidAcqmAvsPkeKDm/3FYHkIHyGUbmunIv
+	 R+zqBQFgX6IBJXyyEib2+ub8tH4Pt1bTDwdeNHof/58BhV+ah2rCk5ZF0+y1U6uh44A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QEcfJdaB;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IZ4SaAZ3;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B213260A2602;
-	Fri, 20 Nov 2026 18:33:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3829C60A261C;
+	Fri, 20 Nov 2026 18:35:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QEcfJdaB
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46D911F000D2;
-	Fri, 20 Nov 2026 18:33:16 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IZ4SaAZ3
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA14E1F000C4;
+	Fri, 20 Nov 2026 18:35:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795199601;
-	bh=/QjdGr8du1+0/up5L/FeJ50rChwbRYbU49k9UAYdf/g=;
+	s=k20260515; t=1795199715;
+	bh=bIIG4zl8TPynaHSoT/O3ZoKJ4B6crfr5G2QFKKsC6Lk=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=QEcfJdaBXR3W+/1J/7PCuYdI5Ic5+u6GSCUqnnD/ezVDlOQmmQZuhmOsWA1zd/1+y
-	 a/VC65utOlVHSk0Ii0AJPHU0b22J+KTgAZDPez8Fq0scTn3qKwWehZwpYuezFS8zDu
-	 H8JAdT0jJ9LgLe9KjPQkVKjeAxfKMDbn9yXUFXGLFAWa8zVs86wjv76fFu4gkUrMno
-	 l042nFUH9mvNFE8IboO7yL85h2zNRzSZSmNdU+QiO4r+ue3XHFppLHS5gIOwN73Pa9
-	 riUpfyMMq5b05pVKNTlrrgUm061QQsYcgZV3GN2LZnnspHqyivw/54SqNZdAZXQ6GH
-	 Sx87cnBZQPuvQ==
-Message-ID: <sashiko-outbox-225840@kernel.org>
+	b=IZ4SaAZ3xCf9fmTzel7z2Tk9TIFRfoUGZSYfC98iVbTeiiyblv4aoaef4r+xwtRVO
+	 hr8lvDMwLdArT5DPO89KcmvYqzd2RAC0i9MxQYF5nrlX2LgRoPgNs8u7Nqm1LK6S+N
+	 1akWRflhMNPGcsxRoSBIJCmgk3+OdoOiVcFQMQlR7tzbD2g00JM81GXtoqVrGt9ThA
+	 u/UsasALhuwwYALzSlsje+JOrdGzsRW2mHN1ySOdF7Fo8zfmEmHHZELgU4a70worZk
+	 Bk9O4BUe3w8OQZuX+ARs60ZjwbBHLFG6PuGDW9cPWEfvy3X7ICNYeaotlqi78nr5/a
+	 VOI5jPwkAyOYA==
+Message-ID: <sashiko-outbox-225846@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH 30/60] mm/memory_hotplug: keep private memory out of the
- auto-movable ratio
+Subject: Re: [PATCH 59/60] selftests/dax: test cpuset interaction with
+ private nodes
 Reply-To: sashiko-reviews@lists.linux.dev
 To: =?utf-8?b?R3JlZ29yeSBQcmljZSAoTWV0YSk=?= <gourry@gourry.net>, "Yury
  Norov" <yury.norov@gmail.com>, "Rasmus Villemoes" <linux@rasmusvillemoes.dk>, "David
@@ -82,12 +82,12 @@ To: =?utf-8?b?R3JlZ29yeSBQcmljZSAoTWV0YSk=?= <gourry@gourry.net>, "Yury
  Jiang" <dave.jiang@intel.com>, "Alison Schofield" <alison.schofield@intel.com>, "Shuah
  Khan" <shuah@kernel.org>
 Cc: linux-mm@kvack.org, linux-cxl@vger.kernel.org, damon@lists.linux.dev, nvdimm@lists.linux.dev
-In-Reply-To: <20261120-private_nodes_v6-v1-30-74f5f9a115c2@gourry.net>
+In-Reply-To: <20261120-private_nodes_v6-v1-59-74f5f9a115c2@gourry.net>
 References: <20261120-private_nodes_v6-v1-0-74f5f9a115c2@gourry.net>
- <20261120-private_nodes_v6-v1-30-74f5f9a115c2@gourry.net>
+ <20261120-private_nodes_v6-v1-59-74f5f9a115c2@gourry.net>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 20 Nov 2026 18:33:15 +0000
+Date: Fri, 20 Nov 2026 18:35:11 +0000
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -99,91 +99,86 @@ Precedence: list
 
 Thank you for your contribution! Sashiko AI review found 1 potential
 issue to consider:
-- [Medium] mm/memory_hotplug: broken auto-movable accounting on private
-  nodes
+- [Low] selftests/dax: stage desync and wait hang in
+  run_private_transitions()
 --
 
-commit 6d04c084f583deb362f04abc899f0521e026dbfc
+commit 86268e0cbec65176c860c84e90fc221fb5d0e80c
 Author: Gregory Price (Meta) <gourry@gourry.net>
 
-mm/memory_hotplug: keep private memory out of the auto-movable ratio
+selftests/dax: test cpuset interaction with private nodes
 
-This commit skips nodes with N_MEMORY_PRIVATE set in
-auto_movable_stats_account_zone() and auto_movable_stats_account_group()
-when computing statistics for the auto-movable online policy.
+This commit adds selftests and a C helper tool to verify cgroup-v2 cpuset
+interactions with private kmem nodes across cpuset.mems changes, task
+attachment, and node hotplug/retyping.
 
-> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-> index b4d94021d46ef..d7ce60c6815f8 100644
-> --- a/mm/memory_hotplug.c
-> +++ b/mm/memory_hotplug.c
-> @@ -782,6 +782,10 @@ struct auto_movable_stats {
->  static void auto_movable_stats_account_zone(struct auto_movable_stats *s=
-tats,
->  					    struct zone *zone)
->  {
-> +	/* Private memory is outside the movable:kernel balance. */
-> +	if (node_state(zone_to_nid(zone), N_MEMORY_PRIVATE))
-> +		return;
+> diff --git a/tools/testing/selftests/dax/kmem_private_rebind.sh b/tools/t=
+esting/selftests/dax/kmem_private_rebind.sh
+> new file mode 100755
+> index 0000000000000..5d39be04f1795
+> --- /dev/null
+> +++ b/tools/testing/selftests/dax/kmem_private_rebind.sh
+> @@ -0,0 +1,301 @@
+
+[ ... ]
+
+> +run_private_transitions()
+> +{
+> +	local mode=3D$1 label=3D$2 action=3D${3:-reshape}
+> +	local stage mask title cg=3D
+> +	local titles=3D("keeps private pages and placement while the node stays=
+ allowed"
+> +		"evacuates private pages and uses common placement when access is revo=
+ked"
+> +		"restores the original private request when access returns")
 > +
->  	if (zone_idx(zone) =3D=3D ZONE_MOVABLE) {
->  		stats->movable_pages +=3D zone->present_pages;
->  	} else {
-> @@ -808,6 +812,10 @@ static int auto_movable_stats_account_group(struct m=
-emory_group *group,
->  	struct auto_movable_group_stats *stats =3D arg;
->  	long pages;
-> =20
-> +	/* private memory is outside the movable:kernel balance. */
-> +	if (node_state(group->nid, N_MEMORY_PRIVATE))
-> +		return 0;
-> +
->  	/*
->  	 * We don't support modifying the config while the auto-movable online
->  	 * policy is already enabled. Just avoid the division by zero below.
+> +	echo "${COMMON[0]},$PN" > "$CG/cpuset.mems"
+> +	if [ "$action" =3D attach ]; then
+> +		echo "${COMMON[1]},$PN" > "$CG/cpuset.mems"
+> +	fi
+> +	# Shared-policy parents and task-attachment tools start at the root.
+> +	if [ "$mode" =3D private-anon ] && [ "$action" =3D reshape ]; then
+> +		cg=3D$CG
+> +	fi
+> +	if ! start_tool "$mode" "$cg"; then
+> +		ktap_print_msg "tool setup failed"
+> +		for title in "${titles[@]}"; do
+> +			ktap_test_fail "$label $title"
+> +		done
+> +		stop_tool
+> +		return
+> +	fi
+> +	if [ "$mode" =3D private-shared ] && [ "$action" =3D reshape ]; then
+> +		echo "$TARGET" > "$CG/cgroup.procs"
+> +	fi
+> +	for stage in 0 1 2; do
+> +		mask=3D${COMMON[1]}
+> +		[ "$stage" =3D 1 ] || mask+=3D",$PN"
+> +		if ! transition_cpuset "$action" "$stage" "$mask"; then
+> +			ktap_print_msg "cannot change the cpuset"
+> +			ktap_test_fail "$label ${titles[$stage]}"
+> +			continue
+> +		fi
+> +		report_stage "$stage" "$label ${titles[$stage]}"
+> +	done
+> +	wait "$CHILD"
+> +	CHILD=3D
+> +	TARGET=3D
+> +}
 
-[Severity: Medium]
-Does skipping N_MEMORY_PRIVATE here without updating
-auto_movable_can_online_movable() and auto_movable_zone_for_pfn() break
-auto-movable accounting when onlining memory on private nodes?
+[Severity: Low]
+Does continuing on a transition_cpuset() failure desynchronize the stage
+loop from kmem_private_rebind_tool and leave wait "$CHILD" blocked until
+the 60-second timeout expires?
 
-In auto_movable_can_online_movable(), walk_dynamic_memory_groups() excludes
-the target group being onlined, so auto_movable_stats_account_group() only
-runs for other groups.  For the target group itself,
-auto_movable_can_online_movable() relies on
-auto_movable_stats_account_zone() having counted its present_movable_pages
-in stats.movable_pages, and then directly adds group->present_kernel_pages:
-
-mm/memory_hotplug.c:auto_movable_can_online_movable() {
-	...
-	walk_dynamic_memory_groups(nid, auto_movable_stats_account_group,
-				   group, &group_stats);
-	if (kernel_early_pages <=3D group_stats.req_kernel_early_pages)
-		return false;
-	kernel_early_pages -=3D group_stats.req_kernel_early_pages;
-	movable_pages -=3D group_stats.movable_pages;
-
-	if (group && group->is_dynamic)
-		kernel_early_pages +=3D group->present_kernel_pages;
-	...
-}
-
-Because auto_movable_stats_account_zone() now skips N_MEMORY_PRIVATE nodes,
-a dynamic memory group on a private node still adds its
-present_kernel_pages to kernel_early_pages in the NUMA_NO_NODE check while
-its present_movable_pages are omitted from movable_pages.
-
-In addition, auto_movable_zone_for_pfn() computes
-nr_pages =3D max_pages - online_pages assuming online_pages were already
-counted in stats.movable_pages by auto_movable_stats_account_zone(), which
-no longer holds once the first block on a private node is onlined and sets
-N_MEMORY_PRIVATE.  When auto_movable_numa_aware is disabled, skipping
-ZONE_MOVABLE on private nodes also allows unbounded ZONE_MOVABLE memory to
-be onlined on private nodes without counting against the movable budget,
-whereas when auto_movable_numa_aware is enabled, the per-node
-auto_movable_can_online_movable(nid, ...) check sees kernel_early_pages =3D=
-=3D 0
-and group_stats.req_kernel_early_pages =3D=3D 0 and always returns false.
+In private_rebind(), the helper tool loops for stage =3D 0, 1, 2 and blocks
+in sigwait() for one SIGUSR1 per stage.  Skipping report_stage() with
+continue omits sending SIGUSR1 for the failed stage, so subsequent
+iterations wait for a stage number the tool has not reached yet, and after
+the loop the tool remains blocked in sigwait() because it received fewer
+than three signals.  Handling this like run_private_retype() by tracking
+tool readiness and calling stop_tool at the end would avoid the hang.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261120-private_no=
-des_v6-v1-0-74f5f9a115c2@gourry.net?part=3D30
+des_v6-v1-0-74f5f9a115c2@gourry.net?part=3D59
