@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795199716;
-	b=uSd7zS/9IOoKx2oA1qgibkbP9eYRLNvCuAFPI6wxjPzaboSIyup9IgOgEimNRMn2K3nr
-	 sxRimza2c8rlk1At1N1jjaBYg3GglYLYe9jWDFppgz8kxPaFATXL9yU/DPqHmiY/agbLc
-	 gUYsccux9BacU+I/px/54b7XQl6jTTZn3gfWAUhCfrD5XZMzV0zjs6RIGai6rX1Q2EvA9
-	 vYtWXtkTepzXecF+AbrAi8dISPGty/JS8Y/Z/MyMJoXNGpVRYfDhhY9i4D7zBZF7YUi5Y
-	 aVtl4Y3N2aOWiwZX4N6k474Y2uIRMyaQAvHQuf/Ud2i5039Q5Vdb0Fi0BQHtoCGRdRg==
+	t=1795199720;
+	b=05nILMvfb1r2jTGwX7H5BtH8WoKN7Kk38kBFTFxPZiWyqudwzCWmpHjHjJRYzTW6NSMc
+	 5M+gmCW+iU5DJmIVMX4ei+iehQ7oL5i3pTGAWz0KDlDmE4TKNECcmkOWGdP7EjDGL3ZhD
+	 +J54Qyiq9m8Zqiq9EXPQ3iPIyA3GG+lkz8jmClGzZ1He23hDfRoWgtKjruouBlfqb13Es
+	 +DM8fyDFRyrkbyNccA0r5DTDPGQwgZl/2D4+ajsFdTbG3jFC/nU0VUOLiUqpemtT1n8jE
+	 HGI1z9XTtU7vI1QVM3rKKn+IroSPqbDgTh+Zde+v1qWz9nfvpqWAmEk1SKsvh+NrJSQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795199716;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795199720;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=bIIG4zl8TPynaHSoT/O3ZoKJ4B6crfr5G2QFKKsC6Lk=;
-	b=F/SPrg9Rk29baPPWRKKiFhCD/BeCNjvo+ujOPAmVw8hNaYudGAc7vi7xaJANyOAZ2VXg
-	 rAvauuR+PcFJUupOzPsDtab4o0pGzRZLpaf1Dwgugta2GePQB0CVRmfKN8sqH8Qo2mBBs
-	 ex9wDlcy71Id9i24iSbiTRA7Xtpn5nHpY9v/229vAKkLFpPdo7v7qLqnYNdSrifVfhdOB
-	 RN3oNF2HPxCW9wqCThPg20UGC0PxGZ3Xk1OSXidAcqmAvsPkeKDm/3FYHkIHyGUbmunIv
-	 R+zqBQFgX6IBJXyyEib2+ub8tH4Pt1bTDwdeNHof/58BhV+ah2rCk5ZF0+y1U6uh44A==
+	bh=9i7EBLWiLY+Ax+szjOTrErjeUkWZA+e5Jk/kHB2fTnM=;
+	b=mLnq+14kgpDI7h3B41o03k2Sdl9SW0Cd67NYCAIpz/wRvOBFBtvbf7B8jdaPfy/DdUZ4
+	 ZJpbJShVUQ3ZHMlxSBofxei5VyO9yXjGkqODqTVbLSZq2dVUQvxm8QbcAxNDYU/nSiFIP
+	 8YJ2PxUZaPPB3QTLGwz/ziXTj8VcWhk6u09ENIDQtyyjQJ/97iRx7iXw3A5qINRRIfkRS
+	 Jgqrs7xsYOJ4IsaGNaRq7qHTO6UitpT+Q+oMrUKRh34r7V0opxQs3NNsL4+0UVegCwzqt
+	 II0U6E44RPCMzC73qIrmuW50vwuDJBC6FV90f38AfvjFTMx/YyYWdxfOaqcw5A/lhtA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IZ4SaAZ3;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hGnVxSpJ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3829C60A261C;
-	Fri, 20 Nov 2026 18:35:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5D5E60A2620;
+	Fri, 20 Nov 2026 18:35:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IZ4SaAZ3
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA14E1F000C4;
-	Fri, 20 Nov 2026 18:35:11 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hGnVxSpJ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37B9F1F00A03;
+	Fri, 20 Nov 2026 18:35:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795199715;
-	bh=bIIG4zl8TPynaHSoT/O3ZoKJ4B6crfr5G2QFKKsC6Lk=;
+	s=k20260515; t=1795199720;
+	bh=9i7EBLWiLY+Ax+szjOTrErjeUkWZA+e5Jk/kHB2fTnM=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=IZ4SaAZ3xCf9fmTzel7z2Tk9TIFRfoUGZSYfC98iVbTeiiyblv4aoaef4r+xwtRVO
-	 hr8lvDMwLdArT5DPO89KcmvYqzd2RAC0i9MxQYF5nrlX2LgRoPgNs8u7Nqm1LK6S+N
-	 1akWRflhMNPGcsxRoSBIJCmgk3+OdoOiVcFQMQlR7tzbD2g00JM81GXtoqVrGt9ThA
-	 u/UsasALhuwwYALzSlsje+JOrdGzsRW2mHN1ySOdF7Fo8zfmEmHHZELgU4a70worZk
-	 Bk9O4BUe3w8OQZuX+ARs60ZjwbBHLFG6PuGDW9cPWEfvy3X7ICNYeaotlqi78nr5/a
-	 VOI5jPwkAyOYA==
-Message-ID: <sashiko-outbox-225846@kernel.org>
+	b=hGnVxSpJ97jRelrIDpBEeoCAz9DdKg+K4WDztt2Qh2dV7u04H+j3/tDRMMG4IOG8M
+	 RxxlIx9iSqG9HlgwOS5hj6DXh4Asq+yz0rOgg81LQELzo5cE/pjnQBqWpEqCqwnwOe
+	 g0QyeLFtJq2weIGX8bCivqiVgN5Ocp8vzj1MxdcKGRlJwN8Z8A4SCAtyWmd/40Ttr4
+	 z9uYk9u8MPceZH9f6nWh5By8yRNux2WZNL6fqAXOorjmOaP0U+naK4eFrZsKa2b8bG
+	 1GDe17P+olC0crZjKZLqdbnbhOc3jOxxt+2eTAfpmCfZjk4TVEuW3NVVGcD/rRHe+I
+	 Oa5btytoKzgPQ==
+Message-ID: <sashiko-outbox-225847@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH 59/60] selftests/dax: test cpuset interaction with
- private nodes
+Subject: Re: [PATCH 58/60] selftests/dax: test memory policy on private
+ nodes
 Reply-To: sashiko-reviews@lists.linux.dev
 To: =?utf-8?b?R3JlZ29yeSBQcmljZSAoTWV0YSk=?= <gourry@gourry.net>, "Yury
  Norov" <yury.norov@gmail.com>, "Rasmus Villemoes" <linux@rasmusvillemoes.dk>, "David
@@ -82,12 +82,12 @@ To: =?utf-8?b?R3JlZ29yeSBQcmljZSAoTWV0YSk=?= <gourry@gourry.net>, "Yury
  Jiang" <dave.jiang@intel.com>, "Alison Schofield" <alison.schofield@intel.com>, "Shuah
  Khan" <shuah@kernel.org>
 Cc: linux-mm@kvack.org, linux-cxl@vger.kernel.org, damon@lists.linux.dev, nvdimm@lists.linux.dev
-In-Reply-To: <20261120-private_nodes_v6-v1-59-74f5f9a115c2@gourry.net>
+In-Reply-To: <20261120-private_nodes_v6-v1-58-74f5f9a115c2@gourry.net>
 References: <20261120-private_nodes_v6-v1-0-74f5f9a115c2@gourry.net>
- <20261120-private_nodes_v6-v1-59-74f5f9a115c2@gourry.net>
+ <20261120-private_nodes_v6-v1-58-74f5f9a115c2@gourry.net>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 20 Nov 2026 18:35:11 +0000
+Date: Fri, 20 Nov 2026 18:35:15 +0000
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -99,86 +99,69 @@ Precedence: list
 
 Thank you for your contribution! Sashiko AI review found 1 potential
 issue to consider:
-- [Low] selftests/dax: stage desync and wait hang in
-  run_private_transitions()
+- [Medium] selftests/dax: common_policy() resets task policy before
+  faulting pages
 --
 
-commit 86268e0cbec65176c860c84e90fc221fb5d0e80c
+commit 2c509a362d5823231bce734e3d872af08303fbb5
 Author: Gregory Price (Meta) <gourry@gourry.net>
 
-selftests/dax: test cpuset interaction with private nodes
+selftests/dax: test memory policy on private nodes
 
-This commit adds selftests and a C helper tool to verify cgroup-v2 cpuset
-interactions with private kmem nodes across cpuset.mems changes, task
-attachment, and node hotplug/retyping.
+This commit adds a selftest tool and wrapper script to verify memory policy,
+migration, reclaim, and exhaustion behavior on private memory nodes.
 
-> diff --git a/tools/testing/selftests/dax/kmem_private_rebind.sh b/tools/t=
-esting/selftests/dax/kmem_private_rebind.sh
-> new file mode 100755
-> index 0000000000000..5d39be04f1795
+> diff --git a/tools/testing/selftests/dax/kmem_private_policy_tool.c b/too=
+ls/testing/selftests/dax/kmem_private_policy_tool.c
+> new file mode 100644
+> index 0000000000000..0769436b6068e
 > --- /dev/null
-> +++ b/tools/testing/selftests/dax/kmem_private_rebind.sh
-> @@ -0,0 +1,301 @@
+> +++ b/tools/testing/selftests/dax/kmem_private_policy_tool.c
 
 [ ... ]
 
-> +run_private_transitions()
+> +/*
+> + * A relative or static policy whose mask names the private node must st=
+ill
+> + * place memory on common nodes, and keep the user's mask.
+> + */
+> +static int common_policy(void *addr, size_t len, int nid, int requested_=
+mode,
+> +			 unsigned long mask, int task_policy)
 > +{
-> +	local mode=3D$1 label=3D$2 action=3D${3:-reshape}
-> +	local stage mask title cg=3D
-> +	local titles=3D("keeps private pages and placement while the node stays=
- allowed"
-> +		"evacuates private pages and uses common placement when access is revo=
-ked"
-> +		"restores the original private request when access returns")
+> +	unsigned long reported =3D 0;
+> +	int mode =3D 0;
+> +	long rc;
 > +
-> +	echo "${COMMON[0]},$PN" > "$CG/cpuset.mems"
-> +	if [ "$action" =3D attach ]; then
-> +		echo "${COMMON[1]},$PN" > "$CG/cpuset.mems"
-> +	fi
-> +	# Shared-policy parents and task-attachment tools start at the root.
-> +	if [ "$mode" =3D private-anon ] && [ "$action" =3D reshape ]; then
-> +		cg=3D$CG
-> +	fi
-> +	if ! start_tool "$mode" "$cg"; then
-> +		ktap_print_msg "tool setup failed"
-> +		for title in "${titles[@]}"; do
-> +			ktap_test_fail "$label $title"
-> +		done
-> +		stop_tool
-> +		return
-> +	fi
-> +	if [ "$mode" =3D private-shared ] && [ "$action" =3D reshape ]; then
-> +		echo "$TARGET" > "$CG/cgroup.procs"
-> +	fi
-> +	for stage in 0 1 2; do
-> +		mask=3D${COMMON[1]}
-> +		[ "$stage" =3D 1 ] || mask+=3D",$PN"
-> +		if ! transition_cpuset "$action" "$stage" "$mask"; then
-> +			ktap_print_msg "cannot change the cpuset"
-> +			ktap_test_fail "$label ${titles[$stage]}"
-> +			continue
-> +		fi
-> +		report_stage "$stage" "$label ${titles[$stage]}"
-> +	done
-> +	wait "$CHILD"
-> +	CHILD=3D
-> +	TARGET=3D
+> +	if (task_policy) {
+> +		if (syscall(SYS_mbind, addr, len, MPOL_DEFAULT, NULL, 0UL, 0UL))
+> +			return FAIL;
+> +		rc =3D syscall(SYS_set_mempolicy, requested_mode, &mask, MAXNODE);
+> +	} else {
+> +		rc =3D mbind_mask(addr, len, requested_mode, mask);
+> +	}
+> +	if (rc)
+> +		return FAIL;
+> +
+> +	rc =3D syscall(SYS_get_mempolicy, &mode, &reported, MAXNODE,
+> +		     task_policy ? NULL : addr, task_policy ? 0 : MPOL_F_ADDR);
+> +	if (task_policy)
+> +		syscall(SYS_set_mempolicy, MPOL_DEFAULT, NULL, 0UL);
+> +	if (rc || mode !=3D requested_mode || reported !=3D mask ||
+> +	    madvise(addr, len, MADV_DONTNEED))
+> +		return FAIL;
+> +	memset(addr, PATTERN, len);
+> +	return pages_on_node(addr, NR_PAGES, nid) =3D=3D 0 ? PASS : FAIL;
 > +}
 
-[Severity: Low]
-Does continuing on a transition_cpuset() failure desynchronize the stage
-loop from kmem_private_rebind_tool and leave wait "$CHILD" blocked until
-the 60-second timeout expires?
-
-In private_rebind(), the helper tool loops for stage =3D 0, 1, 2 and blocks
-in sigwait() for one SIGUSR1 per stage.  Skipping report_stage() with
-continue omits sending SIGUSR1 for the failed stage, so subsequent
-iterations wait for a stage number the tool has not reached yet, and after
-the loop the tool remains blocked in sigwait() because it received fewer
-than three signals.  Handling this like run_private_retype() by tracking
-tool readiness and calling stop_tool at the end would avoid the hang.
+[Severity: Medium]
+Does resetting the task policy to MPOL_DEFAULT before madvise(MADV_DONTNEED)
+and memset() prevent the task_policy cases from testing page placement under
+requested_mode?  When task_policy is set, both the VMA policy and the task
+policy are back to MPOL_DEFAULT by the time memset() faults the pages in, so
+the relative and static task policy tests always allocate under MPOL_DEFAUL=
+T.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261120-private_no=
-des_v6-v1-0-74f5f9a115c2@gourry.net?part=3D59
+des_v6-v1-0-74f5f9a115c2@gourry.net?part=3D58
