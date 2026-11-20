@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795199720;
-	b=05nILMvfb1r2jTGwX7H5BtH8WoKN7Kk38kBFTFxPZiWyqudwzCWmpHjHjJRYzTW6NSMc
-	 5M+gmCW+iU5DJmIVMX4ei+iehQ7oL5i3pTGAWz0KDlDmE4TKNECcmkOWGdP7EjDGL3ZhD
-	 +J54Qyiq9m8Zqiq9EXPQ3iPIyA3GG+lkz8jmClGzZ1He23hDfRoWgtKjruouBlfqb13Es
-	 +DM8fyDFRyrkbyNccA0r5DTDPGQwgZl/2D4+ajsFdTbG3jFC/nU0VUOLiUqpemtT1n8jE
-	 HGI1z9XTtU7vI1QVM3rKKn+IroSPqbDgTh+Zde+v1qWz9nfvpqWAmEk1SKsvh+NrJSQ==
+	t=1795199896;
+	b=4oUtM6G6xbaLfXI6Ett4XGmApT0/DLQuv7RU++3D53GD2Pm4bkcrLOrd2vSPuSYykMFR
+	 1PpGk3IjSaHXrplVcNgoweWdHIFmk53t2Ij8LMPPrEGyT7Jg1mjFpjQM+sIZ4ldbh11rh
+	 cVJ4VyiRZnSMhch7KA+dNsEAAZXQLF76T3u99q7nAxmrb4wvIJB3n6EIFfV87lHZlR/Zw
+	 i5LpyG9is6brOKV65EysqWxBPhEkKXuern+TJTNdwhMaTOzwDTi+EfsTzDNmpNKahfxkY
+	 /k6WUKagXv8AwRsnb4iv8++qYYxbl+yLj+S47CofLyiS9ZXlJ3pkhCQE0XFUD3twkEA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795199720;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795199896;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=9i7EBLWiLY+Ax+szjOTrErjeUkWZA+e5Jk/kHB2fTnM=;
-	b=mLnq+14kgpDI7h3B41o03k2Sdl9SW0Cd67NYCAIpz/wRvOBFBtvbf7B8jdaPfy/DdUZ4
-	 ZJpbJShVUQ3ZHMlxSBofxei5VyO9yXjGkqODqTVbLSZq2dVUQvxm8QbcAxNDYU/nSiFIP
-	 8YJ2PxUZaPPB3QTLGwz/ziXTj8VcWhk6u09ENIDQtyyjQJ/97iRx7iXw3A5qINRRIfkRS
-	 Jgqrs7xsYOJ4IsaGNaRq7qHTO6UitpT+Q+oMrUKRh34r7V0opxQs3NNsL4+0UVegCwzqt
-	 II0U6E44RPCMzC73qIrmuW50vwuDJBC6FV90f38AfvjFTMx/YyYWdxfOaqcw5A/lhtA==
+	bh=OC6u8FUNDb9skPF8bwHcuWsI0fKZNl0GsKhVj1fKpos=;
+	b=kdkZS8/P+cNChh+lGenGg1BitVyYmUyvMlu+G+T3pV01pHbUawWDnvQYyCzzuGjiuctM
+	 WJOmeg2dVdpNYyMEub2b6fmUxVUdCZCo/hMyImqf48/42l4u169uFC1ZTFneCDxhKBHel
+	 YQHROgfTFDqSpXnuLfaHTiAt0vBurNo5KXiDxaEj2Usas4y99exQFwddtd/uLEkpIQEVq
+	 VYpBNVpPIMqY59X9i0e2zQZ+qfdFnsJsfZ/Fu5P9UW9GXkaNPyXbYC9AkX52f8jWEcnxF
+	 08Z63gOHggf5rKLBPt50KdABeAPajwZBBW19Q54d3ufCcgSOfHuTCsSgXd26/Hq+Rpg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hGnVxSpJ;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OTxFvX90;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5D5E60A2620;
-	Fri, 20 Nov 2026 18:35:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25EC960A2601;
+	Fri, 20 Nov 2026 18:38:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hGnVxSpJ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37B9F1F00A03;
-	Fri, 20 Nov 2026 18:35:16 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OTxFvX90
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 090C31F000C6;
+	Fri, 20 Nov 2026 18:38:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795199720;
-	bh=9i7EBLWiLY+Ax+szjOTrErjeUkWZA+e5Jk/kHB2fTnM=;
+	s=k20260515; t=1795199895;
+	bh=OC6u8FUNDb9skPF8bwHcuWsI0fKZNl0GsKhVj1fKpos=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=hGnVxSpJ97jRelrIDpBEeoCAz9DdKg+K4WDztt2Qh2dV7u04H+j3/tDRMMG4IOG8M
-	 RxxlIx9iSqG9HlgwOS5hj6DXh4Asq+yz0rOgg81LQELzo5cE/pjnQBqWpEqCqwnwOe
-	 g0QyeLFtJq2weIGX8bCivqiVgN5Ocp8vzj1MxdcKGRlJwN8Z8A4SCAtyWmd/40Ttr4
-	 z9uYk9u8MPceZH9f6nWh5By8yRNux2WZNL6fqAXOorjmOaP0U+naK4eFrZsKa2b8bG
-	 1GDe17P+olC0crZjKZLqdbnbhOc3jOxxt+2eTAfpmCfZjk4TVEuW3NVVGcD/rRHe+I
-	 Oa5btytoKzgPQ==
-Message-ID: <sashiko-outbox-225847@kernel.org>
+	b=OTxFvX905xe7bss35dFIdgPICr+TkeCNLnz1tY7PgOthvCCQdB+9sqcIGTu+Wy5pS
+	 HkBpOFfpXoD+HucByiQzVE+aBo7AovBjavAg7/msZ85IMZH4QQDGPXMTyN7Cal2912
+	 J7ehcIKITYZLl9JqBdbQLVZRf3drctZ5aDNtav2rqs59lHt7Ll2dnpP061wWLfmvVN
+	 wiRz6BgGJ1hun+tk9TsveUnuZ7FSIHPlyo3eAYh+Mqa9BpNcTvBh40sAPRCfEZ1qbY
+	 7IEGpQFnS+Wes4yuCAB9nixzU2oz03NmMpBaWI9/UBCGxR0iFWCTxakXrAd4zM9E5Z
+	 jvK6Gx+8MChjg==
+Message-ID: <sashiko-outbox-225854@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH 58/60] selftests/dax: test memory policy on private
- nodes
+Subject: Re: [PATCH 47/60] mm/vmscan: restrict reclaim to N_MEMORY_RECLAIM
+ instead of N_MEMORY_COMMON
 Reply-To: sashiko-reviews@lists.linux.dev
 To: =?utf-8?b?R3JlZ29yeSBQcmljZSAoTWV0YSk=?= <gourry@gourry.net>, "Yury
  Norov" <yury.norov@gmail.com>, "Rasmus Villemoes" <linux@rasmusvillemoes.dk>, "David
@@ -82,12 +82,12 @@ To: =?utf-8?b?R3JlZ29yeSBQcmljZSAoTWV0YSk=?= <gourry@gourry.net>, "Yury
  Jiang" <dave.jiang@intel.com>, "Alison Schofield" <alison.schofield@intel.com>, "Shuah
  Khan" <shuah@kernel.org>
 Cc: linux-mm@kvack.org, linux-cxl@vger.kernel.org, damon@lists.linux.dev, nvdimm@lists.linux.dev
-In-Reply-To: <20261120-private_nodes_v6-v1-58-74f5f9a115c2@gourry.net>
+In-Reply-To: <20261120-private_nodes_v6-v1-47-74f5f9a115c2@gourry.net>
 References: <20261120-private_nodes_v6-v1-0-74f5f9a115c2@gourry.net>
- <20261120-private_nodes_v6-v1-58-74f5f9a115c2@gourry.net>
+ <20261120-private_nodes_v6-v1-47-74f5f9a115c2@gourry.net>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 20 Nov 2026 18:35:15 +0000
+Date: Fri, 20 Nov 2026 18:38:11 +0000
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -99,69 +99,68 @@ Precedence: list
 
 Thank you for your contribution! Sashiko AI review found 1 potential
 issue to consider:
-- [Medium] selftests/dax: common_policy() resets task policy before
-  faulting pages
+- [High] mm/vmscan: lru_gen_age_node() triggers global OOM kill from
+  private kswapd
 --
 
-commit 2c509a362d5823231bce734e3d872af08303fbb5
+commit 5d53d0a1dd37bac1ef5e22f989ac592e04dac809
 Author: Gregory Price (Meta) <gourry@gourry.net>
 
-selftests/dax: test memory policy on private nodes
+mm/vmscan: restrict reclaim to N_MEMORY_RECLAIM instead of N_MEMORY_COMMON
 
-This commit adds a selftest tool and wrapper script to verify memory policy,
-migration, reclaim, and exhaustion behavior on private memory nodes.
-
-> diff --git a/tools/testing/selftests/dax/kmem_private_policy_tool.c b/too=
-ls/testing/selftests/dax/kmem_private_policy_tool.c
-> new file mode 100644
-> index 0000000000000..0769436b6068e
-> --- /dev/null
-> +++ b/tools/testing/selftests/dax/kmem_private_policy_tool.c
+This commit updates kswapd startup, zone watermark setup, MGLRU debugfs
+iteration, and proactive reclaim to check N_MEMORY_RECLAIM instead of
+N_MEMORY_COMMON so private nodes that opt into reclaim are served by
+reclaim and kswapd.
 
 [ ... ]
 
-> +/*
-> + * A relative or static policy whose mask names the private node must st=
-ill
-> + * place memory on common nodes, and keep the user's mask.
-> + */
-> +static int common_policy(void *addr, size_t len, int nid, int requested_=
-mode,
-> +			 unsigned long mask, int task_policy)
-> +{
-> +	unsigned long reported =3D 0;
-> +	int mode =3D 0;
-> +	long rc;
-> +
-> +	if (task_policy) {
-> +		if (syscall(SYS_mbind, addr, len, MPOL_DEFAULT, NULL, 0UL, 0UL))
-> +			return FAIL;
-> +		rc =3D syscall(SYS_set_mempolicy, requested_mode, &mask, MAXNODE);
-> +	} else {
-> +		rc =3D mbind_mask(addr, len, requested_mode, mask);
-> +	}
-> +	if (rc)
-> +		return FAIL;
-> +
-> +	rc =3D syscall(SYS_get_mempolicy, &mode, &reported, MAXNODE,
-> +		     task_policy ? NULL : addr, task_policy ? 0 : MPOL_F_ADDR);
-> +	if (task_policy)
-> +		syscall(SYS_set_mempolicy, MPOL_DEFAULT, NULL, 0UL);
-> +	if (rc || mode !=3D requested_mode || reported !=3D mask ||
-> +	    madvise(addr, len, MADV_DONTNEED))
-> +		return FAIL;
-> +	memset(addr, PATTERN, len);
-> +	return pages_on_node(addr, NR_PAGES, nid) =3D=3D 0 ? PASS : FAIL;
-> +}
+> diff --git a/mm/vmscan.c b/mm/vmscan.c
+> index 3e934135e8052..03d0919d11bee 100644
+> --- a/mm/vmscan.c
+> +++ b/mm/vmscan.c
 
-[Severity: Medium]
-Does resetting the task policy to MPOL_DEFAULT before madvise(MADV_DONTNEED)
-and memset() prevent the task_policy cases from testing page placement under
-requested_mode?  When task_policy is set, both the VMA policy and the task
-policy are back to MPOL_DEFAULT by the time memset() faults the pages in, so
-the relative and static task policy tests always allocate under MPOL_DEFAUL=
-T.
+[ ... ]
+
+> @@ -7907,7 +7907,7 @@ static int __init kswapd_init(void)
+>  {
+>  	int nid;
+> =20
+> -	for_each_node_state(nid, N_MEMORY_COMMON)
+> +	for_each_node_state(nid, N_MEMORY_RECLAIM)
+>   		kswapd_run(nid);
+>  	register_sysctl_init("vm", vmscan_sysctl_table);
+>  	return 0;
+
+[Severity: High]
+Can starting kswapd on a private N_MEMORY_RECLAIM node trigger a global
+OOM kill when MGLRU min_ttl_ms is set?
+
+When kswapd runs balance_pgdat() -> kswapd_age_node() ->
+lru_gen_age_node() and every generation on the private node is younger
+than lru_gen_min_ttl (or all lruvecs on the node are too small or below
+memory.min), lru_gen_age_node() invokes out_of_memory() with an
+unconstrained oom_control:
+
+mm/vmscan.c:lru_gen_age_node() {
+	...
+	if (!reclaimable && mutex_trylock(&oom_lock)) {
+		struct oom_control oc =3D {
+			.gfp_mask =3D sc->gfp_mask,
+		};
+
+		out_of_memory(&oc);
+
+		mutex_unlock(&oom_lock);
+	}
+}
+
+Because oc.zonelist and oc.nodemask are NULL, out_of_memory() selects the
+highest-scoring process across the entire system, even if that process
+only uses common memory and holds no pages on the private node.  Should
+the out_of_memory() block in lru_gen_age_node() be restricted to
+N_MEMORY_COMMON nodes?
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261120-private_no=
-des_v6-v1-0-74f5f9a115c2@gourry.net?part=3D58
+des_v6-v1-0-74f5f9a115c2@gourry.net?part=3D47
