@@ -1,78 +1,78 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.remote-ip=100.103.45.18
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=fail;
 	t=1795198280;
-	b=5Ms/icO3u/iXnenJi9PxIltOqxhaSlZZ30y5ZUtrv32jQOFmE2eziwTpyniuRu7cogOv
-	 2AIL9+goFpG/lsmNSY1hnfUqLoQ9OeEIjROpZGkvtYjM9r5mhQ3UI89kblOBb4O61ffs2
-	 o30eazUPfXmMgK4q5FVlkIVkzfR6AgiwVDfugN4XbTYUcC5vTvFV0L1D1yK4qV1KD4stu
-	 rxaQTFROP9Us5cDLHGpPlxFhnBldNqNLnFL0+Cac0XZ6jAtyj1sKqqFWxVhIvjIP8OYXA
-	 HY/shhlsRZh25AlCf+Rd0IJHhCocgwVPS75674ANLifuRCJvz2uTlYBskJCjS4cKs0w==
+	b=mfIzIC9GVIBuZwEwildqR1uTLorLc64EWp9h/+QkpFrJduIquCkgHRHp/5NYLZdJs+Vn
+	 SPD9wpvdDPgWQeVR27bi3pXNvDXKKbqV6uTmVJXzosHU6wP4W+jydjiY/4hadkcrV1Z1h
+	 G+wnOO2QKMFxvlKMjLXSEXBx55JmH9GL+Lwv99TKtmp2sGfCU7jRfMK3BsL6VB6x//mr/
+	 biqSJzEFHOIMMZETjNwhdQlqO97MnIFD/U3tRRaC++1hmCXB6Yxp8Qi/zsa2TMvzKVPVX
+	 3rAvCFn/Z5XNWlV2/ARdH/1+v3gP2XkUgtQGTahZD0AgBOnxTVQlnt4MCJcyfVnv+Gw==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1795198280;
 	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
 	 Content-Type:Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=imMR3p2duQqhNdG0Ig5xxDisuLnpgFn7S+h/c9cqvAo=;
-	b=du2MWD0Dw742use+nlOEowWx2moDLnq2c+g65T04wiUDKHpE6NNFKEYrafjAr+QWIHdw
-	 zT79Ed1sDvXJaQiyGufp14ZcwzYx0hc1Ih6mpgqDtWKM4rzDWO9gWnyB1OyqfUet9oRUf
-	 pPOc2eoXsFIyVmXI9xGwcnY2L0Y6P/MKH4OXVipdw0b3BWxUwugau8+obx+4z69QddWlT
-	 wzvpfZGAtvvsboFZ0YiVEO9vVx5rzJbYyVwYzWDedblOIgfp6VCzeKX0QCzpagRyHYvu4
-	 n1Mo60+927r5Qh2Ph4rfuVgvkC38BRe14pvga8Km2CnMLjakJHpiHxjYU+MKqg4PPfw==
+	bh=KbXqo0otTzp6KrXr3a6CWvy6rduI8+vwsObH5S7PopY=;
+	b=LIrGSOpbY96G9zQlCVNbT61ks7ojBAdo+E4JTyQCiGloAgROxj1VAUGNEC/QZO6OOyoD
+	 lrM3tGpsaI1aAw0ZGR0U85i81QmeWmc1XyCTJc4nK0jFuKCa8c/DyZOhzcd2rurSMYBnC
+	 rCp7gsIDgIxzoBFqoNIatJxNvvCyco6/WAdwU9gnBWpEAALvkkFV9GrOYxnh9jlQAV5AG
+	 3H4ngALO7jPHxpaXXZ/DwzwQqr3W8EQOEh6r/bQbFM4LFg0DijwX7SqbqJFO5ceM9g6fb
+	 qJ7SQuyajzUvsJlN20nBockyAgrZ9Ju8oQoirJ4mQYouaOwabhe8zQDFpwnukQPMy5A==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BnD2RIMI;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iAKbpry+;
+	arc=fail smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69A146078DDD;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67D9D606B99A;
 	Fri, 20 Nov 2026 18:11:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BnD2RIMI
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iAKbpry+
 Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
 ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
 	t=1795198280;
-	b=Yf1aEbpkzikzIqVNDBbPCx2vIOb/n74lTRPUm9enAbAvryNRkbxofWlBn6TacQZc1g2w
-	 DrI2T77dqmj+yK1n1EZm8VByLSBkjwvVEBrcaiqqflMPQrcCwh88eiFXffKRWigYJMAEx
-	 EMu0IubBzjcFy2WRW3yDu7ZpBBITUuZh176CpzWFDPuTFR45meLEM8aYX3/9z8z+j2l+w
-	 v8sfbwlRRPViiypN0HtI2o7gd2OzYB10a+nK10JtFGIlVX+YeYsrbfya4sEWEq3vqNrnV
-	 BsCJtVhd6GFcrMMxb6OJHXkuA802dj4SeVAyii1DEYPNbYtWrW3/KA5GGhQD5gWlP7w==
+	b=CfHr7EvM5dWXpJueZhswo4TF9IdYBivBI7meVvVTXUBd2k1pWarqefB6n/I5s/ZTvk/H
+	 jnr1mKwGh41nSmtKXSsO69AE5RlSGhFWRle53gP88LycbLjy8B9iCQlk29ZXUeh+yoFT5
+	 kfB5PGgZGRRvwPIgZ2QeXLK+SLs8zASKR4mh0LvNGl6PGzO+cChfbw0hQ+NaMzj9hpPpS
+	 cDurydC8XSyD09bgNSDR+3eQPgbQNLiC0ZrP8KqrFpV5RXWS5I8opv5azlr5PbawYf7So
+	 0fDyt0w/970JTmpXfQd5OeUasLiF1T4hradp64Xzi3sVwAlTXDi+MbeOE9MUiNprIiQ==
 ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
 	c=relaxed/relaxed; t=1795198280;
 	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
 	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=imMR3p2duQqhNdG0Ig5xxDisuLnpgFn7S+h/c9cqvAo=;
-	b=uGMBjDJuoL2XY+fr1QWAg4aMByVDnu3nr8ilySyFeErQ+Ge74vqbpPJAyyhcXsKWNqcc
-	 Ky5jW8yYRuZqj2A2D2XEPx6gqlUOZMx+LeX0b431bid3RCmcoY9fkRXnkFbE3duhL+CJJ
-	 JU2v7gPNkm4msRpzI/CGad/mDN77FgC4w/QX0Y33aTr4FXffJKbOZflPNQTEOOxm9TWpM
-	 2wyH4SQ73Vb3G0gZwT+6/pdxhRe4L4+Zp8+IRK1Xc4gjuhP50I/8IvdYwEyPrdEk8wcSK
-	 NPmgFF0/KhcrMbJtAnq4CR0m3myBJxJiIuxA+xtgSHu18FekO+QK8m9tVprPJiXlAVQ==
+	bh=KbXqo0otTzp6KrXr3a6CWvy6rduI8+vwsObH5S7PopY=;
+	b=uwBvHrAxH1vanYrOGqBupe8ux25epMpsaA3tnTB/WF8J3BxNANfV2V6xFQ+b1cfL4X3n
+	 4G+Po/d0lrEwcpCs+rqKw/9lZ3WsHgQcNxmt/TDeImxLxKRLkmhsELp17D2imNQdLUTws
+	 O0KktfvGELRnpo8IeEAWb3zTjWZy5cGOYBUKF2dSI3NKh9fyrQrN+kyE6hpC9dsCNHGXQ
+	 XhrW2wyJS4mcns4H2wW83UupaF++VLtJ6dRBK9mIJji8IBSWGpg7wmIaDP9c8EiAS+bYK
+	 rnfodjUBHfoG9jb/9M1Z6pJSfNT6Shri+pnr/ujlYy6/GO39ZRZmb48/v55jDwG2h1w==
 ARC-Authentication-Results: i=1; smtp.kernel.org; 
 	arc=none smtp.remote-ip=100.80.115.77
 Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id 4D9B81F0156F;
-	Fri, 20 Nov 2026 18:10:59 +0000 (UTC)
+	by smtp.kernel.org (Postfix) with ESMTPS id A54781F01565;
+	Fri, 20 Nov 2026 18:10:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1795198280;
-	bh=imMR3p2duQqhNdG0Ig5xxDisuLnpgFn7S+h/c9cqvAo=;
+	bh=KbXqo0otTzp6KrXr3a6CWvy6rduI8+vwsObH5S7PopY=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To;
-	b=BnD2RIMI7V38GP4lrJkUPfKZ1qi3SXnHGsE1xZANnq3BbWl1waLaY4sWNxnzUvmMk
-	 M+RSTkPDJ/kxtyccwGZBGDcMzmPHfcEFHeto1mfKNjC3NjKlnAvMTLRZadSSWK9RQY
-	 T2/fdoC+oH25n8YBK9RgfTN+fu966iSfgN2PaDOl9SzY4YyIU01RZJVrYbGxxmS8l6
-	 jxvAD/mLxYwwZn1kIU0n1AA8nzk2AbJ6MXLSO9FwWl5xGBecAwD5HhIiokBTXEkVJL
-	 0HGTz8mGc370cPkJK+w8IGirmowsSOVcUV8c1l82fA23B5RhJlv6/niidUS9Rrf7LT
-	 tzTCVQ4NnExeg==
+	b=iAKbpry+EnUyYxSjPnFlOEdZ7YylYf3N1VUXwxGS0JS7ZAh2BxN0exdT+TyJ6dVxn
+	 6W1n4NmyVIhOH012iboXAKUO1f0SnLoTorvPmFhsS+X2FCpNb7ZrfB30J7X9rMt5va
+	 zst3Q1Lzg5xdaAU9rdj8XMh5vVx3KOAKhJJ/CHXk9Uj1Y3ElDlooFTl/WM9w50lcNY
+	 NvqyT+Tr6eYOCm2Ch+1O2CmQ2DuOOSO6MPCvWACS8jXViasMm2XSzGF0mKp6r1A1T3
+	 S7k+0cxVzcv3SUxawrfl15RFLnu/nersNj0Z/d1BiiCGcq250PmNe0nO/4+hJaAFFr
+	 yny4/kiVqgUXA==
 Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id 1AF6E4B988;
-	Fri, 20 Nov 2026 18:09:23 +0000 (UTC)
+	by lkml.kernel.org (Postfix) with ESMTP id F107B4B984;
+	Fri, 20 Nov 2026 18:09:22 +0000 (UTC)
 From: Gregory Price via B4 Relay <devnull+gourry.gourry.net@kernel.org>
-Date: Fri, 20 Nov 2026 13:09:41 -0500
-Subject: [PATCH 50/60] mm: add N_MEMORY_MEMPOLICY node state
+Date: Fri, 20 Nov 2026 13:09:40 -0500
+Subject: [PATCH 49/60] mm/vmscan: reclaim private nodes for memcg
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -83,7 +83,7 @@ List-Owner: <mailto:nvdimm+owner@lists.linux.dev>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Message-Id: <20261120-private_nodes_v6-v1-50-74f5f9a115c2@gourry.net>
+Message-Id: <20261120-private_nodes_v6-v1-49-74f5f9a115c2@gourry.net>
 References: <20261120-private_nodes_v6-v1-0-74f5f9a115c2@gourry.net>
 In-Reply-To: <20261120-private_nodes_v6-v1-0-74f5f9a115c2@gourry.net>
 To: Yury Norov <yury.norov@gmail.com>, 
@@ -140,11 +140,11 @@ Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
  cgroups@vger.kernel.org, nvdimm@lists.linux.dev, 
  linux-kselftest@vger.kernel.org, "Gregory Price (Meta)" <gourry@gourry.net>
 X-Mailer: b4 0.14.3
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1795198153; l=4477;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1795198153; l=4186;
  i=gourry@gourry.net; s=20261120; h=from:subject:message-id;
- bh=POrrod7a8qe5/RJcpG1x1W6f1yuN7ZdnOW2+WhH0FXE=;
- b=aTDMy5aQgR/eu/TnyoctRRRg14g5CIETIw3u4dDaQdYVGncbixZ+T0SNCnrlFn6DFrsn4+Zg1
- q8XW52q1jYMDuHrNhBZsCfARwTf3Qz3aNp9IhHdIxv9ybHyAJ3U5en6
+ bh=gf0+A4YMX7aNzEjLzoppxY9C0nz/hDCzkhh7ctvqKwQ=;
+ b=PXI/X13XAoa7r+jmzPre0N2z+VrJATpuAV7CpwhBQAVTEngszA2E6bmutkAMGbnv2eUsyGVrn
+ +kF2GDAg++lDYHrIPmvec6YTNf5pZ5MjEHc8/slSYzQiq7FbbeI35Jq
 X-Developer-Key: i=gourry@gourry.net; a=ed25519;
  pk=BZWDlx4htkR5KcvGjGtSDfx1tM0E5dlyBR43FEhjWVc=
 X-Endpoint-Received: by B4 Relay for gourry@gourry.net/20261120 with
@@ -155,110 +155,121 @@ Content-Transfer-Encoding: 7bit
 
 From: "Gregory Price (Meta)" <gourry@gourry.net>
 
-Add N_MEMORY_MEMPOLICY as an internal state for the nodes that memory
-policy interfaces and explicit migration may target, and
-NODE_MEMORY_FEAT_MEMPOLICY for memory providers to select it.
+Memcg reclaim does not serve one allocation, so it should cover every
+node that permits reclaim. It walks the current node's fallback
+zonelist, which holds no private node, so a private node that permits
+reclaim is never scanned for a cgroup over its limit.
 
-Userspace placement lets ordinary processes use the node like any other
-memory. That assumes the node is reclaimed and compacted, so the feature
-requires both.
+After the zonelist, visit the nodes that permit reclaim and that the
+zonelist did not cover, and give them the same refault snapshot and
+congestion reset. The zonelist keeps setting the order, which matters
+because memcg reclaim stops once it has freed enough.
+
+Direct reclaim for an allocation still walks only that allocation's
+zonelist. A private allocation's zonelist covers its own node, and
+reclaiming private memory cannot satisfy a common allocation.
+
+Without private nodes the zonelist covers every node that permits
+reclaim, so behavior is unchanged.
+
+Another way to do this would be to implement a reclaim zonelist that
+only reclaim uses, but this implementation does not carry the static
+per-node size overhead that adding another zonelist does.
 
 Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
 ---
- Documentation/mm/physical_memory.rst |  3 +++
- include/linux/nodemask.h             | 11 +++++++++--
- mm/page_alloc.c                      |  4 ++++
- 3 files changed, 16 insertions(+), 2 deletions(-)
+ mm/vmscan.c | 43 ++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 42 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/mm/physical_memory.rst b/Documentation/mm/physical_memory.rst
-index 1bafe8c085a3..75752c3a5694 100644
---- a/Documentation/mm/physical_memory.rst
-+++ b/Documentation/mm/physical_memory.rst
-@@ -190,6 +190,8 @@ The following states are internal and not exported through sysfs:
- ``N_MEMORY_RECLAIM``
-   The kernel reclaims the node on its own initiative (kswapd, memcg and
-   explicit reclaim).
-+``N_MEMORY_MEMPOLICY``
-+  Memory-policy interfaces and explicit migration may target the node.
+diff --git a/mm/vmscan.c b/mm/vmscan.c
+index 03d0919d11be..49ec85ed00e0 100644
+--- a/mm/vmscan.c
++++ b/mm/vmscan.c
+@@ -6636,6 +6636,21 @@ static void consider_reclaim_throttle(pg_data_t *pgdat, struct scan_control *sc)
+ 		reclaim_throttle(pgdat, VMSCAN_THROTTLE_NOPROGRESS);
+ }
  
- For each node that has a property described above, the bit corresponding to the
- node ID in the ``node_states[<property>]`` bitmask is set.
-@@ -205,6 +207,7 @@ For example, for node 2 with normal memory and CPUs, bit 2 will be set in ::
-   node_states[N_CPU]
-   node_states[N_MEMORY_COMPACTION]
-   node_states[N_MEMORY_RECLAIM]
-+  node_states[N_MEMORY_MEMPOLICY]
- 
- For various operations possible with nodemasks please refer to
- ``include/linux/nodemask.h``.
-diff --git a/include/linux/nodemask.h b/include/linux/nodemask.h
-index be5edbee2b22..c7a1800d9171 100644
---- a/include/linux/nodemask.h
-+++ b/include/linux/nodemask.h
-@@ -414,6 +414,7 @@ enum node_states {
- 	/* Internal states, not exported through sysfs */
- 	N_MEMORY_COMPACTION,	/* mm compaction may operate on the node */
- 	N_MEMORY_RECLAIM,	/* mm reclaim may operate on the node */
-+	N_MEMORY_MEMPOLICY,	/* memory policy may target the node */
- 	NR_NODE_STATES
- };
- 
-@@ -552,14 +553,17 @@ static __always_inline int node_random(const nodemask_t *maskp)
- #define NODE_MEMORY_FEAT_COMMON		BIT(0) /* add to fallback zonelist */
- #define NODE_MEMORY_FEAT_COMPACTION	BIT(1) /* mm compaction */
- #define NODE_MEMORY_FEAT_RECLAIM	BIT(2) /* mm reclaim */
-+#define NODE_MEMORY_FEAT_MEMPOLICY	BIT(3) /* userspace NUMA controls */
- #define NODE_MEMORY_FEAT_ALL		(NODE_MEMORY_FEAT_COMMON | \
- 					 NODE_MEMORY_FEAT_COMPACTION | \
--					 NODE_MEMORY_FEAT_RECLAIM)
-+					 NODE_MEMORY_FEAT_RECLAIM | \
-+					 NODE_MEMORY_FEAT_MEMPOLICY)
- 
++/* Whether shrink_zones() reaches @nid through @zonelist. */
++static bool zonelist_reaches_node(struct zonelist *zonelist, int nid,
++				  struct scan_control *sc)
++{
++	struct zoneref *z;
++	struct zone *zone;
++
++	for_each_zone_zonelist_nodemask(zone, z, zonelist, sc->reclaim_idx,
++					sc->nodemask) {
++		if (zone_to_nid(zone) == nid)
++			return true;
++	}
++	return false;
++}
++
  /*
-  * Common memory carries every feature. Private memory needs NUMA: node 0
-  * holds all memory without it. Reclaim leaves high-order requests to
-- * compaction, so it requires compaction.
-+ * compaction, so it requires compaction. Userspace placement assumes the
-+ * node is reclaimed and compacted like any other memory.
-  */
- static inline bool node_memory_features_valid(unsigned long features)
- {
-@@ -570,6 +574,9 @@ static inline bool node_memory_features_valid(unsigned long features)
- 	if ((features & NODE_MEMORY_FEAT_RECLAIM) &&
- 	    !(features & NODE_MEMORY_FEAT_COMPACTION))
- 		return false;
-+	if ((features & NODE_MEMORY_FEAT_MEMPOLICY) &&
-+	    !(features & NODE_MEMORY_FEAT_RECLAIM))
-+		return false;
- 	return IS_ENABLED(CONFIG_NUMA);
- }
+  * This is the direct reclaim path, for page-allocating processes.  We only
+  * try to reclaim pages from zones which will satisfy the caller's allocation
+@@ -6651,6 +6666,7 @@ static void shrink_zones(struct zonelist *zonelist, struct scan_control *sc)
+ 	gfp_t orig_mask;
+ 	pg_data_t *last_pgdat = NULL;
+ 	pg_data_t *first_pgdat = NULL;
++	int nid;
  
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index cc70e1b45322..eff9c3d8251f 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -206,6 +206,7 @@ nodemask_t node_states[NR_NODE_STATES] __read_mostly = {
- 	[N_MEMORY_COMMON] = { { [0] = 1UL } },
- 	[N_MEMORY_COMPACTION] = { { [0] = 1UL } },
- 	[N_MEMORY_RECLAIM] = { { [0] = 1UL } },
-+	[N_MEMORY_MEMPOLICY] = { { [0] = 1UL } },
- 	[N_CPU] = { { [0] = 1UL } },
- #endif	/* NUMA */
- };
-@@ -224,10 +225,13 @@ void __meminit node_set_memory_state(int nid, unsigned long features)
- 		node_set_state(nid, N_MEMORY_COMPACTION);
- 	if (features & NODE_MEMORY_FEAT_RECLAIM)
- 		node_set_state(nid, N_MEMORY_RECLAIM);
-+	if (features & NODE_MEMORY_FEAT_MEMPOLICY)
-+		node_set_state(nid, N_MEMORY_MEMPOLICY);
- }
+ 	/*
+ 	 * If the number of buffer_heads in the machine exceeds the maximum
+@@ -6706,6 +6722,14 @@ static void shrink_zones(struct zonelist *zonelist, struct scan_control *sc)
+ 		shrink_node(zone->zone_pgdat, sc);
+ 	}
  
- void __meminit node_clear_memory_state(int nid)
- {
-+	node_clear_state(nid, N_MEMORY_MEMPOLICY);
- 	node_clear_state(nid, N_MEMORY_RECLAIM);
- 	node_clear_state(nid, N_MEMORY_COMPACTION);
- 	node_clear_state(nid, N_MEMORY_PRIVATE);
++	/* A cgroup's memory may be on nodes that are not on the zonelist. */
++	if (cgroup_reclaim(sc)) {
++		for_each_node_state(nid, N_MEMORY_RECLAIM) {
++			if (!zonelist_reaches_node(zonelist, nid, sc))
++				shrink_node(NODE_DATA(nid), sc);
++		}
++	}
++
+ 	if (first_pgdat)
+ 		consider_reclaim_throttle(first_pgdat, sc);
+ 
+@@ -6754,6 +6778,7 @@ static unsigned long do_try_to_free_pages(struct zonelist *zonelist,
+ 	pg_data_t *last_pgdat;
+ 	struct zoneref *z;
+ 	struct zone *zone;
++	int nid;
+ retry:
+ 	delayacct_freepages_start();
+ 
+@@ -6792,6 +6817,21 @@ static unsigned long do_try_to_free_pages(struct zonelist *zonelist,
+ 		}
+ 	}
+ 
++	/*
++	 * Also cover the nodes shrink_zones() reclaimed beyond the zonelist.
++	 * Finishing a zonelist node again is harmless.
++	 */
++	if (cgroup_reclaim(sc)) {
++		for_each_node_state(nid, N_MEMORY_RECLAIM) {
++			struct lruvec *lruvec;
++
++			snapshot_refaults(sc->target_mem_cgroup, NODE_DATA(nid));
++			lruvec = mem_cgroup_lruvec(sc->target_mem_cgroup,
++						   NODE_DATA(nid));
++			clear_bit(LRUVEC_CGROUP_CONGESTED, &lruvec->flags);
++		}
++	}
++
+ 	delayacct_freepages_end();
+ 
+ 	if (sc->nr_reclaimed)
+@@ -7038,7 +7078,8 @@ unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
+ 	/*
+ 	 * Traverse the ZONELIST_FALLBACK zonelist of the current node to put
+ 	 * equal pressure on all the nodes. This is based on the assumption that
+-	 * the reclaim does not bail out early.
++	 * the reclaim does not bail out early. shrink_zones() also visits the
++	 * nodes that permit reclaim and are not on the zonelist.
+ 	 */
+ 	struct zonelist *zonelist = node_zonelist(numa_node_id(), sc.gfp_mask);
+ 
 
 -- 
 2.56.1
