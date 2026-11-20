@@ -1,78 +1,78 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795198299;
-	b=Sn4TRNln28eUG88Awd1WdBIm0FGAhhY4DdcpQ9cs7J+ee7VIoAHapvI8PgU+0dnRmhEv
-	 q09ERuJGn1MPZM2D/HRemtYBU160olUABKgMQs5BawKbPyT+MVKSshgMWHneFGSUqGrvZ
-	 hO0u6oo82QCYP7EVRD73EslZPvtPutgIb3w4QqANnHhHnfLIETdO1e9zJ9Lyb0gEfXCm+
-	 nYyarwAqZOYA+HE3bmdaF4Od2KFbMGzKYgqzdyG8p+rz3egaEdUH3YD/EZjYJ0gfCbPpS
-	 AAv6RGUSEFYqpbAe2KDlTTgtT0zgwxXqHNnbMcvicfr19aFTq9Y3T3GvEAh/LLHAQeA==
+	t=1795198305;
+	b=g/F8c5cJ+ECZ4d6aKxfGoslQV2LLgxM6G2BGb/a2ogfYiD9BOdjyTs72pSRy4o6KemnD
+	 NALBT+XHTP5Y3cAEsnpPGueSEQhBQJCwBPxfPjzHYIXec56qZT9r32L6Xg19feHqwe8La
+	 twGsVoGy5BHtFL1cii7PQFsDBVfykLojMw2KQFXDzOS60BW9Az1eGA/3fBRHY8N0TCZgw
+	 qtKTh2kwBl//Uk0VaFv4KjvOcjv6jLHpXqflCGedMA5A50b9bYA5jK76l6+FUKrCQvdHH
+	 E2N2+aU+q7lklnFymx174ceuE3aRrkZDfMM6QzT8ULF1CVUKXALrfM0TQLZybWFQxbQ==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795198299;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795198305;
 	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
 	 Content-Type:Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=ucJJo35EhYc8uBblcAl6XMSIzkyavztIGCd0YleD0jU=;
-	b=gi2AiNuJxhH13MtBP+2NYUcp/2zgerGtrUnc1jO5t1PXi4AY6Z6cRUaNemf7ERS70hB3
-	 mHm9DlFQF+9Lyq2d0bgqyo87GFhYhhIXUeyDGqV5rhSeOxG/sCbxEQlWjVEofVqGBcBL4
-	 TkM8P5GcG4SJon4VxMWHnxgFxVDu2Cq05CE+QvW+tnysq0JK2GXLM9QXSSRr/M9FYydK+
-	 dQY4rn5o8LjPdlPHCKK+Nr7kB6i/3KRKAbGrdKnUq756c1EqTkuUFh6zpF1E+vrUYMB0x
-	 RttUHfb2uyjD8LAsLNU0nyNDp7adjElQiJZ0PDOgTW0WVN86fZweQwy0YsVS7ZmIaKQ==
+	bh=HkuzGAswvNvQqnsf4paKQbKcP7OK/cD+ILcF1wB7xjY=;
+	b=OjGCY5FrCX1Sa0FKlYxJO1VQV0c1I3YnhfJ9rJq3jqvCpsm5pE2Mu0Vbc8X+k021STv2
+	 ThKXbsl6enKbIcFneXqhxi4HxTCZZIpjYGQE9ve/Wb43VU7r1+ShrKOrIRnoyZXJliObE
+	 ox73bsMtgeK1wI+QOC2gS7a2joObz3LToKJW+T0L440cCqB4xTF55MsbNzy896TN6ym0c
+	 ixcV4lK863yMyreaHbcK2Pvrtzw8U90yKEEru6UECaGKpC4Emh9VQyqOHa3VdbwKAY9U1
+	 2gw5RgBQtL8engqsC2sn0PkjTnZ2dfCBexnd+QhmfRUDQCE+JGjsDTxrFEa3wWG10LQ==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mNnqvyQ2;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=niQRKa5Q;
 	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F777607AB60;
-	Fri, 20 Nov 2026 18:11:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD05D606B47C;
+	Fri, 20 Nov 2026 18:11:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mNnqvyQ2
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=niQRKa5Q
 Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
 ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
-	t=1795198298;
-	b=HlWepT8N/RcO2s/f52O1bBRbe0iOHUMPaPhR87xFs9tXetsWsOyy0xjWxpodNqsUUhUi
-	 hL/BYTSSDXGYthe5iyihrD00g7DeHSknGuL5gtJYVkw8g0RsuP/fBdFmIlQJSxTS36niK
-	 jFN8iwpToh3ykHu3hMKlhLz4QcbjFH18N5x1pgNmqXPJq6aSMQ/S0bFGWhPyIs9Merwnj
-	 xvcjY332d7H+BMAmXUsalrPv1KARYJGy9wbdD+M9CHhIKX6HHpw0fmcovuqRRAYpHupeO
-	 ly+B18ry6T6nhOesYjS/feLBdyiJBwVKHYjtl2NQTrj1Eoy5jyV6iz+9e94fr750xMQ==
+	t=1795198305;
+	b=vEf6cVyfK50OSbWubDlmcXj7x9M/St4oCHT8KSuvNnVuzq5fvcTFVSVvy1GQ8TqTTHDV
+	 t8Njc0wREuHo7+3OThVBxvxRYiyMR76Hvj6gfyIoy2E0UixwDBPxln3JjCMwdS8AOvYyL
+	 zRaLTXAyHLBtY1r/k3QKYSGrnlLt6yUEkEpyaix7L2JXy5EZYtDQJ9/2C0utxjBLj5X0D
+	 hRdUsnJtN3oftP1TLI57lj3dW8scj45zh8VvsbG+lyi8GKSNPO5F/GoL1T0onX4sZqbFp
+	 GrqFILRN/vbWuo8gs1u9A9gphzLx8wVLUB0wdFSXhOWp+Rxj2bT4HqPgcSPa8b0JorA==
 ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
-	c=relaxed/relaxed; t=1795198298;
+	c=relaxed/relaxed; t=1795198305;
 	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
 	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=ucJJo35EhYc8uBblcAl6XMSIzkyavztIGCd0YleD0jU=;
-	b=qwok757q/8PPHCg1OCK4PIvyTBUXJFw/zbbxwpt80Sd5HHp1kfGPy4GH8KJeqkMZ9Vz8
-	 rEyd3Tf/jLapKhFXxJZMCn7jmRMVPM2IULIputNpijTXiJxgvNpjSmSKnmQ2kFBZOgdNt
-	 6xzPoS6HB5j+mlzpVuDhBauXjnQxAhEEv7w/2ZqatQlckTz40zPxTmDhDwNiE17WjPVBn
-	 ijG+s/VKyGyM3CMd1xqNVvTPGy9CUCq8bdtNX2v+thMksqvM8P+s8yxAqfVgsv1n1Ivu8
-	 Sb6iFLVDNIvVRkV0KH7AyM38e/GPo+3ptajIxr2YPfo1L9FaiSCwkGwHMB97z+M7Qow==
+	bh=HkuzGAswvNvQqnsf4paKQbKcP7OK/cD+ILcF1wB7xjY=;
+	b=iGjJpCyYbFliKdBjfjfy1AgJbXWNRQctqgYEBiscZSYEqS0OYanKEaHRBBiZlGFTI6Dx
+	 EGOrQTsMm4bs6OJo2omqpR0a0yudoBcdIHZ8yRr7YtsEkanWsuc26lAlT+lIwcKNyEurf
+	 T2BodBcwcwF1xHb/GKBn5K1iNjY1Zqyz/k4U6cuaQmD9sByaYg/mbjgRt7+nI8DIdzlrC
+	 pe7G73AZ38anNA4XzDFCAMUYpW0agk2ePNTiUP4nCv+MY3au4noY7gNa0XAElcLTVIOu/
+	 nJ9q1bbeDhmdx275B7MKxaVpeQRXEkPRMdcD+pLAXReFoaNVjgidpdwJ7EnHcVl0l2w==
 ARC-Authentication-Results: i=1; smtp.kernel.org; 
 	arc=none smtp.remote-ip=100.80.115.77
 Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id 797A21F01808;
-	Fri, 20 Nov 2026 18:11:07 +0000 (UTC)
+	by smtp.kernel.org (Postfix) with ESMTPS id 2F6311F0089F;
+	Fri, 20 Nov 2026 18:11:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795198298;
-	bh=ucJJo35EhYc8uBblcAl6XMSIzkyavztIGCd0YleD0jU=;
+	s=k20260515; t=1795198305;
+	bh=HkuzGAswvNvQqnsf4paKQbKcP7OK/cD+ILcF1wB7xjY=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To;
-	b=mNnqvyQ2S/y5CQ3mA5UeNg8lnQsxvgEbK0ggeNADbf2ogUHqJSfhZ3ENv/Vg2GWC1
-	 Wb7mlVDUg4pb40GH/JQifTMpHDe76E6vaoT3/lMl4/KNJsfSm/JF+vTSfrFFLSn7yd
-	 AJ0eGUuryC6mV4lNFEupta1pomX90P7oS1wEoPqVP6D9ZObc9sZk5qcn0IGCvqH8tL
-	 I5/RpB3ClDRRGgk8r6EK8V6lw8/Fv2girBsKMVnOj4yXl2gu0kY92UPW0d7GOFtOA8
-	 U8k9bctBc1HARihAhDOScJXhd0vCwRnCWri9+aKuSwlkMUDGPkyp4Uqbd0rinLZ1Dy
-	 e5NY8tLWjxr9w==
+	b=niQRKa5Q6A/82opwpibXWLLSX0nsOgubRdxjsKwLsFoxZFIyzhgVx5b/QSCMjSzuE
+	 1O0svAE9lebHyRW5Vt9ntZMnLydy+XHrgXYG7ILnkeA35AFyoQVwvo6dU4Rbzw9U0c
+	 O9Vux8F6E3mAJW6WTUd0cTTG/6W+af5J5c6URfIySI0TWgXx2mV+F1puE1slI3K2AB
+	 IUdKCOqFYiBu8vCiQURYndYGjtGK6XQ7b/cgGNz6sY+s5KL1w4URLSTK5xwy7hj6XN
+	 rBY29Z663P70pFO8QEcdzn3BLiGW8HnN/61gqgUBjE+ncTaFrYR4GFMGdM0Htc9+Lx
+	 Doz2tWoiiRajQ==
 Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id D3BA84B9A0;
-	Fri, 20 Nov 2026 18:09:23 +0000 (UTC)
+	by lkml.kernel.org (Postfix) with ESMTP id 1BB9E4B9A8;
+	Fri, 20 Nov 2026 18:09:24 +0000 (UTC)
 From: Gregory Price via B4 Relay <devnull+gourry.gourry.net@kernel.org>
-Date: Fri, 20 Nov 2026 13:09:47 -0500
-Subject: [PATCH 56/60] dax/kmem: add a private memory mode
+Date: Fri, 20 Nov 2026 13:09:49 -0500
+Subject: [PATCH 58/60] selftests/dax: test memory policy on private nodes
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -83,7 +83,7 @@ List-Owner: <mailto:nvdimm+owner@lists.linux.dev>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Message-Id: <20261120-private_nodes_v6-v1-56-74f5f9a115c2@gourry.net>
+Message-Id: <20261120-private_nodes_v6-v1-58-74f5f9a115c2@gourry.net>
 References: <20261120-private_nodes_v6-v1-0-74f5f9a115c2@gourry.net>
 In-Reply-To: <20261120-private_nodes_v6-v1-0-74f5f9a115c2@gourry.net>
 To: Yury Norov <yury.norov@gmail.com>, 
@@ -140,11 +140,11 @@ Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
  cgroups@vger.kernel.org, nvdimm@lists.linux.dev, 
  linux-kselftest@vger.kernel.org, "Gregory Price (Meta)" <gourry@gourry.net>
 X-Mailer: b4 0.14.3
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1795198154; l=5242;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1795198154; l=24841;
  i=gourry@gourry.net; s=20261120; h=from:subject:message-id;
- bh=zrM1qpXNDU0W3OEbrrofBX3aJ+CtXsUD9H1wIf9M9+I=;
- b=R6sNzzY6t+TWBdJe7KJBQcoH3BsMwxDWl4rWxlfetNYs3LP+oZXkDWdpnsHICyDBXQ4HWIrdL
- DUshXIHhLEGAEndhFx3dYv0seeaJh6E4Ar1fYAuHjKqy+U87r8NL2cs
+ bh=TVkO3GwJ3kh7qlGFMS/WBZp+U7Dx4lFdHzMJui1AVa8=;
+ b=7BhNun0jABqPgycL8r7uaJPI7XVSq9N0uLZlcZQBgM44Tv4Q1OZQup+grwby3JwK/1NV7X/83
+ xD2UVfJkbZID/lnaMTIxCjTy8wR0VhrJS63Fg3t7qlOkhWRyQoDogVc
 X-Developer-Key: i=gourry@gourry.net; a=ed25519;
  pk=BZWDlx4htkR5KcvGjGtSDfx1tM0E5dlyBR43FEhjWVc=
 X-Endpoint-Received: by B4 Relay for gourry@gourry.net/20261120 with
@@ -155,157 +155,809 @@ Content-Transfer-Encoding: 7bit
 
 From: "Gregory Price (Meta)" <gourry@gourry.net>
 
-Add a `private` boolean sysfs attribute, defaulting to false and
-changeable only while memory is unplugged.
+Test the userspace interfaces for private memory with
+kmem_private_policy_tool, which reports KTAP results:
+  - MPOL_F_PRIVATE_NODES: mbind() binds one private node and
+    get_mempolicy() reports the flag, while set_mempolicy(), other
+    modes and flags, other masks and HugeTLB mappings are rejected.
+  - unflagged, relative and static masks naming the private node use
+    only common memory.
+  - move_pages() and migrate_pages() move pages to and from the node.
+  - reclaim: MADV_PAGEOUT, and node and memcg reclaim splitting
+    partially mapped THPs.
+  - exhausting private memory fails the fault with SIGBUS and leaves
+    another task on the node alone. The test forks the faulting tasks.
 
-When true, dax/kmem onlines the node as private memory with
-NODE_MEMORY_FEAT_MEMPOLICY, NODE_MEMORY_FEAT_RECLAIM and
-NODE_MEMORY_FEAT_COMPACTION.
+Raise the dax selftest timeout to 300 seconds; the policy test faults in
+node-sized buffers.
 
-Userspace targets private capacity via single-node MPOL_F_PRIVATE_NODES
-bindings on anonymous and shmem-backed mappings. Reclaim and compaction
-manage the memory, and the system does not otherwise use it.
-
-The attribute is hidden without CONFIG_NUMA or CONFIG_MEMORY_HOTREMOVE,
-since selecting private mode requires unplugging the memory first, and
-the default behavior of dax/kmem probe creates the memory blocks (an
-unfortunately backward compatibility wart).
+Run with DAX_KMEM_TEST_DEV=<daxX.Y|auto>.
 
 Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
 ---
- Documentation/ABI/testing/sysfs-bus-dax | 19 ++++++++++++
- drivers/dax/kmem.c                      | 55 +++++++++++++++++++++++++++++++--
- 2 files changed, 72 insertions(+), 2 deletions(-)
+ tools/testing/selftests/dax/.gitignore             |   2 +
+ tools/testing/selftests/dax/Makefile               |   4 +
+ tools/testing/selftests/dax/config                 |   3 +
+ tools/testing/selftests/dax/kmem_private_policy.sh |  58 ++
+ .../selftests/dax/kmem_private_policy_tool.c       | 620 +++++++++++++++++++++
+ tools/testing/selftests/dax/private_node_common.sh |  28 +
+ tools/testing/selftests/dax/settings               |   2 +-
+ 7 files changed, 716 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/ABI/testing/sysfs-bus-dax b/Documentation/ABI/testing/sysfs-bus-dax
-index 60703fffa99e..d024cf8e5ae0 100644
---- a/Documentation/ABI/testing/sysfs-bus-dax
-+++ b/Documentation/ABI/testing/sysfs-bus-dax
-@@ -175,3 +175,22 @@ Description:
- 		A device can only be onlined from the "unplugged" state, so a
- 		device must be returned to "unplugged" before it can be onlined
- 		into a different state.
+diff --git a/tools/testing/selftests/dax/.gitignore b/tools/testing/selftests/dax/.gitignore
+new file mode 100644
+index 000000000000..fce2950a4e05
+--- /dev/null
++++ b/tools/testing/selftests/dax/.gitignore
+@@ -0,0 +1,2 @@
++# SPDX-License-Identifier: GPL-2.0-only
++kmem_private_policy_tool
+diff --git a/tools/testing/selftests/dax/Makefile b/tools/testing/selftests/dax/Makefile
+index 55d2ba0de8d9..26473b640a4c 100644
+--- a/tools/testing/selftests/dax/Makefile
++++ b/tools/testing/selftests/dax/Makefile
+@@ -4,6 +4,10 @@ all:
+ TEST_PROGS := dax-kmem-hotplug.sh
+ TEST_PROGS += kmem_private.sh
+ TEST_PROGS += kmem_private_services.sh
++TEST_PROGS += kmem_private_policy.sh
+ TEST_FILES := private_node_common.sh
++TEST_GEN_FILES := kmem_private_policy_tool
 +
-+What:		/sys/bus/dax/devices/daxX.Y/private
-+Date:		October, 2026
-+Contact:	nvdimm@lists.linux.dev
-+Description:
-+		(RW) Select private memory when a device is bound to kmem.
-+		Accepts boolean values and defaults to 0. The value can only
-+		change while state is "unplugged", before memory blocks exist.
-+		The attribute is hidden without CONFIG_NUMA or
-+		CONFIG_MEMORY_HOTREMOVE.
++CFLAGS += -Wall $(KHDR_INCLUDES)
+ 
+ include ../lib.mk
+diff --git a/tools/testing/selftests/dax/config b/tools/testing/selftests/dax/config
+index 42853ed9e99f..5436c4a195c8 100644
+--- a/tools/testing/selftests/dax/config
++++ b/tools/testing/selftests/dax/config
+@@ -4,3 +4,6 @@ CONFIG_MEMORY_HOTPLUG=y
+ CONFIG_MEMORY_HOTREMOVE=y
+ CONFIG_NUMA=y
+ CONFIG_COMPACTION=y
++CONFIG_MIGRATION=y
++CONFIG_MEMCG=y
++CONFIG_TRANSPARENT_HUGEPAGE=y
+diff --git a/tools/testing/selftests/dax/kmem_private_policy.sh b/tools/testing/selftests/dax/kmem_private_policy.sh
+new file mode 100755
+index 000000000000..98727927ea25
+--- /dev/null
++++ b/tools/testing/selftests/dax/kmem_private_policy.sh
+@@ -0,0 +1,58 @@
++#!/bin/bash
++# SPDX-License-Identifier: GPL-2.0
++#
++# Check memory policy, migration, reclaim and exhaustion on private kmem
++# memory. The checks live in kmem_private_policy_tool, which reports the
++# KTAP plan and results.
++#
++# Needs root, DAX_KMEM_TEST_DEV=<daxX.Y|auto> (see private_node_common.sh)
++# and one common memory node. A memoryless node, swap and a cgroup-v2 memory
++# controller enable a few more checks.
 +
-+		With private=1, the next online enables userspace NUMA
-+		placement, together with the reclaim and compaction it
-+		requires. The memory is excluded from ordinary allocations
-+		and from other memory management services.
++# shellcheck disable=SC1091
++DIR="$(dirname "$(readlink -f "$0")")"
++. "$DIR"/../kselftest/ktap_helpers.sh
++. "$DIR"/private_node_common.sh
 +
-+		Userspace can bind anonymous and shmem-backed mappings to it
-+		with a single-node mbind() policy using
-+		(MPOL_BIND | MPOL_F_PRIVATE_NODES).
-diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
-index 5ec653bc88f0..2954f22ececf 100644
---- a/drivers/dax/kmem.c
-+++ b/drivers/dax/kmem.c
-@@ -46,6 +46,7 @@ struct dax_kmem_data {
- 	const char *res_name;
- 	int mgid;
- 	int state;
-+	bool private;
- 	struct mutex lock; /* protects hotplug state transitions */
- 	struct resource *res[];
- };
-@@ -89,9 +90,15 @@ static int dax_kmem_do_hotplug(struct dev_dax *dev_dax,
- 			       int online_type)
- {
- 	struct device *dev = &dev_dax->dev;
-+	unsigned long features;
- 	int i, rc, added = 0;
- 	mhp_t mhp_flags;
- 
-+	features = data->private ? NODE_MEMORY_FEAT_MEMPOLICY |
-+				   NODE_MEMORY_FEAT_RECLAIM |
-+				   NODE_MEMORY_FEAT_COMPACTION :
-+				   NODE_MEMORY_FEAT_ALL;
++TOOL="$DIR/kmem_private_policy_tool"
++CG="$CGROOT/kmem-private-policy-$$"
 +
- 	if (dax_kmem_state_is_online(data->state))
- 		return -EINVAL;
- 
-@@ -126,7 +133,7 @@ static int dax_kmem_do_hotplug(struct dev_dax *dev_dax,
- 		 */
- 		rc = __add_memory_driver_managed(data->mgid, range.start,
- 				range_len(&range), kmem_name, mhp_flags,
--				online_type, NODE_MEMORY_FEAT_ALL);
-+				online_type, features);
- 
- 		if (rc) {
- 			dev_warn(dev, "mapping%d: %#llx-%#llx memory add failed\n",
-@@ -380,6 +387,33 @@ static ssize_t state_store(struct device *dev, struct device_attribute *attr,
- 	return len;
- }
- 
-+static ssize_t private_show(struct device *dev,
-+			    struct device_attribute *attr, char *buf)
++# shellcheck disable=SC2317 # invoked by the EXIT trap
++cleanup()
 +{
-+	struct dax_kmem_data *data = dev_get_drvdata(dev);
++	[ -d "$CG" ] && rmdir "$CG" 2>/dev/null
++	if [ -n "${MEMCG_ENABLED:-}" ]; then
++		echo -memory > "$CGROOT/cgroup.subtree_control" 2>/dev/null
++	fi
++	pn_unbind_kmem_private
++}
++trap cleanup EXIT
 +
-+	guard(mutex)(&data->lock);
-+	return sysfs_emit(buf, "%d\n", data->private);
++pn_setup
++[ -x "$TOOL" ] || pn_skip "kmem_private_policy_tool not built"
++pn_find_common_nodes 1
++pn_require_mask_nodes "$PN" "${COMMON[0]}"
++
++# A memoryless node lets the tool check that a private binding names one node.
++MEMLESS=
++possible=$(cat "$NODE_BASE/possible")
++for ((nid = 0; nid < $(getconf LONG_BIT); nid++)); do
++	pn_nodelist_has "$possible" "$nid" || continue
++	pn_node_in "$nid" has_memory && continue
++	MEMLESS=$nid
++	break
++done
++
++# memcg reclaim needs the tool in a non-root memory cgroup.
++CG_PROCS=/dev/null
++if [ "$(stat -fc %T "$CGROOT" 2>/dev/null)" = cgroup2fs ] &&
++   grep -qw memory "$CGROOT/cgroup.controllers" 2>/dev/null; then
++	if ! grep -qw memory "$CGROOT/cgroup.subtree_control" &&
++	   echo +memory > "$CGROOT/cgroup.subtree_control" 2>/dev/null; then
++		MEMCG_ENABLED=1
++	fi
++	mkdir "$CG" 2>/dev/null && CG_PROCS="$CG/cgroup.procs"
++fi
++
++# An empty MEMLESS omits the optional argument.
++sh -c "echo \$\$ > '$CG_PROCS'; exec '$TOOL' '$PN' '${COMMON[0]}' $MEMLESS"
+diff --git a/tools/testing/selftests/dax/kmem_private_policy_tool.c b/tools/testing/selftests/dax/kmem_private_policy_tool.c
+new file mode 100644
+index 000000000000..0769436b6068
+--- /dev/null
++++ b/tools/testing/selftests/dax/kmem_private_policy_tool.c
+@@ -0,0 +1,620 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Memory policy, migration, reclaim and exhaustion on a private memory node,
++ * reported as KTAP results. kmem_private_policy.sh prints the KTAP header,
++ * provisions the node and runs:
++ *
++ *   kmem_private_policy_tool <private-nid> <common-nid> [memoryless-nid]
++ */
++#define _GNU_SOURCE
++#include <errno.h>
++#include <linux/mempolicy.h>
++#include <poll.h>
++#include <signal.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sys/mman.h>
++#include <sys/syscall.h>
++#include <sys/wait.h>
++#include <time.h>
++#include <unistd.h>
++
++#include "../kselftest.h"
++
++#ifndef MLOCK_ONFAULT
++#define MLOCK_ONFAULT 1
++#endif
++
++#ifndef MPOL_F_PRIVATE_NODES
++#define MPOL_F_PRIVATE_NODES (1 << 12)
++#endif
++
++#define NR_PAGES 64
++#define PATTERN 0xab
++#define NR_THPS 8
++/* The kernel reads maxnode - 1 bits. */
++#define MAXNODE (8 * sizeof(unsigned long) + 1)
++
++enum { FAIL, PASS, SKIP };
++
++static long page_size;
++static size_t huge_len;
++
++static void report(int result, const char *name)
++{
++	if (result == SKIP)
++		ksft_test_result_skip("%s\n", name);
++	else
++		ksft_test_result(result == PASS, "%s\n", name);
 +}
 +
-+static ssize_t private_store(struct device *dev, struct device_attribute *attr,
-+			     const char *buf, size_t len)
++static void *anon_map(size_t len)
 +{
-+	struct dax_kmem_data *data = dev_get_drvdata(dev);
-+	bool private;
-+	int rc;
++	void *ptr = mmap(NULL, len, PROT_READ | PROT_WRITE,
++			 MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 +
-+	rc = kstrtobool(buf, &private);
-+	if (rc)
-+		return rc;
-+
-+	guard(mutex)(&data->lock);
-+	if (data->private != private && data->state != DAX_KMEM_UNPLUGGED)
-+		return -EBUSY;
-+	data->private = private;
-+	return len;
++	return ptr == MAP_FAILED ? NULL : ptr;
 +}
 +
- static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
- {
- 	struct device *dev = &dev_dax->dev;
-@@ -560,12 +594,29 @@ static void dev_dax_kmem_remove(struct dev_dax *dev_dax)
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- 
- static DEVICE_ATTR_RW(state);
-+static DEVICE_ATTR_RW(private);
- 
- static struct attribute *dev_dax_kmem_attrs[] = {
- 	&dev_attr_state.attr,
-+	&dev_attr_private.attr,
- 	NULL,
- };
--ATTRIBUTE_GROUPS(dev_dax_kmem);
-+
-+static umode_t dev_dax_kmem_visible(struct kobject *kobj,
-+				    struct attribute *attr, int n)
++/* How many of the @nr pages at @addr are on @nid, by a move_pages() query. */
++static long pages_on_node(void *addr, long nr, int nid)
 +{
-+	/* Selecting private memory needs an unplug, which needs hot-remove. */
-+	if (attr == &dev_attr_private.attr &&
-+	    (!IS_ENABLED(CONFIG_NUMA) || !IS_ENABLED(CONFIG_MEMORY_HOTREMOVE)))
++	void **pages = calloc(nr, sizeof(*pages));
++	int *status = calloc(nr, sizeof(*status));
++	long i, count = -1;
++
++	if (pages && status) {
++		for (i = 0; i < nr; i++)
++			pages[i] = addr + i * page_size;
++		if (!syscall(SYS_move_pages, 0, nr, pages, NULL, status, 0UL)) {
++			count = 0;
++			for (i = 0; i < nr; i++)
++				count += status[i] == nid;
++		}
++	}
++	free(pages);
++	free(status);
++	return count;
++}
++
++static long mbind_mask(void *addr, size_t len, int mode, unsigned long mask)
++{
++	return syscall(SYS_mbind, addr, len, mode, &mask, MAXNODE, 0UL);
++}
++
++static long bind_private(void *addr, size_t len, int nid)
++{
++	return mbind_mask(addr, len, MPOL_BIND | MPOL_F_PRIVATE_NODES,
++			  1UL << nid);
++}
++
++static int rejected(long rc)
++{
++	return rc == -1 && errno == EINVAL;
++}
++
++static long read_long(const char *path)
++{
++	FILE *file = fopen(path, "r");
++	long val = -1;
++
++	if (file) {
++		if (fscanf(file, "%ld", &val) != 1)
++			val = -1;
++		fclose(file);
++	}
++	return val;
++}
++
++/* A field of /sys/devices/system/node/node<nid>/meminfo, in kB. */
++static long node_meminfo(int nid, const char *field)
++{
++	char path[64], line[256], key[64];
++	FILE *file;
++	long val = -1;
++
++	snprintf(path, sizeof(path), "/sys/devices/system/node/node%d/meminfo",
++		 nid);
++	snprintf(key, sizeof(key), " %s:", field);
++	file = fopen(path, "r");
++	if (!file)
++		return -1;
++	while (fgets(line, sizeof(line), file)) {
++		char *pos = strstr(line, key);
++
++		if (pos) {
++			val = atol(pos + strlen(key));
++			break;
++		}
++	}
++	fclose(file);
++	return val;
++}
++
++static int thp_disabled(void)
++{
++	char mode[128] = "";
++	FILE *file = fopen("/sys/kernel/mm/transparent_hugepage/enabled", "r");
++
++	if (!file)
++		return 1;
++	if (!fgets(mode, sizeof(mode), file))
++		mode[0] = '\0';
++	fclose(file);
++	return strstr(mode, "[never]") != NULL;
++}
++
++/*
++ * Reclaim through @path splits partially unmapped THPs on a private node,
++ * returning the unmapped subpages.
++ */
++static int thp_split_reclaimed(int nid, const char *path)
++{
++	size_t len = NR_THPS * huge_len;
++	char stat[256], *map, *buf;
++	long before, partial;
++	FILE *file;
++	int i;
++
++	if (!huge_len)
++		return SKIP;
++	snprintf(stat, sizeof(stat),
++		 "/sys/kernel/mm/transparent_hugepage/hugepages-%zukB/stats/nr_anon_partially_mapped",
++		 huge_len >> 10);
++	before = read_long(stat);
++	if (before < 0)
++		return SKIP;
++	map = anon_map(len + huge_len);
++	if (!map)
++		return FAIL;
++	buf = (char *)(((unsigned long)map + huge_len - 1) & ~(huge_len - 1));
++	if (madvise(buf, len, MADV_HUGEPAGE) || bind_private(buf, len, nid)) {
++		munmap(map, len + huge_len);
++		return SKIP;
++	}
++	memset(buf, PATTERN, len);
++	if (pages_on_node(buf, len / page_size, nid) !=
++	    (long)(len / page_size)) {
++		munmap(map, len + huge_len);
++		return FAIL;
++	}
++	for (i = 0; i < NR_THPS; i++)
++		madvise(buf + i * huge_len + huge_len / 2, huge_len / 2,
++			MADV_DONTNEED);
++
++	/* With THP enabled, a private binding must get its THPs. */
++	partial = read_long(stat) - before;
++	if (partial < NR_THPS) {
++		munmap(map, len + huge_len);
++		return thp_disabled() ? SKIP : FAIL;
++	}
++	file = fopen(path, "w");
++	if (file) {
++		fputs("64M", file);
++		fclose(file);
++	}
++	partial = read_long(stat) - before;
++	munmap(map, len + huge_len);
++	return partial <= NR_THPS / 4 ? PASS : FAIL;
++}
++
++static int swap_active(void)
++{
++	char line[256];
++	FILE *file = fopen("/proc/swaps", "r");
++	int lines = 0;
++
++	if (!file)
 +		return 0;
-+	return attr->mode;
++	while (fgets(line, sizeof(line), file))
++		lines++;
++	fclose(file);
++	return lines > 1;
 +}
 +
-+static const struct attribute_group dev_dax_kmem_group = {
-+	.attrs = dev_dax_kmem_attrs,
-+	.is_visible = dev_dax_kmem_visible,
-+};
-+__ATTRIBUTE_GROUPS(dev_dax_kmem);
++/* Reclaim advice pages out private memory, given active swap. */
++static int pageout_acts(void *addr, size_t len, int nid)
++{
++	if (!swap_active())
++		return SKIP;
++	if (bind_private(addr, len, nid))
++		return FAIL;
++	memset(addr, PATTERN, len);
++	if (pages_on_node(addr, NR_PAGES, nid) != NR_PAGES ||
++	    madvise(addr, len, MADV_PAGEOUT))
++		return FAIL;
++	/* Reclaim may skip a few pages, for example ones still in a batch. */
++	return pages_on_node(addr, NR_PAGES, nid) <= NR_PAGES / 4 ? PASS : FAIL;
++}
++
++/* Find memory.reclaim of the non-root cgroup this task runs in. */
++static int memcg_reclaim_path(char *path, size_t size)
++{
++	/* Short enough that the memory.reclaim path always fits @path. */
++	char line[2048], *cgroup = NULL;
++	FILE *file = fopen("/proc/self/cgroup", "r");
++
++	if (!file)
++		return 0;
++	while (fgets(line, sizeof(line), file)) {
++		if (!strncmp(line, "0::/", 4)) {
++			line[strcspn(line, "\n")] = 0;
++			cgroup = line + 3;
++			break;
++		}
++	}
++	fclose(file);
++	if (!cgroup || !strcmp(cgroup, "/"))
++		return 0;
++	snprintf(path, size, "/sys/fs/cgroup%s/memory.reclaim", cgroup);
++	return !access(path, W_OK);
++}
++
++/*
++ * A relative or static policy whose mask names the private node must still
++ * place memory on common nodes, and keep the user's mask.
++ */
++static int common_policy(void *addr, size_t len, int nid, int requested_mode,
++			 unsigned long mask, int task_policy)
++{
++	unsigned long reported = 0;
++	int mode = 0;
++	long rc;
++
++	if (task_policy) {
++		if (syscall(SYS_mbind, addr, len, MPOL_DEFAULT, NULL, 0UL, 0UL))
++			return FAIL;
++		rc = syscall(SYS_set_mempolicy, requested_mode, &mask, MAXNODE);
++	} else {
++		rc = mbind_mask(addr, len, requested_mode, mask);
++	}
++	if (rc)
++		return FAIL;
++
++	rc = syscall(SYS_get_mempolicy, &mode, &reported, MAXNODE,
++		     task_policy ? NULL : addr, task_policy ? 0 : MPOL_F_ADDR);
++	if (task_policy)
++		syscall(SYS_set_mempolicy, MPOL_DEFAULT, NULL, 0UL);
++	if (rc || mode != requested_mode || reported != mask ||
++	    madvise(addr, len, MADV_DONTNEED))
++		return FAIL;
++	memset(addr, PATTERN, len);
++	return pages_on_node(addr, NR_PAGES, nid) == 0 ? PASS : FAIL;
++}
++
++/* The flag binds exactly one private node and excludes the other modes. */
++static int private_flag_validated(void *addr, size_t len,
++				  unsigned long private_mask,
++				  unsigned long common_mask)
++{
++	const struct {
++		int mode;
++		unsigned long mask;
++	} cases[] = {
++		{ MPOL_BIND | MPOL_F_PRIVATE_NODES | MPOL_F_STATIC_NODES,
++		  private_mask },
++		{ MPOL_BIND | MPOL_F_PRIVATE_NODES | MPOL_F_RELATIVE_NODES,
++		  private_mask },
++		{ MPOL_BIND | MPOL_F_PRIVATE_NODES | MPOL_F_NUMA_BALANCING,
++		  private_mask },
++		{ MPOL_PREFERRED | MPOL_F_PRIVATE_NODES, private_mask },
++		{ MPOL_BIND | MPOL_F_PRIVATE_NODES, common_mask },
++		{ MPOL_BIND | MPOL_F_PRIVATE_NODES, private_mask | common_mask },
++	};
++	size_t i;
++
++	for (i = 0; i < ARRAY_SIZE(cases); i++) {
++		errno = 0;
++		if (!rejected(mbind_mask(addr, len, cases[i].mode,
++					 cases[i].mask)))
++			return FAIL;
++	}
++	return PASS;
++}
++
++/* Run @fn in a child, so its effects on this process do not leak. */
++static int in_child(int (*fn)(int), int nid)
++{
++	int status;
++	pid_t pid = fork();
++
++	if (pid < 0)
++		return FAIL;
++	if (!pid)
++		_exit(fn(nid));
++	if (waitpid(pid, &status, 0) != pid || !WIFEXITED(status))
++		return FAIL;
++	return WEXITSTATUS(status);
++}
++
++/* migrate_pages(2) moves a task's pages onto the private node. */
++static int migrate_to_private(int nid)
++{
++	unsigned long old_nodes, new_nodes = 1UL << nid;
++	char *addr = anon_map(NR_PAGES * page_size);
++	void *page;
++	int status;
++
++	if (!addr)
++		return FAIL;
++	memset(addr, PATTERN, NR_PAGES * page_size);
++	page = addr;
++	if (syscall(SYS_move_pages, 0, 1UL, &page, NULL, &status, 0UL) ||
++	    status < 0 || status == nid)
++		return FAIL;
++	old_nodes = 1UL << status;
++	if (syscall(SYS_migrate_pages, 0, MAXNODE, &old_nodes, &new_nodes) < 0)
++		return FAIL;
++	return pages_on_node(addr, NR_PAGES, nid) >= NR_PAGES * 3 / 4 ?
++	       PASS : FAIL;
++}
++
++static double now(void)
++{
++	struct timespec ts;
++
++	clock_gettime(CLOCK_MONOTONIC, &ts);
++	return ts.tv_sec + ts.tv_nsec / 1e9;
++}
++
++/*
++ * Fork a child that faults @kb of locked memory bound to the private node,
++ * so that reclaim cannot make room, then writes to @ready and sleeps.
++ */
++static pid_t start_faulter(int nid, long kb, int ready)
++{
++	size_t len = (size_t)kb << 10, off;
++	char *addr;
++	pid_t pid;
++
++	pid = fork();
++	if (pid)
++		return pid;
++	addr = mmap(NULL, len, PROT_READ | PROT_WRITE,
++		    MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
++	if (addr == MAP_FAILED || bind_private(addr, len, nid) ||
++	    madvise(addr, len, MADV_NOHUGEPAGE) ||
++	    syscall(SYS_mlock2, addr, len, MLOCK_ONFAULT))
++		_exit(2);
++	for (off = 0; off < len; off += page_size)
++		addr[off] = 1;
++	if (write(ready, "", 1) != 1)
++		_exit(2);
++	pause();
++	_exit(0);
++}
++
++/* Wait up to @secs for a faulter to write to @ready. */
++static int faulter_ready(int ready, int secs)
++{
++	struct pollfd pfd = { .fd = ready, .events = POLLIN };
++	char byte;
++
++	return poll(&pfd, 1, secs * 1000) == 1 && read(ready, &byte, 1) == 1;
++}
++
++/* Wait up to @secs for @pid to exit and return its status, or -1. */
++static int wait_exit(pid_t pid, double secs)
++{
++	double end = now() + secs;
++	int status;
++
++	do {
++		if (waitpid(pid, &status, WNOHANG) == pid)
++			return status;
++		usleep(100000);
++	} while (now() < end);
++	return -1;
++}
++
++static int alive(pid_t pid)
++{
++	return waitpid(pid, NULL, WNOHANG) == 0;
++}
++
++static void stop(pid_t pid)
++{
++	kill(pid, SIGKILL);
++	waitpid(pid, NULL, 0);
++}
++
++/*
++ * Exhausting private memory fails the fault with SIGBUS, as an exhausted
++ * HugeTLB pool does, and leaves other tasks on the node alone.
++ */
++static void private_exhaustion(int nid)
++{
++	const char *name = "exhausting private memory fails the fault with SIGBUS";
++	long free_kb = node_meminfo(nid, "MemFree");
++	long total_kb = node_meminfo(nid, "MemTotal");
++	int pipefd[2], status = -1, result = FAIL;
++	pid_t holder, faulter;
++
++	/* Strict overcommit refuses the oversized mapping before it faults. */
++	if (read_long("/proc/sys/vm/overcommit_memory") == 2) {
++		report(SKIP, name);
++		return;
++	}
++	if (free_kb <= 0 || total_kb <= 0 || pipe(pipefd)) {
++		report(FAIL, name);
++		return;
++	}
++
++	/* Another task holding memory on the node must be left alone. */
++	holder = start_faulter(nid, free_kb * 6 / 10, pipefd[1]);
++	if (holder > 0 && faulter_ready(pipefd[0], 60)) {
++		faulter = start_faulter(nid, total_kb * 2, pipefd[1]);
++		if (faulter > 0) {
++			status = wait_exit(faulter, 60);
++			if (status == -1)
++				stop(faulter);
++		}
++		if (status != -1 && WIFSIGNALED(status) &&
++		    WTERMSIG(status) == SIGBUS && alive(holder))
++			result = PASS;
++	}
++	report(result, name);
++
++	if (holder > 0)
++		stop(holder);
++	close(pipefd[0]);
++	close(pipefd[1]);
++}
++
++int main(int argc, char **argv)
++{
++	unsigned long private_mask, common_mask, mixed_mask, allowed = 0;
++	void *ordinary, *bound, *probe, *mixed, *paged, *huge;
++	int nid, common, memless = -1, mode, status, result;
++	char path[4096];
++	void *pages[1];
++	int nodes[1];
++	long len, rc;
++
++	if (argc != 3 && argc != 4)
++		ksft_exit_fail_msg("usage: %s <private-nid> <common-nid> [memoryless-nid]\n",
++				   argv[0]);
++	nid = atoi(argv[1]);
++	common = atoi(argv[2]);
++	if (argc == 4)
++		memless = atoi(argv[3]);
++
++	page_size = sysconf(_SC_PAGESIZE);
++	rc = read_long("/sys/kernel/mm/transparent_hugepage/hpage_pmd_size");
++	huge_len = rc > 0 ? rc : 0;
++	len = NR_PAGES * page_size;
++	private_mask = 1UL << nid;
++	common_mask = 1UL << common;
++	mixed_mask = private_mask | common_mask;
++
++	ordinary = anon_map(len);
++	bound = anon_map(len);
++	probe = anon_map(len);
++	mixed = anon_map(len);
++	paged = anon_map(len);
++	if (!ordinary || !bound || !probe || !mixed || !paged)
++		ksft_exit_fail_msg("mmap failed\n");
++
++	ksft_set_plan(20);
++
++	memset(ordinary, PATTERN, len);
++	report(pages_on_node(ordinary, NR_PAGES, nid) == 0 ? PASS : FAIL,
++	       "ordinary allocation stays off private memory");
++
++	rc = syscall(SYS_get_mempolicy, &mode, &allowed, MAXNODE, NULL,
++		     MPOL_F_MEMS_ALLOWED);
++	report(!rc && (allowed & private_mask) ? PASS : FAIL,
++	       "mems_allowed reports the private node");
++
++	errno = 0;
++	rc = syscall(SYS_set_mempolicy, MPOL_BIND | MPOL_F_PRIVATE_NODES,
++		     &private_mask, MAXNODE);
++	report(rejected(rc) ? PASS : FAIL,
++	       "set_mempolicy() rejects MPOL_F_PRIVATE_NODES");
++	syscall(SYS_set_mempolicy, MPOL_DEFAULT, NULL, 0UL);
++
++	rc = bind_private(bound, len, nid);
++	memset(bound, PATTERN, len);
++	report(!rc && pages_on_node(bound, NR_PAGES, nid) == NR_PAGES &&
++	       pages_on_node(bound, NR_PAGES, common) == 0 ? PASS : FAIL,
++	       "a private binding places memory on the private node");
++
++	mode = 0;
++	rc = syscall(SYS_get_mempolicy, &mode, NULL, 0UL, bound, MPOL_F_ADDR);
++	report(!rc && mode == (MPOL_BIND | MPOL_F_PRIVATE_NODES) ? PASS : FAIL,
++	       "get_mempolicy() reports MPOL_F_PRIVATE_NODES");
++
++	/* A mixed mask is an ordinary binding narrowed to common memory. */
++	rc = mbind_mask(mixed, len, MPOL_BIND, mixed_mask);
++	memset(mixed, PATTERN, len);
++	report(!rc && pages_on_node(mixed, NR_PAGES, common) == NR_PAGES ?
++	       PASS : FAIL,
++	       "an unflagged mixed mask uses only common memory");
++
++	/* Without the flag, a private-only mask has no usable node. */
++	errno = 0;
++	report(rejected(mbind_mask(probe, len, MPOL_BIND, private_mask)) ?
++	       PASS : FAIL, "an unflagged private-only mask is rejected");
++
++	report(private_flag_validated(probe, len, private_mask, common_mask),
++	       "MPOL_F_PRIVATE_NODES rejects other modes, flags and masks");
++
++	/* Adding a memoryless node to a private binding must fail. */
++	if (memless < 0) {
++		result = SKIP;
++	} else {
++		errno = 0;
++		result = rejected(mbind_mask(probe, len,
++					     MPOL_BIND | MPOL_F_PRIVATE_NODES,
++					     private_mask | (1UL << memless))) ?
++			 PASS : FAIL;
++	}
++	report(result, "a private binding names exactly one node");
++
++	/* Private nodes cannot hold HugeTLB pages. */
++	huge = huge_len ? mmap(NULL, huge_len, PROT_READ | PROT_WRITE,
++			       MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB |
++			       MAP_NORESERVE, -1, 0) : MAP_FAILED;
++	if (huge == MAP_FAILED) {
++		result = SKIP;
++	} else {
++		errno = 0;
++		result = rejected(bind_private(huge, huge_len, nid)) ?
++			 PASS : FAIL;
++		munmap(huge, huge_len);
++	}
++	report(result, "a private binding on HugeTLB memory is rejected");
++
++	/* Relative bits are positions in the common-node set, not node IDs. */
++	report(common_policy(probe, len, nid, MPOL_BIND | MPOL_F_RELATIVE_NODES,
++			     private_mask, 1),
++	       "a relative task policy stays on common memory");
++	report(common_policy(probe, len, nid, MPOL_BIND | MPOL_F_RELATIVE_NODES,
++			     private_mask, 0),
++	       "a relative binding stays on common memory");
++	/* Filtering the effective policy must not alter its user mask. */
++	report(common_policy(probe, len, nid, MPOL_BIND | MPOL_F_STATIC_NODES,
++			     mixed_mask, 1),
++	       "a static task policy keeps its mask and uses common memory");
++
++	pages[0] = ordinary;
++	nodes[0] = nid;
++	rc = syscall(SYS_move_pages, 0, 1UL, pages, nodes, &status,
++		     MPOL_MF_MOVE);
++	report(!rc && pages_on_node(ordinary, NR_PAGES, nid) == 1 ? PASS : FAIL,
++	       "move_pages() moves a page to the private node");
++
++	pages[0] = bound;
++	nodes[0] = common;
++	rc = syscall(SYS_move_pages, 0, 1UL, pages, nodes, &status,
++		     MPOL_MF_MOVE);
++	report(!rc && pages_on_node(bound, NR_PAGES, common) == 1 ? PASS : FAIL,
++	       "move_pages() moves a private page to common memory");
++
++	report(in_child(migrate_to_private, nid),
++	       "migrate_pages() moves pages to the private node");
++
++	report(pageout_acts(paged, len, nid),
++	       "MADV_PAGEOUT pages out private memory");
++
++	snprintf(path, sizeof(path), "/sys/devices/system/node/node%d/reclaim",
++		 nid);
++	report(thp_split_reclaimed(nid, path),
++	       "node reclaim splits partially mapped private THPs");
++
++	/* memcg reclaim may page out the mappings above, so it runs late. */
++	report(memcg_reclaim_path(path, sizeof(path)) ?
++	       thp_split_reclaimed(nid, path) : SKIP,
++	       "memcg reclaim splits partially mapped private THPs");
++
++	munmap(paged, len);
++	munmap(probe, len);
++	munmap(mixed, len);
++	munmap(bound, len);
++	munmap(ordinary, len);
++
++	private_exhaustion(nid);
++
++	ksft_finished();
++}
+diff --git a/tools/testing/selftests/dax/private_node_common.sh b/tools/testing/selftests/dax/private_node_common.sh
+index 57c5231e768b..cd03d9489822 100644
+--- a/tools/testing/selftests/dax/private_node_common.sh
++++ b/tools/testing/selftests/dax/private_node_common.sh
+@@ -12,6 +12,7 @@
  
- static struct dax_device_driver device_dax_kmem_driver = {
- 	.probe = dev_dax_kmem_probe,
+ DAX_BASE=/sys/bus/dax/devices
+ NODE_BASE=/sys/devices/system/node
++CGROOT=/sys/fs/cgroup
+ 
+ # Whether nodelist $1 (e.g. "0-2,4") contains node $2.
+ pn_nodelist_has()
+@@ -206,3 +207,30 @@ pn_setup()
+ 	done
+ 	pn_skip_or_fail "no private kmem device"
+ }
++
++# Set COMMON to the first $1 nodes with common memory.
++pn_find_common_nodes()
++{
++	local node nid
++
++	COMMON=()
++	for node in "$NODE_BASE"/node[0-9]*; do
++		nid=${node##*node}
++		pn_node_in "$nid" has_common_memory || continue
++		COMMON+=("$nid")
++		[ "${#COMMON[@]}" = "$1" ] && return 0
++	done
++	pn_skip "requires $1 common memory node(s)"
++}
++
++# The helper tools pass node masks as a single unsigned long.
++pn_require_mask_nodes()
++{
++	local nid bits
++
++	bits=$(getconf LONG_BIT)
++	for nid in "$@"; do
++		[ "$nid" -lt "$bits" ] ||
++			pn_skip "node $nid does not fit the helper node mask"
++	done
++}
+diff --git a/tools/testing/selftests/dax/settings b/tools/testing/selftests/dax/settings
+index ba4d85f74cd6..694d70710ff0 100644
+--- a/tools/testing/selftests/dax/settings
++++ b/tools/testing/selftests/dax/settings
+@@ -1 +1 @@
+-timeout=90
++timeout=300
 
 -- 
 2.56.1
