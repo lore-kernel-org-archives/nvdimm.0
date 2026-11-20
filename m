@@ -1,79 +1,79 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795198283;
-	b=eY+e2pdNj9mJxzhDOq94pRAmhat/5OUBqe01J4+R0Zh7kowa+29ZLDANxo6QAghkhv0P
-	 62X7HM9PBKAILwEVi5AIjUJDM0/+/ZYgI+pf1XltcyK4AKOTo3xtu+jkwWjDW4kc8hr33
-	 9x62re3jSqkcgx61LECTKDNnd5h+4E3hmA1mtwBVSzUdH4+fxjgXyQ1HknFA7KUUpLORL
-	 i/0ThL13V0BL+1rdDz8XDVFSTyzcroiv6mIKrU77JrpI/H6qQwOKvwmjJniLC6oGBArnz
-	 cU0VMCE0G42iKo3Ml4Lw0nW6/BJ4AqtlMjsai1bgFKT6/bSkm3GaPn+XnFnakrv3y/A==
+	t=1795198284;
+	b=O6+koL9FVEe4JiNvjslFejYSXWmfmcBppOvGGEqHZ1LY2A0EAFitFUGzvkEWWG1Dl59I
+	 0BRgLRp/u7m77Mgw83VdJVCbJ3IvhBKh7cek5PlYhh34bdVlICT/5dWK6nOjOj8+CHH5p
+	 dR08dLML6vApYqfblb51lcVv01OwB5k7kEVH6qkjWb8tOqiFjaOntVOhbRNuIFv6cFsdA
+	 upm00CPrVKZdjv1Jyr+C4AGacdSbVDCHd8YfvCIAUOpm33brINrLeq3XLyqzU3Tdzcl0i
+	 DJTMNbDfITTZMqvNM2ZFx6WpUP9nkd0fo4TG5vuT2ibAjpYpeWw3lLusYGo9qh1KQYA==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795198283;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795198284;
 	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
 	 Content-Type:Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=TQvkf96abxWVFEUo9sjHkKJXaCoPqvmmPh2ACSZu1fA=;
-	b=SzF3ioJf0btbe/5G0KdqkT7zkbNA8l+D4Z3TaUSi3bjFKSWg/xjUIJo5PTq7l4rUFwnk
-	 I4UgqjDRbIQ3sHuPyBi5mAx2vXv4ycEvUKikXGjc7cVV1VdHcA+OjObv0A6MQLW+mjNBP
-	 8s+uh/pDuHaXyD7Tb9aipWfiSP4lfuq2W4leTjryWBnf/7FKDpxEcS2meWgfk0/n0CuSX
-	 SLnFV0E4icdFEYgcXpamT8xZBTGmiC5Us6oTzDzxSwVlOVvJFOOtHgW1m0u9IM6cDWzxd
-	 1Rwaq+sUuafFeVyPBh8U8k+NzTEDFDSuXtemwMA/Y0PhUc8hugbk6hs4KlYNSnCL6Sg==
+	bh=NfK181OzgqPxTC5JM5ioAgY5RzIkO1nLp/unSAccMvc=;
+	b=FrXRflwvGFBed7dhvL8IEYkbOFfAGduaMXvaU2ZwpKmscQ8g0ZRat8wV8Gk4K1rYvyoA
+	 U7UZeTLheiQKeSyIYBhVw7/EyKSD4vxnlIC7f94fM+nkRZlOnN8L4eI809wLf0cZH2Emn
+	 dAGnhJRs1tXlhOrXDY+nWcSwmS15W2VmqpktSjlJGaaL9tEFF3AupwgGp3C3eWza2p7G6
+	 Gm2TklADY7F9ep6bLh+lm7yU7/k6TeACoN7gPQKwj9+KrOzv+dwYZ8a7HOrRPehIhymaE
+	 VV/6eG49lAQXFp0RUCYmJN1ryD5tqKlwXl6HyKBpimsPjn8M8oCgzTToEKfqbKd2FsA==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UNTNraWT;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=B6gFXHmX;
 	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8A8C606B230;
-	Fri, 20 Nov 2026 18:11:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B96E6078DE6;
+	Fri, 20 Nov 2026 18:11:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UNTNraWT
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=B6gFXHmX
 Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
 ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
-	t=1795198283;
-	b=wfJlkCoi5xGZknMQ69V9xEUEQwZ1xTnGAwONaJiMV0yGk+vWSJZqpttOigdOH2XqvEQT
-	 tflqYrVGniVzYUeZpbEHQY6R8z6LnBykRTUJn8F2r8QaTnctKKLC7WvVEXcDtgZmqyaxb
-	 WtKlPhtSfQeoFCnIyH+t6rBP5zGrO/1Y0Iea73BKirH9u7IdjAMEy+7jtV4OMwnISffRU
-	 BhzkxBO7Vor9yA3sPZKYAldGKMIhKtRt2cz78zhkWeo8JMV4XHBZQiaCmQXpR+4tgD3L0
-	 2bsmJ2iK5BAYDYD0yJ/rlZN14djpBUXwBwEriLIfDzAQ0b9540lJjW/OfwP7xY8Dr3w==
+	t=1795198284;
+	b=i9PeCs0vYRaXk/Ac38vphUXzcBdujt78TTtGUWjpLa5pJqYc9r6Vc32XHPkJ0xSEQnlb
+	 4YvmfISYNsKyd7wLDJ+3EugixxfoPqen/g81vxP5/TnYtW9H833zxgJp6yV7liA2hiYB3
+	 kkt56nxxtwCObOMqa0BBVEFuSxUeBBql0DpBPkZgeG/qb7mmZqWdJrF4Xv0t2AvCwChtu
+	 16tporS9pupzVPbh65pc7deYso9mJ0LWXmTyU5ei9kpa63SudZDgvJzrGdMIUMGTDG8Mz
+	 s5cCv6SsxLC3fTbiCxM0S7rQEIc1U6iuQyb4hzuiA9THU1l/Q04vMG14K3VRsw6LGvw==
 ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
-	c=relaxed/relaxed; t=1795198283;
+	c=relaxed/relaxed; t=1795198284;
 	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
 	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=TQvkf96abxWVFEUo9sjHkKJXaCoPqvmmPh2ACSZu1fA=;
-	b=I7VOlYBA2OW6JY3rkyUZfopxsZ9ESQuSam5OD9Cy+rO1ZjD33mVrh7uFgWYFLI0Mi2K0
-	 JM2JN0LAfWC0IJUBmiAmewkk9t8LFCyvqejMWIaJCBExQ9XMLBSU6XliePeU+c2N9IJg1
-	 bB1z5O6oat4NkPnUpsqNoExE8v/XhWl3n+0tuxTXu424sG0LAUE16SenNbqgW4Zl/caHL
-	 7DS3oXi90HLXkeFZqFGgbb947f34WKWpr0xFuXCixpQsBmiYM1EM0UxHTcAdAOpov+FtV
-	 SIPms6LE6EUUKb5SHuqw2TtN89SGGYkNG8bF+QKrexGsNSaZ4fe0gS8PBdVuzAhvLMA==
+	bh=NfK181OzgqPxTC5JM5ioAgY5RzIkO1nLp/unSAccMvc=;
+	b=Qiw4EYXryg+/CmfbOSWIYpl1vZYDcw+/tRx0G8BXUO6Vm45I1s+oMVcS+bjf0TD/lVdc
+	 BGxaIMLqorT/QzS7hXCZiCMq+a8OMQxZ954EdvLRVj/TQGkVwyCJGZll9ZchrJiDRVB66
+	 ZKrYZIefdjT09MDbNqfG2m0TWkHdMK9w370HNXFLZbRPh07uTKhx1gcMxaTO3Wg1lf43V
+	 x4xVaF8uWO+NcFPtChKiHL7TjBqcFcaPdCS+Jq3rzzEM2wO0Lej0ZYNiKSWaPFlgkbNw6
+	 FOaeURnhIiP05zdObjQ9aRYlU3xcXOYrJiDRQuJQOjKpkTZnRAu265z7wcFEkHCpbsg==
 ARC-Authentication-Results: i=1; smtp.kernel.org; 
 	arc=none smtp.remote-ip=100.80.115.77
 Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id A983D1F01563;
-	Fri, 20 Nov 2026 18:11:00 +0000 (UTC)
+	by smtp.kernel.org (Postfix) with ESMTPS id 1628A1F000EF;
+	Fri, 20 Nov 2026 18:11:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795198283;
-	bh=TQvkf96abxWVFEUo9sjHkKJXaCoPqvmmPh2ACSZu1fA=;
+	s=k20260515; t=1795198284;
+	bh=NfK181OzgqPxTC5JM5ioAgY5RzIkO1nLp/unSAccMvc=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To;
-	b=UNTNraWTumxKV9QbXszL82xr6WsskTiKxkHxI0mu6JTlxTFoXGDbaDLlal0lAfF9r
-	 1C6Nc78Ax1tL6B91VNuktoZCSStmsQHS0RnPwqH2uQ4IQsYfYDY9XCN8EFMenWPU9g
-	 M2x5YuIflN/mcUyL9jzJ5joFzr9Ip07zwVcGfKjuFp2PY1yAsGZFe8uq4bpLupkjHz
-	 645fZcRFD6uI6AQNRIO8eGXyLp0/Hc05piMxhRgMBRZcCq9CfpFWEfe/eAke+Zbaam
-	 2M6HHf51YoKhNdXDNewwt7Pm3MzKGsP+oWBcz7BR9SD7Abf/IhC7Tz/cdxhYHhzdPR
-	 AODU60HNIVGyQ==
+	b=B6gFXHmXZ2XEk/oI2d6JnbhOTi2FSVqSKYLaYdzLYLLbAIH6asVCOJxDOLaHwCIep
+	 8lS4j0U0fewup/Q7AdTNd5VOz2D025I58vEmgAFJaI/mPTrTLwR8dPqDrZjSeSsIHv
+	 At8Su9b7nbC1pQ2oqwQgXw7nEIPezjddw8aR+F0CBjTnMvf0htJxqcFIgZs7M1VKYx
+	 zngNr3tGQ+h1iBoZ8snYLCDvyw0FnBou6FCa46TJ7+UFeYfQmB1NA/8z/p/r5lQaLd
+	 gFUbtTIv772r5FtYz3/Z77VWBMz99OT1ozWVlI3d9x3K5Nw04I8IJrpdixds9lRBUC
+	 zc3TTpLn7qVJA==
 Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id 79D214B994;
+	by lkml.kernel.org (Postfix) with ESMTP id 98BB24B998;
 	Fri, 20 Nov 2026 18:09:23 +0000 (UTC)
 From: Gregory Price via B4 Relay <devnull+gourry.gourry.net@kernel.org>
-Date: Fri, 20 Nov 2026 13:09:44 -0500
-Subject: [PATCH 53/60] mm/mempolicy: add MPOL_F_PRIVATE_NODES for private
- node bindings
+Date: Fri, 20 Nov 2026 13:09:45 -0500
+Subject: [PATCH 54/60] mm/migrate: route explicit NUMA migration to private
+ nodes
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -84,7 +84,7 @@ List-Owner: <mailto:nvdimm+owner@lists.linux.dev>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Message-Id: <20261120-private_nodes_v6-v1-53-74f5f9a115c2@gourry.net>
+Message-Id: <20261120-private_nodes_v6-v1-54-74f5f9a115c2@gourry.net>
 References: <20261120-private_nodes_v6-v1-0-74f5f9a115c2@gourry.net>
 In-Reply-To: <20261120-private_nodes_v6-v1-0-74f5f9a115c2@gourry.net>
 To: Yury Norov <yury.norov@gmail.com>, 
@@ -141,11 +141,11 @@ Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
  cgroups@vger.kernel.org, nvdimm@lists.linux.dev, 
  linux-kselftest@vger.kernel.org, "Gregory Price (Meta)" <gourry@gourry.net>
 X-Mailer: b4 0.14.3
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1795198154; l=11909;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1795198154; l=4872;
  i=gourry@gourry.net; s=20261120; h=from:subject:message-id;
- bh=qpDp9Uw5U7Holq6SO9FpvmrnHTCzndjaolkmwUv4n7U=;
- b=waLUxFwVjjK1r6z4uQauHS9EmVfZ5EzEf3NftvJiPHdtba1GeE5pQkOh+uFgsoD0FSgI7Qh0m
- 90Gt5kKZDi0BUk8WRLzEx00KWBPydIAE+btm2kQOwM3mOTEjAL0xccQ
+ bh=LdBmn7sW2WZfOe8jPXvczezaQql167iyE39pQOO8QgY=;
+ b=sTml8+HqIUvMTacUxZiUfSUZimAOAY9MiHZ9lsqd24xS7lWLntm08ZOzq3xfS7DqVpEkNzuQu
+ aE+pXSWkZHlDCm/IGuzhatOFii5433SjI7oHHeyyJr2YhuHNaROFriH
 X-Developer-Key: i=gourry@gourry.net; a=ed25519;
  pk=BZWDlx4htkR5KcvGjGtSDfx1tM0E5dlyBR43FEhjWVc=
 X-Endpoint-Received: by B4 Relay for gourry@gourry.net/20261120 with
@@ -156,296 +156,141 @@ Content-Transfer-Encoding: 7bit
 
 From: "Gregory Price (Meta)" <gourry@gourry.net>
 
-Private bindings behave differently from ordinary ones: they are strict,
-never rebound, and fail with SIGBUS instead of invoking the OOM killer
-when their node is exhausted. Callers should know they are opting into
-that behavior explicitly.
+move_pages(2) and migrate_pages(2) allocate the destination folio by
+node id with __GFP_THISNODE. A private node is not on its own
+__GFP_THISNODE (ZONELIST_NOFALLBACK) zonelist, so the allocation never
+lands on it.
 
-Add MPOL_F_PRIVATE_NODES, an mbind() mode flag that binds a mapping to
-one private node in N_MEMORY_MEMPOLICY. Without the flag, private nodes
-in a mask are ignored - the same as nodes outside the cpuset.
+When the destination is a private node in N_MEMORY_MEMPOLICY, select the
+node's private zonelist and a single-node mask in the syscall path, and
+pass them to alloc_migration_target() via migration_target_control.
 
-Older kernels reject the flag, so userspace can probe for it.
+move_pages(2) now accepts such a destination rather than only common
+memory, and still refuses other private nodes with -ENODEV, so
+do_move_pages_to_node() only needs to check N_MEMORY_PRIVATE.
+migrate_pages(2) keeps such nodes in its destination mask, and drops
+other private nodes as it drops nodes outside the caller's cpuset.
 
-A private binding must name exactly one node. The private zonelist
-covers only that node, and a memoryless node left in the mask would
-widen the binding once it gains memory.
+The other users of alloc_migration_target() are unchanged.
 
-The flag selects a rebind mode like MPOL_F_STATIC_NODES and
-MPOL_F_RELATIVE_NODES, so it excludes both: a private binding is never
-rebound. policy_nodemask() already ignores a binding with no node in the
-current cpuset, so revoking access suspends the binding to common
-memory, and restoring access resumes it.
-
-The flag also excludes MPOL_F_NUMA_BALANCING, since NUMA balancing does
-not act on private memory.  This can be loosened in the future.
-
-Reject private bindings on HugeTLB mappings. Pool reservations are made
-at mmap() time against global counts, and pool growth and dequeue use
-the common zonelists, so the binding could never be satisfied. This
-can also be loosened in the future if a use case grows HugeTLB support.
-
-set_mempolicy() rejects the flag, because a task policy also steers the
-task's kernel allocations.
-
-Policies other than MPOL_BIND only apply to common memory nodes.
-This can also be loosened later if a use case appears, but no compelling
-use case has been proposed in 2 years of discussions.  This minimizes
-the overall complexity of the base HBM/GPU use case considerably.
-
-Use policy_nodemask() for the existing cpuset and zone checks, then
-select the local private zonelist only when the effective target is
-eligible private memory.
-
-set_mempolicy_home_node() rejects a home node other than the bound
-private node, since there is no fallback behavior in either direction,
-an unmatched home node is nonsensical.
-
-numa_maps reports private bindings as "private".
-
-Document the flag in the admin guide.
+HugeTLB folios still cannot move to a private node, since private nodes
+hold no HugeTLB pages.
 
 Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
 ---
- .../admin-guide/mm/numa_memory_policy.rst          | 22 +++++++
- include/uapi/linux/mempolicy.h                     |  4 +-
- mm/mempolicy.c                                     | 76 +++++++++++++++++++---
- 3 files changed, 92 insertions(+), 10 deletions(-)
+ mm/internal.h  |  1 +
+ mm/mempolicy.c | 19 +++++++++++++++----
+ mm/migrate.c   | 13 ++++++++++++-
+ 3 files changed, 28 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/admin-guide/mm/numa_memory_policy.rst b/Documentation/admin-guide/mm/numa_memory_policy.rst
-index 90ab26e805a9..f2dc59cd6acc 100644
---- a/Documentation/admin-guide/mm/numa_memory_policy.rst
-+++ b/Documentation/admin-guide/mm/numa_memory_policy.rst
-@@ -341,6 +341,28 @@ MPOL_F_RELATIVE_NODES
- 	MPOL_PREFERRED policies that were created with an empty nodemask
- 	(local allocation).
+diff --git a/mm/internal.h b/mm/internal.h
+index c83c100a5253..646efc2eacd1 100644
+--- a/mm/internal.h
++++ b/mm/internal.h
+@@ -1309,6 +1309,7 @@ struct migration_target_control {
+ 	int nid;		/* preferred node id */
+ 	nodemask_t *nmask;
+ 	gfp_t gfp_mask;
++	unsigned int alloc_flags;	/* ALLOC_ZONELIST_PRIVATE or 0 */
+ 	enum migrate_reason reason;
+ };
  
-+MPOL_F_PRIVATE_NODES
-+	This flag binds a VMA to a single private memory node (see
-+	Documentation/mm/numa_private_nodes.rst).  Without it, private
-+	nodes in a policy's nodemask are ignored, as nodes outside the
-+	task's cpuset are.
-+
-+	Only mbind() with MPOL_BIND accepts the flag, and its nodemask
-+	must name exactly one private node that permits userspace
-+	placement.
-+	A private binding is never rebound when the task's allowed nodes
-+	change.  While its node is ineligible (outside the task's cpuset,
-+	or no longer private memory that permits userspace placement),
-+	the binding is suspended and allocations use common memory.  It
-+	resumes when the node becomes eligible again.  If the node returns
-+	as common memory, the binding acts as an ordinary binding to that
-+	node.
-+	get_mempolicy() reports the original nodemask.
-+
-+	MPOL_F_PRIVATE_NODES cannot be combined with
-+	MPOL_F_STATIC_NODES, MPOL_F_RELATIVE_NODES or
-+	MPOL_F_NUMA_BALANCING, and cannot be used on HugeTLB mappings.
-+
- Memory Policy Reference Counting
- ================================
- 
-diff --git a/include/uapi/linux/mempolicy.h b/include/uapi/linux/mempolicy.h
-index 7f6fc9599693..4dcdf8f68803 100644
---- a/include/uapi/linux/mempolicy.h
-+++ b/include/uapi/linux/mempolicy.h
-@@ -31,13 +31,15 @@ enum mempolicy_mode {
- #define MPOL_F_STATIC_NODES	(1 << 15)
- #define MPOL_F_RELATIVE_NODES	(1 << 14)
- #define MPOL_F_NUMA_BALANCING	(1 << 13) /* Optimize with NUMA balancing if possible */
-+#define MPOL_F_PRIVATE_NODES	(1 << 12) /* mbind() to a private memory node */
- 
- /*
-  * MPOL_MODE_FLAGS is the union of all possible optional mode flags passed to
-  * either set_mempolicy() or mbind().
-  */
- #define MPOL_MODE_FLAGS							\
--	(MPOL_F_STATIC_NODES | MPOL_F_RELATIVE_NODES | MPOL_F_NUMA_BALANCING)
-+	(MPOL_F_STATIC_NODES | MPOL_F_RELATIVE_NODES | MPOL_F_NUMA_BALANCING | \
-+	 MPOL_F_PRIVATE_NODES)
- 
- /* Whether the nodemask is specified by users */
- #define MPOL_USER_NODEMASK_FLAGS (MPOL_F_STATIC_NODES | MPOL_F_RELATIVE_NODES)
 diff --git a/mm/mempolicy.c b/mm/mempolicy.c
-index 9d2e56017ebe..cb5419cb7ee8 100644
+index cb5419cb7ee8..a7cbb05ac86c 100644
 --- a/mm/mempolicy.c
 +++ b/mm/mempolicy.c
-@@ -451,9 +451,13 @@ static int mpol_set_nodemask(struct mempolicy *pol,
- 	if (!pol || pol->mode == MPOL_LOCAL)
- 		return 0;
- 
--	/* Check N_MEMORY_COMMON */
--	nodes_and(nsc->mask1,
--		  cpuset_current_mems_allowed, node_states[N_MEMORY_COMMON]);
-+	/* Private bindings name a private node; others use common memory. */
-+	if (pol->flags & MPOL_F_PRIVATE_NODES)
-+		nodes_and(nsc->mask1, node_states[N_MEMORY_MEMPOLICY],
-+			  node_states[N_MEMORY_PRIVATE]);
-+	else
-+		nsc->mask1 = node_states[N_MEMORY_COMMON];
-+	nodes_and(nsc->mask1, nsc->mask1, cpuset_current_mems_allowed);
- 
- 	VM_BUG_ON(!nodes);
- 
-@@ -488,6 +492,13 @@ static struct mempolicy *mpol_new(unsigned short mode, unsigned short flags,
- 	}
- 	VM_BUG_ON(!nodes);
- 
-+	/*
-+	 * The private zonelist covers a single node, so a private bind must name
-+	 * exactly one node; a memoryless bit would later widen the binding.
-+	 */
-+	if ((flags & MPOL_F_PRIVATE_NODES) && nodes_weight(*nodes) != 1)
-+		return ERR_PTR(-EINVAL);
-+
- 	/*
- 	 * MPOL_PREFERRED cannot be used with MPOL_F_STATIC_NODES or
- 	 * MPOL_F_RELATIVE_NODES if the nodemask is empty (local allocation).
-@@ -580,6 +591,9 @@ static void mpol_rebind_policy(struct mempolicy *pol, const nodemask_t *newmask)
- 
- 	if (!pol || pol->mode == MPOL_LOCAL)
- 		return;
-+	/* Allocation checks a private binding against the current cpuset. */
-+	if (pol->flags & MPOL_F_PRIVATE_NODES)
-+		return;
- 	mpol_rebindable_mems(&mems, newmask);
- 	if (!mpol_store_user_nodemask(pol) &&
- 	    nodes_equal(pol->w.cpuset_mems_allowed, mems))
-@@ -1587,6 +1601,21 @@ static long do_mbind(unsigned long start, unsigned long len,
- 	if (err)
- 		goto mpol_out;
- 
-+	/* Private nodes cannot hold HugeTLB pages; this is unsupported. */
-+	if (new && (new->flags & MPOL_F_PRIVATE_NODES)) {
-+		vma_iter_init(&vmi, mm, start);
-+		for_each_vma_range(vmi, vma, end) {
-+			if (vma_is_hugetlb(vma)) {
-+				err = -EINVAL;
-+				break;
-+			}
-+		}
-+		if (err) {
-+			mmap_write_unlock(mm);
-+			goto mpol_out;
-+		}
-+	}
-+
- 	/*
- 	 * Lock the VMAs before scanning for pages to migrate,
- 	 * to ensure we don't miss a concurrently inserted page.
-@@ -1771,6 +1800,11 @@ static inline int sanitize_mpol_flags(int *mode, unsigned short *flags)
- 		return -EINVAL;
- 	if ((*flags & MPOL_F_STATIC_NODES) && (*flags & MPOL_F_RELATIVE_NODES))
- 		return -EINVAL;
-+	/* A private binding is never rebound or balanced. */
-+	if ((*flags & MPOL_F_PRIVATE_NODES) &&
-+	    (*mode != MPOL_BIND ||
-+	     (*flags & (MPOL_USER_NODEMASK_FLAGS | MPOL_F_NUMA_BALANCING))))
-+		return -EINVAL;
- 	if (*flags & MPOL_F_NUMA_BALANCING) {
- 		if (*mode == MPOL_BIND || *mode == MPOL_PREFERRED_MANY)
- 			*flags |= (MPOL_F_MOF | MPOL_F_MORON);
-@@ -1851,6 +1885,11 @@ SYSCALL_DEFINE4(set_mempolicy_home_node, unsigned long, start, unsigned long, le
- 			err = -EOPNOTSUPP;
- 			break;
- 		}
-+		if ((old->flags & MPOL_F_PRIVATE_NODES) &&
-+		    !node_isset(home_node, old->nodes)) {
-+			err = -EINVAL;
-+			break;
-+		}
- 		new = mpol_dup(old);
- 		if (IS_ERR(new)) {
- 			err = PTR_ERR(new);
-@@ -1888,6 +1927,10 @@ static long kernel_set_mempolicy(int mode, const unsigned long __user *nmask,
- 	if (err)
- 		return err;
- 
-+	/* A task policy also steers the task's kernel allocations. */
-+	if (mode_flags & MPOL_F_PRIVATE_NODES)
-+		return -EINVAL;
-+
- 	err = get_nodes(&nodes, nmask, maxnode);
- 	if (err)
- 		return err;
-@@ -2124,7 +2167,8 @@ bool apply_policy_zone(struct mempolicy *policy, enum zone_type zone)
- 	 * if policy->nodes has movable memory only,
- 	 * we apply policy when gfp_zone(gfp) = ZONE_MOVABLE only.
- 	 *
--	 * policy->nodes is intersect with node_states[N_MEMORY_COMMON].
-+	 * policy->nodes is intersect with node_states[N_MEMORY_COMMON], or with
-+	 * the private N_MEMORY_MEMPOLICY nodes for MPOL_F_PRIVATE_NODES.
- 	 * so if the following test fails, it implies
- 	 * policy->nodes has movable memory only.
- 	 */
-@@ -2495,10 +2539,20 @@ static struct page *alloc_pages_preferred_many(gfp_t gfp, unsigned int order,
- static struct page *alloc_pages_mpol(gfp_t gfp, unsigned int order,
- 		struct mempolicy *pol, pgoff_t ilx, int nid)
+@@ -1340,7 +1340,7 @@ static bool migrate_folio_add(struct folio *folio, struct list_head *foliolist,
+ static long migrate_to_node(struct mm_struct *mm, int source, int dest,
+ 			    int flags)
  {
-+	unsigned int alloc_flags = ALLOC_DEFAULT;
- 	nodemask_t *nodemask;
- 	struct page *page;
+-	nodemask_t nmask;
++	nodemask_t nmask, dest_mask;
+ 	struct vm_area_struct *vma;
+ 	LIST_HEAD(pagelist);
+ 	long nr_failed;
+@@ -1351,6 +1351,14 @@ static long migrate_to_node(struct mm_struct *mm, int source, int dest,
+ 		.reason = MR_SYSCALL,
+ 	};
  
- 	nodemask = policy_nodemask(gfp, pol, ilx, &nid);
-+	if (nodemask && (pol->flags & MPOL_F_PRIVATE_NODES)) {
-+		int private_nid = first_node(*nodemask);
-+
-+		if (node_state(private_nid, N_MEMORY_MEMPOLICY) &&
-+		    node_state(private_nid, N_MEMORY_PRIVATE)) {
-+			nid = private_nid;
-+			alloc_flags = ALLOC_ZONELIST_PRIVATE;
-+		}
++	/* Private placement is reachable only through the private zonelist. */
++	if (node_state(dest, N_MEMORY_MEMPOLICY) &&
++	    node_state(dest, N_MEMORY_PRIVATE)) {
++		init_nodemask_of_node(&dest_mask, dest);
++		mtc.nmask = &dest_mask;
++		mtc.alloc_flags = ALLOC_ZONELIST_PRIVATE;
 +	}
++
+ 	nodes_clear(nmask);
+ 	node_set(source, nmask);
  
- 	if (pol->mode == MPOL_PREFERRED_MANY)
- 		return alloc_pages_preferred_many(gfp, order, nid, nodemask);
-@@ -2520,24 +2574,26 @@ static struct page *alloc_pages_mpol(gfp_t gfp, unsigned int order,
- 		    pol->mode != MPOL_WEIGHTED_INTERLEAVE &&
- 		    (!nodemask || node_isset(nid, *nodemask))) {
- 			/*
--			 * First, try to allocate THP only on local node, but
-+			 * First, try to allocate THP only on the selected node, but
- 			 * don't reclaim unnecessarily, just compact.
- 			 */
- 			page = __alloc_frozen_pages_noprof(
- 				gfp | __GFP_THISNODE | __GFP_NORETRY, order,
--				nid, NULL, ALLOC_DEFAULT);
-+				nid, (alloc_flags & ALLOC_ZONELIST_PRIVATE) ?
-+					 nodemask : NULL, alloc_flags);
- 			if (page || !(gfp & __GFP_DIRECT_RECLAIM))
- 				return page;
- 			/*
- 			 * If hugepage allocations are configured to always
- 			 * synchronous compact or the vma has been madvised
- 			 * to prefer hugepage backing, retry allowing remote
--			 * memory with both reclaim and compact as well.
-+			 * memory with both reclaim and compact as well. A
-+			 * private binding stays on its local zonelist.
- 			 */
- 		}
+@@ -1951,7 +1959,7 @@ static int kernel_migrate_pages(pid_t pid, unsigned long maxnode,
+ 	struct mm_struct *mm = NULL;
+ 	struct task_struct *task;
+ 	nodemask_t task_nodes;
+-	int err;
++	int err, nid;
+ 	nodemask_t *old;
+ 	nodemask_t *new;
+ 	NODEMASK_SCRATCH(scratch);
+@@ -2001,8 +2009,11 @@ static int kernel_migrate_pages(pid_t pid, unsigned long maxnode,
  	}
  
--	page = __alloc_frozen_pages_noprof(gfp, order, nid, nodemask, ALLOC_DEFAULT);
-+	page = __alloc_frozen_pages_noprof(gfp, order, nid, nodemask, alloc_flags);
+ 	task_nodes = cpuset_mems_allowed(current);
+-	/* Private memory is not a migration destination. */
+-	nodes_andnot(task_nodes, task_nodes, node_states[N_MEMORY_PRIVATE]);
++	/* Private nodes are destinations only if they permit userspace placement. */
++	for_each_node_state(nid, N_MEMORY_PRIVATE) {
++		if (!node_state(nid, N_MEMORY_MEMPOLICY))
++			node_clear(nid, task_nodes);
++	}
+ 	if (!nodes_and(*new, *new, task_nodes))
+ 		goto out_put;
  
- 	if (unlikely(pol->mode == MPOL_INTERLEAVE ||
- 		     pol->mode == MPOL_WEIGHTED_INTERLEAVE) && page) {
-@@ -3651,12 +3707,14 @@ void mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol)
- 		p += snprintf(p, buffer + maxlen - p, "=");
+diff --git a/mm/migrate.c b/mm/migrate.c
+index 6791834f14fe..eda961d43df0 100644
+--- a/mm/migrate.c
++++ b/mm/migrate.c
+@@ -2250,6 +2250,9 @@ struct folio *alloc_migration_target(struct folio *src, unsigned long private)
+ 	if (is_highmem_idx(zidx) || zidx == ZONE_MOVABLE)
+ 		gfp_mask |= __GFP_HIGHMEM;
  
- 		/*
--		 * Static and relative are mutually exclusive.
-+		 * Static, relative and private are mutually exclusive.
- 		 */
- 		if (flags & MPOL_F_STATIC_NODES)
- 			p += snprintf(p, buffer + maxlen - p, "static");
- 		else if (flags & MPOL_F_RELATIVE_NODES)
- 			p += snprintf(p, buffer + maxlen - p, "relative");
-+		else if (flags & MPOL_F_PRIVATE_NODES)
-+			p += snprintf(p, buffer + maxlen - p, "private");
++	if (mtc->alloc_flags)
++		return __folio_alloc_flags(gfp_mask, order, nid, mtc->nmask,
++					   mtc->alloc_flags);
+ 	return __folio_alloc(gfp_mask, order, nid, mtc->nmask);
+ }
  
- 		if (flags & MPOL_F_NUMA_BALANCING) {
- 			if (!is_power_of_2(flags & MPOL_MODE_FLAGS))
+@@ -2267,6 +2270,7 @@ static int store_status(int __user *status, int start, int value, int nr)
+ 
+ static int do_move_pages_to_node(struct list_head *pagelist, int node)
+ {
++	nodemask_t nmask;
+ 	int err;
+ 	struct migration_target_control mtc = {
+ 		.nid = node,
+@@ -2274,6 +2278,13 @@ static int do_move_pages_to_node(struct list_head *pagelist, int node)
+ 		.reason = MR_SYSCALL,
+ 	};
+ 
++	/* A private node is reachable only through its private zonelist. */
++	if (node_state(node, N_MEMORY_PRIVATE)) {
++		init_nodemask_of_node(&nmask, node);
++		mtc.nmask = &nmask;
++		mtc.alloc_flags = ALLOC_ZONELIST_PRIVATE;
++	}
++
+ 	err = migrate_pages(pagelist, alloc_migration_target, NULL,
+ 		(unsigned long)&mtc, MIGRATE_SYNC, MR_SYSCALL, NULL);
+ 	if (err)
+@@ -2411,7 +2422,7 @@ static int do_pages_move(struct mm_struct *mm, nodemask_t task_nodes,
+ 		err = -ENODEV;
+ 		if (node < 0 || node >= MAX_NUMNODES)
+ 			goto out_flush;
+-		if (!node_state(node, N_MEMORY_COMMON))
++		if (!node_state(node, N_MEMORY_MEMPOLICY))
+ 			goto out_flush;
+ 
+ 		err = -EACCES;
 
 -- 
 2.56.1
