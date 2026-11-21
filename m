@@ -1,87 +1,91 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.210.177
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795262713;
-	b=RFJOyfrCoP4AhSWLWL0Yph7SJ4KScNFfgJS3mP8i/64z2XUg+lc8XLZu2DrICse7mfiK
-	 W1Phj0qgD7UVcOCtAa+st6ccaiAZQAtbbPcS+hBupSy5AQoC2MkzQ4Qu9xWwLLA5/YwTL
-	 JSXe4Eyll8t1re9h+U4RD7cPjbyuaYi18dTTqg4zWpDf1inyu9c0DnKaLkL0CqPoME78b
-	 Q15XS75vjQU/WPFewzjzKXYUhvScS2PerOvLZzQ0rWH3/vh+1rugZCrQLXZMqL5WpN+jR
-	 mv8estSprsRgZGhlOk+JM9AMRai7Gyq4/BglZbAhOizQbENX1lXdciC9IlGBJq0DsMQ==
+	t=1795262725;
+	b=3E+o+fmS95wTRipU9Lo9qQ3lV5scKDfkoMRV2CEB5MhqYaqJ0qndeSBtEbYFqzh4RdLH
+	 7b2JeY300NdjZ1gCg0kAKuvBnhT/ynkWUQUmBP7p3tocf018dMFIM3Ioo/HQMqH8jtu24
+	 kIicsCworrvi80eYKvUtFhL9lvCT1F1uJP+b3nSXonJKedJKQdY2/SMVJt+wtkk4K7cd1
+	 ywT++LbIPUg9c0dtVGkdskUpTBig0ILinkpK/xr4BxhIv0kpwp4l9q4uzk4w7eGjwzLrN
+	 Hrc9T0KCQ6Slv99151R0x33VrUmp1Pvfp0kcoFS58Z4dJg2NulpeXB5QiVEKhaoWNpA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795262713;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795262725;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
-	 Date:Message-Id:X-Mailer:MIME-Version:Content-Transfer-Encoding;
-	bh=2N0f8Hnh84LuhQkUbe8zo17SuoG8Y6Lvd2KUvSPrbpY=;
-	b=AU7XMwI0I2dz02xF56owBHgs6eWq1WzEdBiHkphtZGH5sMMNLCEHyijueuvbuzHU6FU7
-	 EibwNrMEe6yYP5iELC3zdaHCW8sfvGMxUJsHADNInNemAhhUilqF5JoNbGo0afLHKj8Ts
-	 PEVGd1OfAZ7OtHUjcJSAXLwVxrUHx3z02aqJOcuxiG8KJOaT+hnMM9JmDmRcv1UsNtOPo
-	 jOJH4T/kbZ9doRvLPuSH09qA7/yqNf/bdstcH4PkobNm5QVJPIbJkB1JtiM3D+KovLgHq
-	 gYk6kwSseoQpfMhDy4Mv9Cwhg//ngtgUTpsrisG5e9+C3f+YnnVevEFbp9ud4XCi7oQ==
+	 Date:Message-Id:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=GgVA1m9FFgPmu9ov9xNiU46KV5AN9vLfSCEf+vLxJ2A=;
+	b=HueveC52JQfIwAdf00y5KTDafTpSL6S7ymIF2czluID2lH+td2L+5d7hddhbYOU5xrU0
+	 u2HEOJlg6XGEFdxd7xQ3V40bEB+c/SAC4uy8ybUn5yNH4GBO4F5RzwZNucybJg3VA6SDf
+	 n4hKDa2OtdorMghFshk8kQpvRh6Y6cUumx3csWFqWexzr4jsSIVXxOFvQ+4DKA6/HOPdy
+	 vaxZ3YFgwl5y1JHqGEiO3h815wvajtgE1Q5l4yDbI+RUnQA/WJfVs0lKrRW0zJjg3ry41
+	 vQLABfQ1QQ8FR3BdTXyGsium4UYU3DenAQHj3Qe/BWXlnWfJqfPPoBeDof6POc8m0XQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b="CXEStD/R";
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b="DgW82/TA";
 	arc=none smtp.remote-ip=209.85.210.177
 Received: from mail-pf1-f177.google.com (mail-pf1-f177.google.com [209.85.210.177])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80CD1606A320
-	for <nvdimm@lists.linux.dev>; Sat, 21 Nov 2026 12:05:13 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 80CD1606A320
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99F97606A32C
+	for <nvdimm@lists.linux.dev>; Sat, 21 Nov 2026 12:05:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 99F97606A32C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=CXEStD/R
-Received: by mail-pf1-f177.google.com with SMTP id d2e1a72fcca58-8c6c06b3321so1561529b3a.3
-        for <nvdimm@lists.linux.dev>; Sat, 21 Nov 2026 04:05:13 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=DgW82/TA
+Received: by mail-pf1-f177.google.com with SMTP id d2e1a72fcca58-8a06e79e152so891380b3a.0
+        for <nvdimm@lists.linux.dev>; Sat, 21 Nov 2026 04:05:25 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795262713; x=1795867513; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=2N0f8Hnh84LuhQkUbe8zo17SuoG8Y6Lvd2KUvSPrbpY=;
-        b=CXEStD/RvLwcAYQsYDkMZ5kDEZ6+da6Y1vUKVoMQQ6BlIRc66hJf5bD6TvOYpPX+h6
-         X9jhwQXyaJtlk8vw0Kdyx4K7EdvKvWV1IksFuOqk4/BEn/QGfsqsZLjia7OXl4gd3WF7
-         E+t/s3OHBShujAfanhZxEdrVfc0oCM9SIUh8C85tdm+nJSLT3aCrfShuK1XJDjvZORXv
-         Kd9qnGoBuRVTZUJytpTdep9DT9yHWaMbnB0VK5RGgSjWqSbr6ioXXyh3+1cUrxcMdZex
-         ejhMV9gsqr94kcWHJF5v8Pal9iDpfx5L2y2sgiTv8oNvhHgQp7KwW+dJ/sN0aZ+Gfue0
-         /NBg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795262713; x=1795867513;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20260707; t=1795262725; x=1795867525; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=2N0f8Hnh84LuhQkUbe8zo17SuoG8Y6Lvd2KUvSPrbpY=;
-        b=FXQ0LXgxHf4LMkO2vj7jpRsaCnd5LMZylOkGfuOPo2MkFIgW4DV1u5apLuALJC7lvg
-         4X/5HSkQOlTD1tRFze4J3ScfSJ2jO4aVp1vGLvhTnMMtKNcBsqxdrWX740EcJFds790L
-         QK/txTh5W2zpSg/50YitOzXzkpaNm2lck5kWL3uxw31nI5I5Ve+MDo98J4FDeTjLqb9U
-         uvSdBU+XFhnq6eueTjWLZLmeQVw44yPIpJU+JUr2VtpgQul9xITEm7jAFb2JOvY1GuBx
-         S6wtn5wY64W4KfzpITjFpxNhRNuEM9a0aUs8utB3lxRsP/yF+zB/a43BmSSysQ1yQSap
-         SxxA==
-X-Gm-Message-State: APuU4Z9n1IGvL+Kerb79tYV+KxBavK73AWV14H0Lg0LdPoxEJBfSG26u
-	vgeIAmNIPqraTkD3ioBQ5gdn1y3GzebjS5xi4m+v0Ap+nJQi6eCcjHfHA7Oldhfh
-X-Gm-Gg: AZFdTZdL8bU5uPjamrMRsgaJZOTWjpVvwSJZ/NmNeiMBXgwtP6d98xTD02hxOsclAsK
-	sI3CjFnZObnZvOUwE6HLdX5I7wtLbKpCbTVFDJv7mSs8nrOL6SB9ysqXh1qBaYlo5FmJzlwc2ZS
-	kp7nNuwvNkrzSZj7LQJ+N/EXu2AuyjzpM8bVA+UR+bIHWolqsgk5VJqHkLEbnaaDmmoWiozPO2a
-	+v9wqteNq9B8AkCcaWRMJ/Sq90VaEAosp0XWk4yArnANVPd4UTCQWHaICrQQFSckktc+vyqH8GS
-	3J9IFAEZMEMvSH86KAOT37XxH0MP1XapOTG1FZ69Ay9TtD5Fv8X4wdeGweERgrDzXHHcrYbTdjz
-	jmWREjZbIs97sQBHwXPFP39pbPZiuMciSuXwoIhz5sZxkZUR60JRqRJWqGUKZxfOUO5/q9XZVqJ
-	Mo9iwuUBqI0EDx1J5YPJggOW4q+M02nH/LG6uLIdNlBOxEaIlJcABCqkOU/MKNWIqivh+7B80jO
-	3vuIjXYJJSWu/tQBnemAaaurGWnc9D16xBYeHQqA8ifNuoWEF+ZXZrj82scFzHIINn2bVP9eWcE
-	1QMG86U6QqBzRap57tdGRI0IJlPzsm4Da2L0RZlyIy0=
-X-Received: by 2002:a05:6a00:4388:b0:8a0:1acb:677a with SMTP id d2e1a72fcca58-8c87d806cf8mr5796736b3a.57.1795262712765;
-        Sat, 21 Nov 2026 04:05:12 -0800 (PST)
+        bh=GgVA1m9FFgPmu9ov9xNiU46KV5AN9vLfSCEf+vLxJ2A=;
+        b=DgW82/TAH11qsWHKhmN4FNmLkkL/a2AFW2+Hn2kuXXvxs8Zjx9ptu9PhmcEJAkN5+j
+         OuTMtFcYkU9RyA0L2/mORiB8e6poJabQoPS7hTHuqm4dnDwTv2tBaaY3eunzuSsCxH6g
+         RvihCMZWZWIT1hsYVSG82EqdDY7L9m2WGFcYdsqewobTP3gVVgtuh/pPzC+3s4QrULvT
+         qsCWSZPbw1m9GcLEv6VL96tLzq8WHJXZ5pytXwcBXkUVqNprWFv2XExwqHFdgjr+KqHT
+         rj1Xe+euA+BN6cwbwXhJbXzP5bWXDyQRloCaTSuUxKsSQJ20kzaLKxsDCN65cBwDtAMp
+         Sz9Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795262725; x=1795867525;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=GgVA1m9FFgPmu9ov9xNiU46KV5AN9vLfSCEf+vLxJ2A=;
+        b=s/Z4H1pU9LPrCU53E1wpwIE2/txXt0xvO86ocs44PxJWyCMeuRaHRGxwGr7zshhH87
+         NhZbCWAzjCvPzozZdkRFR6HSmELeD8vMgR7ZIUWsQrZj40WsO3kwKaCzSmaIozzRr9Hb
+         o3OQkfcqy9Nw5/hYyJq7HuXLH4jHUgkITWEnj10LzZ447b71x31I+HnpF3jcMxqpU3hc
+         fOr/+8oAZ9vk91Mx/MTdy2AUAO7YKaMM9vY3pEQk5uJSCB4HnW00T9//wR8zbTSOGkjV
+         7qwlrs/dJk4bfP0E4s417N4vmBPtxKFYf/P5Gfk+tYiAZpVvlWM+uXD35/sbFJNlwCbo
+         bQvA==
+X-Gm-Message-State: APuU4Z96/EDkZiJ84d6ofgiV4OUXfCro36Ybs1CbM3heSDzmhHOHz7eD
+	IgxELkdri3ehQSI70yExupi0DSd0/mNv3bb/jTZNgSE7fbkSMiENA2kKBU3NWQke
+X-Gm-Gg: AZFdTZc5k3jk4bIlqq0uSgU53bhSgenQH8RqKLfbBN7igZRkCa6diXsDl1MxAqCWiMf
+	sO93oPRDESOsWageO7r8uHPOUVltvn2eTSzTufR9/UqeD09aX5uN5VtvoHo0/QqnBdCBv7aIRQT
+	vsv2pn+Snct+sz3qo75bK2obS26fjpSDWUF/IPdmL6RwE1b3tx9akjiHXFI50vcC7K26wOHMnqd
+	LM9mf0yHOqvmRMP1CKt0bsMI8vHKbx8ni/5+EmKujbQrAqIiRYk0BIf1OH+iiFE514MadAZ4+3N
+	vb2OqEgAr0zcQ7CQpbs85xuu3FqernVmFWaSVOf5Io/GXzsdSRDgK+H37fUjLPOlM25YTnARHXZ
+	gnf4zFRuEelUUkjdzP4yVy4Gnk7oQnphgyoIYP6yCWGqzEj6T9ikJ3vT3+l33ihV37XQROAzFYu
+	sotpkZh/VVjQ8zy1j1E5JITMbGiRSMJr7pR8XseOSYi4CndnAgpfd5Gm5Ok4N52cF73fHzTP8k0
+	EJlzKpjCyszPMjxh+nUdAuOtppJ5RNqB5+ahyh0cR/oFyauybBHEAfsJDDK8j4JH2z1QGysBO39
+	OSGhZJcvVAoKqOTw1ub0CKiiEYeW7vIAFLHtyu0dhZ0XzLmJ5IYWQbMLQCxoy+s5
+X-Received: by 2002:a05:6a20:c992:b0:3e1:88d6:60e6 with SMTP id adf61e73a8af0-4014a27f154mr5369152637.10.1795262724938;
+        Sat, 21 Nov 2026 04:05:24 -0800 (PST)
 Received: from localhost.localdomain ([121.134.184.225])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8c8706844a0sm2857177b3a.1.2026.11.21.04.05.11
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8c8706844a0sm2857177b3a.1.2026.11.21.04.05.23
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 21 Nov 2026 04:05:12 -0800 (PST)
+        Sat, 21 Nov 2026 04:05:24 -0800 (PST)
 From: Unsung Lee <unsung0317@gmail.com>
 To: nvdimm@lists.linux.dev
 Cc: linux-cxl@vger.kernel.org
-Subject: [ndctl PATCH 0/3] cxl/memdev: Fix update-firmware --wait after a failed upload
-Date: Sat, 21 Nov 2026 21:05:03 +0900
-Message-Id: <20261121120506.1562043-1-unsung0317@gmail.com>
+Subject: [ndctl PATCH 1/3] test/cxl-update-firmware: Make wait_complete() honor its timeout
+Date: Sat, 21 Nov 2026 21:05:04 +0900
+Message-Id: <20261121120506.1562043-2-unsung0317@gmail.com>
 X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20261121120506.1562043-1-unsung0317@gmail.com>
+References: <20261121120506.1562043-1-unsung0317@gmail.com>
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -93,59 +97,58 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-'cxl update-firmware --wait' does not return after an upload that was
-cancelled or failed, because it also waits for remaining_size to reach
-0 and the kernel leaves remaining_size as it was on errors. Patch 2
-waits on the loader status only and extends the cancel test to cover
-it. Patch 1 fixes the test helper that was meant to catch a hang like
-this but never times out. Patch 3 makes '-F <file> --wait' fail when
-the upload ended with data left, so a script can tell a failed update
-from a successful one.
+wait_complete() either sleeps and continues or breaks out of the loop,
+so the max_wait check after the if/else is never reached. A firmware
+update that never completes makes the test hang instead of failing.
 
-Reproducer on a cxl_test or QEMU memdev:
+Check the timeout before sleeping.
 
-  cxl update-firmware -F fw.bin mem0
-  cxl update-firmware --cancel mem0      # while still transferring
-  cxl update-firmware --wait mem0        # never returns before patch 2
+With the timeout enforced, the 15 second limit in
+test_nonblocking_update() leaves little margin: the 16 MiB upload there
+takes 9-10 seconds against cxl_test in a QEMU guest with lockdep, and
+10.1-10.2 seconds with KASAN. Raise it to 30 seconds, about three times
+the measured time, which still catches a hang quickly.
 
-Tested on a QEMU CXL type 3 memdev, 10 runs per case, each --wait under
-'timeout 60' (exit code in parentheses):
+Fixes: 813809ed318f ("test/cxl-update-firmware: add a unit test for firmware update")
+Signed-off-by: Unsung Lee <unsung0317@gmail.com>
+---
+ test/cxl-update-firmware.sh | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-  case                              v85         with this series
-  normal upload with --wait         returns (0) returns (0)
-  --cancel during transfer, --wait  timed out   returns (0)
-  --wait alone after a cancel       timed out   returns (0)
-  ->prepare() fails (busy), --wait  timed out   returns (1)
-
-and with 'meson test cxl-update-firmware.sh' against cxl_test on
-lockdep and KASAN kernels: the series passes; the patched test with the
-v85 cxl/memdev.c fails at the new --wait check, and the test of patch 3
-fails with the cxl/memdev.c of patch 2. The whole cxl test suite gives
-the same results with v85 and with this series.
-
-An LLM-based tool was used to check that the experiments were safe to
-run and to drive the repeated test runs.
-
-Patch 3 only sees failures that leave remaining_size non-zero, that is
-a ->prepare() failure or a failure or cancel during the transfer. A
-failure in the programming step leaves remaining_size at 0 and still
-exits 0. Reporting that needs the loader 'error' attribute
-("programming:hw-error" etc.), which libcxl does not read; I can add an
-API such as cxl_memdev_fw_update_get_error() if that is the preferred
-direction. With several memdevs, the command still exits 0 when any of
-them succeeded, as for the other memdev commands.
-
-Unsung Lee (3):
-  test/cxl-update-firmware: Make wait_complete() honor its timeout
-  cxl/memdev: Stop waiting on remaining_size in update-firmware --wait
-  cxl/memdev: Fail update-firmware --wait when the upload did not
-    complete
-
- Documentation/cxl/cxl-update-firmware.txt |  5 +++
- cxl/memdev.c                              | 15 ++++++--
- test/cxl-update-firmware.sh               | 42 +++++++++++++++++++----
- 3 files changed, 54 insertions(+), 8 deletions(-)
-
+diff --git a/test/cxl-update-firmware.sh b/test/cxl-update-firmware.sh
+index f326868..100d15f 100755
+--- a/test/cxl-update-firmware.sh
++++ b/test/cxl-update-firmware.sh
+@@ -61,17 +61,15 @@ wait_complete()
+ 	while true; do
+ 		json="$("$CXL" list -m "$mem" -F)"
+ 		in_prog="$(jq -r '.[].firmware.fw_update_in_progress' <<< "$json")"
+-		if [[ $in_prog == "true" ]]; then
+-			sleep 1
+-			waited="$((waited + 1))"
+-			continue
+-		else
++		if [[ $in_prog != "true" ]]; then
+ 			break
+ 		fi
+ 		if (( waited == max_wait )); then
+ 			echo "completion timeout for $mem"
+ 			err "$LINENO"
+ 		fi
++		sleep 1
++		waited="$((waited + 1))"
+ 	done
+ }
+ 
+@@ -149,7 +147,7 @@ test_nonblocking_update()
+ 	mem="$(find_memdevs 1)"
+ 	json=$(do_update_fw -F "$file" "$mem")
+ 	validate_fw_update_in_progress "$json"
+-	wait_complete "$mem" 15
++	wait_complete "$mem" 30
+ 	validate_fw_update_idle "$("$CXL" list -m "$mem" -F)"
+ 	check_sha "$mem" "$file"
+ 	rm "$file"
 -- 
 2.34.1
 
