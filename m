@@ -1,158 +1,54 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.195.45
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795381955;
-	b=3ciTIIpSNVcipnsN99BRQ/mMdnwCUD0TkgiECL14WoRigAf52hRNTalfdnJ1oY5oTtqt
-	 e2Gnd1X8u6uikxcGPVRlOqTaZxe0/dVl8P8I9Bc6LH6ED0MoJUMFTdBEMcLBwjMa1XecU
-	 iH71PGQuRjClOuP+FpunwOUeHQsl4EmB81/na9WGgOf3GvxKCNAsoyqqkXA/jQjxT2ZEn
-	 l6TAEtvjaCMtz7rXBgZKwv57LVuFwXglZlPY/HkDbobCXolJlVjW/dFoIZy2+LgNXh0Oz
-	 mUgkROs8fa/QtxICwAQNmvR/o5fzNnunPNugBA+Ay8v7dK5jFEZjMuj0Y9BfFSrTapg==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795381955;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:Date:From:To:Cc:
-	 Subject:Message-ID:References:Content-Type:Content-Disposition:
-	 Content-Transfer-Encoding:In-Reply-To:X-ClientProxiedBy:MIME-Version:
-	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
-	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
-	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
-	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
-	 X-MS-Exchange-CrossTenant-UserPrincipalName:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=5dXpHbsCwZA0kvg/byCaQokRceHG2Kc5PP29z/ePbVg=;
-	b=uHIlJ62ApCrljoKVLlNHk9fdqm+osQVn+s6u1P6eyqmscS/7lSC6MkDV8VCv4E8BUPgu
-	 AC88r/WzQcgSKTWLxFvWoFy2+brKqqPx3tvFUZgfQrlwNjE5swFfuNMwfa+6cDKVU7+eW
-	 VuJy4+Fc9u6fFrTWVUBSb6+JElV8IbgT8LpYvDrIsFXABKAH2V7JS4F/zsF2s6q/se70H
-	 Trx21NWDkKCBieUJHd+GfwXJsUt//GOQhgBxCmv6sn8z/3/hqGBg/ptEdotN2jvn8f0EQ
-	 qKASUFwdN97tE66+SeFG5VzdvvGuQUSCMfb95EF7N9xSlQCSev0Erml7vZm35dYdDnQ==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=nvidia.com;
-	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=O1bwyTfE;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.195.45
-Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11012045.outbound.protection.outlook.com [40.93.195.45])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.215.58.195
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1795397309;
+	b=jiMdyMmxZLsVIqhiwUpQyIB3QnN624UNEazM5f6YkhbJAtVIJGuXIsNiVHQJI2eKm5lG
+	 JsKi2ar1qqKEW3C8jyEs+y/czGsoeWSEZcuiTzlyrzo0DhPAd/FCmB9CmKpSg6vx4rpu7
+	 9NmGj4mjB3YyOhQrCYG5H8IwhSzKvWsr/e5vtNt1tZRHORGS8Frv4THO68MDJ3ZZdvcDB
+	 i4oucL3mbRiom/ORX79ubP6zKb5K9Ep8+lgTdHypv0+dcRVyGIQJAn8iO9gNWYHjSHGhc
+	 1mVZa+AZln7ri2eaCLp3EPln8VmOs+POJc5KWjdscAhs3ztop9x8u9wFxI1or1f4mlQ==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795397309;
+	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
+	 X-Mizu-Trace-ID:X-Migadu-Flow:Message-ID:Date:MIME-Version:User-Agent:
+	 Subject:To:Cc:References:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=3nVlInPmwKkJl4MGaIbIDMUH25e+EWVO33tmlKLpUuQ=;
+	b=AYpnJZ3wA4tbzLuADzxhvjvm932df9c7TBfSFJtW7T9cyWIZzgQm16tXWpLMQEj+oXR+
+	 QBIMv8+6czZPAPF6fB6sp0X8/0AraqVcfK03FfxKCxCl1CXHUb1PHhPFiwhhUz4PUYBF3
+	 9yVRCa3dlouvSQREiYn6tv5FqnCc1TrkVaMEtycSmzqg4wsv8HeUiAmgJC+8TvhemGHQH
+	 OapmQ3bwKYyywwEfU+/+1VEy9rn/sZuOuZoXrzZxyUdt+35I36dEjpEO07EObA6XqUGPL
+	 +l3UJLSpKEsCNP6J6Haf9AgHaAuzLNjeoTVTJld0JWaVYZ1Oe30g8gqEMnRMPZZo0Kw==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=linux.dev;
+	spf=pass smtp.mailfrom=linux.dev;
+	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=HFXJi+iV;
+	arc=none smtp.remote-ip=95.215.58.195
+Received: from mta1.migadu.com (out-195.mta1.migadu.com [95.215.58.195])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B99B5606A31D;
-	Sun, 22 Nov 2026 21:12:34 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B99B5606A31D
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0408606A327
+	for <nvdimm@lists.linux.dev>; Mon, 23 Nov 2026 01:28:27 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B0408606A327
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=O1bwyTfE
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=lVuUeonjHJzX6hy1X1OcEVKH5ThoVKGNM5hQ2elvE1J6E4pPVR2sBt+7ugzx6Lwv3rQznykdvwcPpVmIyMT/mk4w/3lp6Bo5k+BMatvv178J3+7HKfO/JVSsHaUk3WoYbnA0SuGCs0bQNHXlNmZRep6AnmXTZC2E6vq6SUlFdoeUCN4hKZRftg44dNiyjVrgCJaVNiIx3u3KV4rcT/e8ZNaEWGRLPEOoUi/PIICXcyQYDfaeISzRhIgnk5QJJFCrn7Fi7IVWnxBiku1Z85F2qMYxy5gadKLOrcK+4QRzXXXPcMfBjN93AF1W2Y+sZ2mp/l7QEEzKuND5LvWxUfKigA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=5dXpHbsCwZA0kvg/byCaQokRceHG2Kc5PP29z/ePbVg=;
- b=s7SMN4UGTc/84Gkl+JYcxgmfLa0MNKNRd63uBDqe9vjm0O25E06+Fczg18ppOy62KJA0pV5Vqjt3WSp2eZByjAiOJOwTXXU8bAAmeuJt3XZ0rbeceQxpnCzcQ4ZcxRPu4diZOI8Rz/jI+68slfBFaLjdcioevX0bzPJM+TsxngHQhtEkEfbkZXyb+XDx1dOTvzv0L3Ccsk+s045jpHStW+7bceFTDicDpc69qOTNI2wBwYVHWS8IQPQBFaGZ05e73my8qrTivTHQwbD3JgB5dcjZPFEISlA0LbEHQRuf7wslMsyofHlwExEjUL6W0z39S2KvpqhJ7QPFeCngKtH7ow==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=5dXpHbsCwZA0kvg/byCaQokRceHG2Kc5PP29z/ePbVg=;
- b=O1bwyTfEdzUXQzowi6rkQG4HrlTtI7bRNuCjNpexC6Bud8xSGzc0M4Vc9jrWjtgVjwBOg9UMYL07ZurxFo4aydVheJvabD8YOrNg7gDsjF8bhSu1GE3CoE0lkdVI+XMlsUoRktaRzBo9I4q/07K/V2R3xEzSldG2Ffv9Kk+mPto3eOmhKtEP20kh/DCqRgS7JixrPNd5RzvzdSNcAweNuxTKKeGyihVo8g0UPqIcXaPz/yWK874R/v5UzNvxCeE4dQokrz2kHaXvWhCVfKnsAILjXpdeI9pMYQ+tHAnkCWOmkbltLe3q4t8zxzYafIRLNNo4D2hS9lfENxt5q+oiTA==
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from LV3PR12MB9356.namprd12.prod.outlook.com (2603:10b6:408:20c::21)
- by SADPR12MB140239.namprd12.prod.outlook.com (2603:10b6:802:101::19) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.639.13; Sun, 22 Nov
- 2026 21:12:30 +0000
-Received: from LV3PR12MB9356.namprd12.prod.outlook.com
- ([fe80::1c36:31b4:c420:6286]) by LV3PR12MB9356.namprd12.prod.outlook.com
- ([fe80::1c36:31b4:c420:6286%4]) with mapi id 15.21.0639.012; Sun, 22 Nov 2026
- 21:12:29 +0000
-Date: Sun, 22 Nov 2026 16:12:28 -0500
-From: Yury Norov <ynorov@nvidia.com>
-To: "Gregory Price (Meta)" <gourry@gourry.net>
-Cc: Yury Norov <yury.norov@gmail.com>,
-	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-	David Hildenbrand <david@kernel.org>,
-	"Liam R. Howlett" <liam@infradead.org>,
-	Vlastimil Babka <vbabka@kernel.org>,
-	Mike Rapoport <rppt@kernel.org>, Michal Hocko <mhocko@suse.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Oscar Salvador <osalvador@suse.de>,
-	Johannes Weiner <hannes@cmpxchg.org>,
-	Suren Baghdasaryan <surenb@google.com>,
-	Brendan Jackman <brendan.jackman@linux.dev>,
-	Zi Yan <ziy@nvidia.com>, Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>, Johan Hovold <johan@kernel.org>,
-	Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>,
-	Ying Huang <ying.huang@linux.alibaba.com>,
-	Matthew Brost <matthew.brost@intel.com>,
-	Byungchul Park <byungchul@sk.com>,
-	Alistair Popple <apopple@nvidia.com>, SJ Park <sj@kernel.org>,
-	Ingo Molnar <mingo@redhat.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Juri Lelli <juri.lelli@redhat.com>,
-	Vincent Guittot <vincent.guittot@linaro.org>,
-	Dietmar Eggemann <dietmar.eggemann@arm.com>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>,
-	Valentin Schneider <vschneid@redhat.com>,
-	K Prateek Nayak <kprateek.nayak@amd.com>,
-	Kees Cook <kees@kernel.org>, Kairui Song <kasong@tencent.com>,
-	Barry Song <baohua@kernel.org>, Qi Zheng <qi.zheng@linux.dev>,
-	Shakeel Butt <shakeel.butt@linux.dev>,
-	Axel Rasmussen <axelrasmussen@google.com>,
-	Yuanchu Xie <yuanchu@google.com>, Wei Xu <weixugc@google.com>,
-	Baoquan He <baoquan.he@linux.dev>,
-	Baolin Wang <baolin.wang@linux.alibaba.com>,
-	Michal Hocko <mhocko@kernel.org>,
-	David Rientjes <rientjes@google.com>,
-	Pavel Machek <pavel@kernel.org>, Len Brown <lenb@kernel.org>,
-	Nico Pache <nico.pache@linux.dev>,
-	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>,
-	Lance Yang <lance.yang@linux.dev>,
-	Usama Arif <usama.arif@linux.dev>, Kiryl Shutsemau <kas@kernel.org>,
-	Xu Xin <xu.xin@linux.dev>,
-	Chengming Zhou <chengming.zhou@linux.dev>,
-	Lorenzo Stoakes <ljs@kernel.org>, Pedro Falcato <pfalcato@suse.de>,
-	Jann Horn <jannh@google.com>, Chris Li <chrisl@kernel.org>,
-	Kemeng Shi <shikemeng@huaweicloud.com>,
-	Nhat Pham <nphamcs@gmail.com>,
-	Youngjun Park <youngjun.park@lge.com>,
-	"Matthew Wilcox (Oracle)" <willy@infradead.org>,
-	Jan Kara <jack@suse.cz>, Waiman Long <longman@redhat.com>,
-	Ridong Chen <ridong.chen@linux.dev>, Tejun Heo <tj@kernel.org>,
-	Michal =?iso-8859-1?Q?Koutn=FD?= <mkoutny@suse.com>,
-	Dan Williams <djbw@kernel.org>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Shuah Khan <shuah@kernel.org>, linux-kernel@vger.kernel.org,
-	linux-mm@kvack.org, linux-cxl@vger.kernel.org,
-	linux-doc@vger.kernel.org, driver-core@lists.linux.dev,
-	damon@lists.linux.dev, linux-pm@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, cgroups@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-kselftest@vger.kernel.org
-Subject: Re: [PATCH 00/60] Private NUMA nodes
-Message-ID: <awNavE8dAGr-amfQ@yury>
-References: <20261120-private_nodes_v6-v1-0-74f5f9a115c2@gourry.net>
- <awMdeK8O-5mffg2m@yury>
- <179537469194.412063.13456998694958645706.b4-reply@b4>
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <179537469194.412063.13456998694958645706.b4-reply@b4>
-X-ClientProxiedBy: BN9PR03CA0970.namprd03.prod.outlook.com
- (2603:10b6:408:109::15) To LV3PR12MB9356.namprd12.prod.outlook.com
- (2603:10b6:408:20c::21)
+	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=HFXJi+iV
+X-Envelope-To: nvdimm@lists.linux.dev
+DKIM-Signature: a=rsa-sha256; bh=yfkDOFNangaKsew0JIB+tHmbNmAGU3mvMCj7TinFEwA=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1795397305; v=1; x=1796002105;
+ b=HFXJi+iVfgmqTCIRPIxX4n5w2KGjTayE6KuyYt42eqaZJ03ZOaxoubQ3tpkB/1aabwoJrRu1
+ l7vhJdqbDNb2WnBAJoEjY6D3PYH78e2KJ8WzrsY/mpOTbtVe5LeGG7MyJwPFRF9TQb0e7S7Ig/f
+ N8y/Hi81NRbbH4uD4jenQA5g=
+X-Envelope-To: nvdimm@lists.linux.dev
+Received: by smtp.migadu.com with ESMTPS id 20b39d6dbaa3b65f;
+	Mon, 23 Nov 2026 01:28:25 +0000
+X-Mizu-Trace-ID: 20b39d6dbaa3b65f
+X-Migadu-Flow: FLOW_OUT
+Message-ID: <e9860ead-c5f3-4dd0-beaa-d92396c266d9@linux.dev>
+Date: Mon, 23 Nov 2026 09:28:07 +0800
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -162,130 +58,181 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 List-Owner: <mailto:nvdimm+owner@lists.linux.dev>
 Precedence: list
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: LV3PR12MB9356:EE_|SADPR12MB140239:EE_
-X-MS-Office365-Filtering-Correlation-Id: 3c70776f-1524-4c64-40c7-08df48dd5123
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|10070799003|7416014|376014|366016|1800799024|10067099003|4143699003|5023799004|11063799006|56012099006|261009223027099003|261022075727099003|261022105027099003|261021121427099003|261102123227099003|261026121527099003|261026140227099003|261028144727099003|18002099003|22082099003|6133799003|3023799007;
-X-Microsoft-Antispam-Message-Info:
-	9gCBtPNnzfkQsU5GjDnnYwSa2mDQD6GUGZUsKRsNEliR2IwFOgSUumiZRHIA6ta/8RvHQ7Cwir/qFe6Dmx9x/gdyj/Zu7SGSR5AWOhCbAdUVEXtADDCZDYafbrurBJktxi6cQCQLhaHNrfMYvTsBysm35HvRpxkyYHnFuM6886ElkbnuFLTNxW+3qCkFhOmE4rU4mSqonJ6voprNobIkAfjwAfjMp/2WFmtLBBrhj1NuZmdyjWi5r/zmC0dpueyQbQdIiCiCvcINIcsHFd6FCwPJFDxzl7XSAZo2M6mo56P50E+1e2cCWxBj5+bu8WcrZ55UzmCL8csipY4xuRNRo0C2UV+r6mIwRgyDWSTOwjJxmSrQU5LKjS4EtyMQDLJUtkURzg6JK/we6lKUwpLpW7WUJ46nsIUI0ISwfiBke5BqiFuBDfubVVQgOKllXozGsxwmodhkYDvitHhwMaM6YyMLP+giHj65QeYWdXny6N6WSER08IVIjcsScnCLXtix+0JJAQtzRI80bCxGrccZIcWUH1VALB1drlC238PAXcYA25tJRVBKx42EWGYopqv3QnwYkHOAX4IxjI0SjsTfrKpL7koQKAmaxqOewYwTAZvaFgfLahVaaMffmjXcn7uX09ggR6QreKk286Aj8tUfmIkbMy4nY4cz9IhY2JzIKfA=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV3PR12MB9356.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(10070799003)(7416014)(376014)(366016)(1800799024)(10067099003)(4143699003)(5023799004)(11063799006)(56012099006)(261009223027099003)(261022075727099003)(261022105027099003)(261021121427099003)(261102123227099003)(261026121527099003)(261026140227099003)(261028144727099003)(18002099003)(22082099003)(6133799003)(3023799007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?RFFvVWphL1o4a28rQTBvRC82bWRXWXBUZkgvcG1BVEZmaFpCbGVpd1lIOFpZ?=
- =?utf-8?B?dUgzcERHYlVxQ2RaZHJaY0Z2ODl5RXdxbTJwNHhtRlUvWlZheDdMeUFmNWVu?=
- =?utf-8?B?VHlCR3l0T2swemZPUE1QQW1ub0pJaktZTWtSNE00SUlHd1kzbTJ5N0kxTkJY?=
- =?utf-8?B?VUlPOUltcUxHV2dJcXgyKzNxSy91R2VZUG9xNnRGYkRNZktwcmsrYUpTbjdy?=
- =?utf-8?B?Nk8rUFhaZitVdzBvS0gyRnpxOW5EUVFCbVZjUk9oSUpqWnJ5Z3BORFNML1dj?=
- =?utf-8?B?NzVpaGFHQStMbk54TWxSMGVZSmRxOVhxWDhOUGh3V1o2cnhGUGN6Z1BJcWFL?=
- =?utf-8?B?dkF3WGVkUkNkQ3ZpeVdTYmJtQUlnRjNhYk5RZUw0WkJrd2pidTBPQ1AvQ0lj?=
- =?utf-8?B?bjhuVWVoQzBxemk5UHF3R0ViUjFIaU40TWNXTUNIWnBFZVJyWDlNR2wyMXVy?=
- =?utf-8?B?S3VyU0Q3cVlFbmpGQkxvUFNKTEhUd2QxRFlPUEU2ZUpkWGNVbmNnN2lOY1JK?=
- =?utf-8?B?YWRpU0RVNXM1aGVLL0RKS0FaTVFWL3FtQmxxYU9Db0JNMjI3RzJJcDlyR1E0?=
- =?utf-8?B?MnY4ZmRWL2RIS2RGWDBwdG8vQ0N5RzhJbFlFM29QdnprRUNhOWhFYjgwVjhG?=
- =?utf-8?B?VnRydUVDR2FXNCs1OXZSWjh3WEd5TGFCdzNPdWpuSjR1Ym1NRWZERm1PV3c2?=
- =?utf-8?B?cUFmbjRORk05Q2JJc29MTzN0QkdoUVBBdE1tQVZpMXdRRXhGNStzMnZlaGRz?=
- =?utf-8?B?eisraHNnWWdPa1I3MDIrSVB2S3FZYzNLT1pWRnBZVlYwMUVlQmxUUURxU1c0?=
- =?utf-8?B?WmpEZWh4OVF2V0JXS3BVSEFyZTNKZnRXSy9DT0V4TTlQREFIdUFCNHpuejBE?=
- =?utf-8?B?anc4WUZDVytEVFAydmR2VWF4dGhRU3ViWkwyaUREZWJERmR0QVhla25HVVNR?=
- =?utf-8?B?dHdXcjNmR2dKRGxGWWZ6SHVaSEZubHhtZitBbGNqQmQxSlY2Tlg4M1ZxM1hr?=
- =?utf-8?B?cy9BZU1CTndhc09ZVkNLbGFJcmF2YmVuakU4ckRrdG9TUm9OZTlHamNNVlgw?=
- =?utf-8?B?Q1VCWVRXazJxVU4yZFNDbm9XWHhraE1Pd0tkKy9sMWJBeXRVQXRJckV0NTVE?=
- =?utf-8?B?T0VONVl0NWl5N2JLRmY2czdqOGhid1VRZXFURkNMZ3B3TXhsbVlMdmhTMDNw?=
- =?utf-8?B?ZEQ5WkVqOWwxY3ZSVktyS1JVNGdRbzZqYjdISEcyZjhiYmpkTTF5Z2Y5RmR6?=
- =?utf-8?B?bUc1Yk5HaU4wa0RHbk8rN0dqNStOZlI0a0Ric01KV0F0QmNWdXROK2ZvN1l3?=
- =?utf-8?B?ZVRscWtxdDFZS2gweHRIMTkzbXFzcTRiV011RDNYdGNsN2dwclhjdjE5dEQz?=
- =?utf-8?B?MzBWd0w1bHc2UnJmNUI5QTY4NUI5bXlMT2NNeW56TVJRVm5wQW9KbXJhZ2wz?=
- =?utf-8?B?SUxEYzZRNE1XcDdBN3JFZkNTT3dmTnV1NDVvTUdFeVExaE9ETGpSQjVGTmRI?=
- =?utf-8?B?Ty8vZFB0OC9NbnFVK2FTTnc5aVEvQk80VmVKNGx6QmdlR3lrY1RSSEQ0Y002?=
- =?utf-8?B?RStzVTdYOXRIQnJXaFdadnJxQ3ZKc2JlWjhLRnZJcm1ldU5sRkp6VnJIVlJX?=
- =?utf-8?B?NlNnOGNIcThKdUgzUmJvUkNGbFhxVTRhaEdiVzBBZnA0YVNsL0IrUkQ5bXlB?=
- =?utf-8?B?R3JQWDBRUEk3U05oMFVkdWtuVnhZbHhQalpIS1doQnVpZzk5SlQ3eGhvSXho?=
- =?utf-8?B?VmFpRHZ5Qmg3cTFMSHYwUUdzL0NybTczM0hzZXRnbEtXU25DMktOWER0Mzkw?=
- =?utf-8?B?TTkwd29tOUl4eVQxbjdLN1E2bVdRSDYrR01GNU9sVG1Wcm5nSFFCODNNeG14?=
- =?utf-8?B?YlltUWdIditucC9kajJVUFRmMUdlSFFoaFJoZU9QWTdkeStCZHlMczFwaU1n?=
- =?utf-8?B?YUxRZE5EL2pjcHh2ai9uelo3KzJTUWpDS2Y2bjBKZEx3a2ZzV3dTS3JEWGJx?=
- =?utf-8?B?YW5pYmtmU2ZsalJjVlJmQXVKdy9vWTZ5Vmh5SGIyVm9aMklvOEVoOG5mMmR0?=
- =?utf-8?B?UXkwb2V2RkpUTVhNbmxYMUo4d1hHWE9XRmU1V1p0L0xzZDBib2ppa0owekRo?=
- =?utf-8?B?NUhuelJ3ejJVSTFTUlpHNlhiQVUzRkFWajZISjZlL2YwNmxnclN1SThxc1ZF?=
- =?utf-8?B?eXVpWXBZWHVwNWY0dDkvL2FoKzZBcVpqbThsbVZiTC8yQ2FhS0JFZ0NsNFJZ?=
- =?utf-8?B?SXVwZisza1IzMXBOWDhTaG1kTGQwem5iZWw5Tll2MU5mMkRuUlZCTHo4bnNp?=
- =?utf-8?B?M0prejdPK3RDM0IrTXdVb2FwbjlaWEdLanVxUjEwQUwvR3Z5YVhQc1ZhQ1ZO?=
- =?utf-8?Q?fyrFrjyuGOLLwaJtiv2LkhY3yhs/kdPf4iyM4?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 3c70776f-1524-4c64-40c7-08df48dd5123
-X-MS-Exchange-CrossTenant-AuthSource: LV3PR12MB9356.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Nov 2026 21:12:29.8862
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 9PI6Nz4kQxZ8iurdT0IkaBNBC+ca8r7TxNtVBgEkOwekPnVnnLgiqU1SUv41bgvIBZknHXYGfMvCvHet+EoWVQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SADPR12MB140239
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH v2 6/8] fs: add FMODE_CAN_DMABUF_IO and require it for
+ dma-buf I/O contexts
+To: Christian Brauner <brauner@kernel.org>, Christoph Hellwig <hch@lst.de>
+Cc: Anuj Gupta <anuj1072538@gmail.com>, Nitesh Shetty
+ <nj.shetty@samsung.com>, Jens Axboe <axboe@kernel.dk>,
+ Sumit Semwal <sumit.semwal@linaro.org>, christian.koenig@amd.com,
+ Philipp Stanner <phasta@kernel.org>, Dan Williams <djbw@kernel.org>,
+ Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+ Alexander Viro <viro@zeniv.linux.org.uk>, tytso@mit.edu,
+ Andreas Dilger <adilger.kernel@dilger.ca>,
+ Baokun Li <libaokun@linux.alibaba.com>, Ojaswin Mujoo
+ <ojaswin@linux.ibm.com>, "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>,
+ Zhang Yi <yi.zhang@huawei.com>, asml.silence@gmail.com,
+ Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>,
+ Randy Dunlap <rdunlap@infradead.org>, linux-block@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+ nvdimm@lists.linux.dev, linux-ext4@vger.kernel.org,
+ linux-xfs@vger.kernel.org, linux-doc@vger.kernel.org,
+ linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+ linaro-mm-sig@lists.linaro.org, Li Wang <liwang@kylinos.cn>,
+ Mengmeng Zhao <zhaomengmeng@kylinos.cn>
+References: <20261113070621.273953-1-mengmeng.zhao@linux.dev>
+ <20261113070621.273953-7-mengmeng.zhao@linux.dev>
+ <20261120-faust-bohnenkraut-reduzieren-a30811186a15@brauner>
+From: Mengmeng Zhao <mengmeng.zhao@linux.dev>
+In-Reply-To: <20261120-faust-bohnenkraut-reduzieren-a30811186a15@brauner>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Sun, Nov 22, 2026 at 02:11:31PM -0500, Gregory Price (Meta) wrote:
-> On 2026-11-22 11:51 -0500, Yury Norov wrote:
-> > On Fri, Nov 20, 2026 at 01:08:51PM -0500, Gregory Price via B4 Relay wrote:
-> > > This is v6 of the Private NUMA node series. The series falls into four
-> > > parts, each building on the one before:
-> > > 
-> > >    1-18  mm: introduce N_MEMORY_COMMON
-> > 
-> > I walked through this part, mostly. It looks like you can substantially
-> > decrease the patch count if you keep N_MEMORY meaning unchanged, and
-> > add another type, like N_MEMORY_NOALLOC.
-> > 
+On 11/20/26 17:55, Christian Brauner wrote:
+> On Fri, Nov 13, 2026 at 03:06:19PM +0800, Mengmeng Zhao wrote:
+>> From: Mengmeng Zhao <zhaomengmeng@kylinos.cn>
+>>
+>> Add a file mode bit for files that can be the target of dma-buf I/O and
+>> require it when a buffer is registered.  Block device files set it when
+>> the backing disk supports dma-buf I/O, and filesystems can set it for
+>> inodes whose data can be reached without the page cache.  The bit is
+>> coarse: a driver that installs ->init_dma_buf_io_ctx for every
+>> namespace, like nvme, still decides per device at registration.
+>>
+>> dma_buf_io_ctx_create() is the only caller of ->init_dma_buf_io_ctx, so
+>> the capability and the O_DIRECT requirement are checked there for every
+>> file type rather than in each helper; O_DIRECT belongs at registration
+>> because F_SETFL can change it afterwards.  Add bdev_can_dmabuf_io() so
+>> the open-time and registration checks share one predicate.
+>>
+>> Signed-off-by: Mengmeng Zhao <zhaomengmeng@kylinos.cn>
+>> Signed-off-by: Li Wang <liwang@kylinos.cn>
+>> ---
+>>  block/bdev.c                 |  8 ++++----
+>>  block/fops.c                 |  2 +-
+>>  drivers/dma-buf/dma-buf-io.c | 13 +++++++++----
+>>  include/linux/blkdev.h       |  7 ++++++-
+>>  include/linux/fs.h           |  8 +++++++-
+>>  5 files changed, 27 insertions(+), 11 deletions(-)
+>>
+>> diff --git a/block/bdev.c b/block/bdev.c
+>> index 88e3f552f5d4..4e7a7f7e1e8b 100644
+>> --- a/block/bdev.c
+>> +++ b/block/bdev.c
+>> @@ -61,14 +61,12 @@ struct block_device *file_bdev(struct file *bdev_file)
+>>  }
+>>  EXPORT_SYMBOL(file_bdev);
+>>  
+>> -int bdev_init_dma_buf_io_ctx(struct file *file, struct block_device *bdev,
+>> +int bdev_init_dma_buf_io_ctx(struct block_device *bdev,
+>>  			     struct dma_buf_io_ctx *ctx)
+>>  {
+>> -	if (!(file->f_flags & O_DIRECT))
+>> -		return -EINVAL;
+>>  	if (ctx->dmabuf->size > UINT_MAX)
+>>  		return -EINVAL;
+>> -	if (!bdev->bd_disk->fops->init_dma_buf_io_ctx)
+>> +	if (!bdev_can_dmabuf_io(bdev))
+>>  		return -EOPNOTSUPP;
+>>  	return bdev->bd_disk->fops->init_dma_buf_io_ctx(bdev, ctx);
+>>  }
+>> @@ -1041,6 +1039,8 @@ int bdev_open(struct block_device *bdev, blk_mode_t mode, void *holder,
+>>  
+>>  	bdev_file->f_flags |= O_LARGEFILE;
+>>  	bdev_file->f_mode |= FMODE_CAN_ODIRECT;
+>> +	if (bdev_can_dmabuf_io(bdev))
+>> +		bdev_file->f_mode |= FMODE_CAN_DMABUF_IO;
+>>  	if (bdev_nowait(bdev))
+>>  		bdev_file->f_mode |= FMODE_NOWAIT;
+>>  	if (mode & BLK_OPEN_RESTRICT_WRITES)
+>> diff --git a/block/fops.c b/block/fops.c
+>> index 86bf1f298b79..7e5702e047a2 100644
+>> --- a/block/fops.c
+>> +++ b/block/fops.c
+>> @@ -1008,7 +1008,7 @@ static int blkdev_mmap_prepare(struct vm_area_desc *desc)
+>>  static int blkdev_init_dma_buf_io_ctx(struct file *file,
+>>  				      struct dma_buf_io_ctx *ctx)
+>>  {
+>> -	return bdev_init_dma_buf_io_ctx(file, file_bdev(file), ctx);
+>> +	return bdev_init_dma_buf_io_ctx(file_bdev(file), ctx);
+>>  }
+>>  
+>>  const struct file_operations def_blk_fops = {
+>> diff --git a/drivers/dma-buf/dma-buf-io.c b/drivers/dma-buf/dma-buf-io.c
+>> index 8440151de860..9575b7d65ec5 100644
+>> --- a/drivers/dma-buf/dma-buf-io.c
+>> +++ b/drivers/dma-buf/dma-buf-io.c
+>> @@ -152,9 +152,11 @@ static void dma_buf_io_ctx_shutdown(struct dma_buf_io_ctx *ctx)
+>>   * @out_ctx:	[out]	resulting ctx
+>>   *
+>>   * Create a new I/O context from the given DMA buffer for the given file.
+>> - * It only works with files implementing ->init_dma_buf_io_ctx and fails
+>> - * with -EOPNOTSUPP otherwise. Once created, the user can create a map
+>> - * and use it to issue I/O, such as read/write requests, to @file.
+>> + * It only works with files implementing ->init_dma_buf_io_ctx,
+>> + * advertising FMODE_CAN_DMABUF_IO and currently opened for direct I/O,
+>> + * and fails with -EOPNOTSUPP or -EINVAL otherwise. Once created, the
+>> + * user can create a map and use it to issue I/O, such as read/write
+>> + * requests, to @file.
+>>   */
+>>  int dma_buf_io_ctx_create(struct file *file,
+>>  			   struct dma_buf *dmabuf,
+>> @@ -164,8 +166,11 @@ int dma_buf_io_ctx_create(struct file *file,
+>>  	struct dma_buf_io_ctx *ctx;
+>>  	int ret;
+>>  
+>> -	if (!file->f_op->init_dma_buf_io_ctx)
+>> +	if (!file->f_op->init_dma_buf_io_ctx ||
+>> +	    !(file->f_mode & FMODE_CAN_DMABUF_IO))
+>>  		return -EOPNOTSUPP;
+>> +	if (!(file->f_flags & O_DIRECT))
+>> +		return -EINVAL;
+>>  
+>>  	ctx = kzalloc_obj(*ctx);
+>>  	if (!ctx)
+>> diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+>> index b98f43478cc0..0cfb6fb6b4e2 100644
+>> --- a/include/linux/blkdev.h
+>> +++ b/include/linux/blkdev.h
+>> @@ -1610,9 +1610,14 @@ struct block_device_operations {
+>>  	int (*alternative_gpt_sector)(struct gendisk *disk, sector_t *sector);
+>>  };
+>>  
+>> -int bdev_init_dma_buf_io_ctx(struct file *file, struct block_device *bdev,
+>> +int bdev_init_dma_buf_io_ctx(struct block_device *bdev,
+>>  			     struct dma_buf_io_ctx *ctx);
+>>  
+>> +static inline bool bdev_can_dmabuf_io(struct block_device *bdev)
+>> +{
+>> +	return !!bdev->bd_disk->fops->init_dma_buf_io_ctx;
+>> +}
+>> +
+>>  #ifdef CONFIG_COMPAT
+>>  extern int blkdev_compat_ptr_ioctl(struct block_device *, blk_mode_t,
+>>  				      unsigned int, unsigned long);
+>> diff --git a/include/linux/fs.h b/include/linux/fs.h
+>> index 99caef43ff3c..f5524fc770d4 100644
+>> --- a/include/linux/fs.h
+>> +++ b/include/linux/fs.h
+>> @@ -121,7 +121,13 @@ typedef int (dio_iodone_t)(struct kiocb *iocb, loff_t offset,
+>>  /* File supports atomic writes */
+>>  #define FMODE_CAN_ATOMIC_WRITE	((__force fmode_t)(1 << 7))
+>>  
+>> -/* FMODE_* bit 8 */
+>> +/*
+>> + * File can be the target of dma-buf I/O.  Set it for files whose data can be
+>> + * reached with direct I/O without the page cache: a dma-buf iterator has no
+>> + * pages to copy, so a buffered path cannot serve it.  The bit is coarse; both
+>> + * the device behind it and O_DIRECT are checked when a buffer is registered.
+>> + */
+>> +#define FMODE_CAN_DMABUF_IO	((__force fmode_t)(1 << 8))
 > 
-> I don't see how this would reduce the patch count substatially, you
-> still need to convert existing N_MEMORY users and need to differentiate
-> between general purpose memory nodes and private memory nodes.
+> This is stealing yet another FMODE_* bit for special-purpose stuff.
+> We're really really short of them. Did Christoph suggest this?
+Hi Christian, thanks for pointing out this. If I understand correctly, 
+Christoph suggests a new file->f_mode to allow dma-buf check in RFC v1[1]. 
 
-Please check this quick attempt with my codex. The patch count is reduced
-to 52:
+Hi Christoph, do you have any comments or suggestions? I'am happy to adjust
+this in the next version if there is a better approach.
 
-https://github.com/norov/linux/tree/private-nodes-v6-n-memory-folded
-
-The brief summary for dropped/simplified patches is:
-
-02    ->   dropped - State helpers: no publication/clearing helpers needed.
-06–11 ->   dropped - Migration, tiers, DAMON, scheduler, stack locality:
-           existing N_MEMORY checks already select ordinary memory.
-14–15 ->   dropped - Hash distribution, kswapd recovery: existing N_MEMORY
-           counts remain correct.
-03 -> 02 - Common-memory state: documentation only; no new state or sysfs
-           attribute.
-05 -> 04 - Interleave/tmpfs policies: only the three-line weighted-interleave
-           hotplug filter remains.
-12 -> 05 - Reclaim: only hotplug kswapd gating remains; iterator conversion
-           moves to the reclaim-state patch.
-13 -> 06 - Compaction: only system-wide/proactive filtering and hotplug
-           kcompactd gating remain.
-16 -> 07 - OOM constraints: only capacity-summing intersections remain.
-27 -> 18 - Private-memory state: expands to 16 files; topology/accounting
-           users must include both memory sets.
-31 -> 22 - Cpuset handling: requires ordinary memory while preserving
-           allowed private nodes in the returned mask.
-44 -> 36,
-46 -> 38,
-50 -> 42 - Service states: direct updates at boot,
-           online, and offline sites replace shared helpers, increasing
-           duplication.
-
-The new N_MEMORY_NOALLOC patch is not split intentionally. If you do it, it
-would probably turn into 4 individual patches.
-
-The more important thing is that N_MEMORY and the proposed N_MEMORY_NOALLOC
-is a disjoint, contrary to N_MEMORY and N_MEMORY_COMMON.
- 
-> And N_MEMORY_NOALLOC is not a good name.
-
-Sure, I'm not attached to any particular name. Although,
-N_MEMORY_COMMON nothing better to me. It answers the question
-'what for this thing' even worse.
-
-Thanks,
-Yury
+[1] https://lore.kernel.org/all/20261106104403.GC5668@lst.de/
