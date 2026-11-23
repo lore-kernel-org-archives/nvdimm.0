@@ -1,85 +1,85 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.222.178
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.173
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795421219;
-	b=hHrROm7Gtrn6+S4yJtR+6eTvP0VXCZSbae8mIQEG0qkECthlkh39U/owFL5ziTVmG6+A
-	 gdYxJfZfi858J7GglHyipcqmykR501O1bbk+N8uCBZmYS566XRYRsHQYN4rY4Njz+V4X1
-	 PeMXtYmsaHJ6XsoC88hbC/9L84gCaXcBBC0HRiWK71KfJwDDB7wCO66/nHBSbX8K831Wo
-	 8ABfPtrucjLnjuARa507sAcIq6YMIn1gDPhTnds73L56376fnicd1ih+kmV/SHpj1gxaH
-	 YZYI3gULEWrUGhILFPr25tTAsoKqsFGvrW5hPYsxFeGTF7450EJnay0UhWcCcOG5esQ==
+	t=1795442486;
+	b=oSUcccvs8iv24qpeVwYPeTXQw0biGUJ1osy3LZNAvbJAvMuYQ2jjofTMh86opP3uTUfK
+	 ci2H6cP8o9gkzC4mafKgwq3Zsrn27pqEGvV+n8qo9ZqnUJOUhNVgdD+N4jwSb95YAhjqV
+	 kF10xDWs4zqwdc/BCJQebtYD1Xi43ufdgXxnSoHq7/SwVtcBdm9OlLi588lvMZP06hDUb
+	 IzDfdAf/vTHCJRZlsMnUH4po4UrlTpLDJuYfEbPBSFmmq2pm4b6DSMQqbBJoK6IH5G0By
+	 AUnL+8NT4fBRKQRns4cB1BKxZ0K5jvEvKj2gc9aKLax+8DzSvNJWD1NvU/ztr0ypj1w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795421219;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795442486;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 MIME-Version:Content-Type:Content-Transfer-Encoding:Subject:From:To:
 	 Cc:In-Reply-To:References:Date:Message-Id:X-Mailer;
-	bh=GdWbto/GYuZDXyTvm+7T3nEGrjgUlN0uIoNMYNUd3jo=;
-	b=UBFPMWrFVPeXpdkx+EjL5vrsvyI7ffrBUv9RiScVS80thCKQ4dOe5qdmhAwgwbDYYCgY
-	 mHUou2oBGz0+xI1V5LLw33N6HJ3iU1aTVd9UIn29+WjYhpl+/+L/Aya1DNjSDGkN6U+u9
-	 oHNequVj4EOE9pRW9plfmGcLCbVa5/Tgny/m1XKQ2sRFhf7b4Gm//2lICRj3W1spjuaGA
-	 ucpVcnRnaEsT+JNqf2ML8DhkuQBhIQcM1ClbA1pEJWCja/ZkLoQTqPT/HRpbabDmLq7WT
-	 u8LfqE+r1FYu4iqsEoJ/fuYd6PJ/v8kKXymQ7QG/YAXmoxisvtuVOaxSJTtXOz1eRYw==
+	bh=vG8DGIHiY7DMGeo+eA0u14jrv8r12vq2uH5/qp0e+4w=;
+	b=j2fttcGsNTSGz5dFZFioErAreY1Af7qjLDqqSx8ws9cLL7XwhMHZsiAtAN4lhy6UYcbS
+	 JEBJ/pCjMvxf7+dmL7nwwSnoDdcd6HuqKD6Q7U4r3xhUbYbXALdIR7vc80/YSSpgF0oYw
+	 Q9VkzYZog5LkT/ZkCUYFsW2b2J4E6qsQexStSiYQ42TY1OZjMO81UxtCjxdMD22JJay3S
+	 hcTxYZIBuM+PlbxG8C0/xybbk/Pv7ceItKmBsB7x26KVxJn6++GdCe/+H/KFLR0KgH8a/
+	 etbOUKMYctgB1kn5JkPn92BcO10dFeCYLPUVmFo19b5T8Uw4hLBHNshz/Bd/GlEC2Zw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=gourry.net;
 	spf=pass smtp.mailfrom=gourry.net;
-	dkim=pass header.d=gourry.net header.i=@gourry.net header.a=rsa-sha256 header.s=google header.b=ES8E77xy;
-	arc=none smtp.remote-ip=209.85.222.178
-Received: from mail-qk1-f178.google.com (mail-qk1-f178.google.com [209.85.222.178])
+	dkim=pass header.d=gourry.net header.i=@gourry.net header.a=rsa-sha256 header.s=google header.b=q8bGqa60;
+	arc=none smtp.remote-ip=209.85.160.173
+Received: from mail-qt1-f173.google.com (mail-qt1-f173.google.com [209.85.160.173])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 531AC6071513
-	for <nvdimm@lists.linux.dev>; Mon, 23 Nov 2026 08:06:59 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 531AC6071513
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05C38606A334
+	for <nvdimm@lists.linux.dev>; Mon, 23 Nov 2026 14:01:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 05C38606A334
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=gourry.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gourry.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gourry.net header.i=@gourry.net header.a=rsa-sha256 header.s=google header.b=ES8E77xy
-Received: by mail-qk1-f178.google.com with SMTP id af79cd13be357-9496473b511so374274285a.0
-        for <nvdimm@lists.linux.dev>; Mon, 23 Nov 2026 00:06:59 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gourry.net header.i=@gourry.net header.a=rsa-sha256 header.s=google header.b=q8bGqa60
+Received: by mail-qt1-f173.google.com with SMTP id d75a77b69052e-5495d549924so38072291cf.1
+        for <nvdimm@lists.linux.dev>; Mon, 23 Nov 2026 06:01:25 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gourry.net; s=google; t=1795421218; x=1796026018; darn=lists.linux.dev;
+        d=gourry.net; s=google; t=1795442485; x=1796047285; darn=lists.linux.dev;
         h=message-id:date:references:in-reply-to:cc:to:from:subject
          :content-transfer-encoding:content-type:mime-version:from:to:cc
          :subject:date:message-id:reply-to:content-type;
-        bh=GdWbto/GYuZDXyTvm+7T3nEGrjgUlN0uIoNMYNUd3jo=;
-        b=ES8E77xy5J1mjqu9PTHksdjWWzSIiFOs0ddnHmx5o2/LzXeSps8NRvVkRdhPVLrORs
-         u5qVn3FIieSxsm306FgK/RwC8mAdOw1orpXMFh14uCNq9xP/17n82y83nmVw6SGPU7uP
-         KaCJ2t95xolF1X9nHa9OmhYt9kzupzCTMTiYU/SxkQQB2uwTAoOdB/lsT8nU6cCTD9KH
-         X3LLZCQXEtyUI4TQX1bjss/sd6scWd/PrsKTuniKZMdjWtqaLfmdt9Aj3BMoCgq+nbel
-         pCI4cY2G3vb9l8BrvYh+WtZV1C7lHTmV2vHU7kZ/msMBk5VT5MeNIj9aBGZ9fW/1/4Ie
-         3XaA==
+        bh=vG8DGIHiY7DMGeo+eA0u14jrv8r12vq2uH5/qp0e+4w=;
+        b=q8bGqa60ntCrElCV5H+yJq6B03U7STKlFxrqE0EGnfgaHxfULq4p+WeDBY9wBqL7Vw
+         JQOzbIyvs+iby1BRj/RhQnM2pg0ZoRUNKomO+UzmOAfYudOzLYNOebuDrWahy2txalcW
+         RsDdrr355wKIm9lC3fbnZt71fo1nT+WBkYOnN3y8TYTD8At/QMt3TFQC7BmvDD4B2m51
+         ZDcTxw4+qPnBb/UQgx9i9rFJOTvClGIiyuGhuQsvCTbu/LfolHgmcwMu5lpnfa+h1gaZ
+         AdePO2lZM/bQVfhwGRhCCkiGU+Kwwhxzs6gwQ75KT6WOt/3bbn17VyrOQyYOOBtghONh
+         yIPQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795421218; x=1796026018;
+        d=1e100.net; s=20260707; t=1795442485; x=1796047285;
         h=message-id:date:references:in-reply-to:cc:to:from:subject
          :content-transfer-encoding:content-type:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=GdWbto/GYuZDXyTvm+7T3nEGrjgUlN0uIoNMYNUd3jo=;
-        b=0PRNCnmfbLWn/OhD1PiFbu8I2+yXvN2Hm+MuwTJ/VyFMJoeJrYbUJdbrF6cPfTAUDS
-         cWSpM1aqRvXM4/njgzMHH+GsUFAsqJjxWDkbf677mqtVicKd+4JcNzXlG1RIL4R/X2Xm
-         yHPRxSfJm7YGmlmPs30ThXJXRCPHF75YYysebxs2DzWNcfmqE4DUsa1bNgSdypSAmkLT
-         xah7Xv0z/GwgC+GhbLiusu9XlUYYfnUl1TbsDU2p6aTuQY6PCQOzzyVUHcSx2kVowDTE
-         E5fJ6n1WJkOg3HfiN+RLllelmT/BNAFwmTT2rvTqOn53MSd8v6lsI2+2I30qYvh0JuRx
-         ZjEw==
-X-Forwarded-Encrypted: i=1; AL+hErFddrIR2g2EabKzUZZijUg009HGR8HxZ1Nymf1Z5+u7QbLTN9l2RnIIXO8aOyIG+vbdfJMIFLA=@lists.linux.dev
-X-Gm-Message-State: APuU4Z/eHS/MIIVr3OPB4+Vf650WP0Q5/szqDCXThxnc1SKE8qBkOKWx
-	Klm7giUtv9FZLIkYnwqGczq6ld/oAs4RmqrSLn5U3vKGx6b9XWR3Fw4AIKmcZQCLPsM=
-X-Gm-Gg: AZFdTZch45Ge7+QrWNCj2Ghw9uSqaWdrd0+Ge6KiqId3B/aYtkSrgVZ5bStYD0FMg/2
-	MS6530Y8aUs/DZenJFglB8pLrzaLOEPrBZaCGxSRMsLqLuLHnc4WkOHh1Y18hdxJs09ICA9AG5n
-	uqhV1Wwf7QzJkEdOfkh3BA8wafWmFxrYxB0nCt4HQ1JGe5z4encm8tjsRJ/FUfAVLV2rjAty7P+
-	J4Ktc128YAgAXeP2hb82Xlp9rjHt37YzTBCF1qvSRgHQvzeC3F8Dvd/5LkQdzLMzslRzoqeXf7/
-	etK7cUNq8UKjPCNAe6ZaoTiCpoBxmw9x0Jff8EM6Yj3lEFRFXHnY4facnteK1Gp5z6NHSO0j25u
-	vbuCoElFPxTDCgWm8Kv0Zm1t2unbI9NOE0hgO4zFRmEphukBa9Xu9bhJ7q69FVUgVJxCzZs0CqZ
-	gsJr6J1T1906KCQtK4jrAX+9u1OrHysHad7ERbKSTXhxde8siUz33Isxp4UGeIEW4bYEZRPboKH
-	695V38j8rWXy55ra/h1L3yipSXyQk+L8SqFur1qI8vuMPaZlRZ3pDRQCXYfVdhOvMy2ac9PLcb6
-	5gJrpr0eceiT8ulFZOYpJXYYLFpXdagV6alBNts5b/s6hSTnBBE18kNJhAiU2+8q3N1+yy637Kx
-	BNQDodBEYBh+kdDhnjNXcknRGHZmn
-X-Received: by 2002:a05:620a:4481:b0:93f:2571:bb6d with SMTP id af79cd13be357-949bab32ff9mr1727268685a.39.1795421218145;
-        Mon, 23 Nov 2026 00:06:58 -0800 (PST)
+        bh=vG8DGIHiY7DMGeo+eA0u14jrv8r12vq2uH5/qp0e+4w=;
+        b=pWuMUlbptDB8i0UXakhPHeV8cYh068jRNqlu0/x0rjrWK3KpVi5/gDTYh/lQFIY2AW
+         3zw72brVEaZr2Kx6iI/5a08Vnv/VSvg8luZq0bVSlwygmZzuoqQHpz0+pR+Qgv51eU7o
+         u+H059HYaKnAKuGc7dEOdJCTYyF0phFIAJpdStfAVh/S/le+po4oQjsD3LoRp1IhVwaZ
+         Sv1fiCjRsbOYc251JVEXc4KOAweEfmTk5pZL6Nvk7zA7MYn0tio0l0SawymdvMhiTqAa
+         GJftNTT1GCVUXWL0nGwEuv00M7MygNKjvSnRyZ0/qvP3FjPUCxdx4nCe7h3GOMI/ZKmx
+         qX8Q==
+X-Forwarded-Encrypted: i=1; AL+hErEyBaJL0j1mvigu69OAov7oqRaidwP14qGqISYlbPx3lFSlS3tWqso6hq0LIzpmRkagQQEA9to=@lists.linux.dev
+X-Gm-Message-State: APuU4Z8ng22Yism/+pVR3Y5+tTwfgKzEVMMOjzC+gEDG6xp3LM9onNFv
+	Co/tx84WMBvPjs2Dy8Rf1Ut9D2cQiAW8HEPEk87BNSmJgWDfBUGjRPPqmEsRZ60Z91k=
+X-Gm-Gg: AZFdTZenxW1/zoKCaIJRSKDiDnI/GN+M7RiMMVQB76wC8TSwEwQ+wDr/84L0Qf3BdT0
+	51+uekYLwJuts3YOBARA92DegwKKnq31Qpby99/4yOn7EvvE4pZjAX5i0BWK0XExYsVaqEhOAfw
+	QuzEa2dgyV+QOV84fmuf+UlnGWM4Hp3ZhzpcN+62zL9og2oAwXXKqSH9Yux+2GW0isSP8LqfG5J
+	5huWoYo6bvzt8JbOG3Rl4AuDdxeoW5E4AnZ1kHiiTo1JCLo7lD1sd7oUSFOR16P20KF9WK+pRPc
+	1sAw+SxgWq5WWPlIN/SGanD6XAAuDcBkw2Z1Mx7GdarQ1ZFwoC2iErvuycPuYXdNklL8INRZorB
+	TzVrybZACUtP3DVrkVGy7b17ia4S05Upu/iV52uKDoZcz9m6DTodoJKN1F175/73hPJZxHeFnVJ
+	rvzqIvt+3vt0yPgoXeOXgzFSc3JbUatk4Ifrlzy/jy7oh1/Kclk9kO1nLIBV1r2aL98S3JnPT1b
+	4Gm0jSn3RLYSZ64T+ISYAUSr0/2rDJYLHMp5gIDT1w9Qha8XPAVdedXmH5+EENf3JPKTGi8QH31
+	KO48Ry9C37uY4VLj8hyZQwTWZiIM/CxY/4wzIo2ZDMQgLqPQGW97ZNzL291XQHWDU7W8EfrwBJQ
+	mifD515c=
+X-Received: by 2002:a05:622a:8413:10b0:55d:8475:aafb with SMTP id d75a77b69052e-55d8475ad43mr113506371cf.71.1795442484804;
+        Mon, 23 Nov 2026 06:01:24 -0800 (PST)
 Received: from [192.168.50.231] (pool-71-191-145-202.washdc.fios.verizon.net. [71.191.145.202])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-949bb349db3sm745619285a.7.2026.11.23.00.06.55
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-55d788074desm99999281cf.7.2026.11.23.06.01.22
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 23 Nov 2026 00:06:57 -0800 (PST)
+        Mon, 23 Nov 2026 06:01:24 -0800 (PST)
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -91,11 +91,10 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH 00/60] Private NUMA nodes
+Subject: Re: [PATCH 01/60] nodemask: add node-state iterators
 From: "Gregory Price (Meta)" <gourry@gourry.net>
 To: Yury Norov <ynorov@nvidia.com>
-Cc: "Gregory Price (Meta)" <gourry@gourry.net>, 
- Yury Norov <yury.norov@gmail.com>, 
+Cc: gourry@gourry.net, Yury Norov <yury.norov@gmail.com>, 
  Rasmus Villemoes <linux@rasmusvillemoes.dk>, 
  David Hildenbrand <david@kernel.org>, 
  "Liam R. Howlett" <liam@infradead.org>, Vlastimil Babka <vbabka@kernel.org>, 
@@ -147,105 +146,84 @@ Cc: "Gregory Price (Meta)" <gourry@gourry.net>,
  linux-pm@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
  cgroups@vger.kernel.org, nvdimm@lists.linux.dev, 
  linux-kselftest@vger.kernel.org
-In-Reply-To: <awNavE8dAGr-amfQ@yury>
+In-Reply-To: <awMK9V6TbU9Xtzn9@yury>
 References: <20261120-private_nodes_v6-v1-0-74f5f9a115c2@gourry.net>
- <awMdeK8O-5mffg2m@yury>
- <179537469194.412063.13456998694958645706.b4-reply@b4>
- <awNavE8dAGr-amfQ@yury>
-Date: Mon, 23 Nov 2026 03:06:55 -0500
-Message-Id: <179542121527.412063.3452837736734095837.b4-reply@b4>
+ <20261120-private_nodes_v6-v1-1-74f5f9a115c2@gourry.net>
+ <awMK9V6TbU9Xtzn9@yury>
+Date: Mon, 23 Nov 2026 09:01:22 -0500
+Message-Id: <179544248227.412063.16491857533875192357.b4-reply@b4>
 X-Mailer: b4 0.17-dev
 
-On 2026-11-22 16:12 -0500, Yury Norov wrote:
-> On Sun, Nov 22, 2026 at 02:11:31PM -0500, Gregory Price (Meta) wrote:
-> > On 2026-11-22 11:51 -0500, Yury Norov wrote:
-> > > On Fri, Nov 20, 2026 at 01:08:51PM -0500, Gregory Price via B4 Relay wrote:
-> > > > This is v6 of the Private NUMA node series. The series falls into four
-> > > > parts, each building on the one before:
-> > > > 
-> > > >    1-18  mm: introduce N_MEMORY_COMMON
-> > > 
-> > > I walked through this part, mostly. It looks like you can substantially
-> > > decrease the patch count if you keep N_MEMORY meaning unchanged, and
-> > > add another type, like N_MEMORY_NOALLOC.
-> > > 
+On 2026-11-22 10:32 -0500, Yury Norov wrote:
+> On Fri, Nov 20, 2026 at 01:08:52PM -0500, Gregory Price via B4 Relay wrote:
+> > From: "Gregory Price (Meta)" <gourry@gourry.net>
 > > 
-> > I don't see how this would reduce the patch count substatially, you
-> > still need to convert existing N_MEMORY users and need to differentiate
-> > between general purpose memory nodes and private memory nodes.
+> > Add first_node_state() and next_node_state(), so callers can walk any
+> > node state the way first_memory_node and next_memory_node walk N_MEMORY.
+> > 
+> > Add for_each_node_mask_state(), which iterates a nodemask intersected
+> > with a node state using the bitmap intersection helpers, without a
+> > temporary nodemask.
+> > 
+> > Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
+> > ---
+> >  include/linux/nodemask.h | 17 +++++++++++++++++
+> >  1 file changed, 17 insertions(+)
+> > 
+> > diff --git a/include/linux/nodemask.h b/include/linux/nodemask.h
+> > index 607373bd83ee..90bdcffa42ea 100644
+> > --- a/include/linux/nodemask.h
+> > +++ b/include/linux/nodemask.h
+> > @@ -411,6 +411,11 @@ enum node_states {
+> >  
+> >  extern nodemask_t node_states[NR_NODE_STATES];
+> >  
+> > +/* Iterate the nodes in a mask that also belong to the specified state. */
+> > +#define for_each_node_mask_state(node, mask, state)			\
 > 
-> Please check this quick attempt with my codex. The patch count is reduced
-> to 52:
+> for_each_node_state_and? We've got for_each_node(), and we've got
+> for_each_node_state(), so let's figure out consistent naming.
 > 
-> https://github.com/norov/linux/tree/private-nodes-v6-n-memory-folded
-> 
-... snip ...
-
-Patch count is not what we want to be optimizing for here.
-
-Your branch carries the same code (+3 lines net actually).
-
-The patch reduction comes from squashing the per-subsystem conversions
-into one 16-file commit.
-
-It also broke get_mempolicy(MPOL_F_MEMS_ALLOWED) - it now returns
-memoryless nodes even if the system doesn't have a private node.
-
-> The more important thing is that N_MEMORY and the proposed N_MEMORY_NOALLOC
-> is a disjoint, contrary to N_MEMORY and N_MEMORY_COMMON.
-
-The proposal here is not novel - version 5 was also disjoint:
-https://lore.kernel.org/linux-mm/20260720193431.3841992-5-gourry@gourry.net/
-
-   N_MEMORY and N_MEMORY_PRIVATE are mutually exclusive states.
-
-I moved away from that because it changes the definition of N_MEMORY.
-
-The subset model is easy to understand
-
-N_MEMORY               - a node has memory
- -> N_HIGH_MEMORY      - subset of N_MEMORY
- -> N_NORMAL_MEMORY    - subset of N_MEMORY
- -> N_MEMORY_COMMON    - subset of N_MEMORY
- -> N_MEMORY_PRIVATE   - subset of N_MEMORY
-                         (COMMON and PRIVATE partition N_MEMORY)
- -> N_MEMORY_<FEATURE> - subset of N_MEMORY
-                         all N_MEMORY_COMMON
-			 some N_MEMORY_PRIVATE
-
-It's additive. Users pick the set of nodes they want for their purpose
-and don't have to cobble sets together or remember special helpers.
-Users don't even need to know about private nodes most of the time
-(mempolicy being the one major exception here).
-
-In the disjoint model, N_MEMORY no longer means "has memory". Recovering
-that set requires new helpers, and the meaning changes silently for
-every in-tree and out-of-tree user. Anything that wanted "has memory"
-quietly misses private nodes.
-
-Either way you have to audit each N_MEMORY reference and decide whether
-it wants that state or a feature variant (N_MEMORY_RECLAIM, COMPACTION).
-
-The difference is how a missed site fails. In the joint model the
-zonelist and the common-memory folio checks backstop allocation and
-access, so a missed placement site costs some additional work.
-
-In the disjoint model a missed site silently drops a node from stats
-and accounting - or worse fails to allocate per-node meta data.
-
-So no, I do not think we should go back to the disjoint model.
-
-> > And N_MEMORY_NOALLOC is not a good name.
-> 
-> Sure, I'm not attached to any particular name. Although,
-> N_MEMORY_COMMON nothing better to me. It answers the question
-> 'what for this thing' even worse.
+> Did you check the codebase for exsisting candidates for this helper?
 > 
 
-happy to wordsmith the names here.
+for_each_node_mask_and() would be more consistent, change just requires
+passing node_state[N_MEMORY_X] instead of just the node state bit.
 
-N_MEMORY_GENERAL? _DEFAULT?  _COMMON felt intuitive but I am happy
-to rename it whatever.
+> > +	for_each_and_bit(node, nodes_addr(mask),			\
+> > +			 nodes_addr(node_states[state]), MAX_NUMNODES)
+> > +
+> 
+> Please use nr_node_ids instead of MAX_NUMNODES.
+> 
+
+I followed for_each_node_mask() which uses MAX_NUMANODES but let me
+look.
+
+> >  #if MAX_NUMNODES > 1
+> >  static __always_inline int node_state(int node, enum node_states state)
+> >  {
+> > @@ -435,6 +440,12 @@ static __always_inline int num_node_state(enum node_states state)
+> >  #define for_each_node_state(__node, __state) \
+> >  	for_each_node_mask((__node), node_states[__state])
+> >  
+> > +#define first_node_state(state)	first_node(node_states[state])
+> > +static __always_inline unsigned int next_node_state(int nid, enum node_states state)
+> > +{
+> > +	return next_node(nid, node_states[state]);
+> > +}
+> 
+> At least the following {first,next}_{online,memory}_node must be
+> switched to the new helpers. Can you check through the rest of the
+> kernel to make sure all candidates of the proposed helpers are
+> converted?
+> 
+
+I originally intended to delete first/next_memory_node, to make
+usage of N_MEMORY a bit more obviously, but dropped it to save an
+extra patch or two.  I will probably add that back in.
+
+But yeah i can update these otherwise.
 
 -- 
 ~Gregory
