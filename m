@@ -1,141 +1,158 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=198.175.65.12
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.194.2
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795548672;
-	b=GGMQXmoiflhrscyeCm4ozKWsKfRYbRTexZZXgqf4PK+W+Lujy2s+bfohq9LPfvYCbUiI
-	 c1ScMK72XJymOTr/KGLEprOimrNvcSZ/MyMN+/2NlnMlNXX8niHvitinBcuVKnVbMplnA
-	 Mfzdzu2HqwAwLWw/C5Cvcj/pK8dhpnnE+NuwAiDOs30xkgzyzQoSa4rS/Pk1vRFK74TBM
-	 953QkS9dVE9OWZ/Pmhl953PjDl+/sHdBQJxKIqdig7+sjsq+Da1g3okyo4XvnujKvwUSh
-	 w1fQNBPJxwzvE4n7BXHR5Y7BAPUFGrQ6qP17TS42/CnaDk6CDWl2r6ovYoi+wLXEzSg==
+	t=1795554025;
+	b=lL+6Mv6ptD1zH+w+MgAjGdOU7Je6d6299T0VwYZvu6OyrWXfLLOFi17kh9UYh/w2c0La
+	 dyZne1nnh3EwLVetamLTt3vDpBAHPUj6gnPifSgH1XbrDRg4Y38DQbZ9S1kH6+KiCZg/f
+	 5C1h8vFiwA708E6kPLz0pHsqeLeyYsSobqFNQoQWpNekzKxIlRB2002catcpTvy1ZpE3i
+	 tZMk8VNya/xdmNTrSqup4jtx4jcJ8H9YL+VVYWV1O2Vp7OfdmqDpBtCdDTKf0isK8hhyQ
+	 UQvi+DIPKnLscwA9VK8jYygDwNKqOacMNuB983W45eyBnfqIRlWff0AOTuYyEwODRpg==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795548672;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Received:
-	 Received:DKIM-Signature:Received:Received:Date:From:To:CC:Subject:
-	 Message-ID:References:Content-Type:Content-Disposition:In-Reply-To:
-	 X-ClientProxiedBy:MIME-Version:X-MS-PublicTrafficType:
+	a=rsa-sha256; c=relaxed/relaxed; t=1795554025;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:Date:From:To:Cc:
+	 Subject:Message-ID:References:Content-Type:Content-Disposition:
+	 In-Reply-To:X-ClientProxiedBy:MIME-Version:X-MS-PublicTrafficType:
 	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
 	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
 	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
 	 X-Forefront-Antispam-Report:
 	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-Exchange-RoutingPolicyChecked:
+	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
 	 X-MS-Exchange-CrossTenant-Network-Message-Id:
 	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
 	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
 	 X-MS-Exchange-CrossTenant-FromEntityHeader:
 	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
 	 X-MS-Exchange-CrossTenant-UserPrincipalName:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped:X-OriginatorOrg;
-	bh=cHrjRYdZiS1oeaYurXSqOa64wD0VpLC26EH+ABbq6p4=;
-	b=vG96rLbw5+0kmuAeVj+sq5a9jOd72qA4fkC2XjZLzCWZZebMwUpHEHW23eay/le9GchF
-	 NFCfSXRvRXG+dCht1IG8smVLU8raaROHOPJRlM9vnO51mi+2q48R/5Jei76KeNyJ0Xcj8
-	 LmLh4GDj/shxFX0fC2xLH4x+xaw+w45ALNxGuvMLcj7eSjZXqSR4BgsRTyJDQ0dK0dSqg
-	 BZ8hvhM3yF66b5xghlcbqY7eMcTtuJatzL36SlQGHLWQ9cvpFnoIp36J+See0wZqCb7Xt
-	 lz2Wykbt0GXWrc844nmm4b9d1avprnCw0f6ggqtb3X/AqeCC23GEQ4OWgt95oXmd0ow==
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=jjv1mIIKh04y4Zd7iYGk4WPmgR8svfKmyDKnirK3Tdw=;
+	b=W4XJMzLeIWAr36QScw1a+0FQR4JqfJczgzKxO/Ply+5KY6D6hI3PyjavhNyYYyQhvIFT
+	 eXan52JzhYa/mQKYJ6C50ziQsrnnQ0rMPPW6+9Rj9/MiZZPPx5g9HfqZ4EWEI/JkH3nVd
+	 8N6DbWURXAQg+4LuwnoSQTIlfudYheFyevCQ+Mn32tPHWfGbEssr7ro0a2ThmHv2p/Ux9
+	 Jy1EjSGUdVGP030fs+IUw62ljjavEwwDYbQEQUzP8pplM553G5CwDsxMedc4EE0hu8nN+
+	 ZPBhTMK58LYAJi87D36L04GJg9d02xbF8kiA4Wv/obvoymBvC2z81mVuJVs7i04tzJA==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=intel.com;
-	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=OQKhm4Vn;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=selector1 header.b="M5UZ/K3t";
-	arc=pass header.oldest-pass=0 smtp.remote-ip=198.175.65.12
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dmarc=pass header.from=nvidia.com;
+	spf=fail smtp.mailfrom=nvidia.com;
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=s3l6xpxK;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.194.2
+Received: from SN4PR0501CU005.outbound.protection.outlook.com (mail-southcentralusazon11011002.outbound.protection.outlook.com [40.93.194.2])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B2AF606A321
-	for <nvdimm@lists.linux.dev>; Tue, 24 Nov 2026 19:31:11 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8B2AF606A321
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A314C606A33C;
+	Tue, 24 Nov 2026 21:00:24 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A314C606A33C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=OQKhm4Vn;
-	dkim=pass (1024-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=selector1 header.b=M5UZ/K3t
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1795548672; x=1827084672;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=Oq+G63g9gx7cIkx4u2hHFEJ3HEndkb3tP/kvkViC+GI=;
-  b=OQKhm4Vnsf7eEFUfrhSNI/bDM6DMdj6FyFi1tAAo6GYavP+GP0WKm9Po
-   ZRT/+VckwNfGhxcoNqWRvQtrM7Kkft4Z/vs7yBBcdzFS5y+RJqVutIEvZ
-   Qf70BZq+L6coopYshTxJgs7U21az5BaBMByFq07qjLVSgBP1+gZuVb/gC
-   Pn4t3Y4I1LJzaB2y56iQPqH273aug5gQ64FuNVLtbTtdg847sd9DdWYYx
-   lF1w1XSiXnre9XWtpFu1GMAtciwfn+D2I9DJ5DUdJi0S3/MKn0ZckyHcd
-   Q58s606kfFaP9ZM9r9MvEz2AEITrZ+44DSMqiMOWprq9nDPhBL6ELYalh
-   w==;
-X-CSE-ConnectionGUID: zee1DeybQ8Se3HhKR5/EWQ==
-X-CSE-MsgGUID: 2om30h8QT42Gnmw/tjgiow==
-X-IronPort-AV: E=McAfee;i="6800,10657,11976"; a="4304636"
-X-IronPort-AV: E=Sophos;i="6.27,231,1787036400"; 
-   d="scan'208";a="4304636"
-Received: from orviesa007.jf.intel.com ([10.64.159.147])
-  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Nov 2026 11:31:11 -0800
-X-CSE-ConnectionGUID: bFV+KjOvS2u/A2k4b17VRA==
-X-CSE-MsgGUID: 4g4YiW37RuiKcahjkpO8GQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,231,1787036400"; 
-   d="scan'208";a="11638305"
-Received: from orsmsx902.amr.corp.intel.com ([10.22.229.24])
-  by orviesa007.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Nov 2026 11:31:11 -0800
-Received: from ORSMSX901.amr.corp.intel.com (10.22.229.23) by
- ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.57; Tue, 24 Nov 2026 11:31:10 -0800
-Received: from ORSEDG903.ED.cps.intel.com (10.7.248.13) by
- ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.57 via Frontend Transport; Tue, 24 Nov 2026 11:31:10 -0800
-Received: from CH1PR05CU001.outbound.protection.outlook.com (52.101.193.15) by
- edgegateway.intel.com (134.134.137.113) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.57; Tue, 24 Nov 2026 11:31:10 -0800
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=s3l6xpxK
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=OYHaUB9zKU4Czbw6Onuif/cbtYi+ViO7dsXqH8yj+j9HYGLPXMbpDb2mEtwZ0sxvkEwHKAjakgJNKk8Y08gDzz6zASVsKfqQQF1ONVddiOfgQVVexLKA4KnC/vgzU6jC8e6M1YBfwecjSTGFWnpHDNd1RdaZUUzIBHYwTnhobH0hDMTuOTWLTsQC/7WFZjCeYkFe57ExCnRmhk3M67XW8KGENv7l003iXkyhSVMPdI7YUZfZGk37/wT79EGk+PQBsyFLQwigWIevd0WEZ0hLvPMFgBqdWUCNOiS+r/FCmQYdApei/itBQBcQ2+jmB1vilWnaxci9t1hi4lyqbIQMMA==
+ b=wzA/PFwNEYjYE62OyeMNBApiaqqduK4V0Ev1iac1jZtoH43rkf9+gtjXfkyHxK1FcWGYnVPvs8O8+a+iNMfZpLiedmxE5Lkr50pYF1bZ1QTQOpkc+yj0YibUvpuPOf+X2S69o8KBgc5v/Xh8Z/sCHUc4WI6Ub+fLp5Cdq5Dgc+Dfq/w3s3tNzGxPWBsIzIAs1RNzeC3mgrCiimK7gOHgBq7qV+uiqPWKiwkH+i06naZcd6kl60xbc3gzWPaeqrC2MLzyQ1NNhLX7WrJD0ZChSYKXRia3Swo0Pb5RYFkrVHs20D5UFNEWBRdITKM7fSdTzGMS2XH2q22FBAux/8K+GA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=cHrjRYdZiS1oeaYurXSqOa64wD0VpLC26EH+ABbq6p4=;
- b=v4CC/YO79xf9eguPAWR+uLPAiwsMGdCTlyMJfI42a1TZLVpV15hdtg2j/3F+I7zpGyST8Ps58j+MSauZfCvbP967fNqq/uUVCltM+9DCcoDuUfTstlvwN2mBZhKaacMGlgCVLsqxgNHiBV8ph/WqKBNRAaXqP86ueYGJ8jtwtSxlupUt7lrNrhRK0nDf3oMJVMEFFwahzYxqC4XCKDb8mKEZJ0wYF0KLk15NyNsPM/j3Xp+Dzc+NEkc91hXlSP9erWeVa6zh8pWFPy/xUd7ZfWvXEFV0XYY9rkqNrAwNGMVIcW3zsWVdkRnY+1vdBT1JwXZIeml7i52jDbB6/QkyCw==
+ bh=jjv1mIIKh04y4Zd7iYGk4WPmgR8svfKmyDKnirK3Tdw=;
+ b=YQwppcOu7iMkg+OsEZ05kUkzpStC4NKsxmcJGLjWtB+rkAChL8O8xNd+Ut/MlfaYxLM4wD+ir8CrKh6M3HAGgofF7s3o76/lrsAOFzjaKAEvn5OoUDch/Pf996KQ8UqItFL90Vz+XRUF0KXEoxy9ZYvkB1QOEJWRWsJg6Gv6WhIespinTRUZBD3872Km3FTKq1iKv1nrz9FsprKGr9k04nlgWyI7nAj5rp+uch41VZTtrd+VehhxAvdi1EcqhjWN+v10vxFXLd+GPqITqss21askUl7UdTGUF3AFHgihMfJJKTmb/XY4K5WigASIburqiIsIKpQu0sV1KQ4c5ip7zw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=intel.com;
- s=selector1;
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=cHrjRYdZiS1oeaYurXSqOa64wD0VpLC26EH+ABbq6p4=;
- b=M5UZ/K3tT2oiDo/IY6gtXNpmP4uBIoqpeFje1XL3L+7qmurjUmX7XuFavUnRJ5FZIvoCx8BHu+UgTtcdYFh5HV5MToiQ0n4io4bLdAi8OTIswfpsWkpKIO8dQBAS0QUvfu2mtdyr7vaq9qkzMWqHU+yV+VaHTOfN/XVwTOrvlzs=
+ bh=jjv1mIIKh04y4Zd7iYGk4WPmgR8svfKmyDKnirK3Tdw=;
+ b=s3l6xpxKdMnMnkuz9VhhUc/A7JThxawOeRqHcd7Ixq0xbwJPnOdbmmtgUk0XpkxFycDyfsWCGCUrEx7QSAEQY1650XvNOUBogVd1AcW+3PYPM/ecQMh8WxRGRh/H+qzJfztlgYbORrlF1zizIw7LWMuIfoeBVHuvmByF8khzQ6iwiwY3j4RFiBq3xQTLJYaJQ8HX7e60BXhKG4JHLctBPVnzCry7h8xIW6VxCdGS6gKTw3TW4ulq3nJfkwAtWmMPUxhk8Kp3/ohh3Ou2cUHDtNPGXT0MjljKwAkYrr2q9VTEJc3TUZNh+5AAdE9z0b/q0ABhSWL89uBgT1TQ/FcasQ==
 Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com (2603:10b6:f:fc02::9)
- by DS0PR11MB8205.namprd11.prod.outlook.com (2603:10b6:8:162::17) with
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from SN6PR12MB2814.namprd12.prod.outlook.com (2603:10b6:805:72::33)
+ by SA1PR12MB9245.namprd12.prod.outlook.com (2603:10b6:806:3a7::15) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.639.12; Tue, 24 Nov
- 2026 19:30:42 +0000
-Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com
- ([fe80::a1fc:97e0:329a:4aa7]) by DS4PPF0BAC23327.namprd11.prod.outlook.com
- ([fe80::a1fc:97e0:329a:4aa7%6]) with mapi id 15.21.0662.001; Tue, 24 Nov 2026
- 19:30:42 +0000
-Date: Tue, 24 Nov 2026 11:30:38 -0800
-From: Alison Schofield <alison.schofield@intel.com>
-To: Anisa Su <anisa.su887@gmail.com>
-CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>, Dave Jiang <dave.jiang@intel.com>, "Jonathan
- Cameron" <jic23@kernel.org>, Davidlohr Bueso <dave@stgolabs.net>, Ira Weiny
-	<iweiny@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, Fan Ni
-	<nifan.cxl@gmail.com>, Li Ming <ming.li@zohomail.com>, Benjamin Cheatham
-	<benjamin.cheatham@amd.com>, Gregory Price <gourry@gourry.net>, Richard Cheng
-	<icheng@nvidia.com>, Anisa Su <anisa.su@samsung.com>
-Subject: Re: [PATCH v1 05/14] cxl/mem: Add 20 second timeout for stalled DC
- event chains
-Message-ID: <awXl3lrb-Rd1Fofb@aschofie-mobl2.lan>
-References: <20261104230445.66625-1-anisa.su@samsung.com>
- <20261104230445.66625-6-anisa.su@samsung.com>
+ 2026 21:00:12 +0000
+Received: from SN6PR12MB2814.namprd12.prod.outlook.com
+ ([fe80::9a18:413c:9702:8f59]) by SN6PR12MB2814.namprd12.prod.outlook.com
+ ([fe80::9a18:413c:9702:8f59%6]) with mapi id 15.21.0639.012; Tue, 24 Nov 2026
+ 21:00:12 +0000
+Date: Tue, 24 Nov 2026 16:00:10 -0500
+From: Yury Norov <ynorov@nvidia.com>
+To: "Gregory Price (Meta)" <gourry@gourry.net>
+Cc: Yury Norov <yury.norov@gmail.com>,
+	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+	David Hildenbrand <david@kernel.org>,
+	"Liam R. Howlett" <liam@infradead.org>,
+	Vlastimil Babka <vbabka@kernel.org>,
+	Mike Rapoport <rppt@kernel.org>, Michal Hocko <mhocko@suse.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Oscar Salvador <osalvador@suse.de>,
+	Johannes Weiner <hannes@cmpxchg.org>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Brendan Jackman <brendan.jackman@linux.dev>,
+	Zi Yan <ziy@nvidia.com>, Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>, Johan Hovold <johan@kernel.org>,
+	Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>,
+	Ying Huang <ying.huang@linux.alibaba.com>,
+	Matthew Brost <matthew.brost@intel.com>,
+	Byungchul Park <byungchul@sk.com>,
+	Alistair Popple <apopple@nvidia.com>, SJ Park <sj@kernel.org>,
+	Ingo Molnar <mingo@redhat.com>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Juri Lelli <juri.lelli@redhat.com>,
+	Vincent Guittot <vincent.guittot@linaro.org>,
+	Dietmar Eggemann <dietmar.eggemann@arm.com>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>,
+	Valentin Schneider <vschneid@redhat.com>,
+	K Prateek Nayak <kprateek.nayak@amd.com>,
+	Kees Cook <kees@kernel.org>, Kairui Song <kasong@tencent.com>,
+	Barry Song <baohua@kernel.org>, Qi Zheng <qi.zheng@linux.dev>,
+	Shakeel Butt <shakeel.butt@linux.dev>,
+	Axel Rasmussen <axelrasmussen@google.com>,
+	Yuanchu Xie <yuanchu@google.com>, Wei Xu <weixugc@google.com>,
+	Baoquan He <baoquan.he@linux.dev>,
+	Baolin Wang <baolin.wang@linux.alibaba.com>,
+	Michal Hocko <mhocko@kernel.org>,
+	David Rientjes <rientjes@google.com>,
+	Pavel Machek <pavel@kernel.org>, Len Brown <lenb@kernel.org>,
+	Nico Pache <nico.pache@linux.dev>,
+	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>,
+	Lance Yang <lance.yang@linux.dev>,
+	Usama Arif <usama.arif@linux.dev>, Kiryl Shutsemau <kas@kernel.org>,
+	Xu Xin <xu.xin@linux.dev>,
+	Chengming Zhou <chengming.zhou@linux.dev>,
+	Lorenzo Stoakes <ljs@kernel.org>, Pedro Falcato <pfalcato@suse.de>,
+	Jann Horn <jannh@google.com>, Chris Li <chrisl@kernel.org>,
+	Kemeng Shi <shikemeng@huaweicloud.com>,
+	Nhat Pham <nphamcs@gmail.com>,
+	Youngjun Park <youngjun.park@lge.com>,
+	"Matthew Wilcox (Oracle)" <willy@infradead.org>,
+	Jan Kara <jack@suse.cz>, Waiman Long <longman@redhat.com>,
+	Ridong Chen <ridong.chen@linux.dev>, Tejun Heo <tj@kernel.org>,
+	Michal =?iso-8859-1?Q?Koutn=FD?= <mkoutny@suse.com>,
+	Dan Williams <djbw@kernel.org>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Shuah Khan <shuah@kernel.org>, linux-kernel@vger.kernel.org,
+	linux-mm@kvack.org, linux-cxl@vger.kernel.org,
+	linux-doc@vger.kernel.org, driver-core@lists.linux.dev,
+	damon@lists.linux.dev, linux-pm@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, cgroups@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-kselftest@vger.kernel.org
+Subject: Re: [PATCH 01/60] nodemask: add node-state iterators
+Message-ID: <awX62m6zlghC05jo@yury>
+References: <20261120-private_nodes_v6-v1-0-74f5f9a115c2@gourry.net>
+ <20261120-private_nodes_v6-v1-1-74f5f9a115c2@gourry.net>
+ <awMK9V6TbU9Xtzn9@yury>
+ <179544248227.412063.16491857533875192357.b4-reply@b4>
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261104230445.66625-6-anisa.su@samsung.com>
-X-ClientProxiedBy: MW4PR03CA0144.namprd03.prod.outlook.com
- (2603:10b6:303:8c::29) To DS4PPF0BAC23327.namprd11.prod.outlook.com
- (2603:10b6:f:fc02::9)
+In-Reply-To: <179544248227.412063.16491857533875192357.b4-reply@b4>
+X-ClientProxiedBy: BN9P220CA0004.NAMP220.PROD.OUTLOOK.COM
+ (2603:10b6:408:13e::9) To SN6PR12MB2814.namprd12.prod.outlook.com
+ (2603:10b6:805:72::33)
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -146,281 +163,80 @@ List-Owner: <mailto:nvdimm+owner@lists.linux.dev>
 Precedence: list
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|DS0PR11MB8205:EE_
-X-MS-Office365-Filtering-Correlation-Id: 7c0ed4a8-6c5d-4eb5-da31-08df4a616da6
+X-MS-TrafficTypeDiagnostic: SN6PR12MB2814:EE_|SA1PR12MB9245:EE_
+X-MS-Office365-Filtering-Correlation-Id: 9347f340-d6f3-4f83-827a-08df4a6dee49
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|7416014|366016|376014|23010399003|261028144727099003|10067099003|261009220027099003|11063799006|4143699003|5023799004|56012099006|261009223027099003|261021123027099003|261021121427099003|261009221227099003|261009221727099003|261009223327099003|261102123227099003|261026121527099003|261026140227099003|261022105027099003|22082099003|18002099003|3023799007;
-X-Microsoft-Antispam-Message-Info: b7pL+whnDaROdyqzOmMP8ZW0Hi/aOnVJuiQw9/lBUtfgLrgd3v+RH667Nv0XKbsFy73ybQN3hUb8v7KPJXXppsVXU5Q99z5oyE6TuSrxZR0Gl6ugLcfuExDO32qNZXw0RxBRvem37FJqbvrVzitzPyhKwWmvZqW2JP7wLWkJ3m6q5vjsgSHK2a1m29v+SFBPkXXnZAeJFM2LljyephCS8Vb5xz90uWifOXwRUPWG1vhKTF60s3laHEvJUpMyEuEA3n7yceF6omOWQuxE+xzu353B/lBnp3mm4p7sqXXaebUF45hEn/eQDWCYF+Wy7HwTZKv4v/vDdyFolnRE58sbd5c0MjlUSOLY3P2nOC5r7E03qg3Pr8s1jejkbpObU9pd5Q8XVE6y7NXXXAwAOwzwIYgqF/oaJzubhIVL7ddTf0xeG73HHC1GALP15IElaIn+Z3N0TzolpKxtc4UF1gCjbkulKZsp55brF9qKXiHK6VW1S4/mD3eI9o0b7PuJg0N5biFbGSPaQvUVs6ojGwmlwSHg3kcx+cJuALGrxiJ+GcwEw9k97aiRpEhBNs+ivxGUWsqDzxL6swLoOq0auAw1jqdU6u+GydYiybJ3YGxYjJTyGv9fxjQToAffIJth2RQS9bfE5mUnGnECUzovJI7KsPghqvPXyewRI+Nhypxjsxs=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(366016)(376014)(23010399003)(261028144727099003)(10067099003)(261009220027099003)(11063799006)(4143699003)(5023799004)(56012099006)(261009223027099003)(261021123027099003)(261021121427099003)(261009221227099003)(261009221727099003)(261009223327099003)(261102123227099003)(261026121527099003)(261026140227099003)(261022105027099003)(22082099003)(18002099003)(3023799007);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|7416014|376014|1800799024|10070799003|366016|23010399003|10067099003|56012099006|11063799006|4143699003|261021121427099003|261102123227099003|22082099003|6133799003|18002099003;
+X-Microsoft-Antispam-Message-Info:
+	fgkd3OzRnSAvoGcdjsAe3uNhI9s9Pbkslz2vW2/gxCqtyreRamJ2IEIGocp7bKFVCUUzwImeXhoOXqEjICUQZ+0VS3YTaggEXQ+ybQ71vhmLLKVAHIcqh7vW3BLVckhC53mQNhJWjauP3V6U2QyWEuY7pcYJYZYHEh6tBsgTO2gPGVhZE6FcRsF0hdhrhvbGE2v+5gZdQOPMy7R/owlf4rFWCDcN59R4js1v/nxYDlYZhWMnSkUlPY7K6oFxlWZLncFaOLvlSvzxtbL+odvJ+CzN7PdYy152kBxZRKzEK2HAWmlCg9XZJ4ArbJYWl/OtTPulx4FbMpR+DXT9ap9Pm5KGiLoE0FTmrWgeVLA2IccXTPWWS36bbEnkf6WLno8kipjQ0/w1PuGUYGwVX7oE3XBdjCwbtphnpnFaC1hBEMbxvgbefy3FWMdMOWhbKX2BbHoTrTOW18UtQrvLaRgYlFs599BEGbUANwRgljg+JObzxx1B4SoHLkmWY+OupVOvFDzeXxsvF2n4PwtbyhmZeeSi50RBU+SM4+ZQ0MWr4/8qDCm/L4J0KDSZvdZZIwxQKlx+xVtMUmSigligQmC8FgKSW3nAwKfQDf0VylGNB10clDcd4CtzmxKGDB0vWO8Gt46ur31yp68z5h7u8LHSw1yVzLOOuQ/Y/syaFKYKVxY=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SN6PR12MB2814.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(1800799024)(10070799003)(366016)(23010399003)(10067099003)(56012099006)(11063799006)(4143699003)(261021121427099003)(261102123227099003)(22082099003)(6133799003)(18002099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?BtuTVllLsQy67HQ87lLarJjRTIKIE2vEPFlWVldyZTear61KUBApNgqVAz9r?=
- =?us-ascii?Q?PJATtYI7A04UfLsXhKns3Gi/w7vbV1rYhWGwQ3VN2XGiHKvBfCHpbGopDTLv?=
- =?us-ascii?Q?N6OCJnVa3U4zOqLLQOZqnfQmQ40lZpPMUpxqIYyv26IyIIUUNusHJxF1ZO6g?=
- =?us-ascii?Q?t+fLeDsFZ11N1yVrrV8/BOVzgH+wt+096iDg227vcq2feNlsnu6rLPXk5jt1?=
- =?us-ascii?Q?If3LuqAuICFOGcrwKx9YiY+jCkAnpiBwgg7UjlzAlvBXSMHVxtnNAgXU9RzS?=
- =?us-ascii?Q?7P/spduE9nGaea95Q36DBNjtX2SJOqY1/Q207m1z8STilJkPp1ZytmVKTOzB?=
- =?us-ascii?Q?DqUWQCrq0ljnrULiC0mVNt8xysxjoOseH1W4pfHH9aHJqaBJM1+NVAa4XIUB?=
- =?us-ascii?Q?wHNsig1oG+Hx9cnAuo97JFdpydPbr0SlwOpNcKPvYDlamrtdoP7afrk3TFAm?=
- =?us-ascii?Q?TvfmpixERsuAp1Nd5Oef5BaEcLG2VTkeP45kSCy2e+lPg6t5jp2dPtYhsnCK?=
- =?us-ascii?Q?GNA3UpxMZS639c0oFnRfv5q8p8n+sv/aPmhimgLBWWU/YnEaqFxfXX8FNYzj?=
- =?us-ascii?Q?mUMVvChLJ6++Ot+oyGVDaVSV9IkiABhShWp6yq3hUwyGNZURZFYj4axcTGq3?=
- =?us-ascii?Q?QsTlx8sNIfRxajnyL2CGDFynNIM/ipTIflC2JnKMXqZBHnb1+26BhAaOftg2?=
- =?us-ascii?Q?SmSVX24xprIDyl1HsqfBRzhaNtSENfIVt1K+SWyXPedHZXHpWWYyeAcmV6n8?=
- =?us-ascii?Q?zXv6DKXTSxwVgyLXbijnwSyTybZNocX/b8yRTU9CbSCeIQbvQXmCKJ6k2pig?=
- =?us-ascii?Q?d9M4MnTNUUIWzVYJFEjbrzi95PwC3F4uLmSvKfoxeLyVy8nmMfFHUIBFn+io?=
- =?us-ascii?Q?O6vsULXlN4Owse7fJA9nDwwANM2dt+QOOKheIfv+3B2upAwknI3Ly1iMrK0a?=
- =?us-ascii?Q?rIVoRzZjlCJbzcNWoygUVX9TM3ZgP6DmUhjsTdHeWjJIlsgGIGNzimvQ++A5?=
- =?us-ascii?Q?n/tHqHX/golQ53GKRljLxVSzjgv056XwUQAvHra7pE5w++tRU8M1BqQeHOJA?=
- =?us-ascii?Q?AmJdxnSEW1VR1iGtHfNLBsd2RjL8n2ixPWxqv6vA2u26SQ2r7Ir2Ps9sijAY?=
- =?us-ascii?Q?ETl3UC/r3lMlx2zUhGU/Z1WXf+4byf8NzruHodxAxc03yi9Pf2dm7PnNYr4l?=
- =?us-ascii?Q?jmiu4pdwtrMvGyVRjLnjpzEhgVsP34fXAPVTsEpxChWNd5MKyG+Ga4t8ioJZ?=
- =?us-ascii?Q?bPuWikkYhP5rVxRvu4myQt5bwYuhraQ3xZKL6pQtHa8U0XP8UmMi2eSRugnZ?=
- =?us-ascii?Q?Wdc7iB3zzkHqbw6uJZ7qCLZm5zrwzT/kVeMGBPRqNAY9VbQYcEFKVnLFM0lM?=
- =?us-ascii?Q?up1nFCDCUfVldV5MvyCTll3P1QqLKA21IvJvU4K5stO71yWwTGdjBNB1P29D?=
- =?us-ascii?Q?UZiKXEO5KZDmPKfxxz5r5RODJbCWLC2rgahxEsZE0VQR/p99E6u03dvmZSPi?=
- =?us-ascii?Q?IhxyA76YSEX6o5xYig8k5pJvGISt22ICpVeFVFndGDF3j3RsnmpjJOYe/0Fd?=
- =?us-ascii?Q?Q86y5zt66/L66etXtSeBcWQX20m5+cFwY5U+k0+mk2YZ4m3nA3cl882SrSKA?=
- =?us-ascii?Q?jQN9Mzxq99H/ly+0e7jQ580mr58i+C+wAG3AyVEXsZKGpSGmTp4LntGjfTsK?=
- =?us-ascii?Q?4D3mDCuq4ZmyBqnp+oyvFjLQAo9li/54qTW/YCUm/YJE9bHHSifPfCL4j9If?=
- =?us-ascii?Q?q0/2q5D1KDecSiNg90OttVCDfYEmz5I=3D?=
-X-Exchange-RoutingPolicyChecked: d2SFgwwsklVW70BnExcvZ3OXHnmVqbO9TwECVVgUzl2wuGdXE6HiCie902Uqhx/HBZSPMgrptQJb4e1/Oi7PU4qrq/AasNKDj2500A0pGm82XjqiGIcKnMy7X9ocCl3wEZssudGE16726gIqfz9SOp+qrrC0D3kYgVD5EzEw4jZtDoLGa4wGiEXFRfmbP/Lrl/Cj+MslwmjDgSFSJVGfB0nw6zTLGNgvsMYOKaQs1Vpw8Tupa5VA7+Vibpz2kKW6fr1KpTAsbtW+Itf00Jo2XT2zhrsDaOXgSCcnMJkmZsGD3HbyzNiwBLaAFRKX/81T/B0Oyw+xFm4aqKnyAaFDpQ==
-X-MS-Exchange-CrossTenant-Network-Message-Id: 7c0ed4a8-6c5d-4eb5-da31-08df4a616da6
-X-MS-Exchange-CrossTenant-AuthSource: DS4PPF0BAC23327.namprd11.prod.outlook.com
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?lyl85Xv3fhesIPLeycCkaFybRKJ34uQuDibWvKU5AY6uZlXfBQ65O1p7YvAG?=
+ =?us-ascii?Q?PkyYgYLe7iNzqCCPgouRZrXlsuUaxZWn/pg6HOmqNZZj0h83jSf2cP/uxgIW?=
+ =?us-ascii?Q?CCW86034F5qiPat10OCStCeS8Pmw+N9phXIdZscpIhYGYlmc7/TDqWPV0Xa4?=
+ =?us-ascii?Q?Ay/4f0zLF5jAdeXsTenIkBeOiv/ut4olLduwNbNSJl2TTgPkzSaLYRWP0/kA?=
+ =?us-ascii?Q?hOb4NZDxEi6vaq8bbwPoBI9R0MpPOM0atXpQ2M+DAgxNj9mdVesy1b4R3xRe?=
+ =?us-ascii?Q?Q93KsVu0zUbKxGKE6Z7hvzWVFMEk+xor0nppHHmV6xIFev/WGys4uWD7DdAl?=
+ =?us-ascii?Q?4lLNoiMxqHNl+RZ4FGZzc+OtiRRxYRPwT96Aw2QArtjLH5h/uxUFnIIzn7Rc?=
+ =?us-ascii?Q?scJJqyETQUmL5ah4aV7Q7Vif//BGaeeQuwBWjQqU6LxkVh4jZ5RUb4YGMiQp?=
+ =?us-ascii?Q?Kpln2LC+2ABGY2qgLKdT5kCqlbODnNbD8+nEuLEFMnciIOzh3yUFDoa7C5jc?=
+ =?us-ascii?Q?DbTFnKCKtAhpZxEYRCtFWTGcVQToTwWKT7NrUoTCsfnMFK1pX6jEw3RRueha?=
+ =?us-ascii?Q?X0svnLqYHz5u4LYrR0oWMcn+gzkF5Vp9HEZdkCFNhgg5Hl5wbxhFsjs358vH?=
+ =?us-ascii?Q?qa8+l8k2v4d1TXGv1t+R0SYRN0be2/+/oSZrdEmtxqStWYay53nm/MsRb18n?=
+ =?us-ascii?Q?p3/oYrKkxuORNlvDS8QItuWk2ajNrLlYz3Gvg5tspRPyk8lgeyuwV9xZ897M?=
+ =?us-ascii?Q?ONO3Gai7AbbsN15couN2omI5YeVUCXtKU1aL1L37Ii36SnXZi2THlk9ceKZL?=
+ =?us-ascii?Q?wvur6EzfSvWZt4kdtZc/6gpTjUd+e5q9obOzoC0KiNBfkqPBv9vkMl/Pf/7L?=
+ =?us-ascii?Q?eepALf6IZ30Loo7UPUyyje+Gt7x6kAffBTxUYbjGI/4pPkW9oKaVKo8LibOY?=
+ =?us-ascii?Q?Ln9jPBAk8ilf6MMeZTdGUTfWxInVn90V4LtpLM9AZkS8DOhYWukNSv3ldb7I?=
+ =?us-ascii?Q?6J+sfvHqn7e/qWlxunjU+4HyyygCQjKApug2uTMwDKWrxOuYS1/XQA1hXkV8?=
+ =?us-ascii?Q?V2qs7+i1zHykjxqKc2R4ptj5vKrXOzEWe+GPbHWVO51OnKW2NPxqlP57h21J?=
+ =?us-ascii?Q?KwfHVSDevPLTvE1SX1qbbkUSAKl25oRpxc2rjZSmSmapwEbRdCItTwAN6x+1?=
+ =?us-ascii?Q?Cq2dwAZf7jP4KgTbeBY98+CM6dFeDgbOE8EUlEoEDYxulnVaU79MJKpWXCD2?=
+ =?us-ascii?Q?oGlYkVTbl/ElTR8Y4cEpDWh5BgInuYr31HXSrDr24oEmmd94wTUHBfxIo5KI?=
+ =?us-ascii?Q?7Jf4N7tpUdAUl9rrJHcuTCDmOhualHiC7p8OoWo8rMouvSXKObFrQwvR3Ynj?=
+ =?us-ascii?Q?twIRQ2At4jyhqolbnUbAOE+yka0pcYEqb3DSOk/oMzti9YviNMtNPN0Sw/m2?=
+ =?us-ascii?Q?MTZo9pE4mgiuTUjJ+XIUGFN3oJ2RJuA1TJs/nrTDFzkpjhG5lq4ekFeR5M+n?=
+ =?us-ascii?Q?dMFiskhcVUHefgqFrW2wcLDnqRKwqRSczA3CRily70aAWDXGN18AsPF1Txq3?=
+ =?us-ascii?Q?Jy4PIWNhDR0XSDr8al9oxwjbG0vdvv6oMzF+Vn4GynRVnqILtthkDd7Fen7U?=
+ =?us-ascii?Q?H9GRUbN5AMU5sNEtUickR07I0RbYVlUtBJV2eWldR/9CS/aOCqJoSv4P9JrX?=
+ =?us-ascii?Q?7Y2jWpAs6jwzDijrncu+unJVOGm4mtQHgzjnGVq2SePKHry8SQgJq/rqXjpT?=
+ =?us-ascii?Q?DgnIhSzHDbmmsMeba/3xSNfuhWNJ6TxcCs90NEspDOvzRA5+6TB8?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 9347f340-d6f3-4f83-827a-08df4a6dee49
+X-MS-Exchange-CrossTenant-AuthSource: SN6PR12MB2814.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Nov 2026 19:30:42.3763
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Nov 2026 21:00:12.1844
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: lgIz7+9bLCbI1s8xJMxqLmx+hJ4QxbYFPJheHnOM/FE2n55VnIdcaDWg8Tv5YrS50/C3hM/9bYvktmY8T3qYCD6alHKgjSyH9n9b6aNJiYY=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR11MB8205
-X-OriginatorOrg: intel.com
+X-MS-Exchange-CrossTenant-UserPrincipalName: 7d9nWnGlSsha9Mzyfzuo8O1ajjPwmA5+pwYtPFzuTfGiKubPpUn4hBTm3tooE3DqsNdJIJImecJef72UZzrs3g==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR12MB9245
 
-On Thu, Nov 05, 2026 at 08:02:29AM +0900, Anisa Su wrote:
+On Mon, Nov 23, 2026 at 09:01:22AM -0500, Gregory Price (Meta) wrote:
+> On 2026-11-22 10:32 -0500, Yury Norov wrote:
+> > On Fri, Nov 20, 2026 at 01:08:52PM -0500, Gregory Price via B4 Relay wrote:
+> > > From: "Gregory Price (Meta)" <gourry@gourry.net>
 
-Not reviewing this one since it looks like it will be dropped.
--- Alison
+...
 
-> A Dynamic Capacity event can span multiple event records grouped
-> together by the CXL_DCD_EVENT_MORE flag. Extents are staged in the
-> pending list until the last event record ('More'=0) is received, at
-> which point the chain is processed. If the device opens such a chain
-> (More=1) but never sends the closing record, the staged list sits
-> indefinitely.
+> for_each_node_mask_and() would be more consistent, change just requires
+> passing node_state[N_MEMORY_X] instead of just the node state bit.
 > 
-> Add a delayed-work watchdog that drops the chain on timeout: an add
-> chain is refused with an empty Add Dynamic Capacity Response (4802h),
-> a release chain is left for the device to retry.
+> > > +	for_each_and_bit(node, nodes_addr(mask),			\
+> > > +			 nodes_addr(node_states[state]), MAX_NUMNODES)
+> > > +
+> > 
+> > Please use nr_node_ids instead of MAX_NUMNODES.
+> > 
 > 
-> The spec sets no limit; 20s is a generous upper bound that may be
-> tightened later, and guards against a lost mailbox response or a
-> crashed fabric manager.
-> 
-> The deadline is fixed when the chain opens rather than extended per
-> record, so a device cannot keep a chain alive, and the staged list
-> growing, by streaming More=1 records.
-> 
-> Signed-off-by: Anisa Su <anisa.su@samsung.com>
-> Tested-by: Wonjae Lee <wj28.lee@samsung.com>
-> Tested-by: Junhee Park <jh9934.park@samsung.com>
-> Tested-by: Heesoo Kim <habil.kim@samsung.com>
-> ---
->  drivers/cxl/core/mbox.c | 84 +++++++++++++++++++++++++++++++++++++++++
->  drivers/cxl/cxlmem.h    | 15 ++++++++
->  2 files changed, 99 insertions(+)
-> 
-> diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
-> index 3acf5ace48db..fea910e6c510 100644
-> --- a/drivers/cxl/core/mbox.c
-> +++ b/drivers/cxl/core/mbox.c
-> @@ -873,6 +873,8 @@ static const uuid_t log_uuid[] = {
->  	[VENDOR_DEBUG_UUID] = DEFINE_CXL_VENDOR_DEBUG_UUID,
->  };
->  
-> +static void cxl_cancel_dcd_chain_work(void *_mds);
-> +
->  /**
->   * cxl_enumerate_cmds() - Enumerate commands for a device.
->   * @mds: The driver data for the operation
-> @@ -891,6 +893,16 @@ int cxl_enumerate_cmds(struct cxl_memdev_state *mds)
->  	struct cxl_mem_command *cmd;
->  	int i, rc;
->  
-> +	/*
-> +	 * The DC chain watchdog sends a mailbox command when it fires.  Register
-> +	 * its cancellation here, once the mailbox is usable, so devm runs it
-> +	 * before the mailbox goes away: in cxl_pci the device registers were
-> +	 * mapped before this point and are unmapped after the cancel.
-> +	 */
-> +	rc = devm_add_action_or_reset(dev, cxl_cancel_dcd_chain_work, mds);
-> +	if (rc)
-> +		return rc;
-> +
->  	gsl = cxl_get_gsl(mds);
->  	if (IS_ERR(gsl))
->  		return PTR_ERR(gsl);
-> @@ -1198,6 +1210,14 @@ static void clear_pending_extents(void *_mds)
->  		delete_extent_node(pos);
->  }
->  
-> +/*
-> + * Bound on how long the host will wait for a device to finish a
-> + * multi-record DC event chain (More=1 ... More=0) before refusing the
-> + * chain.  The spec sets no limit; 20s is a generous upper bound, the
-> + * maximum GPF timeout.
-> + */
-> +#define CXL_DC_CHAIN_TIMEOUT	(20 * HZ)
-> +
->  static const char *cxl_dcd_evt_type_str(u8 type)
->  {
->  	switch (type) {
-> @@ -1226,6 +1246,11 @@ static void cxl_dc_chain_abort(struct cxl_memdev_state *mds)
->  	struct cxl_dc_event_chain *chain = &mds->dc_chain;
->  	struct device *dev = mds->cxlds.dev;
->  
-> +	lockdep_assert_held(&chain->lock);
-> +
-> +	chain->armed = false;
-> +	cancel_delayed_work(&chain->timeout_work);
-> +
->  	if (chain->event_type == DCD_ADD_CAPACITY &&
->  	    cxl_send_dc_response(mds, CXL_MBOX_OP_ADD_DC_RESPONSE,
->  				 &chain->pending_extents, 0))
-> @@ -1234,6 +1259,43 @@ static void cxl_dc_chain_abort(struct cxl_memdev_state *mds)
->  	clear_pending_extents(mds);
->  }
->  
-> +static void cxl_dc_chain_timeout(struct work_struct *work)
-> +{
-> +	struct cxl_dc_event_chain *chain = container_of(to_delayed_work(work),
-> +							struct cxl_dc_event_chain,
-> +							timeout_work);
-> +	struct cxl_memdev_state *mds = container_of(chain,
-> +						    struct cxl_memdev_state,
-> +						    dc_chain);
-> +	struct device *dev = mds->cxlds.dev;
-> +
-> +	guard(mutex)(&chain->lock);
-> +
-> +	/*
-> +	 * handle_dcd_chain_event() cancels this work non-synchronously (a sync
-> +	 * cancel would deadlock on @chain->lock, which the chain-close path
-> +	 * holds), so a callback that already started running can reach here
-> +	 * after its chain has moved on.  Abort only if a chain is still armed
-> +	 * AND the timer has not been re-armed since this expiry fired: a new
-> +	 * chain's queue_delayed_work() makes delayed_work_pending() true,
-> +	 * meaning this expiry belongs to a superseded deadline and must not
-> +	 * abort the current chain.
-> +	 */
-> +	if (!chain->armed || delayed_work_pending(&chain->timeout_work))
-> +		return;
-> +
-> +	dev_warn(dev, "DC %s chain timed out\n",
-> +		 cxl_dcd_evt_type_str(chain->event_type));
-> +	cxl_dc_chain_abort(mds);
-> +}
-> +
-> +static void cxl_cancel_dcd_chain_work(void *_mds)
-> +{
-> +	struct cxl_memdev_state *mds = _mds;
-> +
-> +	cancel_delayed_work_sync(&mds->dc_chain.timeout_work);
-> +}
-> +
->  static int stage_pending_extent(struct list_head *pending,
->  				struct cxl_extent *to_add)
->  {
-> @@ -1260,6 +1322,8 @@ static int handle_dcd_chain_event(struct cxl_memdev_state *mds,
->  	struct device *dev = mds->cxlds.dev;
->  	int rc;
->  
-> +	guard(mutex)(&chain->lock);
-> +
->  	/* Chained records share one event type (CXL r4.0 Table 8-229) */
->  	if (list_empty(&chain->pending_extents)) {
->  		chain->event_type = event->event_type;
-> @@ -1279,9 +1343,22 @@ static int handle_dcd_chain_event(struct cxl_memdev_state *mds,
->  
->  	if (event->flags & CXL_DCD_EVENT_MORE) {
->  		dev_dbg(dev, "more bit set; delay processing of extent\n");
-> +		/* The deadline is fixed when the chain opens, not per record */
-> +		if (!chain->armed) {
-> +			queue_delayed_work(system_wq, &chain->timeout_work,
-> +					   CXL_DC_CHAIN_TIMEOUT);
-> +			chain->armed = true;
-> +		}
->  		return 0;
->  	}
->  
-> +	/*
-> +	 * Chain is closing.  Disarm before flushing so a pending watchdog
-> +	 * (queued but blocked on @chain->lock) sees !armed and bails out.
-> +	 */
-> +	chain->armed = false;
-> +	cancel_delayed_work(&chain->timeout_work);
-> +
->  	/* Nothing is tracked yet: refuse every add, acknowledge every release */
->  	if (event->event_type == DCD_ADD_CAPACITY)
->  		rc = cxl_send_dc_response(mds, CXL_MBOX_OP_ADD_DC_RESPONSE,
-> @@ -2021,7 +2098,14 @@ struct cxl_memdev_state *cxl_memdev_state_create(struct device *dev, u64 serial,
->  
->  	mutex_init(&mds->event.log_lock);
->  	INIT_LIST_HEAD(&mds->dc_chain.pending_extents);
-> +	mutex_init(&mds->dc_chain.lock);
-> +	INIT_DELAYED_WORK(&mds->dc_chain.timeout_work, cxl_dc_chain_timeout);
->  
-> +	/*
-> +	 * The watchdog cancel is registered later, by cxl_enumerate_cmds(), so
-> +	 * devm's reverse-order unwind cancels (and waits for) the watchdog
-> +	 * before this list cleanup runs.
-> +	 */
->  	rc = devm_add_action_or_reset(dev, clear_pending_extents, mds);
->  	if (rc)
->  		return ERR_PTR(rc);
-> diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-> index c88de7cb65d1..52c936ec15a9 100644
-> --- a/drivers/cxl/cxlmem.h
-> +++ b/drivers/cxl/cxlmem.h
-> @@ -8,6 +8,8 @@
->  #include <linux/uuid.h>
->  #include <linux/node.h>
->  #include <linux/list.h>
-> +#include <linux/mutex.h>
-> +#include <linux/workqueue.h>
->  #include <cxl/event.h>
->  #include <cxl/mailbox.h>
->  #include "cxl.h"
-> @@ -431,6 +433,11 @@ static inline struct cxl_dev_state *mbox_to_cxlds(struct cxl_mailbox *cxl_mbox)
->   * struct cxl_dc_event_chain - staged Dynamic Capacity event chain
->   * @pending_extents: extents received so far; flushed when the chain
->   *		     closes (More=0)
-> + * @timeout_work: watchdog that fires if a chain is opened with
-> + *		  CXL_DCD_EVENT_MORE but the closing record never arrives
-> + * @lock: serialises updates to the chain state against the watchdog
-> + * @armed: set when a More=1 chain opens; cleared when the chain closes
-> + *	   (More=0), is aborted by cxl_dc_chain_abort(), or times out.
->   * @event_type: DCD event type of the open chain (add or release)
->   *
->   * The records of one Dynamic Capacity operation can be chained by the
-> @@ -439,9 +446,17 @@ static inline struct cxl_dev_state *mbox_to_cxlds(struct cxl_mailbox *cxl_mbox)
->   * chain is open at a time.  Both Add Capacity and Release Capacity chains
->   * are staged here, @event_type says which.  Records are staged until
->   * More=0, then the chain is processed and responded to as a whole.
-> + *
-> + * If a chain is opened (More=1) but the device never sends the closing
-> + * record, the staged list would otherwise sit indefinitely.  @timeout_work
-> + * is a defensive watchdog that drops such a chain: an add is refused with
-> + * an empty response, a release is held for the device to retry.
->   */
->  struct cxl_dc_event_chain {
->  	struct list_head pending_extents;
-> +	struct delayed_work timeout_work;
-> +	struct mutex lock;	/* chain state, against the watchdog */
-> +	bool armed;
->  	u8 event_type;
->  };
->  
-> -- 
-> 2.43.0
-> 
+> I followed for_each_node_mask() which uses MAX_NUMANODES but let me
+> look.
+
+This is my glitch - I have a series switching the codebase to the
+runtime nr_node_ids, but didn't merge it yet. So please continue using
+MAX_NUMNODES. I'll add you in CC for that series, so you'll be aware.
