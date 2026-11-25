@@ -1,84 +1,85 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.46
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.42
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795620918;
-	b=yJ6i4Yf2O62ODrsgm9+JpHhxSy6g549tkpyZ/5p4EmXcGCIJIBEikYSLIcUyq/Ww2VDI
-	 CJvu+FQR/0YZZVNbwxOb1qkv8+LkskcR7Y4hdUmvVfX6d1z9xh0a5fmDxbzBc6vwlTp+a
-	 d0jFl8U9Sj/IbGFeOI2ksqCF4FStl8xZWAvR649yqgRMsXYVNabaENgsokNl8ANDvbnaz
-	 k08sa4dIPwuYXCqFPkCdxBk6I6JOATEgtqOM/mD1MNuB+4Tpq4s47IyNbcjWFKLrFr/28
-	 EO2Pzj5qksgiQGSyhU89T9YAZVLstHU9FmO5VtxZTdl60ja/E8PGNLTLtte5b0+dxhg==
+	t=1795620926;
+	b=HWfTl35gZbUmxIB+JgOey0GFwf0QAd+BoF9HMiFR5kFRd5K+Iu03lelv9m6s28NQjP+P
+	 7N+cckdE3tL6sGixGop7r9U2ykTMxfBQDod8gmbb6PliTUnpDs+2bbgWvo6+qmZ3nbV3e
+	 k9MmWtpx2dmeJ2yLYQSFgvXSl4b/sZcAfXDGeap/bpiFKulTCzct0TTVn5/vZG93UbEMi
+	 1BXvWxXpHmYxlQLLZx+oKh36ZkKgTjo0lxQl2pAruUzR4e7klBxUEOKBH67ElDvSdq6vw
+	 bHAF3rcGcG9WFpE2mRSDx/dIOqlsz+Jl3K5zw3lsKIppWR9SFNLbrRNC5yWNyxZgdQQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795620918;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795620926;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=heq3AsQ6ua66ixuTUqAY8bU1AMYg/OwxMrZJKDM3k1U=;
-	b=4oqdIVFkxPHCCi2fZrDhNzqHW0K/F96n4+ySBZ/XLP+HO0sXf9eMVoaD/YDL7qyHmhKi
-	 +ppOwePHxmGcd1cbeArgRoRvWOt9g/jIjZX+7Z8pJSK1oCSE8EPlcezHxLBlCjmEGNM4X
-	 OY7Ca7BJJMdBz5iyzHA/WZ0Z5i4uJGkIIFJ99ls9XO73cL6dIVnKYbVGWBso1hsLEMwSP
-	 36oqzNRcZTmap4qUYLS2QM3pUIhWbM28A+zCDIdWyn9XXMdgRbmm9oMssnLuYcZg0WDjm
-	 bcOvEfut+Bt1CnQFeYmZCkr7ffebDd+L5M7fRQMetuSgbHLWchr+KoM7lZdQbIGNLRQ==
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
+	 MIME-Version:Content-Type:Content-Transfer-Encoding;
+	bh=BiQwBS2/gR41uglJcjDGNmI+H6Qr25ofWgkYoxBcwCQ=;
+	b=HaRUS6LDpiQWLncPnVJ2twJtAP5bJqy/ZYKzrBeI7OyCZoGsFWFVSOaano0CnRVnq4gR
+	 Z59gYoKSctkIh2iaL+V0jwJsqSqs4BW4azHPsVaxoTk7R0hFmqzLHeH8JcPCYHYFjmAIY
+	 2R50Hfmd7sWsdb+IS4BSIonWsv6Uouw4kRT4THRKHZFmHuTEKNUM1fr4RGhDwM+3SXKxG
+	 yhjR/aV4Oo6Wo+WLA2zZf7nc1Zsz7qwk7Cdexi3aex0lUA2TfPCIK1rMpIRIV8F5hYdcL
+	 hw2NQN9HJgCeFV8uVx6MDWJ3z/mOY2AtnYcuwBceXjzRfCCYYpEPQZu5Qo0KVCrOcHw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=linbit.com;
 	spf=pass smtp.mailfrom=linbit.com;
-	dkim=pass header.d=linbit.com header.i=@linbit.com header.a=rsa-sha256 header.s=google header.b=jN5IU1NO;
-	arc=none smtp.remote-ip=209.85.221.46
-Received: from mail-wr1-f46.google.com (mail-wr1-f46.google.com [209.85.221.46])
+	dkim=pass header.d=linbit.com header.i=@linbit.com header.a=rsa-sha256 header.s=google header.b=cUgl18Ny;
+	arc=none smtp.remote-ip=209.85.221.42
+Received: from mail-wr1-f42.google.com (mail-wr1-f42.google.com [209.85.221.42])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51BBC606A321
-	for <nvdimm@lists.linux.dev>; Wed, 25 Nov 2026 15:35:17 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 51BBC606A321
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6A4C606A6B9
+	for <nvdimm@lists.linux.dev>; Wed, 25 Nov 2026 15:35:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B6A4C606A6B9
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linbit.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linbit.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linbit.com header.i=@linbit.com header.a=rsa-sha256 header.s=google header.b=jN5IU1NO
-Received: by mail-wr1-f46.google.com with SMTP id ffacd0b85a97d-49465892f7bso4312683f8f.1
-        for <nvdimm@lists.linux.dev>; Wed, 25 Nov 2026 07:35:17 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=linbit.com header.i=@linbit.com header.a=rsa-sha256 header.s=google header.b=cUgl18Ny
+Received: by mail-wr1-f42.google.com with SMTP id ffacd0b85a97d-4acb44dcd7bso5214042f8f.0
+        for <nvdimm@lists.linux.dev>; Wed, 25 Nov 2026 07:35:25 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linbit.com; s=google; t=1795620916; x=1796225716; darn=lists.linux.dev;
-        h=content-transfer-encoding:content-type:mime-version:message-id:date
-         :subject:cc:to:from:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=heq3AsQ6ua66ixuTUqAY8bU1AMYg/OwxMrZJKDM3k1U=;
-        b=jN5IU1NOjjWq8IBmG5P0yIfBSv52jmbLW92i+RuqfdwHFX1ZISWznKfYW9dvM0n+ti
-         dqFg/hIDVBFY0LFv/U7tLpMHpOEilxIhdeh1UWjRpNmcl4ZsRSKSI9vVcF+yOYyEkfqv
-         eypjR2bWnpm7F1f5Pt4ioW8NhBjAyLHzPXYNdtEDDv1nhlZBfmjS8AX1Zqybn8xznF5x
-         72tAAzWCARZKeeWzdHm4KOdBEUs37xwUQGwE0EiSeqolGh+gbeN5Deh9ow4rhHiWuo0F
-         l0S6YF/b7AuJqwkupyPmH+Iqvtl1mpn1GwTaNx1lhPM3Z/vKLyhe5dFcap7D+3hXld6y
-         U2hw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795620916; x=1796225716;
-        h=content-transfer-encoding:content-type:mime-version:message-id:date
-         :subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
+        d=linbit.com; s=google; t=1795620924; x=1796225724; darn=lists.linux.dev;
+        h=content-transfer-encoding:content-type:mime-version:references
+         :in-reply-to:message-id:date:subject:cc:to:from:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=heq3AsQ6ua66ixuTUqAY8bU1AMYg/OwxMrZJKDM3k1U=;
-        b=LQxvPHS5ihxg7wN64nGlGsB19iHAZP7jxnGh7qJaDR1Rk1dm0gqblln+dB9ih8K8B0
-         Pv3FGrT57uwEvThQ8C2q68aeOLgpOv5jbGSuZiUAvMn9zMhW1b5Q6A6jCNx0UQI9DDEn
-         6NkbOprryTpuThfesawW6A/LZQ6JcUQSa02NDZuXmqAj3jgIDhSr6MY0rVqP23n4FHVn
-         0uZlsEixHFOvYNxrRjLQtVdoJdhEx+m5mwm3xpjAB0l6EhPu1xMofAJg55RRdSI8evPQ
-         Jd9J8UbRwL76OZhqvS0rrEPH6Nd9RBX1X5w5KtEw8q185w9F2je2DE6ZLRhqz8rUuY0m
-         /BMg==
-X-Forwarded-Encrypted: i=1; AL+hErGJpKLPw0J21cvSRlz5VmqKRCn1iAnR67nBlfJUeu08Fn2GhDjvV2kYH8UHmYEvKVZX9HtcVFA=@lists.linux.dev
-X-Gm-Message-State: APuU4Z9ARpmbynvezPOJrUoPzSk88OCy3nGWFrmwmxwpCa7CAbbMzUfq
-	nVSCR1M5f6ykVKxj9hCjoBcbZQvjBkbR1RKEYul9nPdX3CkQtHpj8P0SldWvaw1zBPU=
-X-Gm-Gg: AZFdTZf53fogg7VZznoViXENNh8a/4H3FiaeGTu/J+psM/g18IIqG9xI//BeUfvLKnu
-	DETpNY/mIe7MOqSd+i38BQoYqQvcaO5370eoetgC1cAQgDMoWKfMv4HXdy4bFnlSC6HcMcgqjMc
-	wr6fI44yZTWlp+Re4m7/rKccsh/yPp8/vAOZTkAhpBxAOEKN+LzojZf/IzdVWOSWWoSFt9rDjs4
-	Rom4EJAJ0ighbM2cZcJYqKRcGi+LLuzy0ZKtlV5Qa98PYWpu9cKxjfkidSj1XwLYVD3ekjI5bE4
-	jvuVMw19aEMz6taXPMIRhE66OJNBc2f0C9mwn7VnGPcOeH0dzCY9jjL1qu6V6I/PedZbhXI4mAe
-	Mk0iWA7r31itnPUd6EEJQAM1x1FmmWENBm4IOF3ktau/Vy9oLdw4PAh6jF/X8zZW9RFSgRqwiBe
-	28NEIBHKtuMA+6cwItZEuV9GTkIIB/pmDcR4BZimOKb06bIT+SqN5RjNw4lthwWZ+sSSvuUpw/2
-	VU/oB++YAlPF6Aet8jZxaDWUXDu0bOLK3gDYHxn0U4D7z964Bg6G4vIqZB4B29y1rk5WBOjSUi/
-	U9Z/5gGYKhgSuEni54OkploOVgrli222HX7BGIaxAbncNkbtGlmJEZjwW/kOCk5bYom7iWAeJKw
-	2s6er18I3N5UlMUuLWd8=
-X-Received: by 2002:a05:6000:2489:b0:4a5:8f40:a644 with SMTP id ffacd0b85a97d-4abb1baa9eamr37631802f8f.9.1795620915562;
-        Wed, 25 Nov 2026 07:35:15 -0800 (PST)
+        bh=BiQwBS2/gR41uglJcjDGNmI+H6Qr25ofWgkYoxBcwCQ=;
+        b=cUgl18NyYM6maYk8yf8Yl+nrqYH75RLKIcBMCvS3R6Y7da9s/S3K+CINYL2yL8y125
+         Wpo2fnM2Ghz4I00dzh/v2g1cpckI5BaojD4bTWHSBkPF8O4sk6n6C2qcG+LMi3JTG55w
+         cy7Sruv3zM6CnOo2Hp3wML7PvaLN2f1z/kYkxbo17xTDuZhtvoSK2OKEjVivPyovmxyb
+         1NniDGwR8YTqqy/lDFCLi6WxL+zYU59UVD81aQDV8ckRMtTmwRiokIoA1SGJACI78bSp
+         j3TcBQGFiWcfwPK8RDokg8RVWIBxSTvY1MTCTbIFefduIL+4jDLN4tYKAsaFIe9xcLQH
+         W3IQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795620924; x=1796225724;
+        h=content-transfer-encoding:content-type:mime-version:references
+         :in-reply-to:message-id:date:subject:cc:to:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=BiQwBS2/gR41uglJcjDGNmI+H6Qr25ofWgkYoxBcwCQ=;
+        b=bPIo9Vea+1YgfGy8wqPXcWttn1v9qgnDcK5/a9M3aSSkWo/2DWfk9MDDT+f9CQGK72
+         wVqATE7PLZmlqXJQPmqs8sqF6yprYOlKx2XksSKy1MiRdyp1vApSDXEZHal3DN28oGXj
+         faP/ctWFglwvYI23s2wzLywp4hFHmtqkQ6PJj/4yOFHdvPbGAYhqvV//Y+/V+OJ3KuhK
+         2S1cMHxvQ22Hpn4UEK7SkQSWIFPioHdacO89H6JuRPGeMaoPVawqHHLPNSl/wPHuS7wl
+         bcEY/S7BwTFj41c+KpHiypDXiZdhLpNpebWPiFM/K9M7hnDj4/IMy6GnBxwPGxqfppjU
+         IcQw==
+X-Forwarded-Encrypted: i=1; AL+hErExqZGDs1PGWLDEdsUSGoYB+iZ0gboZYHKI5gvC2nryohUDy0XT8IvWcg7/UY3lPdfRRTJewIM=@lists.linux.dev
+X-Gm-Message-State: APuU4Z+SaZf3eazBPtC9Nnle+VhOWQ5whbCZ69oOKNyqjIJ2bM+3r3sM
+	D5Arr9zcAH37ffeT3+FBv0Xt3ac7HexgdcHX1BWsNzM2h3FRxZ1kGwT7dkLJv5lN95U=
+X-Gm-Gg: AZFdTZeoT1VxxCZpShI8yfBhxgjbWkxhj/VPYXJBQNyszSuM55TGilAqgRV5dBS0nZs
+	DOqinwLOnI2BhX++Lg7ijYJ9524gLwdFRRBUmhpd/x8qr4WmYLTqrQCoYFnBILjVjS3MNEtRGhT
+	ccGbw6lsXmS3xAA//kMkojfU38E+abb4Lovvlj9b78bFTG9g72GBxnNWQB+KDeMwvTE1cElwrQI
+	57/Nybp3OvKICpjnD1nK6AdtSNX/JivDV52TFpY5POnxK5GyB/EhG6lJERUQBDvM7+fehhYCXHv
+	tR3HwzXL8MLd65O86qsGigIFmv1ZRETPjfWeWTLwXTB2VTvGK7T4eWxFPP5odfb2629zeY44ihH
+	nsALxLmF7soFxPDfpfoOFSfWFa4zubcWjAGX7PFqWpxld5WWAdMeoxyJR729jReqsDO/rKjMfqY
+	i0nZ8kVsgLWQBufbRBcRPM60XOpETxw6HjHhzhcxG/S2xe1MTSlz2GClAaJMbqtVKHEVsk3yi86
+	FXs0GiW5dJ3VT0nDjzlfp+E/wG/jmM5nNMKth1GZuDQjVbS3UkrR9d3OP1eJDsJAxtyC0ZU1Bj0
+	EfLMbROZog4lphT6VBFF/3/8DhO/QKdQ9e69HxOrAYRE2bANaT1d1827AWg/qWUrVFqWXnP3QQ=
+	=
+X-Received: by 2002:a05:6000:1a86:b0:4ad:d65:aaf9 with SMTP id ffacd0b85a97d-4ad0d65afa1mr37656106f8f.56.1795620924092;
+        Wed, 25 Nov 2026 07:35:24 -0800 (PST)
 Received: from linbit.com (h082218129081.host.wavenet.at. [82.218.129.81])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4ab658e2d60sm35816275f8f.3.2026.11.25.07.35.14
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4ab658e2d60sm35816275f8f.3.2026.11.25.07.35.23
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 25 Nov 2026 07:35:15 -0800 (PST)
+        Wed, 25 Nov 2026 07:35:23 -0800 (PST)
 From: =?UTF-8?q?Christoph=20B=C3=B6hmwalder?= <christoph.boehmwalder@linbit.com>
 To: Jens Axboe <axboe@kernel.dk>
 Cc: drbd-dev@lists.linux.dev,
@@ -87,26 +88,17 @@ Cc: drbd-dev@lists.linux.dev,
 	Philipp Reisner <philipp.reisner@linbit.com>,
 	Lars Ellenberg <lars.ellenberg@linbit.com>,
 	=?UTF-8?q?Christoph=20B=C3=B6hmwalder?= <christoph.boehmwalder@linbit.com>,
-	Chuck Lever <cel@kernel.org>,
-	kernel-tls-handshake@lists.linux.dev,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	netdev@vger.kernel.org,
 	Dan Williams <djbw@kernel.org>,
 	Vishal Verma <vishal.l.verma@intel.com>,
 	Dave Jiang <dave.jiang@intel.com>,
 	Alison Schofield <alison.schofield@intel.com>,
-	nvdimm@lists.linux.dev,
-	Jonathan Corbet <corbet@lwn.net>,
-	linux-doc@vger.kernel.org,
-	Donald Hunter <donald.hunter@gmail.com>
-Subject: [PATCH v4 00/21] drbd: DRBD 9 rework
-Date: Wed, 25 Nov 2026 16:34:50 +0100
-Message-ID: <20261125153511.3060599-1-christoph.boehmwalder@linbit.com>
+	nvdimm@lists.linux.dev
+Subject: [PATCH v4 07/21] drbd: add DAX/PMEM support for metadata access
+Date: Wed, 25 Nov 2026 16:34:57 +0100
+Message-ID: <20261125153511.3060599-8-christoph.boehmwalder@linbit.com>
 X-Mailer: git-send-email 2.56.0
+In-Reply-To: <20261125153511.3060599-1-christoph.boehmwalder@linbit.com>
+References: <20261125153511.3060599-1-christoph.boehmwalder@linbit.com>
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -119,183 +111,290 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-As discussed (context: [0]), here is our DRBD 9 rework series, intended
-for linux-next via for-7.x/drbd.
+When DRBD's metadata device resides on persistent memory (PMEM/NVDIMM),
+accessing it by reading and writing full blocks is unnecessarily
+costly.
+Add a DAX-based metadata path that directly maps the metadata region,
+enabling byte-granular, IRQ-safe access without having to go through
+the block layer.
 
-This replays about 10-15 years of active out-of-tree development work
-[1], depending on your way of counting. The out-of-tree module has
-severely diverged from the in-tree version over the years, which is
-what we are aiming to fix now.
+The PMEM path also introduces a more efficient activity log layout:
+instead of writing journal transactions, the in-memory LRU-cache hash
+table is stored directly in persistent memory and updated in-place.
+Similarly, the resync bitmap is accessed directly from PMEM rather than
+being loaded into and flushed from DRAM.
 
-Hopefully that somewhat excuses (or at least explains) the massive
-diffs -- we've tried to come up with a way to group the changes by
-topic, but I realize it's still not exactly trivial to review.
+The PMEM path is compiled in when the kernel has filesystem DAX
+support (CONFIG_FS_DAX) and the architecture can write CPU caches back
+to persistent memory (CONFIG_ARCH_HAS_PMEM_API). The hidden symbol
+CONFIG_DRBD_DAX stands for both.
 
-We've been polishing this series for a while now, and we have taken
-great care to make it as "upstream-presentable" as possible. That said,
-there are still probably imperfections. It's a start -- feedback
-welcome!
-
-The netlink interface has been reworked so that userspace is not
-broken: the existing "drbd" generic netlink family keeps being served
-at version 1, and this series does not touch its generated
-serialization or its UAPI header.
-Every shipped drbd-utils release therefore keeps working against this
-driver. DRBD 9's own utilities speak a new family, "drbd2", written as
-a YNL specification under Documentation/netlink/specs/ and following
-current genetlink conventions; its generated code is checked in as
-usual. The driver registers both families and translates each onto the
-same wire-neutral core, so the multi-peer administration model is only
-reachable through drbd2, while version-1 clients see the single-peer
-semantics they expect.
-
-The RDMA and load-balancing TCP (lb-tcp) transports are not part of
-this series; they will be submitted separately once they have had the
-same treatment. The rdma_ctrl_rcvbuf_size
-and rdma_ctrl_sndbuf_size net options do remain in the UAPI: they are
-generic transport options that are interpreted by whichever transport is
-in use, so there is no reason to remove and later re-add them.
-
-The base for these patches is for-7.5/block, which has the preparation
-patches [2] this series builds on.
-
-As discussed, the goal is to get this applied to a for-7.x/drbd branch
-so it can land in linux-next via block-next. After letting it mature
-in linux-next for a while, it should go in via the block tree.
-
-Thanks,
-Christoph
-
-[0] https://lore.kernel.org/linux-next/899e0337-9642-4ca6-9050-aeab14fa22ef@kernel.dk/
-[1] https://github.com/LINBIT/drbd
-[2] https://lore.kernel.org/linux-block/20260923140608.1116713-1-christoph.boehmwalder@linbit.com/
-[3] https://lore.kernel.org/linux-block/20261111083505.3998706-1-christoph.boehmwalder@linbit.com/
-
-v3: https://lore.kernel.org/linux-block/20261110162646.3028472-1-christoph.boehmwalder@linbit.com/
-v2: https://lore.kernel.org/linux-block/20261006154607.3936501-1-christoph.boehmwalder@linbit.com/
-
-Changes since v3:
-- Fixed the problems that the kernel test robot and the sashiko review
-  found in v3 in code that is new with this series, mostly in the
-  version-1 netlink compatibility layer and the drbd2 family: among
-  others, string attributes longer than their buffer, the 8.4 peer slot
-  and history UUIDs in 8.4 meta-data, the peer commands before the
-  first connect, the resource-name filter of the drbd2 resource dump,
-  and the notification error paths
-- Fixed the link failures with NET_HANDSHAKE=n and with BLK_DEV_DRBD=y
-  and DEV_DAX_PMEM=m: TLS for the TCP transport is now its own option,
-  BLK_DEV_DRBD_TCP_TLS, which a new patch allows to enable
-  NET_HANDSHAKE; the DAX meta-data code now depends on FS_DAX instead
-  of the device-dax driver
-- The link failure with CRYPTO=n is in the current in-tree DRBD as
-  well; it is fixed by a separate patch [3]. This series applies with
-  and without it
-- Dropped drbd_transport_template.c, which did not compile and was not
-  built
-- Removed the userspace branches of the #ifdef __KERNEL__ blocks in
-  the protocol and meta-data headers
-- Fixed kernel-doc warnings
-- Synced with the current out-of-tree state
-
-Changes since v2:
-- Rebased onto for-7.5/block, now that the preparation patches are
-  applied there; v2 no longer applied
-- Kept the in-tree DRBD changes that went into v7.4: the explicit
-  linux/umh.h include and the conversion to sk_set_nospace()
-- Synced with the current out-of-tree state
-
-
-Christoph Böhmwalder (21):
-  drbd: mark as BROKEN during DRBD 9 rework
-  drbd: extend wire protocol definitions for DRBD 9
-  drbd: introduce DRBD 9 on-disk metadata format
-  drbd: add transport layer abstraction
-  drbd: add TCP transport implementation
-  net/handshake: allow the DRBD TCP transport to enable NET_HANDSHAKE
-  drbd: add DAX/PMEM support for metadata access
-  drbd: add optional compatibility layer for DRBD 8.4
-  drbd: add application/resync IO synchronization documentation
-  drbd: rework sender for DRBD 9 multi-peer
-  drbd: replace per-device state model with multi-peer data structures
-  drbd: rewrite state machine for DRBD 9 multi-peer clusters
-  drbd: rework activity log and bitmap for multi-peer replication
-  drbd: rework request processing for DRBD 9 multi-peer IO
-  drbd: rework module core for DRBD 9 transport and multi-peer
-  drbd: rework receiver for DRBD 9 transport and multi-peer protocol
-  drbd: rework the netlink core for DRBD 9
-  drbd: serve the "drbd" genl family at version 1 for existing userspace
-  drbd: add the "drbd2" genl family
-  drbd: update monitoring interfaces for multi-peer topology
-  drbd: remove BROKEN for DRBD
-
- .../application-resync-synchronization.rst    |   208 +
- .../admin-guide/blockdev/drbd/index.rst       |     1 +
- Documentation/netlink/specs/drbd2.yaml        |  2615 +++
- drivers/block/drbd/Kconfig                    |    63 +
- drivers/block/drbd/Makefile                   |     9 +-
- drivers/block/drbd/drbd2_nl_gen.c             |   815 +
- drivers/block/drbd/drbd2_nl_gen.h             |   114 +
- drivers/block/drbd/drbd_actlog.c              |  1419 +-
- drivers/block/drbd/drbd_bitmap.c              |  2075 +-
- drivers/block/drbd/drbd_config.h              |    46 +-
- drivers/block/drbd/drbd_dax_pmem.c            |   175 +
- drivers/block/drbd/drbd_dax_pmem.h            |    43 +
- drivers/block/drbd/drbd_debugfs.c             |  1760 +-
- drivers/block/drbd/drbd_debugfs.h             |     2 +
- drivers/block/drbd/drbd_int.h                 |  4041 ++--
- drivers/block/drbd/drbd_interval.c            |    39 +-
- drivers/block/drbd/drbd_interval.h            |   130 +-
- drivers/block/drbd/drbd_legacy_84.c           |   651 +
- drivers/block/drbd/drbd_legacy_84.h           |   129 +
- drivers/block/drbd/drbd_main.c                |  7032 +++++--
- drivers/block/drbd/drbd_meta_data.h           |   163 +
- drivers/block/drbd/drbd_nl.c                  | 10355 ++++++---
- drivers/block/drbd/drbd_nl.h                  |   416 +
- drivers/block/drbd/drbd_nl_84.c               |  4048 ++++
- drivers/block/drbd/drbd_nl_defaults.c         |   168 +
- drivers/block/drbd/drbd_nl_drbd2.c            |  2669 +++
- drivers/block/drbd/drbd_nl_types.h            |   406 +
- drivers/block/drbd/drbd_polymorph_printk.h    |    42 +-
- drivers/block/drbd/drbd_proc.c                |   327 +-
- drivers/block/drbd/drbd_protocol.h            |   620 +-
- drivers/block/drbd/drbd_receiver.c            | 17563 ++++++++++++----
- drivers/block/drbd/drbd_req.c                 |  3208 ++-
- drivers/block/drbd/drbd_req.h                 |   332 +-
- drivers/block/drbd/drbd_sender.c              |  4565 ++--
- drivers/block/drbd/drbd_state.c               |  9242 ++++++--
- drivers/block/drbd/drbd_state.h               |   334 +-
- drivers/block/drbd/drbd_state_change.h        |    80 +-
- drivers/block/drbd/drbd_strings.c             |   103 +-
- drivers/block/drbd/drbd_strings.h             |     4 +-
- drivers/block/drbd/drbd_transport.c           |   550 +
- drivers/block/drbd/drbd_transport.h           |   516 +
- drivers/block/drbd/drbd_transport_tcp.c       |  1828 ++
- include/uapi/linux/drbd.h                     |   305 +-
- include/uapi/linux/drbd2.h                    |  1046 +
- include/uapi/linux/drbd_limits.h              |   138 +-
- net/Kconfig                                   |     2 +-
- 46 files changed, 63195 insertions(+), 17202 deletions(-)
- create mode 100644 Documentation/admin-guide/blockdev/drbd/application-resync-synchronization.rst
- create mode 100644 Documentation/netlink/specs/drbd2.yaml
- create mode 100644 drivers/block/drbd/drbd2_nl_gen.c
- create mode 100644 drivers/block/drbd/drbd2_nl_gen.h
+Co-developed-by: Philipp Reisner <philipp.reisner@linbit.com>
+Signed-off-by: Philipp Reisner <philipp.reisner@linbit.com>
+Signed-off-by: Christoph Böhmwalder <christoph.boehmwalder@linbit.com>
+---
+ drivers/block/drbd/Kconfig         |   4 +
+ drivers/block/drbd/Makefile        |   1 +
+ drivers/block/drbd/drbd_dax_pmem.c | 175 +++++++++++++++++++++++++++++
+ drivers/block/drbd/drbd_dax_pmem.h |  43 +++++++
+ 4 files changed, 223 insertions(+)
  create mode 100644 drivers/block/drbd/drbd_dax_pmem.c
  create mode 100644 drivers/block/drbd/drbd_dax_pmem.h
- create mode 100644 drivers/block/drbd/drbd_legacy_84.c
- create mode 100644 drivers/block/drbd/drbd_legacy_84.h
- create mode 100644 drivers/block/drbd/drbd_meta_data.h
- create mode 100644 drivers/block/drbd/drbd_nl.h
- create mode 100644 drivers/block/drbd/drbd_nl_84.c
- create mode 100644 drivers/block/drbd/drbd_nl_defaults.c
- create mode 100644 drivers/block/drbd/drbd_nl_drbd2.c
- create mode 100644 drivers/block/drbd/drbd_nl_types.h
- create mode 100644 drivers/block/drbd/drbd_transport.c
- create mode 100644 drivers/block/drbd/drbd_transport.h
- create mode 100644 drivers/block/drbd/drbd_transport_tcp.c
- create mode 100644 include/uapi/linux/drbd2.h
 
-
-base-commit: aa7014f8d7565cfea117eac36a5de0a05eba65a4
+diff --git a/drivers/block/drbd/Kconfig b/drivers/block/drbd/Kconfig
+index 615516941fb7..fbf1d5011aa3 100644
+--- a/drivers/block/drbd/Kconfig
++++ b/drivers/block/drbd/Kconfig
+@@ -99,3 +99,7 @@ config BLK_DEV_DRBD_TCP_TLS
+ 	  https://github.com/oracle/ktls-utils.
+ 
+ 	  If unsure, say N.
++
++config DRBD_DAX
++	def_bool y
++	depends on BLK_DEV_DRBD && FS_DAX && ARCH_HAS_PMEM_API
+diff --git a/drivers/block/drbd/Makefile b/drivers/block/drbd/Makefile
+index 9f05f74e619c..750202bce516 100644
+--- a/drivers/block/drbd/Makefile
++++ b/drivers/block/drbd/Makefile
+@@ -5,6 +5,7 @@ drbd-y += drbd_main.o drbd_strings.o drbd_nl.o
+ drbd-y += drbd_interval.o drbd_state.o
+ drbd-y += drbd_nl_gen.o
+ drbd-y += drbd_transport.o
++drbd-$(CONFIG_DRBD_DAX) += drbd_dax_pmem.o
+ drbd-$(CONFIG_DEBUG_FS) += drbd_debugfs.o
+ 
+ obj-$(CONFIG_BLK_DEV_DRBD)     += drbd.o
+diff --git a/drivers/block/drbd/drbd_dax_pmem.c b/drivers/block/drbd/drbd_dax_pmem.c
+new file mode 100644
+index 000000000000..1fb22e57cf5d
+--- /dev/null
++++ b/drivers/block/drbd/drbd_dax_pmem.c
+@@ -0,0 +1,175 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * Copyright (C) 2017, LINBIT HA-Solutions GmbH.
++ */
++
++/*
++ * In case DRBD's meta-data resides in persistent memory do a few things
++ * different.
++ *
++ * 1 direct access the bitmap in place. Do not load it into DRAM, do not
++ *   write it back from DRAM.
++ * 2 Use a better fitting format for the on-disk activity log. Instead of
++ *   writing transactions, the unmangled LRU-cache hash table is there.
++ */
++
++#include <linux/vmalloc.h>
++#include <linux/slab.h>
++#include <linux/dax.h>
++#include <linux/libnvdimm.h>
++#include <linux/blkdev.h>
++#include <linux/sizes.h>
++#include "drbd_int.h"
++#include "drbd_dax_pmem.h"
++#include "drbd_meta_data.h"
++
++/*
++ * Unit conversions for addressing the metadata area through DAX.
++ * DRBD keeps metadata offsets in sectors, dax_direct_access() works in pages.
++ */
++static pgoff_t md_sector_to_pgoff(sector_t sector)
++{
++	return sector >> (PAGE_SHIFT - SECTOR_SHIFT);
++}
++
++static long md_sectors_to_pages(sector_t nr_sectors)
++{
++	return nr_sectors >> (PAGE_SHIFT - SECTOR_SHIFT);
++}
++
++/* Signed, since the bitmap offset relative to the superblock may be negative. */
++static long md_sector_offset_to_bytes(long sector_offset)
++{
++	return sector_offset * SECTOR_SIZE;
++}
++
++static int map_superblock_for_dax(struct drbd_backing_dev *bdev, struct dax_device *dax_dev)
++{
++	long want = 1;
++	pgoff_t pgoff = md_sector_to_pgoff(bdev->md.md_offset);
++	void *kaddr;
++	long len;
++	int id;
++
++	id = dax_read_lock();
++	len = dax_direct_access(dax_dev, pgoff, want, DAX_ACCESS, &kaddr, NULL);
++	dax_read_unlock(id);
++
++	if (len < want)
++		return -EIO;
++
++	bdev->md_on_pmem = kaddr;
++
++	return 0;
++}
++
++/**
++ * drbd_dax_open() - Open device for dax and map metadata superblock
++ * @bdev: backing device to be opened
++ */
++int drbd_dax_open(struct drbd_backing_dev *bdev)
++{
++	struct dax_device *dax_dev;
++	int err;
++	u64 part_off;
++
++	dax_dev = fs_dax_get_by_bdev(bdev->md_bdev, &part_off, NULL, NULL);
++	if (!dax_dev)
++		return -ENODEV;
++
++	err = map_superblock_for_dax(bdev, dax_dev);
++	if (!err)
++		bdev->dax_dev = dax_dev;
++	else
++		put_dax(dax_dev);
++
++	return err;
++}
++
++void drbd_dax_close(struct drbd_backing_dev *bdev)
++{
++	put_dax(bdev->dax_dev);
++}
++
++/**
++ * drbd_dax_map() - Map metadata for dax
++ * @bdev: backing device whose metadata is to be mapped
++ */
++int drbd_dax_map(struct drbd_backing_dev *bdev)
++{
++	struct dax_device *dax_dev = bdev->dax_dev;
++	sector_t first_sector = drbd_md_first_sector(bdev);
++	sector_t al_sector = bdev->md.md_offset + bdev->md.al_offset;
++	long want = md_sectors_to_pages(drbd_md_last_sector(bdev) + 1 - first_sector);
++	pgoff_t pgoff = md_sector_to_pgoff(first_sector);
++	long md_offset_byte = md_sector_offset_to_bytes(bdev->md.md_offset - first_sector);
++	long al_offset_byte = md_sector_offset_to_bytes(al_sector - first_sector);
++	void *kaddr;
++	long len;
++	int id;
++
++	id = dax_read_lock();
++	len = dax_direct_access(dax_dev, pgoff, want, DAX_ACCESS, &kaddr, NULL);
++	dax_read_unlock(id);
++
++	if (len < want)
++		return -EIO;
++
++	bdev->md_on_pmem = kaddr + md_offset_byte;
++	bdev->al_on_pmem = kaddr + al_offset_byte;
++
++	return 0;
++}
++
++void drbd_dax_al_update(struct drbd_device *device, struct lc_element *al_ext)
++{
++	struct al_on_pmem *al_on_pmem = device->ldev->al_on_pmem;
++	__be32 *slot = &al_on_pmem->slots[al_ext->lc_index];
++
++	*slot = cpu_to_be32(al_ext->lc_new_number);
++	arch_wb_cache_pmem(slot, sizeof(*slot));
++}
++
++void drbd_dax_al_begin_io_commit(struct drbd_device *device)
++{
++	struct lc_element *e;
++
++	spin_lock_irq(&device->al_lock);
++
++	list_for_each_entry(e, &device->act_log->to_be_changed, list)
++		drbd_dax_al_update(device, e);
++
++	lc_committed(device->act_log);
++
++	spin_unlock_irq(&device->al_lock);
++}
++
++int drbd_dax_al_initialize(struct drbd_device *device)
++{
++	struct al_on_pmem *al_on_pmem = device->ldev->al_on_pmem;
++	__be32 *slots = al_on_pmem->slots;
++	/* The activity log area holds the magic followed by the slots. */
++	int i, al_slots = device->ldev->md.al_size_4k * (SZ_4K / sizeof(*slots)) - 1;
++
++	al_on_pmem->magic = cpu_to_be32(DRBD_AL_PMEM_MAGIC);
++	/*
++	 * Initialize all slots rather than just the configured number in case
++	 * the configuration is later changed.
++	 */
++	for (i = 0; i < al_slots; i++) {
++		unsigned int extent_nr = i < device->act_log->nr_elements ?
++			lc_element_by_index(device->act_log, i)->lc_number :
++			LC_FREE;
++		slots[i] = cpu_to_be32(extent_nr);
++	}
++
++	return 0;
++}
++
++void *drbd_dax_bitmap(struct drbd_device *device, unsigned long want)
++{
++	struct drbd_backing_dev *bdev = device->ldev;
++	unsigned char *md_on_pmem = (unsigned char *)bdev->md_on_pmem;
++
++	return md_on_pmem + md_sector_offset_to_bytes(bdev->md.bm_offset);
++}
+diff --git a/drivers/block/drbd/drbd_dax_pmem.h b/drivers/block/drbd/drbd_dax_pmem.h
+new file mode 100644
+index 000000000000..8e3ecf74a557
+--- /dev/null
++++ b/drivers/block/drbd/drbd_dax_pmem.h
+@@ -0,0 +1,43 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++/*
++ * Copyright (C) 2017, LINBIT HA-Solutions GmbH.
++ */
++#ifndef DRBD_DAX_H
++#define DRBD_DAX_H
++
++#include <linux/kconfig.h>
++
++#if IS_ENABLED(CONFIG_DRBD_DAX)
++
++int drbd_dax_open(struct drbd_backing_dev *bdev);
++void drbd_dax_close(struct drbd_backing_dev *bdev);
++int drbd_dax_map(struct drbd_backing_dev *bdev);
++void drbd_dax_al_update(struct drbd_device *device, struct lc_element *al_ext);
++void drbd_dax_al_begin_io_commit(struct drbd_device *device);
++int drbd_dax_al_initialize(struct drbd_device *device);
++void *drbd_dax_bitmap(struct drbd_device *device, unsigned long want);
++
++static inline bool drbd_md_dax_active(struct drbd_backing_dev *bdev)
++{
++	return bdev->dax_dev != NULL;
++}
++static inline struct meta_data_on_disk_9 *drbd_dax_md_addr(struct drbd_backing_dev *bdev)
++{
++	return bdev->md_on_pmem;
++}
++#else
++
++#define drbd_dax_open(B) do { } while (0)
++#define drbd_dax_close(B) do { } while (0)
++#define drbd_dax_map(B) (-ENOTSUPP)
++#define drbd_dax_al_begin_io_commit(D) do { } while (0)
++#define drbd_dax_al_initialize(D) (-EIO)
++#define drbd_dax_bitmap(D, L) (NULL)
++#define drbd_md_dax_active(B) (false)
++#define drbd_dax_md_addr(B) (NULL)
++
++#define arch_wb_cache_pmem(A, L) do { } while (0)
++
++#endif /* IS_ENABLED(CONFIG_DRBD_DAX) */
++
++#endif /* DRBD_DAX_H */
 -- 
 2.56.0
 
