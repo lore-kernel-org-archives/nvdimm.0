@@ -1,57 +1,159 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.70.43.20
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795627018;
-	b=XzSDoyWnQcACX/63SrC3zu+LKxJboja8VxqkTFbmLtYj+YQNcb7WGrcgWn+8nAk3xn8Y
-	 BaGjr4D52W7lVOgopKuhKxgZVjuOO6+oKFCvltF/+skdgMyLI8dwwQyoRijD7pE2KexM3
-	 g7R9Ejud2HFK9L4oIw1PdN8OP7RvkQQgvDZvzC60PT1fyQCBoaKVbwVFvNgNJ6rn03iWg
-	 MkqIvEhK1/GCgR2celGXRinBexM1ea73UABQto3ajlooiMSR1oA3MzHHNy+zOCqRjpMis
-	 SlpuvZveqZ9aDAmenjYqOrg55o+yK+SIzS2M+h5fTdmYH//LGCvuDWjlVW8Y3NsTwQg==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795627018;
-	h=DMARC-Filter:DKIM-Signature:Date:To:From:Cc:Subject:Message-ID:
-	 Feedback-ID:X-Pm-Message-ID:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=306Y2BAJ0mk9ljp12eAtknlDVkrB39bi49HCqrOE2pE=;
-	b=FyEdn8cdBq5UqJKUvctnLef2f1OqsVliOVVCc9W4/rmxD3ekUcpw6CLb9qWZy64Qi7CH
-	 7t6IVPb4dDEMkOw0qjZYTs50FlAioNaYlqiivzv9b4D3W3ciDtqBkEypR3lxVfGlpdSYN
-	 2iCorunys3U/XG3f4uCo0lQeywF9Vs2lI9zQH4lSyFgpNTqsbhHv+7VmM0OaCuVFjVNj6
-	 SNIglal8AHA208NjoEoxQ7NRxNqAOLwuLXfprDihVzmSmrqjYM9ugg0djHMsh/EDfQXA9
-	 7rbufLf8EpWudPu6MLniApT1cFN5Gq7rSgLF1KYdZXYrZMcrcbUlFzFx7guo4m0EHpQ==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=a7snv.com;
-	spf=pass smtp.mailfrom=a7snv.com;
-	dkim=pass header.d=a7snv.com header.i=@a7snv.com header.a=rsa-sha256 header.s=protonmail header.b=Isn+fec1;
-	arc=none smtp.remote-ip=185.70.43.20
-Received: from mail-4320.protonmail.ch (mail-4320.protonmail.ch [185.70.43.20])
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.195.15
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1795627798;
+	b=NbgORLrXlnRButNtgBHOcPTmrHt1BJlyVFmlmQ9NOyPdTyePBnzrGlamDYGWAiYVUc74
+	 9LfZ9KCgONhvHS2g4tXFw9gjRtTPPsYwklKPVmesAS0hw0V9zNovTGUGbfdWr4qe/BGtK
+	 aYWPU4ZsCzTL9+6Xai4/TSlXmoHYou5o3QPIWYEwIOi0nhcdi+Saw7p/b8835Kqgpohz1
+	 OEbYtGms7T/cdGF1IiTMs8jwKm2JPWaRGuMXFCMNRFtYUPKcFcQh+WNtV5Sr9BiDMj+Bj
+	 pQj6OaAOFW31QuTnlT0YaXhwr2akplJ+e2mZJ43R0tinGjqvgS0VDr6AW6I52poJmYg==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795627798;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:Date:From:To:Cc:
+	 Subject:Message-ID:References:Content-Type:Content-Disposition:
+	 In-Reply-To:X-ClientProxiedBy:MIME-Version:X-MS-PublicTrafficType:
+	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
+	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
+	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
+	 X-Forefront-Antispam-Report:
+	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
+	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
+	 X-MS-Exchange-CrossTenant-UserPrincipalName:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=gtE1ORfttJBbVDCk2rU4kzSWC8bZM3qjD/p/ShxG7IQ=;
+	b=Rf7odWkTrys5+Ge3WCK2EFzSAV1ADl6KP91CPVOC1u1W/FtnoBHAEAo7wXWhrZjECuGH
+	 cJKzsE7wYvt6sSvlJxVpgql4A/BeoxhCiIAUrb77FYUF4TdD9qQS40NzFXl1q5yKafcth
+	 UQyPsIT0Mtjv7BlACMAsQv7gVsovdm4zV7IwLqQ6ic6MLSq8HTFlplNHuTDK/rMAW17pw
+	 rmpSeKeGnvvjSfxcJMe9laQ1aZq6utWBzbnhnB4qbAT1U4M1gotKnsGIdfXbG+k7yi7eT
+	 ALVODYtRMW9+c4FI71FQ2D9t6nbZ0dJEUqjq3u8vQt89ijxu90F7ZrlUdKzoj5DHaLw==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=nvidia.com;
+	spf=fail smtp.mailfrom=nvidia.com;
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=BgYpbJea;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.195.15
+Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11012015.outbound.protection.outlook.com [40.93.195.15])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8935606A323
-	for <nvdimm@lists.linux.dev>; Wed, 25 Nov 2026 17:16:56 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C8935606A323
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=a7snv.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=a7snv.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA853606A330;
+	Wed, 25 Nov 2026 17:29:57 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CA853606A330
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=a7snv.com header.i=@a7snv.com header.a=rsa-sha256 header.s=protonmail header.b=Isn+fec1
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=a7snv.com;
-	s=protonmail; t=1795627004; x=1795886204;
-	bh=306Y2BAJ0mk9ljp12eAtknlDVkrB39bi49HCqrOE2pE=;
-	h=Date:To:From:Cc:Subject:Message-ID:Feedback-ID:From:To:Cc:Date:
-	 Subject:Reply-To:Feedback-ID:Message-ID:BIMI-Selector;
-	b=Isn+fec1ecOxy1pHM8uYQ2tCVBhQsV3SY7qVL+OD6TT25GSpjBygkLsgXcAooSS/z
-	 f4TztsrhUXRHoYkbUDWzk/wrbiOCgFnPZ2aWMuDVIfaJvhypaK7JiWeFt2PHvIJkad
-	 zl6zmCNft9hgo+9H6dSp3r3d31vWneEExVaLfCv950INz1tUBSV1mw464DWNqU3p/y
-	 lpq7RNBIwC/hwanegqotjj68CdEsDhlwHHjDfipBcm2B/InGkFFeZYjtGOjUIxM5pE
-	 dmhet2534yuefhIkBSmvCHG5Zplu/DngDDKHbgeYvEIrDUQp0GJ8kxYzIEQa9Mn1W1
-	 A7UrtyIBBesPA==
-Date: Wed, 25 Nov 2026 17:16:25 +0000
-To: Mengmeng Zhao <mengmeng.zhao@linux.dev>
-From: Yun Wang <arsenova@a7snv.com>
-Cc: hch@lst.de, anuj1072538@gmail.com, anuj20.g@samsung.com, nj.shetty@samsung.com, axboe@kernel.dk, sumit.semwal@linaro.org, christian.koenig@amd.com, phasta@kernel.org, djbw@kernel.org, willy@infradead.org, jack@suse.cz, viro@zeniv.linux.org.uk, brauner@kernel.org, tytso@mit.edu, adilger.kernel@dilger.ca, libaokun@linux.alibaba.com, ojaswin@linux.ibm.com, ritesh.list@gmail.com, yi.zhang@huawei.com, asml.silence@gmail.com, corbet@lwn.net, skhan@linuxfoundation.org, rdunlap@infradead.org, liwang@kylinos.cn, zhaomengmeng@kylinos.cn, mcgrof@kernel.org, linux-block@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org, linux-doc@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org
-Subject: Re: [RFC PATCH v2 2/8] iomap: add dma-buf direct I/O guards
-Message-ID: <20261125171600.4053585-1-arsenova@a7snv.com>
-Feedback-ID: 235448903:user:proton
-X-Pm-Message-ID: 37ce9f54f53aabca1ce9dc5fb89af8077900c77a
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=BgYpbJea
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=XGv8ggejiKYgRA4XwsTymacWQ39bbQUHST68Bl4b+D855cbhD0+SM76FGtqkw/uEBgvr0Diq6czkq/U1hBs+jntAbNCa81KMU+V1sp7Wus2Khg6YbBk/9NCbc89LF20N8F4G6NHphoIibHajoYmzQO4Ez1cUyINdwt0XUuuAhyAC4Uv6i0QWisb2RmbdJFaFbvp9VUfvvAXFG3QGOarzKGR6ZMVGMeDgjwqoBD4uenQUH9Ijc/widgZTXNmcFsZcKlW9EK+ytGpDKQpaB3+t66nrsTeGCxEiNNWNPy4cpKHB9YEHFUFjBfeXSTNI2JieRrW6v8lbn0ndoVZweBwuHg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=gtE1ORfttJBbVDCk2rU4kzSWC8bZM3qjD/p/ShxG7IQ=;
+ b=L7McMASK1mUIcTk3hOiBE1eSm0Opyij8BXpuI8L1xfr4QYaGwo2AKVTLC3Z2O0t2vzHBPShnVDZMDI/CKws+tHVm+re1TQJaFAaEAKOg50VvKfl7trCsEIz3SbzZ7kGNE4DxvExVnf2AJ41dtD6SUQ4Xq1amIWscv/teKagIQ1wJpkSin1SHqnrIOeP2l7XgPBVZV9DPTvApBl7lOCVj8JGBfB6fh/2LoFFMZSxFyQX9M5ByZLsL6Uq745qwQNIC28qJ8bWfVXxOPyaXiuY2WB0coDfslcvd+3I/VcEAVN9eXtACHSgesal98xI1SgttWF3MrAAN0QMX3oTLR1fL7g==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=gtE1ORfttJBbVDCk2rU4kzSWC8bZM3qjD/p/ShxG7IQ=;
+ b=BgYpbJea/YbiFFCZEzOo8FWTJ9qPRWfxAA9ZGBLGhBAAI8CVXdn5P2QftclCa74HmxwRqwzR22aMHjpRSfZ3+2731EcG2pk1H+G7XqjGBYsHiD9fMQBSWiK25gvee5hE8PibETajrBS8MZFeNMa8CKgcatA/PZ/fR/5w0R3e6JXzSMWpSAbViL9MqwdJudK2bI1E9oTg3RByg3Fjfh/cNstV3r1aHQSt4oT5HX4wTHR9Ez2xGfuMUvZxPv+Vg9nVNm121XDPiY0A5Opc2kK2ilEXAlMeyE80Dw8UotYrFXr3KWx3dfw/g8LeW2B3VRqaS8OHK1tRuNYOFgJYBvM6sQ==
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from SN6PR12MB2814.namprd12.prod.outlook.com (2603:10b6:805:72::33)
+ by CY8PR12MB8314.namprd12.prod.outlook.com (2603:10b6:930:7b::6) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.639.14; Wed, 25 Nov
+ 2026 17:29:49 +0000
+Received: from SN6PR12MB2814.namprd12.prod.outlook.com
+ ([fe80::9a18:413c:9702:8f59]) by SN6PR12MB2814.namprd12.prod.outlook.com
+ ([fe80::9a18:413c:9702:8f59%6]) with mapi id 15.21.0639.012; Wed, 25 Nov 2026
+ 17:29:47 +0000
+Date: Wed, 25 Nov 2026 12:29:46 -0500
+From: Yury Norov <ynorov@nvidia.com>
+To: "Gregory Price (Meta)" <gourry@gourry.net>
+Cc: Yury Norov <yury.norov@gmail.com>,
+	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+	David Hildenbrand <david@kernel.org>,
+	"Liam R. Howlett" <liam@infradead.org>,
+	Vlastimil Babka <vbabka@kernel.org>,
+	Mike Rapoport <rppt@kernel.org>, Michal Hocko <mhocko@suse.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Oscar Salvador <osalvador@suse.de>,
+	Johannes Weiner <hannes@cmpxchg.org>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Brendan Jackman <brendan.jackman@linux.dev>,
+	Zi Yan <ziy@nvidia.com>, Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>, Johan Hovold <johan@kernel.org>,
+	Joshua Hahn <joshua.hahnjy@gmail.com>, Rakie Kim <rakie.kim@sk.com>,
+	Ying Huang <ying.huang@linux.alibaba.com>,
+	Matthew Brost <matthew.brost@intel.com>,
+	Byungchul Park <byungchul@sk.com>,
+	Alistair Popple <apopple@nvidia.com>, SJ Park <sj@kernel.org>,
+	Ingo Molnar <mingo@redhat.com>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Juri Lelli <juri.lelli@redhat.com>,
+	Vincent Guittot <vincent.guittot@linaro.org>,
+	Dietmar Eggemann <dietmar.eggemann@arm.com>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>,
+	Valentin Schneider <vschneid@redhat.com>,
+	K Prateek Nayak <kprateek.nayak@amd.com>,
+	Kees Cook <kees@kernel.org>, Kairui Song <kasong@tencent.com>,
+	Barry Song <baohua@kernel.org>, Qi Zheng <qi.zheng@linux.dev>,
+	Shakeel Butt <shakeel.butt@linux.dev>,
+	Axel Rasmussen <axelrasmussen@google.com>,
+	Yuanchu Xie <yuanchu@google.com>, Wei Xu <weixugc@google.com>,
+	Baoquan He <baoquan.he@linux.dev>,
+	Baolin Wang <baolin.wang@linux.alibaba.com>,
+	Michal Hocko <mhocko@kernel.org>,
+	David Rientjes <rientjes@google.com>,
+	Pavel Machek <pavel@kernel.org>, Len Brown <lenb@kernel.org>,
+	Nico Pache <nico.pache@linux.dev>,
+	Ryan Roberts <ryan.roberts@arm.com>, Dev Jain <dev.jain@arm.com>,
+	Lance Yang <lance.yang@linux.dev>,
+	Usama Arif <usama.arif@linux.dev>, Kiryl Shutsemau <kas@kernel.org>,
+	Xu Xin <xu.xin@linux.dev>,
+	Chengming Zhou <chengming.zhou@linux.dev>,
+	Lorenzo Stoakes <ljs@kernel.org>, Pedro Falcato <pfalcato@suse.de>,
+	Jann Horn <jannh@google.com>, Chris Li <chrisl@kernel.org>,
+	Kemeng Shi <shikemeng@huaweicloud.com>,
+	Nhat Pham <nphamcs@gmail.com>,
+	Youngjun Park <youngjun.park@lge.com>,
+	"Matthew Wilcox (Oracle)" <willy@infradead.org>,
+	Jan Kara <jack@suse.cz>, Waiman Long <longman@redhat.com>,
+	Ridong Chen <ridong.chen@linux.dev>, Tejun Heo <tj@kernel.org>,
+	Michal =?iso-8859-1?Q?Koutn=FD?= <mkoutny@suse.com>,
+	Dan Williams <djbw@kernel.org>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Shuah Khan <shuah@kernel.org>, linux-kernel@vger.kernel.org,
+	linux-mm@kvack.org, linux-cxl@vger.kernel.org,
+	linux-doc@vger.kernel.org, driver-core@lists.linux.dev,
+	damon@lists.linux.dev, linux-pm@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, cgroups@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-kselftest@vger.kernel.org
+Subject: Re: [PATCH 00/60] Private NUMA nodes
+Message-ID: <awcbCkFUNfBp3ANM@yury>
+References: <20261120-private_nodes_v6-v1-0-74f5f9a115c2@gourry.net>
+ <awMdeK8O-5mffg2m@yury>
+ <179537469194.412063.13456998694958645706.b4-reply@b4>
+ <awNavE8dAGr-amfQ@yury>
+ <179542121527.412063.3452837736734095837.b4-reply@b4>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <179542121527.412063.3452837736734095837.b4-reply@b4>
+X-ClientProxiedBy: MN0PR04CA0019.namprd04.prod.outlook.com
+ (2603:10b6:208:52d::33) To SN6PR12MB2814.namprd12.prod.outlook.com
+ (2603:10b6:805:72::33)
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Post: <mailto:nvdimm@lists.linux.dev>
@@ -61,387 +163,207 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 List-Owner: <mailto:nvdimm+owner@lists.linux.dev>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SN6PR12MB2814:EE_|CY8PR12MB8314:EE_
+X-MS-Office365-Filtering-Correlation-Id: b5d88457-3d2b-4b10-0448-08df4b19b3e5
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|366016|1800799024|376014|7416014|23010399003|10070799003|261009223027099003|22082099003|10067099003|18002099003|6133799003|261028144727099003|261026140227099003|261021123027099003|261102123227099003|261022105027099003|261022075727099003|261021121427099003|261026121527099003|4143699003|56012099006|5023799004|11063799006;
+X-Microsoft-Antispam-Message-Info:
+	S6a7ir1CjBjuN1oV+qaB35nNB4bQGn5y/wfHeFzO4FdU0Ur+JtBtCwKtb05ZDx4TsmyJ7AZCB4neEi96R+tWIJ/vBRRJqmwzBN2EynZNaUXfjL2lQL8YfHQ+N7c7+BTWXC6kaSRNjbw9rltkecIxW66pAmiNs4HckJfh+mMI+ybrywCiWzomYg8BY23U1IhsQwIJldYP9UPHRv/VtjujSDL9EK/l2Ov6HXWKXEl32IOHcXjCE3DTbxyPlntX0P9KTmcG0mS1bhFZquxoNz8T+Tpdcb0bsB0Twwn71THBuWTDNKB2t8Xvvxd3HQQv4GGq9vEau9z45W6RogYZ40BKRo9ay9PbDtAw3OTBNsEPD+Kt4xrIE+44MuschiBtQZJDqiS9eOvOKttEHDBG7XG+AzeDp8ta5cMyj3j7eb0qQuoUzl1DofDGnML9M0dm3aQiWwvgg0mlYPelqgWFsxt+UPZx64nqsYOWrZfsoa20WbdXUcQajmuyaOAOUEryE8lyS9aVtMBx1Amdl5tmX4d18IJs5tX8Jczw77t+I5tVc0sAaslUw89bmF+yFasSujac/87ggGXVE/u6aI22ynHtdssBBlIPBuJ+zgcA/ShWUzJ7UgU8D5hFaqgONzoJ0TbKcYyiL1TsX9fpKwnm/xpe9mU5fYNYuibSpYeVzbTXl54=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SN6PR12MB2814.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(376014)(7416014)(23010399003)(10070799003)(261009223027099003)(22082099003)(10067099003)(18002099003)(6133799003)(261028144727099003)(261026140227099003)(261021123027099003)(261102123227099003)(261022105027099003)(261022075727099003)(261021121427099003)(261026121527099003)(4143699003)(56012099006)(5023799004)(11063799006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?wJ3WfKdNOzaNDTQKLpLp26qyY/Yenu41z+NJ6qCYXXXBOYbXGa/jxipQYAfi?=
+ =?us-ascii?Q?/RH8t+w7BabiOqko9r+QLr/z+Ez9mPVfX4EIjxEHrCNtPq5PZs1oBphPV9U7?=
+ =?us-ascii?Q?CQNmDqYaNLkXZg1xKQZLOqPVlJ5m9VMLe9i6w6XfwqJkkRtzXNK+dn6fgeKP?=
+ =?us-ascii?Q?P0Nwy8FmrVad4YE7kA4Sqv+QMuPbPQgpzveFino/VDckdPK8pNVvHOMdvbZ3?=
+ =?us-ascii?Q?h/X9SBqmnZiE+bz3M79jT+2ghYXm9YYRtf9GbFvy/oHBT3M+iD4nYAS61Ipz?=
+ =?us-ascii?Q?Vwmuq0MzWckFxQ3NuxzDHpTIj5Pgq45z7BWa/QqFqfHhkDsehlv4LIXVPjYW?=
+ =?us-ascii?Q?JsS4C37Ij2qz01fDj8iG82aNaE8rDKWZ7vU1mPoxpMy50RA3HDIYKo1pSn4v?=
+ =?us-ascii?Q?dCP+FfyA1F5azHHZQ3LvRhlqFmOzWSnulSaEanj1X5qJLIn+054rCPsiu8RM?=
+ =?us-ascii?Q?ytlzQV4iX5tYQj2w294ILZRx6YRi2sDjXsWWuasx5BRz0ypR+suDkt0/dKWD?=
+ =?us-ascii?Q?u/GaGp8u4frIavMByyr9k8dlokzbB9IyuUovDsyPWZuZn5sd6Klg/LkbrjHQ?=
+ =?us-ascii?Q?Bs2qIVANsHj02VgTpUAVzD2M1/anddkxOAp3jLLg3nZ/t/qkKuh+Eaznm1Ur?=
+ =?us-ascii?Q?L/E1knY8HOHIwj+/MV3UutdLSMoXXEKXoFqcLdNG1CFDpAefKvlGFoNlo5wu?=
+ =?us-ascii?Q?LjHrpQBCJJPDtAARgUfx6gD9AlWUim5xzzP382LRfDFuakQjfP1QQ0/lMEXF?=
+ =?us-ascii?Q?ylU/f5ZGFnrdQxvNaXl3npHrllQ7BDuZ+R2CgEnnv6lUyUEiEOGJqnp1TZoF?=
+ =?us-ascii?Q?3qRxEWEG3isJq4qcX2gjorAXBdrHHjnnmCdHP0VpYoP/6fHWeh5LE1XgmCXe?=
+ =?us-ascii?Q?dE8ShDfs+oSTGiGV22Kcc6gqpWK6IZ2oQOjogV7MtJ5TNsrntnA0JVH+VblA?=
+ =?us-ascii?Q?5QeLB0bbabhQ8VAT5pORPKImriLvQ3uFWmnfCjnWziI1HpxL07aofgVVnYTS?=
+ =?us-ascii?Q?k8luCkMAuRgJttOyyzUnUplEn8OmVHljRl314SkGzcUdjJ/P9F0ammXh2mEs?=
+ =?us-ascii?Q?tUEsS6EQhcClN3n1RQMBLwa5XrycrZ77taqdkPLvUc1vf+lgDXSSmzfEAo8K?=
+ =?us-ascii?Q?7FfHaEo0Jh6ncaJ1Q+tISamzveSmdWc2mSWtHzUfw3kcw9fh2m8jqJJJ0cQ3?=
+ =?us-ascii?Q?ORJAECzM0aT15DMaSnsUH8J+yiAgeQNpHRMuNN6385sZtjjSrQyAPm2zRBAW?=
+ =?us-ascii?Q?hKCULe+SSWU5Ygz+Dkfbe5yo8F/Wa8G/qe+3IOhT0lHnzJYP+3qQGEXBfouv?=
+ =?us-ascii?Q?Ry2LMabSh7zQWGy7RUGSHHyZ04hiCWNomg7FIVjNZZFjp4ZXdY/aPlpRG5hF?=
+ =?us-ascii?Q?QlIQaLc14KU7Q3g+gJ/pr3429+aveCP04a0JXHpS5KiDVHgo5YPvo4eWG7Aw?=
+ =?us-ascii?Q?i/DA5XxjSMM5dgsEURsA7Y7Uja1e5071wRM9ed7K16ych/IsNYzwSBkSYZNP?=
+ =?us-ascii?Q?Pt9P+g6vSvfh4Sl5Sn4cue8q7zNvnn1y/jEHZltnoYDnkrnNDSR6CJZ9Xpiz?=
+ =?us-ascii?Q?tv7lU0gcXzMMwzw1iZEK+w0Q2cnqTRNKskhAacQGZZsuxDZwTuzc4eLW8hgt?=
+ =?us-ascii?Q?HZduGXrRI7Ma4uTyelrPof9+w6vlHs9ubCMAH+Bo9/q9++Ok7ZRe+Xv1LpsV?=
+ =?us-ascii?Q?x+Mt5QY6t1EFtryt8qabgPseHjTTDnKfXf36m0iWfI6+BwqGWCfDkbsoCYwF?=
+ =?us-ascii?Q?/1glgq5ypjqNx5oa7HwOAsuTSob5JSK6S7C2pf7FVIPhwaLihmAH?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: b5d88457-3d2b-4b10-0448-08df4b19b3e5
+X-MS-Exchange-CrossTenant-AuthSource: SN6PR12MB2814.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Nov 2026 17:29:47.6685
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: efay+3I/SGVXTOgozIoQvNMiu2Rw1tWrsU7vICz6j0zKlJYopkRTzZVUnSP4yfoxaqwvwfqxWbP5Xb5vM51/SA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY8PR12MB8314
 
-On Fri, Nov 13, 2026 at 03:06:15PM +0800, Mengmeng Zhao wrote:
->  static int iomap_dio_hole_iter(struct iomap_iter *iter, struct iomap_dio=
- *dio)
->  {
-> -=09loff_t copied =3D iov_iter_zero(iomap_length(iter), dio->submit.iter)=
-;
-> +=09loff_t copied;
-> +
-> +=09/* zero-filling walks the data pages */
-> +=09if (iov_iter_is_dmabuf_map(dio->submit.iter))
-> +=09=09return -EOPNOTSUPP;
+On Mon, Nov 23, 2026 at 03:06:55AM -0500, Gregory Price (Meta) wrote:
+> On 2026-11-22 16:12 -0500, Yury Norov wrote:
+> > On Sun, Nov 22, 2026 at 02:11:31PM -0500, Gregory Price (Meta) wrote:
+> > > On 2026-11-22 11:51 -0500, Yury Norov wrote:
+> > > > On Fri, Nov 20, 2026 at 01:08:51PM -0500, Gregory Price via B4 Relay wrote:
+> > > > > This is v6 of the Private NUMA node series. The series falls into four
+> > > > > parts, each building on the one before:
+> > > > > 
+> > > > >    1-18  mm: introduce N_MEMORY_COMMON
+> > > > 
+> > > > I walked through this part, mostly. It looks like you can substantially
+> > > > decrease the patch count if you keep N_MEMORY meaning unchanged, and
+> > > > add another type, like N_MEMORY_NOALLOC.
+> > > > 
+> > > 
+> > > I don't see how this would reduce the patch count substatially, you
+> > > still need to convert existing N_MEMORY users and need to differentiate
+> > > between general purpose memory nodes and private memory nodes.
+> > 
+> > Please check this quick attempt with my codex. The patch count is reduced
+> > to 52:
+> > 
+> > https://github.com/norov/linux/tree/private-nodes-v6-n-memory-folded
+> > 
+> ... snip ...
+> 
+> Patch count is not what we want to be optimizing for here.
+> 
+> Your branch carries the same code (+3 lines net actually).
 
-This also fails reads that run past EOF.  The filesystem maps the range
-beyond the last block as a hole too, so a dma-buf read that starts
-before EOF and ends past the last block of the file fails as a whole,
-while the same O_DIRECT read into user memory returns the bytes up to
-EOF.
+Line count is neither the metrics.
+ 
+> The patch reduction comes from squashing the per-subsystem conversions
+> into one 16-file commit.
 
-I found it while testing the series for fastsafetensors' dma-buf copier
-[1], which loads model weights from NVMe into GPU memory with READ_FIXED
-into registered dma-bufs.  I ran v2 on top of v7.4-rc2 in a QEMU guest
-with an emulated NVMe namespace, reading into udmabufs.  With a
-5000-byte file on ext4 with 4 KiB blocks, reading [4096, 12288):
+No, and I mentioned that.
 
-  READ_FIXED into a registered udmabuf -> -EOPNOTSUPP
-  O_DIRECT pread() into user memory    -> 904
+> It also broke get_mempolicy(MPOL_F_MEMS_ALLOWED) - it now returns
+> memoryless nodes even if the system doesn't have a private node.
+>
+> > The more important thing is that N_MEMORY and the proposed N_MEMORY_NOALLOC
+> > is a disjoint, contrary to N_MEMORY and N_MEMORY_COMMON.
+> 
+> The proposal here is not novel - version 5 was also disjoint:
+> https://lore.kernel.org/linux-mm/20260720193431.3841992-5-gourry@gourry.net/
 
-It fails the same way whether the read is the first one on the buffer,
-is issued inline once the map exists, or is forced to io-wq with
-IOSQE_ASYNC.
+Alright, this is the important piece of information, and it's not
+highlighted in the cover letter at all.
 
-Reading a file in fixed-size chunks hits this on the last chunk unless
-the file size is a multiple of the chunk size.  With 1 KiB blocks it
-also breaks the copier's normal pattern, 4 KiB-aligned reads up to
-round_up(i_size, 4096): the last read fails.
+For the next iteration, please use the [PATCH v7] tag to highlight that
+there's some history and background for the current design.
 
-Nothing past EOF is reported to the caller anyway: __iomap_dio_rw()
-reverts the iterator to i_size and iomap_dio_complete() truncates the
-result to it.  So a hole that starts at or after EOF can be stepped
-over; a hole inside the file still needs zeroes and still fails.
-Something like this on top of the series, or folded into this patch:
+The cover letter is wordy enough to exceed my ability to perceive the 
+plain text, TBH. I followed it to, maybe, a MODEL section, and then
+switched to the actual code. I don't think I'm alone here.
 
-diff --git a/fs/iomap/direct-io.c b/fs/iomap/direct-io.c
-index 83fda6973bb9..2de6d379f811 100644
---- a/fs/iomap/direct-io.c
-+++ b/fs/iomap/direct-io.c
-@@ -596,9 +596,20 @@ static int iomap_dio_hole_iter(struct iomap_iter *iter=
-, struct iomap_dio *dio)
- {
- =09loff_t copied;
-=20
--=09/* zero-filling walks the data pages */
--=09if (iov_iter_is_dmabuf_map(dio->submit.iter))
--=09=09return -EOPNOTSUPP;
-+=09if (iov_iter_is_dmabuf_map(dio->submit.iter)) {
-+=09=09u64 length =3D iomap_length(iter);
-+
-+=09=09/* zero-filling walks the data pages */
-+=09=09if (iter->pos < dio->i_size)
-+=09=09=09return -EOPNOTSUPP;
-+=09=09/*
-+=09=09 * Past EOF there is nothing to zero: the read is truncated to
-+=09=09 * i_size before it is reported, so step over the hole.
-+=09=09 */
-+=09=09iov_iter_advance(dio->submit.iter, length);
-+=09=09dio->size +=3D length;
-+=09=09return iomap_iter_advance(iter, length);
-+=09}
-=20
- =09copied =3D iov_iter_zero(iomap_length(iter), dio->submit.iter);
-=20
+Can you please structure it so the really important things will be
+mentioned in the first ~20 lines, and please provide links to the
+previous iterations.
+ 
+>    N_MEMORY and N_MEMORY_PRIVATE are mutually exclusive states.
+> 
+> I moved away from that because it changes the definition of N_MEMORY.
+> 
+> The subset model is easy to understand
+> 
+> N_MEMORY               - a node has memory
+>  -> N_HIGH_MEMORY      - subset of N_MEMORY
+>  -> N_NORMAL_MEMORY    - subset of N_MEMORY
+>  -> N_MEMORY_COMMON    - subset of N_MEMORY
+>  -> N_MEMORY_PRIVATE   - subset of N_MEMORY
+>                          (COMMON and PRIVATE partition N_MEMORY)
+>  -> N_MEMORY_<FEATURE> - subset of N_MEMORY
+>                          all N_MEMORY_COMMON
+> 			 some N_MEMORY_PRIVATE
+> 
+> It's additive. Users pick the set of nodes they want for their purpose
+> and don't have to cobble sets together or remember special helpers.
+> Users don't even need to know about private nodes most of the time
+> (mempolicy being the one major exception here).
 
-Signed-off-by: Yun Wang <arsenova@a7snv.com>
+Do you support private nodes for HIGH_MEMORY? 
 
-With it, the read above returns 904 with the right data in all three
-cases.  Holes and unwritten extents inside the file still return
--EOPNOTSUPP, including a hole that straddles EOF after the file was
-extended with ftruncate().
+If yes, it would look like:
 
-The rest of the series behaved as the cover letter describes in that
-setup, with 4 KiB and 1 KiB blocks: registration on an O_DIRECT file,
-reads into arbitrary offsets of the buffer, reads through a dup()ed fd,
--EBADF through another file's slot, -EINVAL when registering a buffered
-fd, -EOPNOTSUPP after F_SETFL clears O_DIRECT and success again once it
-is set back, WRITE_FIXED including a write that extends the file, and a
-clean e2fsck afterwards.  I have not run it on real NVMe hardware or
-xfstests yet.
+N_MEMORY
+ -> N_HIGH_MEMORY
+    -> N_NORMAL_MEMORY
+ -> N_MEMORY_COMMON
+ -> N_MEMORY_PRIVATE
 
-This report and the reproducer below were drafted with the help of an
-AI coding assistant (Claude Opus 5.5); the fix is mine.
+If no, I'd organize it like:
 
-[1] https://github.com/foundation-model-stack/fastsafetensors/issues/139
+N_MEMORY
+ -> N_HIGH_MEMORY
+    -> N_NORMAL_MEMORY
+       -> N_MEMORY_COMMON
+       -> N_MEMORY_PRIVATE
 
-Thanks,
-Yun
+Does it mean that COMMON and PRIVATE is a disjoint in this model(s)?
+If so, the COMMON is excessive. If not, can a node be COMMON and
+PRIVATE at the same time? What would it mean?
 
-Reproducer.  It needs /dev/udmabuf and a filesystem with this series
-on an NVMe namespace:
+I didn't understand the N_MEMORY_<FEATURE> passage. Can you please
+elaborate on the 'all this, some that' part?
 
-  head -c 5000 /dev/urandom > /mnt/f && sync
-  ./dmabuf_eof_read /mnt/f 4096 8192             # first read on the buffer
-  ./dmabuf_eof_read /mnt/f 4096 8192 warm        # map exists, inline issue
-  ./dmabuf_eof_read /mnt/f 4096 8192 warm async  # IOSQE_ASYNC
+> In the disjoint model, N_MEMORY no longer means "has memory". Recovering
+> that set requires new helpers, and the meaning changes silently for
+> every in-tree and out-of-tree user. Anything that wanted "has memory"
+> quietly misses private nodes.
+> 
+> Either way you have to audit each N_MEMORY reference and decide whether
+> it wants that state or a feature variant (N_MEMORY_RECLAIM, COMPACTION).
+> 
+> The difference is how a missed site fails. In the joint model the
+> zonelist and the common-memory folio checks backstop allocation and
+> access, so a missed placement site costs some additional work.
+>
+> In the disjoint model a missed site silently drops a node from stats
+> and accounting - or worse fails to allocate per-node meta data.
+> 
+> So no, I do not think we should go back to the disjoint model.
 
-// SPDX-License-Identifier: GPL-2.0
-/*
- * Read a file range into a udmabuf that is registered against the file as
- * an io_uring fixed buffer, and compare with an O_DIRECT pread() of the
- * same range into user memory.
- *
- *   dmabuf_eof_read <file> <offset> <length> [warm] [async]
- *
- *   warm   first read [0, 4096) through the same buffer, so the dma-buf ma=
-p
- *          exists and the measured read can be issued inline (nonblocking)
- *   async  set IOSQE_ASYNC on the measured read (issue it from io-wq)
- *
- * Exits 0 when READ_FIXED returns what pread() returns and the bytes match=
-.
- * Needs /dev/udmabuf, and a kernel and filesystem with io_uring dma-buf
- * registered buffers.  The UAPI bits are declared locally because they are
- * newer than most installed headers.
- */
-#define _GNU_SOURCE
-#include <errno.h>
-#include <fcntl.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/ioctl.h>
-#include <sys/mman.h>
-#include <sys/syscall.h>
-#include <unistd.h>
-#include <linux/udmabuf.h>
+You already did that analysis I was looking for, but discussed it only
+in reply to my question... In v7 please wrap the design decision up in
+the cover letter.
 
-#define IORING_OFF_SQ_RING=09=090ULL
-#define IORING_OFF_SQES=09=09=090x10000000ULL
-#define IORING_ENTER_GETEVENTS=09=09(1U << 0)
-#define IORING_REGISTER_BUFFERS2=0915
-#define IORING_REGISTER_BUFFERS_UPDATE=0916
-#define IORING_RSRC_REGISTER_SPARSE=09(1U << 0)
-#define IORING_RSRC_UPDATE_EXTENDED=09(1U << 1)
-#define IO_REGBUF_TYPE_DMABUF=09=092
-#define IORING_OP_READ_FIXED=09=094
-#define IOSQE_ASYNC=09=09=09(1U << 4)
+I feel convinced, despite that hierarchical approach seemingly
+requires to touch more subsystems. But I would like to get feedback
+from those followed v5 and earlier discussions.  
+ 
+> > > and n_memory_noalloc is not a good name.
+> > 
+> > sure, i'm not attached to any particular name. although,
+> > n_memory_common nothing better to me. it answers the question
+> > 'what for this thing' even worse.
+> > 
+> 
+> happy to wordsmith the names here.
+> 
+> N_MEMORY_GENERAL? _DEFAULT?  _COMMON felt intuitive but I am happy
+> to rename it whatever.
 
-struct sqe {
-=09uint8_t opcode, flags;
-=09uint16_t ioprio;
-=09int32_t fd;
-=09uint64_t off, addr;
-=09uint32_t len, rw_flags;
-=09uint64_t user_data;
-=09uint16_t buf_index, personality;
-=09int32_t splice_fd_in;
-=09uint64_t addr3, pad2;
-};
+If common and private is a disjoint, you need a single flag to cover
+both states. Or I miss something on it?
 
-struct cqe {
-=09uint64_t user_data;
-=09int32_t res;
-=09uint32_t flags;
-};
-
-struct sq_offsets {
-=09uint32_t head, tail, ring_mask, ring_entries, flags, dropped, array, res=
-v1;
-=09uint64_t user_addr;
-};
-
-struct cq_offsets {
-=09uint32_t head, tail, ring_mask, ring_entries, overflow, cqes, flags, res=
-v1;
-=09uint64_t user_addr;
-};
-
-struct params {
-=09uint32_t sq_entries, cq_entries, flags, sq_thread_cpu, sq_thread_idle;
-=09uint32_t features, wq_fd, resv[3];
-=09struct sq_offsets sq_off;
-=09struct cq_offsets cq_off;
-};
-
-struct rsrc_register {
-=09uint32_t nr, flags;
-=09uint64_t resv2, data, tags;
-};
-
-struct rsrc_update2 {
-=09uint32_t offset, flags;
-=09uint64_t data, tags;
-=09uint32_t nr, resv2;
-};
-
-struct regbuf_desc {
-=09uint32_t type, flags;
-=09uint64_t size, uaddr;
-=09int32_t dmabuf_fd, target_fd;
-=09uint64_t resv[6];
-};
-
-_Static_assert(sizeof(struct sqe) =3D=3D 64, "io_uring_sqe");
-_Static_assert(sizeof(struct cqe) =3D=3D 16, "io_uring_cqe");
-_Static_assert(sizeof(struct params) =3D=3D 120, "io_uring_params");
-_Static_assert(sizeof(struct rsrc_register) =3D=3D 32, "io_uring_rsrc_regis=
-ter");
-_Static_assert(sizeof(struct rsrc_update2) =3D=3D 32, "io_uring_rsrc_update=
-2");
-_Static_assert(sizeof(struct regbuf_desc) =3D=3D 80, "io_uring_regbuf_desc"=
-);
-
-struct ring {
-=09int fd;
-=09struct params p;
-=09char *rings;
-=09struct sqe *sqes;
-};
-
-static void die(const char *what)
-{
-=09perror(what);
-=09exit(2);
-}
-
-static void ring_init(struct ring *r)
-{
-=09size_t sq_size, cq_size;
-
-=09memset(r, 0, sizeof(*r));
-=09r->fd =3D syscall(SYS_io_uring_setup, 4, &r->p);
-=09if (r->fd < 0)
-=09=09die("io_uring_setup");
-=09sq_size =3D r->p.sq_off.array + r->p.sq_entries * sizeof(uint32_t);
-=09cq_size =3D r->p.cq_off.cqes + r->p.cq_entries * sizeof(struct cqe);
-=09/* SQ and CQ rings share one mapping (IORING_FEAT_SINGLE_MMAP) */
-=09r->rings =3D mmap(NULL, sq_size > cq_size ? sq_size : cq_size,
-=09=09=09PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE, r->fd,
-=09=09=09IORING_OFF_SQ_RING);
-=09r->sqes =3D mmap(NULL, r->p.sq_entries * sizeof(struct sqe),
-=09=09       PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE, r->fd,
-=09=09       IORING_OFF_SQES);
-=09if (r->rings =3D=3D MAP_FAILED || r->sqes =3D=3D MAP_FAILED)
-=09=09die("mmap ring");
-}
-
-/* one READ_FIXED from slot 0; addr is the byte offset into the dma-buf */
-static int read_fixed(struct ring *r, int fd, off_t off, size_t len,
-=09=09      uint64_t buf_off, uint8_t sqe_flags)
-{
-=09uint32_t *sq_tail =3D (uint32_t *)(r->rings + r->p.sq_off.tail);
-=09uint32_t sq_mask =3D *(uint32_t *)(r->rings + r->p.sq_off.ring_mask);
-=09uint32_t *sq_array =3D (uint32_t *)(r->rings + r->p.sq_off.array);
-=09uint32_t *cq_head =3D (uint32_t *)(r->rings + r->p.cq_off.head);
-=09uint32_t *cq_tail =3D (uint32_t *)(r->rings + r->p.cq_off.tail);
-=09uint32_t cq_mask =3D *(uint32_t *)(r->rings + r->p.cq_off.ring_mask);
-=09uint32_t tail =3D *sq_tail, idx =3D tail & sq_mask, head;
-=09struct cqe *cqe;
-=09int res;
-
-=09memset(&r->sqes[idx], 0, sizeof(struct sqe));
-=09r->sqes[idx].opcode =3D IORING_OP_READ_FIXED;
-=09r->sqes[idx].flags =3D sqe_flags;
-=09r->sqes[idx].fd =3D fd;
-=09r->sqes[idx].off =3D off;
-=09r->sqes[idx].addr =3D buf_off;
-=09r->sqes[idx].len =3D len;
-=09r->sqes[idx].buf_index =3D 0;
-=09sq_array[idx] =3D idx;
-=09__atomic_store_n(sq_tail, tail + 1, __ATOMIC_RELEASE);
-=09if (syscall(SYS_io_uring_enter, r->fd, 1, 1, IORING_ENTER_GETEVENTS,
-=09=09    NULL, 0) < 0)
-=09=09die("io_uring_enter");
-=09head =3D *cq_head;
-=09if (head =3D=3D __atomic_load_n(cq_tail, __ATOMIC_ACQUIRE)) {
-=09=09fprintf(stderr, "no completion\n");
-=09=09exit(2);
-=09}
-=09cqe =3D (struct cqe *)(r->rings + r->p.cq_off.cqes) + (head & cq_mask);
-=09res =3D cqe->res;
-=09__atomic_store_n(cq_head, head + 1, __ATOMIC_RELEASE);
-=09return res;
-}
-
-int main(int argc, char **argv)
-{
-=09struct rsrc_register reg =3D { .nr =3D 1, .flags =3D IORING_RSRC_REGISTE=
-R_SPARSE };
-=09struct regbuf_desc desc =3D { .type =3D IO_REGBUF_TYPE_DMABUF };
-=09struct rsrc_update2 up =3D { .flags =3D IORING_RSRC_UPDATE_EXTENDED, .nr=
- =3D 1 };
-=09struct udmabuf_create create =3D { .flags =3D UDMABUF_FLAGS_CLOEXEC };
-=09int fd, ufd, memfd, dmabuf, res, warm =3D 0, async =3D 0, i;
-=09unsigned char *view, *host;
-=09size_t length, size;
-=09ssize_t expect;
-=09struct ring r;
-=09off_t offset;
-
-=09if (argc < 4) {
-=09=09fprintf(stderr, "usage: %s <file> <offset> <length> [warm] [async]\n"=
-,
-=09=09=09argv[0]);
-=09=09return 2;
-=09}
-=09for (i =3D 4; i < argc; i++) {
-=09=09if (!strcmp(argv[i], "warm"))
-=09=09=09warm =3D 1;
-=09=09else if (!strcmp(argv[i], "async"))
-=09=09=09async =3D 1;
-=09}
-=09offset =3D strtoll(argv[2], NULL, 0);
-=09length =3D strtoull(argv[3], NULL, 0);
-=09size =3D (length + 4095) & ~4095UL;
-=09if (size < 4096)
-=09=09size =3D 4096;
-
-=09fd =3D open(argv[1], O_RDONLY | O_DIRECT);
-=09if (fd < 0)
-=09=09die("open");
-
-=09/* the reference: the same range read into user memory */
-=09if (posix_memalign((void **)&host, 4096, size))
-=09=09die("posix_memalign");
-=09expect =3D pread(fd, host, length, offset);
-=09if (expect < 0)
-=09=09die("pread");
-
-=09/* a udmabuf over a sealed memfd */
-=09memfd =3D memfd_create("dmabuf-eof", MFD_ALLOW_SEALING);
-=09if (memfd < 0 || ftruncate(memfd, size) ||
-=09    fcntl(memfd, F_ADD_SEALS, F_SEAL_SHRINK))
-=09=09die("memfd");
-=09view =3D mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, memfd, 0);
-=09if (view =3D=3D MAP_FAILED)
-=09=09die("mmap memfd");
-=09ufd =3D open("/dev/udmabuf", O_RDWR);
-=09if (ufd < 0)
-=09=09die("open /dev/udmabuf");
-=09create.memfd =3D memfd;
-=09create.size =3D size;
-=09dmabuf =3D ioctl(ufd, UDMABUF_CREATE, &create);
-=09if (dmabuf < 0)
-=09=09die("UDMABUF_CREATE");
-
-=09/* a ring with one sparse buffer slot holding the dma-buf */
-=09ring_init(&r);
-=09if (syscall(SYS_io_uring_register, r.fd, IORING_REGISTER_BUFFERS2, &reg,
-=09=09    sizeof(reg)) < 0)
-=09=09die("IORING_REGISTER_BUFFERS2");
-=09desc.dmabuf_fd =3D dmabuf;
-=09desc.target_fd =3D fd;
-=09up.data =3D (uint64_t)(uintptr_t)&desc;
-=09if (syscall(SYS_io_uring_register, r.fd, IORING_REGISTER_BUFFERS_UPDATE,
-=09=09    &up, sizeof(up)) < 0)
-=09=09die("register dma-buf");
-
-=09if (warm) {
-=09=09res =3D read_fixed(&r, fd, 0, 4096, 0, 0);
-=09=09if (res !=3D 4096) {
-=09=09=09fprintf(stderr, "warm-up read returned %d\n", res);
-=09=09=09return 2;
-=09=09}
-=09}
-=09memset(view, 0xa5, size);
-=09res =3D read_fixed(&r, fd, offset, length, 0, async ? IOSQE_ASYNC : 0);
-
-=09printf("READ_FIXED into dma-buf (%s, %s): %d%s%s, O_DIRECT pread(): %zd\=
-n",
-=09       warm ? "map ready" : "first read", async ? "IOSQE_ASYNC" : "inlin=
-e",
-=09       res, res < 0 ? " " : "", res < 0 ? strerror(-res) : "", expect);
-=09if (res !=3D expect)
-=09=09return 1;
-=09if (res > 0 && memcmp(view, host, res)) {
-=09=09printf("data differs\n");
-=09=09return 1;
-=09}
-=09return 0;
-}
-
+Also, it looks like the 'COMMON' memory is one that available to MM
+allocator and other API. Maybe N_MEMORY_MM then, if you still need the
+name?
